@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "SNES",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "E:/ProyectoSNES/tools/pvsneslib/pvsneslib/include"
+            ],
+            "defines": [
+                "__snes__"
+            ],
+            "compilerPath": "E:/ProyectoSNES/tools/pvsneslib/devkitsnes/bin/tcc816.exe",
+            "cStandard": "c99",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "windows-gcc-x64"
+        }
+    ],
+    "version": 4
+}

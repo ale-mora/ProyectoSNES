@@ -1,0 +1,31 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build SNES ROM",
+            "type": "shell",
+            "command": "C:\\msys64\\usr\\bin\\bash.exe",
+            "args": [
+                "-lc",
+                "export PVSNESLIB_HOME=/e/ProyectoSNES/tools/pvsneslib && cd /e/ProyectoSNES && make"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "Compile el juego de SNES usando MSYS2 y PVSnesLib"
+        },
+        {
+            "label": "Clean Project",
+            "type": "shell",
+            "command": "C:\\msys64\\usr\\bin\\bash.exe",
+            "args": [
+                "-lc",
+                "export PVSNESLIB_HOME=/e/ProyectoSNES/tools/pvsneslib && cd /e/ProyectoSNES && make clean"
+            ],
+            "problemMatcher": [],
+            "detail": "Limpia los archivos temporales y la ROM compilada"
+        }
+    ]
+}

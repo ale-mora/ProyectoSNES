@@ -1,0 +1,19 @@
+# SDK y herramientas vendorizadas (descargar aparte, ver CLAUDE.md / tools/setup_env.ps1)
+tools/
+
+# Artefactos de compilacion (regenerados por `make`)
+*.sfc
+*.sym
+*.symfull
+*.obj
+*.log
+hdr.asm
+linkfile
+
+# Metadata local de herramientas de Claude Code (no es parte del juego)
+.remember/
+.code-review-graph/
+
+# Basura de SO
+Thumbs.db
+.DS_Store
