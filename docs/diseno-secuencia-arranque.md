@@ -9,7 +9,7 @@ juego: todo lo que pasa desde que se enciende la consola hasta que el jugador
 presiona Start en la pantalla de título. Es un **documento vivo**: cambia cada
 vez que se reemplaza un asset provisional o se ajusta un tiempo tras verlo en
 Mesen. Las decisiones de fondo (por qué se eligió cada cosa) están en la
-sección [Decisiones](#decisiones-tomadas-en-la-entrevista); el resumen para la
+sección [Decisiones](#7-decisiones-tomadas-en-la-entrevista); el resumen para la
 hoja de ruta está en `docs/plan-desarrollo.md`, Etapa 1.5.
 
 ---
@@ -49,7 +49,7 @@ hoja de ruta está en `docs/plan-desarrollo.md`, Etapa 1.5.
 
 Orden final (convención de época: Nintendo → publisher → desarrollador):
 
-```
+```text
  [1] NINTENDO ──► [2] PUBLISHER ──► [3] DEVELOPERS ──► [4] DEDICATION
                                                               │
                                                               ▼
@@ -146,7 +146,7 @@ NTSC) y se ajustan a ojo en Mesen.
 
 - **Contenido:** logo del título "Tarouh: A Dog's Journey", fondo con
   **parallax** de dos capas, **cielo con degradado HDMA**, Tarouh cachorro
-  animado en reposo, "PRESS START" parpadeando y la línea "© 2026 <ESTUDIO>"
+  animado en reposo, "PRESS START" parpadeando y la línea "© 2026 [ESTUDIO]"
   al pie. Música en bucle.
 - **Técnica:**
   - BG1 = primer plano (scroll rápido, `bgSetScroll` cada frame).
@@ -175,7 +175,7 @@ NTSC) y se ajustan a ojo en Mesen.
 
 ## 4. Arquitectura del código
 
-```
+```text
 src/
   main.c                  inicialización de consola y audio; bucle principal
   secuencia.c / .h        máquina de estados: enum Pantalla + switch; contador
@@ -221,7 +221,7 @@ comentarios lo referencian con `→ glosario: VRAM`.
 
 ### Carpetas
 
-```
+```text
 res/
   descargas/            ← AQUÍ deposita el usuario lo que baja (no se compila)
     graficos/           PNG/BMP tal cual vienen (Spriters Resource, OpenGameArt, itch)
@@ -324,3 +324,20 @@ el uso: `snesromusage.exe -i ProyectoSNES.sym`. Si la ROM se llena, subir
 - [ ] Descargas en `res/descargas/audio/`: 1 música de título, 1 de intro, 1
       suave para la dedicatoria, jingles `.it` (o se usan los del SDK).
 - [ ] Corregir los tres párrafos marcador de la intro.
+
+## 9. Plan de implementación (una tarea = un commit)
+
+| # | Tarea | Qué se ve en Mesen al terminar | Estado |
+| --- | --- | --- | --- |
+| 1 | **Esqueleto**: carpetas `res/` y `scripts/`, `.gitignore`, `scripts/preparar_imagen.py`, `docs/glosario-snes.md`, máquina de estados `secuencia.c`, las 7 pantallas con **texto marcador** y los tiempos reales, fades, parpadeo, attract y Start funcionando. | La secuencia completa corre de punta a punta solo con texto. | **hecho** (2026-09-23, compila sin avisos; falta verla en Mesen) |
+| 2 | **Nintendo real**: `res/nintendo/logo_nintendo.png` → `gfx4snes` → `data.asm` → `bgInitTileSet`/`bgInitMapSet` en BG1; texto "LICENSED BY NINTENDO" en BG3. | Logo rojo con fade. | pendiente (asset del usuario) |
+| 3 | **Publisher + audio**: logo Capcom del SDK, primer `.it` → `soundbank` (`AUDIOFILES`, `SOUNDBANK`, `spcBoot`, `spcLoad`, `spcPlay`, `spcProcess` en el bucle). | Logo con jingle. | pendiente |
+| 4 | **Devs en Mode 7**: imagen 256 colores (`-M 7`), `bgInitMapTileSet7`, zoom + rotación por frame (`m7sx/m7sy`, `setMode7Rot`), vuelta limpia a Mode 1. | Logo entra girando desde lejos. | pendiente (asset del usuario) |
+| 5 | **Dedicatoria**: música suave, texto definitivo, fades lentos. | Texto máquina de escribir con música. | pendiente (texto del usuario) |
+| 6 | **Intro**: 3 fondos en BG1, franja de texto en BG3 con prioridad alta, sprite de Tarouh (`oamInitGfxSet`, `oamSet`) animado en la escena 3, salida con mosaico. | Tres escenas ilustradas con el cachorro. | pendiente (assets del usuario) |
+| 7 | **Título**: `scripts/generar_logo_titulo.py` → logo en BG3, parallax por software en BG1/BG2, `setModeHdmaGradient`, sprite de Tarouh, música en bucle. | Pantalla de título completa. | pendiente (2 fondos del usuario) |
+| 8 | **Cierre**: pase completo de verificación (§6), `snesromusage` por bancos, ajuste de tiempos a ojo, merge de `demo-secuencia-arranque` a `main`. | Demo terminada. | pendiente |
+
+Cada tarea termina con `make` sin errores, la ROM corriendo en Mesen y un
+commit. Las tareas 2, 4, 6 y 7 pueden reordenarse según qué asset llegue
+primero a `res/descargas/`.

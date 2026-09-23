@@ -34,6 +34,11 @@ Clean build artifacts, ROM, and graphics/audio conversion outputs:
 make clean
 ```
 
+Build only, from PowerShell (what Claude Code should use — the sandboxed Git Bash tool cannot run `wla-65816`, which writes a temp file to the drive root):
+```
+$env:PVSNESLIB_HOME="/e/ProyectoSNES/tools/pvsneslib"; $env:PATH="E:\ProyectoSNES\tools\pvsneslib\devkitsnes\bin;C:\msys64\usr\bin;"+$env:PATH; make
+```
+
 The equivalent VS Code tasks (`.vscode/tasks.json`) run these same `make` invocations through `C:\msys64\usr\bin\bash.exe`: **"Build SNES ROM"** (default build task) and **"Clean Project"**.
 
 There is no test suite or linter in this project.

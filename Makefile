@@ -4,7 +4,13 @@ endif
 
 # Nombre y título de la ROM de salida
 export ROMNAME := ProyectoSNES
-export ROMTITLE := SNES PLATFORMER
+export ROMTITLE := TAROUH DEMO
+
+# --- Audio (se activa en la tarea 3 del plan, cuando haya módulos .it) ---------
+# AUDIOFILES y SOUNDBANK deben declararse ANTES del include de snes_rules.
+# Los .it de efectos van primero en la lista.
+# export AUDIOFILES := res/musica/jingle_publisher.it res/musica/titulo.it
+# export SOUNDBANK  := res/musica/soundbank
 
 # Incluir reglas estándar de compilación de PVSnesLib
 include ${PVSNESLIB_HOME}/devkitsnes/snes_rules

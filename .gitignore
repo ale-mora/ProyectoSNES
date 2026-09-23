@@ -17,3 +17,24 @@ linkfile
 # Basura de SO
 Thumbs.db
 .DS_Store
+
+# Salidas de conversion de assets (gfx4snes / smconv / snesbrr; se regeneran con make)
+res/**/*.pic
+res/**/*.pal
+res/**/*.map
+res/**/*.inc
+res/**/*_data.as
+res/**/*.brr
+res/**/*.pc7
+res/**/*.mp7
+res/musica/soundbank.*
+
+# Descargas crudas de terceros (material con copyright, uso privado): no se versionan
+res/descargas/*
+!res/descargas/README.md
+!res/descargas/graficos/
+!res/descargas/audio/
+res/descargas/graficos/*
+res/descargas/audio/*
+!res/descargas/graficos/.gitkeep
+!res/descargas/audio/.gitkeep
