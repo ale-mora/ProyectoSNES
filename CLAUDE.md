@@ -49,4 +49,4 @@ There is no test suite or linter in this project.
 
 ## Language
 
-Code comments and console text are in Spanish; keep new code consistent with that convention unless told otherwise.
+Code comments and project docs are in Spanish. **On-screen game text (title, credits, intro, "PRESS START") is in English** (decision of 2026-09-23, see `docs/diseno-secuencia-arranque.md`). Keep new code consistent with that unless told otherwise.

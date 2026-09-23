@@ -13,7 +13,7 @@ completando.
 
 ## Premisas del proyecto (confirmadas)
 
-- **Título del juego:** *Tarouh: A Dog's Journey*.
+- **Título del juego:** _Tarouh: A Dog's Journey_.
 - **Meta técnica:** el juego debe poder ejecutarse en una SNES real (no solo
   en el emulador Mesen). Esto implica testeo en hardware/flashcart real como
   parte obligatoria del plan, no un extra opcional.
@@ -25,6 +25,14 @@ completando.
 - **Stack:** PVSnesLib (SDK en C sobre el compilador `tcc816` y el toolchain
   `wla-65816`/`wlalink`), formato de ROM LoROM/SlowROM, emulador Mesen para
   desarrollo iterativo.
+- **Distribución:** proyecto **personal**, sin venta ni distribución (decisión
+  del 2026-09-23). Por eso se permite usar material original con copyright de
+  la época (logo de Nintendo, logos de publisher/desarrollador) en uso
+  privado; cada logo se aísla como asset reemplazable en `res/` por si la
+  premisa cambia. Los ítems de distribución/legales de la Etapa 6 quedan como
+  "no aplica".
+- **Idioma:** los textos que se ven en pantalla (título, créditos, intro,
+  "PRESS START") van en **inglés**; el código y sus comentarios, en español.
 
 ## Concepto del juego
 
@@ -32,7 +40,7 @@ completando.
   mutuamente a completar cada nivel.
 - **Estructura de niveles:** cada nivel es una misión/etapa que ambos
   completan juntos.
-- **Mecánica de personajes:** el mismo esquema que *Donkey Kong Country*
+- **Mecánica de personajes:** el mismo esquema que _Donkey Kong Country_
   (Donkey Kong / Diddy Kong) — dos personajes presentes, se alterna el
   control entre ellos, cada uno con habilidades propias. Los detalles
   exactos (qué pasa si el personaje activo recibe daño, cómo se recupera al
@@ -52,17 +60,18 @@ completando.
   Bárbara, el cambio de personaje, y las etapas de vida adulta/vieja se
   incorporan progresivamente a partir de la Etapa 4 — Producción.
 
-## Vista general de las etapas
+## Vista general de las etapas de aprendizaje
 
-| # | Etapa | Objetivo en una frase |
-|---|-------|------------------------|
-| 0 | [Fundamentos](#etapa-0--fundamentos) | Aprender a programar (lógica, C) y entender cómo funciona una consola retro por dentro. |
-| 1 | [Investigación / Preproducción](#etapa-1--investigación--preproducción) | Definir qué juego es y entender la arquitectura técnica del hardware SNES y del toolchain. |
-| 2 | [Prototipo](#etapa-2--prototipo) | Programar las mecánicas núcleo (movimiento, salto, colisión, cámara) para validar que el juego se siente bien. |
-| 3 | [Vertical Slice](#etapa-3--vertical-slice) | Un nivel completo con arte y audio final, todos los sistemas integrados. |
-| 4 | [Producción](#etapa-4--producción) | Escalar el vertical slice a todo el contenido del juego. |
-| 5 | [Pulido](#etapa-5--pulido) | Rendimiento, juice, corrección de bugs, balance de dificultad. |
-| 6 | [Alpha/Beta/QA y Lanzamiento](#etapa-6--alphabetaqa-y-lanzamiento) | Testing en hardware real, certificación de ROM, empaquetado y publicación. |
+| #   | Etapa                                                                   | Objetivo en una frase                                                                                          |
+| --- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 0   | [Fundamentos](#etapa-0--fundamentos)                                    | Aprender a programar (lógica, C) y entender cómo funciona una consola retro por dentro.                        |
+| 1   | [Investigación / Preproducción](#etapa-1--investigación--preproducción) | Definir qué juego es y entender la arquitectura técnica del hardware SNES y del toolchain.                     |
+| 1.5 | [Demo técnica: secuencia de arranque](#etapa-15--demo-técnica-secuencia-de-arranque) | Construir el código definitivo del arranque (logos → intro → título) y medir hasta dónde llega el hardware. |
+| 2   | [Prototipo](#etapa-2--prototipo)                                        | Programar las mecánicas núcleo (movimiento, salto, colisión, cámara) para validar que el juego se siente bien. |
+| 3   | [Vertical Slice](#etapa-3--vertical-slice)                              | Un nivel completo con arte y audio final, todos los sistemas integrados.                                       |
+| 4   | [Producción](#etapa-4--producción)                                      | Escalar el vertical slice a todo el contenido del juego.                                                       |
+| 5   | [Pulido](#etapa-5--pulido)                                              | Rendimiento, juice, corrección de bugs, balance de dificultad.                                                 |
+| 6   | [Alpha/Beta/QA y Lanzamiento](#etapa-6--alphabetaqa-y-lanzamiento)      | Testing en hardware real, certificación de ROM, empaquetado y publicación.                                     |
 
 ---
 
@@ -83,13 +92,21 @@ input simulado) sin ayuda externa.
 
 ### Ítems técnicos a estudiar
 
-- [ ] **Lógica de programación** (variables, condicionales, bucles) — es el
+- [x] **Lógica de programación** (variables, condicionales, bucles) — es el
       vocabulario mínimo para leer o escribir cualquier línea de código del
       proyecto, incluido `src/main.c`.
+      _Practicado con `aprendizaje/etapa0/ejercicio_01_logica.c`: bucle
+      `for`, variable `edad`, `if`/`else if`/`else` con rangos. Depuró en el
+      camino dos errores clásicos de C (`=` vs `==`, y un error de borde
+      off-by-one en los límites del rango) hasta que la salida coincidió
+      exactamente con lo esperado._
       Recursos: CS50 (Harvard, gratuito, `cs50.harvard.edu`); freeCodeCamp.
-- [ ] **Funciones y modularidad** — PVSnesLib se usa llamando a funciones del
+- [x] **Funciones y modularidad** — PVSnesLib se usa llamando a funciones del
       SDK (`consoleInitDefaultText`, `bgSetGfxPtr`, etc.); entender cómo se
       define/llama/retorna una función es imprescindible.
+      _Practicado con `aprendizaje/etapa0/ejercicio_02_funciones.c`:
+      refactorizó la lógica del Ejercicio 1 en una función `void` con
+      parámetro, llamada desde un `for`; salida idéntica verificada._
       Recursos: mismo curso anterior; "The C Programming Language" (K&R).
 - [ ] **Tipos de datos y arrays** — los tilemaps, paletas y sprites en SNES
       se manipulan como arrays de bytes; sin entender tipos (`u8`, `u16`) y
@@ -113,6 +130,9 @@ input simulado) sin ayuda externa.
 - [ ] **Sistemas numéricos: binario y hexadecimal** — toda la programación
       de hardware (colores, direcciones de memoria, valores de registros) se
       expresa en hexadecimal/binario, no en decimal.
+      _Adelantado (2026-09-23): la Etapa 1.5 escribe direcciones de VRAM y
+      colores en hexadecimal en cada pantalla, así que este tema se estudia
+      antes que Structs y Punteros, en paralelo con la demo._
       Recursos: serie de Ben Eater en YouTube sobre computadoras a nivel de
       hardware, muy visual para estos conceptos.
 - [ ] **Arquitectura de computadoras básica** (CPU, RAM, ROM, buses, ciclos
@@ -137,7 +157,7 @@ referencias, alcance) y entender en profundidad el hardware SNES y el
 toolchain del proyecto (PVSnesLib) antes de escribir gameplay real.
 
 **Entregable(s):** un Game Design Document (GDD) breve (2-5 páginas) para
-*Tarouh: A Dog's Journey* que resuelva las preguntas de diseño abiertas —
+_Tarouh: A Dog's Journey_ que resuelva las preguntas de diseño abiertas —
 cómo funciona exactamente el cambio de personaje Tarouh/Bárbara (inspirado
 en Donkey Kong Country), cómo se gatilla la progresión cachorro→adulto→viejo
 y qué cambia en cada etapa, y al menos una lista preliminar de
@@ -157,10 +177,10 @@ hace `hdr.asm`, qué son los 8 bancos de ROM, y tener el GDD escrito.
 - [x] **Análisis de referencias de plataformers** — entender qué hace
       "sentir bien" a Super Mario World o Donkey Kong Country da un techo
       realista de qué es alcanzable en solitario.
-      *Ya avanzado: investigación del pipeline de producción de Donkey Kong
+      _Ya avanzado: investigación del pipeline de producción de Donkey Kong
       Country (Rare — 12 desarrolladores, 18 meses, render 3D→sprite —
       concluido como no replicable para un desarrollo solo) registrada en
-      sesiones previas.*
+      sesiones previas._
       Recursos: canal de YouTube "Retro Game Mechanics Explained" (análisis
       técnico de físicas de Mario).
 - [ ] **Arquitectura del hardware SNES: CPU 65816** — es el procesador que
@@ -187,7 +207,7 @@ hace `hdr.asm`, qué son los 8 bancos de ROM, y tener el GDD escrito.
       Recursos: `wiki.superfamicom.org` (sección "Memory Mapping"); el
       propio `hdr.asm` generado del proyecto como caso de estudio.
 - [ ] **El toolchain de PVSnesLib** — el pipeline `.c → .ps → .asm → .obj →
-      .sfc` no es un compilador tradicional de un solo paso; entender qué
+    .sfc` no es un compilador tradicional de un solo paso; entender qué
       hace cada herramienta (`816-tcc`, `wla-65816`, `wlalink`) ayuda a
       interpretar errores de compilación.
       Recursos: `github.com/alekmaul/pvsneslib` (wiki y documentación del
@@ -195,9 +215,9 @@ hace `hdr.asm`, qué son los 8 bancos de ROM, y tener el GDD escrito.
 - [x] **Estudio de la arquitectura de LikeMario** — es el ejemplo más
       cercano al género que vas a construir, y sirve de referencia de "cómo
       se organiza un proyecto real de PVSnesLib".
-      *Ya avanzado: arquitectura documentada (4 capas), inventario completo
+      _Ya avanzado: arquitectura documentada (4 capas), inventario completo
       de 33 archivos por categoría/tipo/productor, y físicas explicadas en
-      sesiones previas.*
+      sesiones previas._
       Recursos: tu propia documentación en `examples/likemario/LikeMario.md`.
 - [ ] **Planificación de alcance (scope) para proyectos solo-dev** — la
       causa #1 de abandono de proyectos de juego amateur es un alcance
@@ -220,6 +240,98 @@ hace `hdr.asm`, qué son los 8 bancos de ROM, y tener el GDD escrito.
       Producción.
       Recursos: "The Art of Game Design: A Book of Lenses" (secciones de
       narrativa y estructura de niveles).
+
+---
+
+## Etapa 1.5 — Demo técnica: secuencia de arranque
+
+**Objetivo:** construir el **código definitivo** de todo lo que pasa desde que
+se enciende la consola hasta que el jugador presiona Start, y usarlo como demo
+técnica para medir hasta dónde se puede exprimir el hardware (Mode 7, HDMA,
+parallax, audio SPC) antes de tocar gameplay. Se hace en paralelo con lo que
+queda de la Etapa 0.
+
+**Diseño detallado:** `docs/diseno-secuencia-arranque.md` (spec viva, pantalla
+por pantalla, con las 35 decisiones de la entrevista del 2026-09-23).
+
+**Entregable(s):** una ROM `.sfc` que recorre en orden, sin intervención, las
+seis pantallas — (1) Nintendo → (2) publisher → (3) desarrolladores → (4)
+dedicatoria → (5) intro de 3 escenas → (6) título con "PRESS START" — entra en
+modo attract a los 15 s, y responde a Start con la pantalla "LEVEL 1 — COMING
+SOON" que vuelve al título. Más el glosario `docs/glosario-snes.md`, el script
+`scripts/preparar_imagen.py` y la estructura `res/` lista para recibir assets.
+
+**Criterio de salida:** la secuencia corre a 60 FPS en Mesen sin glitches
+gráficos ni de audio, con todos los assets provisionales en su lugar, y cada
+línea del código tiene su comentario explicativo.
+
+**Decisiones clave:**
+
+- Código escrito íntegramente por Claude, **cada línea explicada** en un
+  comentario; conceptos de hardware en un glosario único.
+- Un archivo `.c` por pantalla + `secuencia.c` con máquina de estados propia
+  (`enum` + `switch`) + `main.c` mínimo. No se usa `gamestates.h` del SDK.
+- Efectos a demostrar: fade y mosaico (transiciones), Mode 7 (logo de
+  desarrolladores entrando con zoom y rotación), degradado HDMA y parallax de
+  dos capas (título), sprite animado de Tarouh cachorro (intro y título).
+- Estética de referencia: _Secret of Mana_. Textos en pantalla en inglés.
+- Assets: el usuario descarga a `res/descargas/` (gráficos y audio); se
+  convierten con scripts Python a PNG indexado; música solo en formato `.it`.
+- Ninguna pantalla se salta por ahora (`PERMITE_SALTO = 0` deja la opción).
+- Rama de trabajo `demo-secuencia-arranque`, un commit por pantalla.
+
+### Ítems técnicos a estudiar
+
+- [ ] **Máquina de estados de pantallas** (`enum` + `switch`) — es la columna
+      vertebral de la secuencia y el mismo patrón que después usará el
+      personaje (Etapa 2); se aprende aquí con un caso simple.
+      Recursos: `src/secuencia.c` del proyecto; `systems/gastates` del SDK
+      como lectura comparada.
+- [ ] **Modos de vídeo de la PPU: Mode 1 y Mode 7** — Mode 1 (dos capas de 16
+      colores + una de 4) es la base de todas las pantallas; Mode 7 (rotación
+      y zoom de una sola capa de 256 colores) se usa en el logo de
+      desarrolladores.
+      Recursos: `graphics/Backgrounds/Mode1` y `Mode7` del SDK;
+      `wiki.superfamicom.org` (sección "Backgrounds").
+- [ ] **Fades, mosaico y brillo** (`setFadeEffectEx`, `setMosaicEffect`,
+      `setBrightness`) — son las transiciones entre pantallas.
+      Recursos: `graphics/Effects/Fading` y `Mosaic` del SDK.
+- [ ] **HDMA: degradado de color por línea** — el cielo del título cambia de
+      color línea a línea sin gastar CPU; es la técnica que hace "ver SNES" a
+      un fondo.
+      Recursos: `graphics/Effects/HDMAGradient` del SDK; `dma.h`.
+- [ ] **Scroll y parallax por software** (`bgSetScroll` a dos velocidades) —
+      dos capas moviéndose a distinta velocidad dan profundidad; es la misma
+      cámara que usará el nivel.
+      Recursos: `graphics/Backgrounds/Mode1Scroll` del SDK.
+- [ ] **Sprites (OAM) y animación por cuadros** — Tarouh cachorro en reposo en
+      la intro y el título.
+      Recursos: `graphics/Sprites/SimpleSprite` y `AnimatedSprite` del SDK.
+- [ ] **Texto por consola y efecto máquina de escribir** — dedicatoria, intro,
+      créditos y "PRESS START"; contar frames para mostrar una letra a la vez.
+      Recursos: `textfont.h` del SDK; `hello_world`.
+- [ ] **Lectura del mando en VBlank** (`padsDown`, `KEY_START`) — Start en el
+      título y contador de attract; entender por qué el mando solo se actualiza
+      si se llama a `WaitForVBlank()` cada frame.
+      Recursos: `input/controller` del SDK.
+- [ ] **Pipeline de gráficos** (PNG indexado → `gfx4snes` → `.pic/.pal/.map` →
+      `data.asm`) — cada asset descargado pasa por aquí; incluye el script
+      Python de reducción de colores.
+      Recursos: `scripts/preparar_imagen.py`; Makefiles de los ejemplos de logo
+      del SDK (`thirdparty/logo/*`).
+- [ ] **Pipeline de audio SPC** (`.it` → `smconv` → soundbank en banco 5;
+      `.wav` → `snesbrr` → `.brr`) — jingles de logos, música de dedicatoria,
+      intro y título.
+      Recursos: `audio/music` y `audio/effectsandmusic` del SDK;
+      `pvsneslib_snesmod.txt` (reglas de composición).
+- [ ] **Banking de datos en ROM** (`data.asm`, secciones `superfree` de 32 KB,
+      `snesromusage`) — con seis pantallas de assets hay que repartir por
+      bancos desde el principio.
+      Recursos: `data.asm` de `graphics/Backgrounds/Mode3` del SDK.
+- [ ] **Ramas y merges en Git** — la demo se hace en la rama
+      `demo-secuencia-arranque` con un commit por pantalla; primer uso real de
+      ramas en el proyecto.
+      Recursos: "Pro Git", capítulo 3.
 
 ---
 
@@ -291,7 +403,7 @@ mando/teclado emulado, sin crashear, a 60 FPS estables.
 
 ## Etapa 3 — Vertical Slice
 
-**Objetivo:** construir el primer nivel de *Tarouh: A Dog's Journey* como
+**Objetivo:** construir el primer nivel de _Tarouh: A Dog's Journey_ como
 demo técnica conceptual — jugando únicamente con Tarouh cachorro, sin
 Bárbara ni el cambio de personaje — con arte definitivo, audio definitivo, y
 todos los sistemas integrados. Es la prueba de que el pipeline completo
@@ -462,9 +574,10 @@ framerate perceptibles.
       cierra la mayoría de bugs conocidos antes de pasar a QA formal.
       Recursos: práctica general de debugging sistemático; el debugger de
       Mesen.
-- [ ] **Menús (título, pausa, game over)** — son parte de la experiencia
-      completa de un juego "terminado" y suelen postergarse hasta esta etapa
-      porque no bloquean el gameplay core.
+- [ ] **Menús (pausa, game over)** — son parte de la experiencia completa de
+      un juego "terminado" y suelen postergarse hasta esta etapa porque no
+      bloquean el gameplay core. _La pantalla de título se adelantó a la
+      Etapa 1.5 como parte de la demo técnica de arranque._
       Recursos: `graphics/Backgrounds` y `systems/gastates` del SDK (para
       las transiciones de estado entre menús y gameplay).
 
@@ -516,7 +629,9 @@ afecten la jugabilidad.
       Recursos: comunidad de `romhacking.net` y foros de homebrew SNES
       (buscar proveedores de PCB homebrew específicamente al llegar a esta
       etapa).
-- [ ] **Distribución y consideraciones legales** — publicar un juego
+- [ ] ~~**Distribución y consideraciones legales**~~ — **no aplica** por
+      premisa (proyecto personal, sin distribución; ver Premisas). Se deja el
+      texto original por si la premisa cambia: publicar un juego
       homebrew de SNES (ROM digital y/o físico) tiene convenciones de la
       escena (créditos, licencias de herramientas como PVSnesLib) y
       limitaciones legales (no se puede usar la marca "Super
