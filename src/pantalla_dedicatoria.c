@@ -2,8 +2,8 @@
     pantalla_dedicatoria.c — Pantalla (4): mensaje personal sobre negro, letra por
     letra (máquina de escribir), con fundidos lentos y música suave. 7 segundos.
 
-    ESTADO: el texto definitivo lo entrega el usuario; mientras, el marcador
-    "For ..." . La música llega con el soundbank (tarea 5 del plan).
+    ESTADO: texto definitivo puesto ("A la memoria de Tarouh"). La música llega
+    con el soundbank (tarea 5 del plan).
 ---------------------------------------------------------------------------------*/
 #include "pantallas.h"
 #include "secuencia.h"
@@ -27,9 +27,9 @@ void pantalla_dedicatoria_actualizar(void)
     if ((frames_en_pantalla % FRAMES_POR_LETRA) == 0)
     {
         letras_mostradas++;                          /* Una letra más...                    */
-        /* ...y redibujamos la línea con esas letras. MARCADOR: reemplazar por el
-           texto real de la dedicatoria (en inglés) cuando el usuario lo entregue. */
-        escribir_parcial(13, "For ...", letras_mostradas);
+        /* ...y redibujamos la línea con esas letras. Texto definitivo de la
+           dedicatoria, tal como lo escribió el autor (decisión del 2026-09-24). */
+        escribir_parcial(13, "A la memoria de Tarouh", letras_mostradas);
     }
 
     if (frames_en_pantalla >= DURACION_DEDICATORIA)  /* Fin por tiempo (7 s).               */

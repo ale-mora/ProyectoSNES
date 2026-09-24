@@ -15,8 +15,9 @@
 void pantalla_devs_iniciar(void)
 {
     limpiar_texto();
-    texto_centrado(7,  "[ STUDIO LOGO ]");           /* MARCADOR: imagen Mode 7 con zoom.   */
-    texto_centrado(9,  "MODE 7 ZOOM + ROTATION");    /* Recordatorio del efecto previsto.   */
+    texto_centrado(6,  "[ STUDIO LOGO ]");           /* MARCADOR: imagen Mode 7 con zoom.   */
+    texto_centrado(8,  "DON POLLO STUDIOS");         /* Nombre del estudio (decidido).      */
+    texto_centrado(10, "MODE 7 ZOOM + ROTATION");    /* Recordatorio del efecto previsto.   */
     texto_centrado(15, "ALEJANDRO MORA");            /* Nombre del desarrollador.           */
     texto_centrado(17, "PROGRAMMING - ART - MUSIC"); /* Roles (hoy todos la misma persona). */
     setBrightness(15);                               /* Aparece de golpe (sin fade): así

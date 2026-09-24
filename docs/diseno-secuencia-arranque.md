@@ -37,13 +37,21 @@ hoja de ruta está en `docs/plan-desarrollo.md`, Etapa 1.5.
 - **Referencia visual:** _Secret of Mana_ — pixel art detallado, paletas ricas,
   a medio camino entre plataformas y RPG. El arte debe "exprimir" las
   capacidades de la SNES: varias capas, degradados por línea, rotación/zoom.
+- **Ambientación de la demo (decisión del 2026-09-24):** **Japón** de fantasía.
+  Fondos de los packs _Spring Forest_ (cerezos, torii, herrería, 4 capas) y
+  _Autumn Forest_ (bosque otoñal, pozo, farolillos, 3 capas); música japonesa
+  de aventura/fantasía. **Solo para la demo**: no compromete la ambientación
+  del juego final. Los paisajes de CraftPix quedan en reserva.
 - **Textos en pantalla:** en **inglés** (título, créditos, intro, "PRESS
-  START"). El código y sus comentarios siguen en español.
+  START"). Excepción: la dedicatoria va en español, son las palabras del autor.
+  El código y sus comentarios siguen en español.
 - **Fuente de texto:** provisional, la fuente embebida de PVSnesLib
   (`consoleInitDefaultText`). Se reemplaza después por una fuente de época
   (BMP 8 bits, regla `-s 8 -o 2 -u 16 -e 1 -p -t bmp -m -R`) sin tocar lógica.
 - **Vídeo:** NTSC 60 Hz, 256×224, **Mode 1** como base (BG1/BG2 de 16 colores,
   BG3 de 4 colores). **Mode 7** solo en la pantalla de desarrolladores.
+  **Mode 3** (BG1 de 256 colores) en las tres escenas fijas de la intro, para
+  conservar la fidelidad de los fondos descargados (decisión del 2026-09-24).
 
 ## 3. Secuencia de pantallas
 
@@ -105,7 +113,7 @@ NTSC) y se ajustan a ojo en Mesen.
 
 - **Contenido:** una imagen de 256 colores con el logo provisional del estudio
   (estilo Konami/época) arriba y, debajo, "ALEJANDRO MORA" con los roles
-  "PROGRAMMING · ART · MUSIC". La imagen **entra desde lejos girando** (zoom +
+  "PROGRAMMING · ART · MUSIC". Nombre del estudio: **Don Pollo Studios**. La imagen **entra desde lejos girando** (zoom +
   rotación Mode 7) durante 2 s hasta encajar a escala 1:1, y queda quieta 2 s.
 - **Técnica:** Mode 7 (`bgInitMapTileSet7`, `setMode7`, `setMode7Rot` /
   escala por frame). Mode 7 ocupa toda la pantalla y solo tiene BG1, por eso
@@ -118,7 +126,7 @@ NTSC) y se ajustan a ojo en Mesen.
 
 - **Contenido:** texto centrado sobre negro que aparece letra por letra
   (máquina de escribir), con música suave. Texto **pendiente**: el usuario lo
-  entrega después; mientras tanto el marcador es `"For ..."`.
+  entregó el 2026-09-24: **"A la memoria de Tarouh"**, en español por ser sus propias palabras.
 - **Técnica:** Mode 1, solo BG3 con la fuente de consola. Fade in y fade out
   lentos (60 frames). Rutina común `texto_maquina_escribir()` en `comun.c`.
 - **Assets:** ninguno gráfico; `res/musica/dedicatoria.it`.
@@ -130,23 +138,30 @@ NTSC) y se ajustan a ojo en Mesen.
   inferior. Redacta Claude un marcador (presentación de Tarouh y Bárbara → el
   hecho que dispara el viaje → el camino por delante); el usuario lo corrige.
   El guion definitivo no está escrito y estos textos no lo comprometen.
-- **Sprite:** en la tercera escena aparece **Tarouh cachorro** (sprite OAM,
-  16×16 o 32×32, 16 colores, animación de 2 a 4 cuadros). Sin Bárbara en esta
-  demo (premisa del plan).
-- **Técnica:** Mode 1. BG1 = fondo de la escena (16 colores). BG3 = texto con
-  prioridad alta (`BG3_MODE1_PRIORITY_HIGH`) sobre una franja oscura. Fade
+- **Sprites (decisión del 2026-09-24, solo para la demo):** **Tarouh** usa el
+  pack _Wolf Samurai_ (lobo con katana, cuadros de 192×64, se recorta al
+  cuerpo y se arma con 2 o 3 sprites de 32×32 o 64×64) y **Bárbara** aparece
+  con el pack _Samurai #4_ (mujer samurái, cuadros de 96×96, se recorta a
+  64×64). Ambos en 16 colores, animación de reposo de 4 a 6 cuadros. El
+  `dogpack` de cachorro queda en reserva para el juego final.
+- **Técnica:** **Mode 3**. BG1 = fondo de la escena (256 colores, 8bpp,
+  regla `-s 8 -o 256 -u 256 -p -m`). BG2 (16 colores) = texto sobre una franja
+  oscura. Al salir hacia el título se vuelve a Mode 1. Fade
   entre escenas. Salida hacia el título con **mosaico**
   (`setMosaicEffect(MOSAIC_IN, MOSAIC_BG1)`).
-- **Assets:** `res/intro/escena_1.png`, `escena_2.png`, `escena_3.png`
-  (256×224, indexado, ≤16 colores cada uno), `res/intro/tarouh_cachorro.png`
-  (spritesheet, indexado 16 colores), `res/musica/intro.it`. Si solo se
-  consigue un fondo, se reutiliza en las tres escenas sin tocar código.
+- **Assets:** `res/intro/escena_1.png` (_Spring Forest_ completo: herrería,
+  cerezos, torii = el pueblo), `escena_2.png` (_Autumn Forest_: bosque
+  otoñal oscuro, pozo y farolillos = el viento), `escena_3.png` (capas de
+  cielo y árboles de _Spring Forest_ sin la herrería, con el torii = el
+  camino); 256×224, indexado, 256 colores cada uno, `res/intro/tarouh_cachorro.png`
+  y `res/intro/barbara.png` (spritesheets, indexado 16 colores),
+  `res/musica/intro.it`.
 
 ### Pantalla 6 — Title
 
 - **Contenido:** logo del título "Tarouh: A Dog's Journey", fondo con
-  **parallax** de dos capas, **cielo con degradado HDMA**, Tarouh cachorro
-  animado en reposo, "PRESS START" parpadeando y la línea "© 2026 [ESTUDIO]"
+  **parallax** de dos capas, **cielo con degradado HDMA**, Tarouh (lobo) y
+  Bárbara (samurái) animados en reposo, "PRESS START" parpadeando y la línea "© 2026 [ESTUDIO]"
   al pie. Música en bucle.
 - **Técnica:**
   - BG1 = primer plano (scroll rápido, `bgSetScroll` cada frame).
@@ -162,8 +177,10 @@ NTSC) y se ajustan a ojo en Mesen.
   - Start (`padsDown(0) & KEY_START`) → fade out → Coming soon.
 - **Assets:** `res/titulo/logo_titulo.png` (generado por
   `scripts/generar_logo_titulo.py` a partir de una fuente libre; reemplazable),
-  `res/titulo/fondo_cerca.png`, `res/titulo/fondo_lejos.png` (256×224 o
-  512×224 para scroll, ≤16 colores cada uno), `res/musica/titulo.it`.
+  `res/titulo/fondo_cerca.png` (cerezos y suelo) y `res/titulo/fondo_lejos.png`
+  (cielo y montañas), compuestos desde las 4 capas de _Spring Forest_
+  (256×224 o 512×224 para scroll, ≤16 colores cada uno), `res/musica/titulo.it`.
+  En el título aparecen los dos sprites: Tarouh (lobo) y Bárbara (samurái).
 
 ### Pantalla 7 — Coming soon
 
@@ -317,12 +334,17 @@ el uso: `snesromusage.exe -i ProyectoSNES.sym`. Si la ROM se llena, subir
 
 ## 8. Pendientes que dependen del usuario
 
-- [ ] Texto de la dedicatoria (inglés, una o dos líneas).
-- [ ] Nombre provisional del estudio para el logo de devs y el "©" del título.
-- [ ] Descargas en `res/descargas/graficos/`: logo Nintendo, logo de estudio,
-      3 fondos de intro, spritesheet de un cachorro, 2 fondos para el título.
-- [ ] Descargas en `res/descargas/audio/`: 1 música de título, 1 de intro, 1
-      suave para la dedicatoria, jingles `.it` (o se usan los del SDK).
+- [x] Texto de la dedicatoria: **"A la memoria de Tarouh"** (en español, palabras del autor; 2026-09-24).
+- [x] Nombre del estudio: **Don Pollo Studios** (2026-09-24).
+- [x] Descargas en `res/descargas/graficos/` (2026-09-24): logo Nintendo
+      (Wikimedia Commons), fondos _Spring Forest_ y _Autumn Forest_ (intro y
+      título), sprites _Wolf Samurai_ (Tarouh) y _Samurai #4_ (Bárbara). En
+      reserva: CraftPix Nature Landscapes, Village landscape, `dogpack_assets`.
+      Logo de estudio: Konami del SDK.
+- [~] Descargas en `res/descargas/audio/`: dos `.it` que pasan `smconv` sin
+      avisos (`aguadulc.it`, `ad_jon.it`, ver `candidatos_it/NOTA.md`) más los
+      del SDK; falta elegirlos oyéndolos en Mesen. Los packs MP3/OGG/WAV
+      descargados no sirven como música de SNES.
 - [ ] Corregir los tres párrafos marcador de la intro.
 
 ## 9. Plan de implementación (una tarea = un commit)

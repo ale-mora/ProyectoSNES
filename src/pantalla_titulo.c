@@ -24,7 +24,7 @@ void pantalla_titulo_iniciar(void)
     texto_centrado(7,  "A DOG'S JOURNEY");
     texto_centrado(12, "[ PARALLAX + HDMA SKY ]");   /* Recordatorio de los efectos.        */
     texto_centrado(14, "[ TAROUH SPRITE ]");
-    texto_centrado(26, "(C) 2026 STUDIO NAME");      /* MARCADOR: nombre del estudio.       */
+    texto_centrado(26, "(C) 2026 DON POLLO STUDIOS");  /* Nombre del estudio (decidido).    */
 
     frames_sin_input = 0;                            /* Nadie ha tocado nada todavía.       */
     frames_parpadeo = 0;
