@@ -35,7 +35,7 @@ y, cuando aplica, **qué función de PVSnesLib lo toca**.
   **DMA** (`dmaCopyVram`) copia tiles/mapas a VRAM durante VBlank mucho más
   rápido que la CPU. **HDMA** escribe un valor en un registro de la PPU **en
   cada línea de la pantalla**: así se hace el cielo con degradado
-  (`setModeHdmaGradient`) sin gastar CPU.
+  (`setModeHdmaColor` con una tabla de un color por línea) sin gastar CPU.
 - **Banco / LoROM** — la ROM del cartucho se ve en trozos de **32 KB** llamados
   bancos. Nuestro proyecto tiene 8 (256 KB). Un asset (imagen, música) no puede
   cruzar de un banco a otro; `data.asm` reparte cada uno en una sección
@@ -57,17 +57,30 @@ y, cuando aplica, **qué función de PVSnesLib lo toca**.
   apaga el segundo fondo.
 - **Mode 1** — modo de vídeo base del proyecto: BG1 y BG2 de 16 colores, BG3
   de 4 colores (ideal para texto). `setMode(BG_MODE1, 0)`.
+- **Mode 3** — un fondo de 256 colores (BG1) + uno de 16 (BG2). Se usa en las
+  escenas fijas de la intro. Cada tile ocupa 64 bytes: una pantalla llena no
+  cabe en un banco de 32 KB, por eso las escenas miden 256×120.
 - **Mode 7** — modo especial: una sola capa de 256 colores que la PPU puede
-  **rotar y escalar** en tiempo real. Se usa en el logo de desarrolladores.
-  `setMode7`, `setMode7Rot`, variables `m7sx`/`m7sy` para el zoom.
+  **rotar y escalar** en tiempo real con una matriz de 4 valores (A, B, C, D en
+  formato 8.8) y un centro (M7X, M7Y). Se probó para el logo del estudio y se
+  descartó en la demo (ver spec §10).
+- **Formato 8.8 (punto fijo)** — un número de 16 bits donde el byte alto es la
+  parte entera y el bajo la fracción: 0x0100 = 1.0, 0x0080 = 0.5, 0x0200 = 2.0.
+  La SNES no tiene decimales; así se representan escalas y velocidades.
+- **Registro de doble escritura** — varios registros de la PPU (M7A..D, M7X,
+  M7Y, scroll) reciben 16 bits en dos escrituras seguidas de 8: primero el byte
+  bajo, luego el alto.
 - **Sprite** — imagen móvil independiente del fondo (el personaje). Tamaños
-  8×8 a 64×64. Límite: 128 en pantalla, 32 por línea horizontal.
+  8×8 a 64×64. Límite: 128 en pantalla, 32 por línea horizontal, y **512 tiles
+  de gráficos** en total (un sprite de 64×64 gasta 64). La coordenada y "da la
+  vuelta" cada 256 px: un sprite de 64 en y = 240 asoma por arriba.
 - **Fade (fundido) / brillo** — la PPU tiene un control de brillo de 0 (negro)
   a 15 (normal). `setBrightness(n)` lo fija; `setFadeEffectEx(FADE_IN, f)` lo
   anima en `f` pasos. **Ojo:** estas funciones bloquean el programa mientras
   dura el efecto.
 - **Mosaico** — efecto de la PPU que agranda los píxeles de una capa hasta
-  volverla bloques. `setMosaicEffect(MOSAIC_IN, MOSAIC_BG1)`.
+  volverla bloques. `setMosaicEffect(MOSAIC_OUT, ...)` lo agranda (la doc del
+  SDK lo tiene al revés) y `REG_MOSAIC = 0` lo apaga.
 - **Consola de texto** — PVSnesLib trae una fuente y una capa de texto de
   32 columnas × 28 filas (celdas de 8×8). `consoleDrawText(x, y, "...")`
   escribe en la celda (x, y); la librería copia el texto a VRAM en el

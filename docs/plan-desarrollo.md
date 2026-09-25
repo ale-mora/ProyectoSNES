@@ -265,6 +265,22 @@ SOON" que vuelve al título. Más el glosario `docs/glosario-snes.md`, el script
 gráficos ni de audio, con todos los assets provisionales en su lugar, y cada
 línea del código tiene su comentario explicativo.
 
+**Estado (2026-09-24):** la secuencia completa corre en Mesen con gráficos
+reales en todas las pantallas (logos, tres escenas japonesas, sprites de
+Tarouh y Bárbara, título con parallax y cielo HDMA). Falta el **audio** y una
+pasada de **pulido visual**. Detalle y hallazgos técnicos en
+`docs/diseno-secuencia-arranque.md` §9 y §10.
+
+**Aprendido en la práctica (resumen):**
+
+- El sistema de compilación del SDK no sigue dependencias de headers ni de los
+  archivos que `data.asm` incrusta: `make clean` tras tocar un `.h`, y el
+  Makefile declara `data.obj: $(ASSETS)`.
+- Verificar con evidencia: se midieron los tiempos reales capturando Mesen a
+  intervalos, y así se descubrió que la ROM llevaba código viejo.
+- Cuando la documentación del SDK es ambigua, la fuente de verdad es su código
+  en ensamblador (fundidos, mosaico, Mode 7).
+
 **Decisiones clave:**
 
 - Código escrito íntegramente por Claude, **cada línea explicada** en un
@@ -282,39 +298,41 @@ línea del código tiene su comentario explicativo.
 
 ### Ítems técnicos a estudiar
 
-- [ ] **Máquina de estados de pantallas** (`enum` + `switch`) — es la columna
+- [x] **Máquina de estados de pantallas** (`enum` + `switch`) — es la columna
       vertebral de la secuencia y el mismo patrón que después usará el
       personaje (Etapa 2); se aprende aquí con un caso simple.
       Recursos: `src/secuencia.c` del proyecto; `systems/gastates` del SDK
       como lectura comparada.
-- [ ] **Modos de vídeo de la PPU: Mode 1 y Mode 7** — Mode 1 (dos capas de 16
+- [x] **Modos de vídeo de la PPU: Mode 1 y Mode 7** — Mode 1 (dos capas de 16
       colores + una de 4) es la base de todas las pantallas; Mode 7 (rotación
       y zoom de una sola capa de 256 colores) se usa en el logo de
       desarrolladores.
+      _Hecho: Mode 1 en logos/título, Mode 3 (256 colores) en la intro. Mode 7
+      se probó y se descartó para la demo (ver spec §10)._
       Recursos: `graphics/Backgrounds/Mode1` y `Mode7` del SDK;
       `wiki.superfamicom.org` (sección "Backgrounds").
-- [ ] **Fades, mosaico y brillo** (`setFadeEffectEx`, `setMosaicEffect`,
+- [x] **Fades, mosaico y brillo** (`setFadeEffectEx`, `setMosaicEffect`,
       `setBrightness`) — son las transiciones entre pantallas.
       Recursos: `graphics/Effects/Fading` y `Mosaic` del SDK.
-- [ ] **HDMA: degradado de color por línea** — el cielo del título cambia de
+- [x] **HDMA: degradado de color por línea** — el cielo del título cambia de
       color línea a línea sin gastar CPU; es la técnica que hace "ver SNES" a
       un fondo.
       Recursos: `graphics/Effects/HDMAGradient` del SDK; `dma.h`.
-- [ ] **Scroll y parallax por software** (`bgSetScroll` a dos velocidades) —
+- [x] **Scroll y parallax por software** (`bgSetScroll` a dos velocidades) —
       dos capas moviéndose a distinta velocidad dan profundidad; es la misma
       cámara que usará el nivel.
       Recursos: `graphics/Backgrounds/Mode1Scroll` del SDK.
-- [ ] **Sprites (OAM) y animación por cuadros** — Tarouh cachorro en reposo en
+- [x] **Sprites (OAM) y animación por cuadros** — Tarouh cachorro en reposo en
       la intro y el título.
       Recursos: `graphics/Sprites/SimpleSprite` y `AnimatedSprite` del SDK.
-- [ ] **Texto por consola y efecto máquina de escribir** — dedicatoria, intro,
+- [x] **Texto por consola y efecto máquina de escribir** — dedicatoria, intro,
       créditos y "PRESS START"; contar frames para mostrar una letra a la vez.
       Recursos: `textfont.h` del SDK; `hello_world`.
-- [ ] **Lectura del mando en VBlank** (`padsDown`, `KEY_START`) — Start en el
+- [x] **Lectura del mando en VBlank** (`padsDown`, `KEY_START`) — Start en el
       título y contador de attract; entender por qué el mando solo se actualiza
       si se llama a `WaitForVBlank()` cada frame.
       Recursos: `input/controller` del SDK.
-- [ ] **Pipeline de gráficos** (PNG indexado → `gfx4snes` → `.pic/.pal/.map` →
+- [x] **Pipeline de gráficos** (PNG indexado → `gfx4snes` → `.pic/.pal/.map` →
       `data.asm`) — cada asset descargado pasa por aquí; incluye el script
       Python de reducción de colores.
       Recursos: `scripts/preparar_imagen.py`; Makefiles de los ejemplos de logo
@@ -324,11 +342,11 @@ línea del código tiene su comentario explicativo.
       intro y título.
       Recursos: `audio/music` y `audio/effectsandmusic` del SDK;
       `pvsneslib_snesmod.txt` (reglas de composición).
-- [ ] **Banking de datos en ROM** (`data.asm`, secciones `superfree` de 32 KB,
+- [x] **Banking de datos en ROM** (`data.asm`, secciones `superfree` de 32 KB,
       `snesromusage`) — con seis pantallas de assets hay que repartir por
       bancos desde el principio.
       Recursos: `data.asm` de `graphics/Backgrounds/Mode3` del SDK.
-- [ ] **Ramas y merges en Git** — la demo se hace en la rama
+- [~] **Ramas y merges en Git** — la demo se hace en la rama
       `demo-secuencia-arranque` con un commit por pantalla; primer uso real de
       ramas en el proyecto.
       Recursos: "Pro Git", capítulo 3.

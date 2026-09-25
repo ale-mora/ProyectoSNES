@@ -113,18 +113,21 @@ NTSC) y se ajustan a ojo en Mesen.
 - **Assets:** `res/publisher/logo_publisher.bmp` (96×32 en el ejemplo) y
   `res/musica/jingle_publisher.it`. Reemplazables.
 
-### Pantalla 3 — Developers (Mode 7)
+### Pantalla 3 — Developers (logo fijo; Mode 7 descartado)
 
-- **Contenido:** una imagen de 256 colores con el logo provisional del estudio
-  (estilo Konami/época) arriba y, debajo, "ALEJANDRO MORA" con los roles
-  "PROGRAMMING · ART · MUSIC". Nombre del estudio: **Don Pollo Studios**. La imagen **entra desde lejos girando** (zoom +
-  rotación Mode 7) durante 2 s hasta encajar a escala 1:1, y queda quieta 2 s.
-- **Técnica:** Mode 7 (`bgInitMapTileSet7`, `setMode7`, `setMode7Rot` /
-  escala por frame). Mode 7 ocupa toda la pantalla y solo tiene BG1, por eso
-  el texto va **horneado en la misma imagen**. Mejora futura: escribir el
-  nombre con sprites (OAM funciona en Mode 7) para que no gire.
-- **Assets:** `res/devs/logo_devs.png` (256×224 u otro tamaño potencia de 2,
-  indexado 256 colores, regla `-p -m -M 7`) y `res/musica/jingle_devs.it`.
+- **Contenido (decisión del 2026-09-24):** logo propio "DON POLLO" / "STUDIOS"
+  en dorado con borde y barra de época, fijo sobre negro; debajo, "ALEJANDRO
+  MORA" y "PROGRAMMING - ART - MUSIC" con la consola de texto. Aparece de
+  golpe y sale con fade. 4 s.
+- **Técnica:** Mode 1, imagen de 16 colores en el fondo 1 (paleta 1), igual
+  que Nintendo y publisher. Generada por `scripts/componer_escenas.py` con Ark
+  Pixel 16 px.
+- **Mode 7, descartado:** se intentó la entrada con zoom y rotación. Con las
+  funciones del SDK (`setMode7`/`setMode7Rot`) la imagen no aparecía o salía
+  repetida por los bordes, y escribiendo los registros a mano salía ampliada y
+  girada 90°. El usuario decidió el logo fijo ("queda mal, solo pon el logo").
+  Detalles en §10 por si se retoma.
+- **Assets:** `res/devs/logo_devs.png` (256×224, 16 colores).
 
 ### Pantalla 4 — Dedication
 
@@ -378,3 +381,64 @@ frames por paso de brillo (16 pasos); la documentación de `setMosaicEffect`
 está invertida (`MOSAIC_OUT` agranda y deja el mosaico activo, se apaga con
 `REG_MOSAIC = 0`); el color 0 de la paleta 0 es el fondo de toda la pantalla. Las tareas 2, 4, 6 y 7 pueden reordenarse según qué asset llegue
 primero a `res/descargas/`.
+
+## 10. Hallazgos técnicos verificados (2026-09-24)
+
+Todo esto se comprobó leyendo el ensamblador del SDK (`videos.asm`,
+`backgrounds.asm` en GitHub; el vendorizado solo trae binarios) o midiendo en
+Mesen. Sirve para cualquier pantalla futura.
+
+**Compilación**
+
+- `snes_rules` compila un `.c` solo si cambió ESE archivo: un cambio en un `.h`
+  no recompila a quienes lo incluyen. Tras tocar headers: `make clean`.
+- `data.asm` incrusta los assets con `.incbin`; `make` no lo reensambla si el
+  `.asm` no cambió. El Makefile declara `data.obj: $(ASSETS)`.
+- `gfx4snes -y` (mapa en páginas de 32×32) se cae si el alto no es múltiplo de
+  32: la capa cercana del título es de 512×256, no 224.
+- `gfx4snes -M 7` con una imagen de 256×224 produce un mapa de 32×28, no el de
+  128×128 que espera la VRAM de Mode 7: hay que darle 1024×1024.
+- Un `.pic` de 256 colores de más de 512 tiles supera los 32 KB de un banco:
+  las escenas Mode 3 miden 256×120 (480 tiles) + banda transparente.
+
+**PPU y librería**
+
+- `setFadeEffectEx(modo, n)`: `n` son frames POR PASO de brillo y hay 16
+  pasos. 2 → 32 frames (~0,5 s). Con 30 cada fundido duraba 8 s.
+- `setMosaicEffect`: la doc está invertida. `MOSAIC_OUT` agranda 0→15 y deja
+  el mosaico activo; `MOSAIC_IN` lo encoge 15→0. Se apaga con `REG_MOSAIC = 0`.
+- El color 0 de la paleta 0 (y el índice 0 de una imagen de 256 colores) es el
+  color de fondo de TODA la pantalla: debe ser negro, no el magenta "de
+  transparencia" que traen los BMP del SDK.
+- La OAM direcciona 512 tiles de sprites (dos tablas de 256). Con sprites de
+  64×64 (64 tiles cada uno) caben 8 cuadros en total. Por encima, los números
+  "dan la vuelta" y se ve otro sprite.
+- Esconder un sprite en y = 240 no basta si mide 64 de alto: la coordenada da
+  la vuelta cada 256 px y asoman 48 filas por arriba. Se esconde con tamaño
+  pequeño, y = 224 y x = 256 (bit alto = fuera por la derecha).
+- `gfx4snes` empaqueta los bloques de sprites en filas de 128 px (16 tiles):
+  bloque n de 64×64 → tile `(n/2)*128 + (n%2)*8`.
+- En Mode 3 el texto va en BG2 (16 colores) con paleta 7 (colores 112..127) y
+  las imágenes reservan esas 16 entradas. El texto queda DETRÁS de BG1: la
+  zona de texto de la imagen debe ser índice 0 (transparente).
+- El cielo del título es `setModeHdmaColor(HDMA_CHANNEL6, tabla)` con la tabla
+  generada por `gfx4snes -n` de `res/titulo/cielo.bmp` (un color por línea);
+  el símbolo se llama `hdmaGrad<nombre>List`. `setParallaxScrolling` y
+  `setModeHdmaGradient` usan el canal 3 y son otra cosa (brillo, no color).
+- `setMode7` de PVSnesLib fija M7VOFS = 384 y el centro en (128,128): la
+  ventana visible son las filas 384..607 del mapa y el pivote queda fuera de
+  pantalla. `setMode7Rot` calcula la matriz como `(m7sx * cos) >> 8` con una
+  tabla de senos de amplitud 127: tamaño real = `m7sx ≈ 0x200`. Escribiendo
+  los registros a mano (matriz 8.8, centro 128,112, HOFS/VOFS 0) la imagen se
+  vio ampliada y rotada 90°: pendiente de entender si se retoma Mode 7.
+- El `companyLogo.bmp` de Konami del SDK no es una imagen: es un juego de tiles
+  que su ejemplo reordena con un mapa propio. No sirve como fondo directo.
+
+**Verificación**
+
+- Capturar Mesen desde PowerShell solo sirve si su ventana está delante; si el
+  usuario está usando el equipo, las capturas salen de otra ventana.
+- `scripts/capturas_mesen.lua` toma capturas exactas cada 4 s desde dentro de
+  Mesen, pero requiere activar "Allow I/O and OS access" en la ventana de
+  scripts de Mesen (`AllowIoOsAccess` en su `settings.json`, por defecto
+  `false`). Mesen sí carga un `.lua` pasado en la línea de comandos.
