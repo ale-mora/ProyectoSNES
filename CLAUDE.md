@@ -39,7 +39,7 @@ Build only, from PowerShell (what Claude Code should use — the sandboxed Git B
 $env:PVSNESLIB_HOME="/e/ProyectoSNES/tools/pvsneslib"; $env:PATH="E:\ProyectoSNES\tools\pvsneslib\devkitsnes\bin;C:\msys64\usr\bin;"+$env:PATH; make
 ```
 
-**`snes_rules` does not track header dependencies**: editing a `.h` (or a `#define` used by several files) does not recompile the `.c` files that include it. After any header change run `make clean` before `make`, or stale objects keep the old values silently (this bit us once with fade timings).
+**`snes_rules` does not track header dependencies**: editing a `.h` (or a `#define` used by several files) does not recompile the `.c` files that include it. After any header change run `make clean` before `make`, or stale objects keep the old values silently (this bit us once with fade timings). Assets are embedded by `data.asm` via `.incbin`; the Makefile declares `data.obj: $(ASSETS)` so a regenerated image reassembles it (without that line, old graphics stayed in the ROM).
 
 The equivalent VS Code tasks (`.vscode/tasks.json`) run these same `make` invocations through `C:\msys64\usr\bin\bash.exe`: **"Build SNES ROM"** (default build task) and **"Clean Project"**.
 

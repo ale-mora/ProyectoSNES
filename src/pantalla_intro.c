@@ -1,18 +1,23 @@
 /*---------------------------------------------------------------------------------
     pantalla_intro.c — Pantalla (5): intro en tres escenas. Cada escena muestra un
-    fondo y un párrafo corto que aparece letra por letra. En la tercera aparece
-    Tarouh cachorro (sprite). 8 segundos por escena. Sale hacia el título con
-    efecto mosaico.
+    fondo y un párrafo corto que aparece letra por letra. 8 segundos por escena.
+    Sale hacia el título con efecto mosaico.
 
-    ESTADO: marcador. Los fondos (BG1), la franja de texto en BG3 y el sprite
-    llegan en la tarea 6 del plan. Los párrafos son un borrador en inglés que el
-    usuario corregirá; no comprometen el guion definitivo.
-    → glosario: Mosaico, Sprite
+    Escenas 1 y 2: MODE 3, imagen de 256 colores en el fondo 0 (256x120 arriba;
+      abajo, banda transparente) y el texto en el fondo 1 con la paleta 7 (los
+      colores 112..127, que las imágenes dejan libres).
+    Escena 3: MODE 1, imagen de 16 colores en el fondo 1 (paleta 1), texto en el
+      fondo 0 y los sprites de Tarouh y Bárbara delante.
+    → glosario: Mode 1, Mosaico, Sprite, Paleta
 ---------------------------------------------------------------------------------*/
 #include "pantallas.h"
 #include "secuencia.h"
 #include "comun.h"
-#include "personajes.h"  /* Tarouh y Bárbara aparecen en la escena 3. */
+#include "personajes.h"
+
+extern char escena1_til, escena1_til_end, escena1_pal, escena1_map, escena1_map_end;
+extern char escena2_til, escena2_til_end, escena2_pal, escena2_map, escena2_map_end;
+extern char escena3_til, escena3_til_end, escena3_pal, escena3_map, escena3_map_end;
 
 /*--- Estado propio de esta pantalla -------------------------------------------*/
 static u8  escena;               /* Escena actual: 0, 1 o 2.                               */
@@ -20,27 +25,45 @@ static u16 letras;               /* Letras del párrafo ya mostradas.           
 static u16 restante;             /* Letras que sobran para la línea siguiente (encadenado).*/
 static u16 inicio_escena;        /* Frame en que empezó la escena actual.                  */
 
+/*--- Escena en Mode 3: imagen de 256 colores + texto en el fondo 1 ---------------*/
+static void escena_256(u8 *til, u8 *til_end, u8 *pal, u8 *map, u8 *map_end)
+{
+    setMode(BG_MODE3, 0);                            /* Fondo 0 = 256 colores, fondo 1 = 16.*/
+    fondo256_cargar(til, til_end, pal, map, map_end, 0x0000, VRAM_MAPA_B);
+    fuente_4bpp(1, 7);                               /* Texto en el fondo 1, paleta 7. Va
+                                                        DESPUÉS de la imagen porque esta
+                                                        escribe las 256 entradas de color.  */
+    bgSetEnable(1);
+    bgSetDisable(2);
+}
+
 /*--- Dibuja el marco de una escena (sin el texto, que crece frame a frame) ------*/
 static void preparar_escena(void)
 {
-    limpiar_texto();
-    switch (escena)                                  /* Rótulo del fondo que irá en BG1.    */
+    switch (escena)
     {
-        case 0: texto_centrado(3, "[ SCENE 1: THE VILLAGE ]"); break;
-        case 1: texto_centrado(3, "[ SCENE 2: THE WIND ]");    break;
-        case 2: texto_centrado(3, "[ SCENE 3: THE ROAD ]");
-                /* Los dos personajes, de pie sobre la línea de "suelo" (fila 17
-                   de texto = píxel 136; la celda mide 64, así que y = 136 - 64 = 72). */
-                personajes_mostrar(48, 72, 150, 72);
-                break;
+        case 0:                                      /* El pueblo (Spring Forest).          */
+            escena_256(&escena1_til, &escena1_til_end, &escena1_pal, &escena1_map, &escena1_map_end);
+            break;
+        case 1:                                      /* El viento (Autumn Forest).          */
+            escena_256(&escena2_til, &escena2_til_end, &escena2_pal, &escena2_map, &escena2_map_end);
+            break;
+        case 2:                                      /* El camino: Mode 1 + sprites.        */
+            video_texto_mode1();
+            personajes_cargar();                     /* Mode 3 pisó la VRAM de los sprites. */
+            fondo16_cargar(1, &escena3_til, &escena3_til_end, &escena3_pal, 1,
+                           &escena3_map, &escena3_map_end, VRAM_FONDO_A, VRAM_MAPA_B, SC_32x32);
+            /* Pies sobre el borde inferior de la imagen (fila 128): celda 64..128. */
+            personajes_mostrar(48, 64, 150, 64);
+            break;
         default: break;
     }
+    limpiar_texto();
     letras = 0;                                      /* El párrafo empieza vacío.           */
     inicio_escena = frames_en_pantalla;              /* Para medir los 8 s de esta escena.  */
 }
 
-/*--- Escribe el párrafo de la escena actual con `letras` letras visibles --------
-    Cada línea consume letras y pasa el sobrante a la siguiente. */
+/*--- Escribe el párrafo de la escena actual con `letras` letras visibles --------*/
 static void escribir_parrafo(void)
 {
     switch (escena)
@@ -56,8 +79,8 @@ static void escribir_parrafo(void)
             restante = escribir_parcial(22, "AND TOOK SOMETHING PRECIOUS.",    restante);
             break;
         case 2:
-            restante = escribir_parcial(18, "TOGETHER, THEY SET OUT",          letras);
-            restante = escribir_parcial(20, "ON A JOURNEY BEYOND THE HILLS...", restante);
+            restante = escribir_parcial(19, "TOGETHER, THEY SET OUT",          letras);
+            restante = escribir_parcial(21, "ON A JOURNEY BEYOND THE HILLS...", restante);
             break;
         default: break;
     }
@@ -65,55 +88,47 @@ static void escribir_parrafo(void)
 
 void pantalla_intro_iniciar(void)
 {
-    escena = 0;                                      /* Siempre arranca en la escena 1.     */
+    escena = 0;
     preparar_escena();
     fade_in(FRAMES_FADE);
 }
 
 void pantalla_intro_actualizar(void)
 {
-    /* Salto opcional (desactivado por diseño). */
     if (PERMITE_SALTO && (padsDown(0) & KEY_START))
     {
         fade_out(FRAMES_FADE);
+        personajes_ocultar();
         secuencia_cambiar(PANTALLA_TITULO);
         return;
     }
 
-    /* Máquina de escribir: una letra más cada FRAMES_POR_LETRA frames. */
-    if ((frames_en_pantalla % FRAMES_POR_LETRA) == 0)
+    if ((frames_en_pantalla % FRAMES_POR_LETRA) == 0)   /* Máquina de escribir.             */
     {
         letras++;
         escribir_parrafo();
     }
 
-    personajes_animar();                             /* Solo hace algo si se ven (escena 3).*/
+    personajes_animar();                             /* Solo hace algo en la escena 3.      */
 
-    /* ¿Terminó el tiempo de esta escena? (frames desde que empezó la escena) */
     if ((frames_en_pantalla - inicio_escena) >= DURACION_ESCENA_INTRO)
     {
-        if (escena < 2)                              /* Quedan escenas: pasamos a la otra.  */
+        if (escena < 2)
         {
             fade_out(FRAMES_FADE);
             escena++;
-            preparar_escena();
+            preparar_escena();                       /* Cambia de modo/imagen en negro.     */
             fade_in(FRAMES_FADE);
         }
-        else                                         /* Era la última: rumbo al título.     */
+        else
         {
-            personajes_ocultar();                    /* El título los vuelve a colocar.     */
-            /* Mosaico: la capa de texto se vuelve bloques cada vez más grandes
-               (MOSAIC_BG1 es la primera capa, la que usa la consola).
-               OJO: la documentación del SDK está invertida respecto a su código
-               (verificado en videos.asm el 2026-09-24): MOSAIC_OUT hace CRECER el
-               mosaico de 0 a 15 y lo deja al máximo; MOSAIC_IN lo encoge de 15 a 0.
-               Ambas bloquean unos 48 frames. */
-            setMosaicEffect(MOSAIC_OUT, MOSAIC_BG1);
+            personajes_ocultar();
+            /* Mosaico sobre las dos capas visibles (texto = fondo 0, imagen = fondo 1).
+               MOSAIC_OUT agranda los bloques de 0 a 15 (la doc del SDK está
+               invertida; verificado en videos.asm). */
+            setMosaicEffect(MOSAIC_OUT, MOSAIC_BG1 | MOSAIC_BG2);
             fade_out(FRAMES_FADE);
-            /* Ya en negro, apagamos el mosaico de golpe escribiendo 0 en su
-               registro de la PPU (tamaño 0, ninguna capa): así el título sale
-               nítido sin esperar otra animación. → glosario: Mosaico */
-            REG_MOSAIC = 0;
+            REG_MOSAIC = 0;                          /* Apagar el mosaico ya en negro.      */
             secuencia_cambiar(PANTALLA_TITULO);
         }
     }

@@ -14,6 +14,7 @@ static u16 letras_mostradas;   /* Cuántas letras del mensaje ya se ven.        
 
 void pantalla_dedicatoria_iniciar(void)
 {
+    video_texto_mode1();                             /* Volvemos de Mode 7: Mode 1 y fuente.*/
     limpiar_texto();
     letras_mostradas = 0;                            /* Empezamos sin ninguna letra.        */
     fade_in(FRAMES_FADE_LENTO);                      /* Fundido lento (~1 s) desde negro.   */

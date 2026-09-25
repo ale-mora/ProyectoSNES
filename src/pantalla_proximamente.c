@@ -11,6 +11,7 @@
 
 void pantalla_proximamente_iniciar(void)
 {
+    video_texto_mode1();                             /* Solo texto, Mode 1.                 */
     limpiar_texto();
     texto_centrado(12, "LEVEL 1 - COMING SOON");     /* Aviso de que aún no hay juego.      */
     texto_centrado(16, "PRESS START TO RETURN");     /* Cómo volver al título.              */

@@ -68,6 +68,7 @@ void personajes_cargar(void)
     oamInit();
     oamInitGfxSet(&tarouh_lobo_til, tam_tarouh, &tarouh_lobo_pal, 16 * 2,
                   PALETA_TAROUH, VRAM_SPRITES, OBJ_SIZE32_L64);
+    personajes_ocultar();                            /* Escondidos hasta que se pidan.      */
 
     /* La VRAM se direcciona en "palabras" de 2 bytes: dividimos los bytes por 2. */
     dmaCopyVram(&barbara_samurai_til, VRAM_SPRITES + tam_tarouh / 2, tam_barbara);
@@ -128,9 +129,16 @@ void personajes_animar(void)
 
 void personajes_ocultar(void)
 {
-    /* OBJ_HIDE manda el sprite fuera de la pantalla (x=255, y=240). Al volver a
-       mostrar, personajes_mostrar() repone la posición con oamSet. */
-    oamSetVisible(OAM_TAROUH, OBJ_HIDE);
-    oamSetVisible(OAM_BARBARA, OBJ_HIDE);
+    /* OJO: OBJ_HIDE por sí solo manda el sprite a y = 240, pero la coordenada
+       vertical de la OAM da la vuelta cada 256 píxeles: un sprite de 64 de alto
+       en y = 240 asoma 48 filas por ARRIBA de la pantalla (se veían rectángulos
+       negros). Solución: hacerlo pequeño (32x32), ponerlo en y = 224 (justo
+       debajo del borde, sin dar la vuelta) y en x = 256 (bit alto de x = fuera
+       de pantalla por la derecha). Al volver a mostrar, personajes_mostrar()
+       repone tamaño y posición. */
+    oamSetEx(OAM_TAROUH, OBJ_SMALL, OBJ_HIDE);
+    oamSetXY(OAM_TAROUH, 256, 224);
+    oamSetEx(OAM_BARBARA, OBJ_SMALL, OBJ_HIDE);
+    oamSetXY(OAM_BARBARA, 256, 224);
     visibles = 0;
 }

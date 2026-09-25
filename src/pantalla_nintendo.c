@@ -2,37 +2,37 @@
     pantalla_nintendo.c — Pantalla (1): logo "Nintendo" y "LICENSED BY NINTENDO".
     Muda, 3 segundos, fade in y fade out (como en los juegos de la época).
 
-    ESTADO: marcador de texto. Cuando llegue res/nintendo/logo_nintendo.png, el
-    texto "Nintendo" se reemplaza por la imagen cargada en BG1 (tarea 2 del plan).
+    Gráficos: res/nintendo/logo_nintendo.png (256x224, 16 colores) en el fondo 1
+    con la paleta 1; el texto en el fondo 0 (consola) por encima.
+    → glosario: BG / capas, Paleta
 ---------------------------------------------------------------------------------*/
-#include "pantallas.h"   /* Tiempos, enum Pantalla y prototipos de esta pantalla. */
-#include "secuencia.h"   /* frames_en_pantalla y secuencia_cambiar().            */
-#include "comun.h"       /* limpiar_texto, texto_centrado, fade_in/out.          */
+#include "pantallas.h"
+#include "secuencia.h"
+#include "comun.h"
 
-/*--- iniciar: se ejecuta UNA vez al entrar --------------------------------------*/
+/* Etiquetas de data.asm: dónde empiezan (y terminan) los tiles, la paleta y el mapa. */
+extern char nintendo_til, nintendo_til_end, nintendo_pal, nintendo_map, nintendo_map_end;
+
 void pantalla_nintendo_iniciar(void)
 {
-    limpiar_texto();                                 /* Pantalla de texto en blanco.       */
-    texto_centrado(11, "Nintendo");                  /* MARCADOR: aquí irá el logo rojo.   */
-    texto_centrado(14, "LICENSED BY NINTENDO");      /* Texto de licencia debajo del logo. */
-    fade_in(FRAMES_FADE);                            /* Aparece desde negro (~0,5 s).      */
+    video_texto_mode1();                             /* Mode 1, texto en el fondo 0.        */
+    fondo16_cargar(1, &nintendo_til, &nintendo_til_end, &nintendo_pal, 1,
+                   &nintendo_map, &nintendo_map_end, VRAM_FONDO_A, VRAM_MAPA_B, SC_32x32);
+    limpiar_texto();
+    texto_centrado(17, "LICENSED BY NINTENDO");      /* Debajo del logo (fila 17 = y 136). */
+    fade_in(FRAMES_FADE);
 }
 
-/*--- actualizar: se ejecuta UNA vez por frame -----------------------------------*/
 void pantalla_nintendo_actualizar(void)
 {
-    /* Salto opcional (desactivado por diseño): si PERMITE_SALTO es 1 y se pulsa
-       Start, terminamos antes. padsDown(0) = botones recién pulsados del mando 1;
-       "& KEY_START" pregunta solo por el bit de Start. → glosario: Mando */
-    if (PERMITE_SALTO && (padsDown(0) & KEY_START))
+    if (PERMITE_SALTO && (padsDown(0) & KEY_START))  /* Salto opcional (desactivado).       */
     {
-        fade_out(FRAMES_FADE);                       /* A negro...                          */
-        secuencia_cambiar(PANTALLA_PUBLISHER);       /* ...y a la siguiente pantalla.       */
-        return;                                      /* Nada más que hacer este frame.      */
+        fade_out(FRAMES_FADE);
+        secuencia_cambiar(PANTALLA_PUBLISHER);
+        return;
     }
 
-    /* Fin por tiempo: cuando el contador llega a la duración, salimos. */
-    if (frames_en_pantalla >= DURACION_NINTENDO)
+    if (frames_en_pantalla >= DURACION_NINTENDO)     /* Fin por tiempo (3 s).               */
     {
         fade_out(FRAMES_FADE);
         secuencia_cambiar(PANTALLA_PUBLISHER);

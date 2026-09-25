@@ -1,32 +1,32 @@
 /*---------------------------------------------------------------------------------
-    pantalla_devs.c — Pantalla (3): logo del estudio (provisional, estilo Konami)
-    entrando con zoom y rotación en Mode 7, y debajo "ALEJANDRO MORA" con roles.
-    4 segundos: 2 s de animación Mode 7 + 2 s quieto. Entra desde negro, sale
-    con fade.
+    pantalla_devs.c — Pantalla (3): logo del estudio, 4 segundos.
+    Logo propio del estudio (res/devs/logo_devs.png, 16 colores, paleta 1,
+    fondo 1) y, debajo, el autor y los roles con la consola de texto. Entra de golpe (como los logos de la
+    época) y sale con fade.
 
-    ESTADO: marcador de texto. La tarea 4 del plan cambia a Mode 7 con la imagen
-    de 256 colores (res/devs/logo_devs.png) y vuelve a Mode 1 al salir.
-    → glosario: Mode 7
+    Nota de diseño: la versión con zoom y rotación en Mode 7 se descartó
+    (2026-09-24) porque no quedaba bien; el logo fijo es más limpio.
 ---------------------------------------------------------------------------------*/
 #include "pantallas.h"
 #include "secuencia.h"
 #include "comun.h"
 
+extern char devs_til, devs_til_end, devs_pal, devs_map, devs_map_end;
+
 void pantalla_devs_iniciar(void)
 {
+    video_texto_mode1();
+    fondo16_cargar(1, &devs_til, &devs_til_end, &devs_pal, 1,
+                   &devs_map, &devs_map_end, VRAM_FONDO_A, VRAM_MAPA_B, SC_32x32);
     limpiar_texto();
-    texto_centrado(6,  "[ STUDIO LOGO ]");           /* MARCADOR: imagen Mode 7 con zoom.   */
-    texto_centrado(8,  "DON POLLO STUDIOS");         /* Nombre del estudio (decidido).      */
-    texto_centrado(10, "MODE 7 ZOOM + ROTATION");    /* Recordatorio del efecto previsto.   */
-    texto_centrado(15, "ALEJANDRO MORA");            /* Nombre del desarrollador.           */
-    texto_centrado(17, "PROGRAMMING - ART - MUSIC"); /* Roles (hoy todos la misma persona). */
-    setBrightness(15);                               /* Aparece de golpe (sin fade): así
-                                                        arrancará el zoom desde negro.      */
+    texto_centrado(18, "ALEJANDRO MORA");
+    texto_centrado(20, "PROGRAMMING - ART - MUSIC");
+    setBrightness(15);                               /* Aparece de golpe.                   */
 }
 
 void pantalla_devs_actualizar(void)
 {
-    if (PERMITE_SALTO && (padsDown(0) & KEY_START))  /* Salto opcional (desactivado).       */
+    if (PERMITE_SALTO && (padsDown(0) & KEY_START))
     {
         fade_out(FRAMES_FADE);
         secuencia_cambiar(PANTALLA_DEDICATORIA);

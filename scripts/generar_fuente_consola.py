@@ -79,6 +79,10 @@ def main() -> int:
 
     SALIDA.parent.mkdir(parents=True, exist_ok=True)
     hoja.save(SALIDA, format="BMP")
+    # Copia idéntica para convertirla a 2 bits por píxel (4 colores): es la
+    # fuente que usa la capa BG3 en el título. gfx4snes escribe la salida con
+    # el nombre de la entrada, por eso hace falta un archivo aparte.
+    hoja.save(SALIDA.with_name("ark_consola_2bpp.bmp"), format="BMP")
     print(f"Fuente generada: {SALIDA} ({hoja.size[0]}x{hoja.size[1]}, modo {hoja.mode})")
     if recortados:
         print("Caracteres recortados por no caber en 8x8 (revisar a ojo):", "".join(recortados))
