@@ -11,17 +11,32 @@
 #include <snes.h>        /* Librería PVSnesLib (funciones de vídeo, mando, texto...). */
 #include "secuencia.h"   /* Nuestra máquina de estados: secuencia_iniciar/actualizar. */
 
+/* La fuente vive en la ROM, pegada por data.asm con esas dos etiquetas. "extern
+   char" le dice al compilador: "existe, está en otro archivo, aquí solo la uso".
+   Lo que se pasa a la librería es su dirección (&fuente_consola_til). → glosario: extern */
+extern char fuente_consola_til, fuente_consola_pal;
+
 int main(void)
 {
     /*--- 1. Vídeo y texto ---------------------------------------------------------
-        consoleInitDefaultText(0): carga la fuente embebida de PVSnesLib en la
-        VRAM y la asocia a la paleta 0. Es la fuente provisional del proyecto. */
-    consoleInitDefaultText(0);
+        Dónde va la fuente en la VRAM (direcciones en hexadecimal): el mapa de
+        texto en 0x6800, los tiles de la fuente en 0x3000. El "offset" 0x0100 es
+        el número del primer tile de la fuente contado desde la base de tiles del
+        fondo (0x2000): (0x3000 - 0x2000) / 16 palabras por tile = 0x100. Son
+        los mismos valores que usan los ejemplos del SDK. → glosario: VRAM */
+    consoleSetTextMapPtr(0x6800);
+    consoleSetTextGfxPtr(0x3000);
+    consoleSetTextOffset(0x0100);
+
+    /* Cargamos NUESTRA fuente (Ark Pixel, mayúsculas): paleta 0, tamaño de la
+       paleta en bytes (2 colores * 2 bytes, porque cada color de la SNES ocupa
+       2 bytes: el 0 transparente y el 1 el trazo), tiles y paleta. */
+    consoleInitText(0, 2 * 2, &fuente_consola_til, &fuente_consola_pal);
 
     /* La capa de texto es el fondo 0 (BG1 en la jerga de la PPU, numerado desde 0
-       en PVSnesLib). Le decimos dónde están sus tiles (0x3000) y su mapa (0x6800)
-       dentro de la VRAM, en hexadecimal. SC_32x32 = mapa de 32x32 celdas. */
-    bgSetGfxPtr(0, 0x3000);
+       en PVSnesLib). Base de tiles en 0x2000 y mapa en 0x6800, como arriba.
+       SC_32x32 = mapa de 32x32 celdas. */
+    bgSetGfxPtr(0, 0x2000);
     bgSetMapPtr(0, 0x6800, SC_32x32);
 
     /* Mode 1: dos fondos de 16 colores y uno de 4. Por ahora solo usamos el fondo

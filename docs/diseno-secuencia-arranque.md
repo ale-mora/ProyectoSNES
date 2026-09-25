@@ -45,9 +45,12 @@ hoja de ruta está en `docs/plan-desarrollo.md`, Etapa 1.5.
 - **Textos en pantalla:** en **inglés** (título, créditos, intro, "PRESS
   START"). Excepción: la dedicatoria va en español, son las palabras del autor.
   El código y sus comentarios siguen en español.
-- **Fuente de texto:** provisional, la fuente embebida de PVSnesLib
-  (`consoleInitDefaultText`). Se reemplaza después por una fuente de época
-  (BMP 8 bits, regla `-s 8 -o 2 -u 16 -e 1 -p -t bmp -m -R`) sin tocar lógica.
+- **Fuente de texto:** **Ark Pixel Font** (TakWolf, licencia OFL, en
+  `res/descargas/fuentes/`; decisión del 2026-09-24). Se usa en el logo del
+  título (16 px) y en los textos fijos. Para la consola de texto (celdas de
+  8×8) se generó una fuente bitmap de 96 caracteres desde la variante de 10 px:
+  las mayúsculas y dígitos miden 7×7 y caben; las minúsculas se muestran como
+  mayúsculas (`res/fuente/ark_consola.bmp`, tarea 1b).
 - **Vídeo:** NTSC 60 Hz, 256×224, **Mode 1** como base (BG1/BG2 de 16 colores,
   BG3 de 4 colores). **Mode 7** solo en la pantalla de desarrolladores.
   **Mode 3** (BG1 de 256 colores) en las tres escenas fijas de la intro, para
@@ -346,12 +349,17 @@ el uso: `snesromusage.exe -i ProyectoSNES.sym`. Si la ROM se llena, subir
       del SDK; falta elegirlos oyéndolos en Mesen. Los packs MP3/OGG/WAV
       descargados no sirven como música de SNES.
 - [ ] Corregir los tres párrafos marcador de la intro.
+- [ ] Música japonesa: solo "Oriental 2" (`mw_orie2.it`) pasa `smconv`. Los
+      packs MP3/OGG no sirven. Alternativas: seguir buscando `.it` pequeños,
+      o adaptar uno grande en OpenMPT (bajar a 8 canales, muestras sin
+      comprimir).
 
 ## 9. Plan de implementación (una tarea = un commit)
 
 | # | Tarea | Qué se ve en Mesen al terminar | Estado |
 | --- | --- | --- | --- |
 | 1 | **Esqueleto**: carpetas `res/` y `scripts/`, `.gitignore`, `scripts/preparar_imagen.py`, `docs/glosario-snes.md`, máquina de estados `secuencia.c`, las 7 pantallas con **texto marcador** y los tiempos reales, fades, parpadeo, attract y Start funcionando. | La secuencia completa corre de punta a punta solo con texto. | **hecho** (2026-09-23, compila sin avisos; falta verla en Mesen) |
+| 1b | **Fuente Ark Pixel en la consola**: `scripts/generar_fuente_consola.py` (10 px → BMP 768×8, mayúsculas), regla `gfx4snes` en el Makefile, `data.asm` con la sección de la fuente, `consoleInitText` en `main.c`. | Todo el texto de la demo en Ark Pixel. | **hecho** (2026-09-24) |
 | 2 | **Nintendo real**: `res/nintendo/logo_nintendo.png` → `gfx4snes` → `data.asm` → `bgInitTileSet`/`bgInitMapSet` en BG1; texto "LICENSED BY NINTENDO" en BG3. | Logo rojo con fade. | pendiente (asset del usuario) |
 | 3 | **Publisher + audio**: logo Capcom del SDK, primer `.it` → `soundbank` (`AUDIOFILES`, `SOUNDBANK`, `spcBoot`, `spcLoad`, `spcPlay`, `spcProcess` en el bucle). | Logo con jingle. | pendiente |
 | 4 | **Devs en Mode 7**: imagen 256 colores (`-M 7`), `bgInitMapTileSet7`, zoom + rotación por frame (`m7sx/m7sy`, `setMode7Rot`), vuelta limpia a Mode 1. | Logo entra girando desde lejos. | pendiente (asset del usuario) |
