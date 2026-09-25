@@ -21,3 +21,29 @@ fuente_consola_pal:                ; Paleta: color 0 transparente, color 1 el tr
 fuente_consola_pal_end:
 
 .ends
+
+; --- Sprites de los personajes (solo para la demo) --------------------------------
+; Cada uno en su propia sección: así ninguno cruza un banco de 32 KB.
+.section ".rodata_tarouh" superfree
+
+tarouh_lobo_til:                   ; 4 cuadros de 64x64 (bloques 0..3), 8 KB.
+.incbin "res/personajes/tarouh_lobo.pic"
+tarouh_lobo_til_end:
+
+tarouh_lobo_pal:                   ; 16 colores, el 0 transparente.
+.incbin "res/personajes/tarouh_lobo.pal"
+tarouh_lobo_pal_end:
+
+.ends
+
+.section ".rodata_barbara" superfree
+
+barbara_samurai_til:               ; 4 cuadros de 64x64 (bloques 4..7), 8 KB.
+.incbin "res/personajes/barbara_samurai.pic"
+barbara_samurai_til_end:
+
+barbara_samurai_pal:
+.incbin "res/personajes/barbara_samurai.pal"
+barbara_samurai_pal_end:
+
+.ends

@@ -361,6 +361,7 @@ el uso: `snesromusage.exe -i ProyectoSNES.sym`. Si la ROM se llena, subir
 | --- | --- | --- | --- |
 | 1 | **Esqueleto**: carpetas `res/` y `scripts/`, `.gitignore`, `scripts/preparar_imagen.py`, `docs/glosario-snes.md`, máquina de estados `secuencia.c`, las 7 pantallas con **texto marcador** y los tiempos reales, fades, parpadeo, attract y Start funcionando. | La secuencia completa corre de punta a punta solo con texto. | **hecho** (2026-09-23). Vista en Mesen el 2026-09-24: fundidos de 8 s por un error de unidades (frames por paso, no totales), corregido. |
 | 1b | **Fuente Ark Pixel en la consola**: `scripts/generar_fuente_consola.py` (10 px → BMP 768×8, mayúsculas), regla `gfx4snes` en el Makefile, `data.asm` con la sección de la fuente, `consoleInitText` en `main.c`. | Todo el texto de la demo en Ark Pixel. | **hecho** (2026-09-24) |
+| 1c | **Sprites de Tarouh y Bárbara**: `scripts/preparar_sprites.py` (tiras de 4 cuadros de 64×64, 16 colores), `src/personajes.c` (carga única en VRAM 0x0000, animación de reposo, lobo volteado), visibles en la escena 3 y el título. Límite duro: 512 tiles de sprites = 8 bloques de 64×64. | Los dos personajes animados en la intro y el título. | **hecho** (2026-09-24) |
 | 2 | **Nintendo real**: `res/nintendo/logo_nintendo.png` → `gfx4snes` → `data.asm` → `bgInitTileSet`/`bgInitMapSet` en BG1; texto "LICENSED BY NINTENDO" en BG3. | Logo rojo con fade. | pendiente (asset del usuario) |
 | 3 | **Publisher + audio**: logo Capcom del SDK, primer `.it` → `soundbank` (`AUDIOFILES`, `SOUNDBANK`, `spcBoot`, `spcLoad`, `spcPlay`, `spcProcess` en el bucle). | Logo con jingle. | pendiente |
 | 4 | **Devs en Mode 7**: imagen 256 colores (`-M 7`), `bgInitMapTileSet7`, zoom + rotación por frame (`m7sx/m7sy`, `setMode7Rot`), vuelta limpia a Mode 1. | Logo entra girando desde lejos. | pendiente (asset del usuario) |
@@ -369,6 +370,10 @@ el uso: `snesromusage.exe -i ProyectoSNES.sym`. Si la ROM se llena, subir
 | 7 | **Título**: `scripts/generar_logo_titulo.py` → logo en BG3, parallax por software en BG1/BG2, `setModeHdmaGradient`, sprite de Tarouh, música en bucle. | Pantalla de título completa. | pendiente (2 fondos del usuario) |
 | 8 | **Cierre**: pase completo de verificación (§6), `snesromusage` por bancos, ajuste de tiempos a ojo, merge de `demo-secuencia-arranque` a `main`. | Demo terminada. | pendiente |
 
-Cada tarea termina con `make` sin errores, la ROM corriendo en Mesen y un
-commit. Las tareas 2, 4, 6 y 7 pueden reordenarse según qué asset llegue
+Cada tarea termina con `make clean` + `make` sin errores (el SDK no detecta
+cambios en headers), la ROM vista en Mesen y un commit. Lecciones del
+2026-09-24 verificadas en el ensamblador del SDK: `setFadeEffectEx` cuenta
+frames por paso de brillo (16 pasos); la documentación de `setMosaicEffect`
+está invertida (`MOSAIC_OUT` agranda y deja el mosaico activo, se apaga con
+`REG_MOSAIC = 0`); el color 0 de la paleta 0 es el fondo de toda la pantalla. Las tareas 2, 4, 6 y 7 pueden reordenarse según qué asset llegue
 primero a `res/descargas/`.

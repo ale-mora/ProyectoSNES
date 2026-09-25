@@ -11,6 +11,7 @@
 #include "pantallas.h"
 #include "secuencia.h"
 #include "comun.h"
+#include "personajes.h"  /* Tarouh y Bárbara en reposo bajo el logo. */
 
 /*--- Estado propio de esta pantalla -------------------------------------------*/
 static u16 frames_sin_input;   /* Frames seguidos sin tocar ningún botón (para el attract). */
@@ -22,14 +23,16 @@ void pantalla_titulo_iniciar(void)
     limpiar_texto();
     texto_centrado(5,  "TAROUH");                    /* MARCADOR del logo del título.       */
     texto_centrado(7,  "A DOG'S JOURNEY");
-    texto_centrado(12, "[ PARALLAX + HDMA SKY ]");   /* Recordatorio de los efectos.        */
-    texto_centrado(14, "[ TAROUH SPRITE ]");
+    texto_centrado(10, "[ PARALLAX + HDMA SKY ]");   /* Recordatorio de los efectos.        */
+    personajes_mostrar(40, 96, 160, 96);             /* Lobo a la izquierda, samurái a la
+                                                        derecha; celda 96..160, pies en 160.*/
     texto_centrado(26, "(C) 2026 DON POLLO STUDIOS");  /* Nombre del estudio (decidido).    */
 
     frames_sin_input = 0;                            /* Nadie ha tocado nada todavía.       */
     frames_parpadeo = 0;
     texto_visible = 1;                               /* Empezamos con el texto visible...   */
-    texto_centrado(20, "PRESS START");               /* ...y lo dibujamos.                  */
+    texto_centrado(22, "PRESS START");               /* ...y lo dibujamos (fila 22 = y 176,
+                                                        debajo de los pies de los sprites). */
 
     fade_in(FRAMES_FADE);
 }
@@ -42,6 +45,7 @@ void pantalla_titulo_actualizar(void)
     if (padsDown(0) & KEY_START)
     {
         fade_out(FRAMES_FADE);
+        personajes_ocultar();
         secuencia_cambiar(PANTALLA_PROXIMAMENTE);
         return;
     }
@@ -60,9 +64,12 @@ void pantalla_titulo_actualizar(void)
     if (frames_sin_input >= ATTRACT_SIN_INPUT)
     {
         fade_out(FRAMES_FADE);
+        personajes_ocultar();
         secuencia_cambiar(PANTALLA_INTRO);
         return;
     }
+
+    personajes_animar();                             /* Animación de reposo, cada frame.    */
 
     /*--- 3. Parpadeo de PRESS START ---------------------------------------------
         Cada FRAMES_PARPADEO frames (0,5 s) alternamos entre mostrar el texto y
@@ -74,11 +81,11 @@ void pantalla_titulo_actualizar(void)
         texto_visible = !texto_visible;              /* ...e invertimos: 1→0 o 0→1.         */
         if (texto_visible)
         {
-            texto_centrado(20, "PRESS START");
+            texto_centrado(22, "PRESS START");
         }
         else
         {
-            texto_centrado(20, "           ");       /* 11 espacios = mismo ancho.          */
+            texto_centrado(22, "           ");       /* 11 espacios = mismo ancho.          */
         }
     }
 }

@@ -6,7 +6,7 @@ bitmap que usa la consola de texto de PVSnesLib.
 Formato de salida (el mismo que `pvsneslibfont.bmp` del SDK):
   - BMP indexado de 768x8 píxeles: 96 celdas de 8x8, una por carácter ASCII
     del 32 (espacio) al 127, en orden.
-  - Índice 0 = fondo (magenta, transparente en la SNES); índice 1 = trazo (blanco).
+  - Índice 0 = fondo (negro: es el color de fondo de la pantalla); índice 1 = trazo (blanco).
   - El glifo ocupa las filas 0..6; la fila 7 queda vacía para separar líneas.
 
 Ark Pixel 10 px: las mayúsculas y los dígitos miden 7x7 y caben en 8x8; las
@@ -50,7 +50,10 @@ def main() -> int:
     fuente = ImageFont.truetype(str(FUENTE), TAMANO)
 
     hoja = Image.new("P", (ANCHO_CELDA * CARACTERES, 8), 0)
-    paleta = [255, 0, 255, 255, 255, 255] + [0, 0, 0] * 254   # idx0 magenta, idx1 blanco
+    # Índice 0 = NEGRO: en la SNES, el color 0 de la paleta 0 es también el color
+    # de fondo de toda la pantalla (backdrop). Con magenta, como trae el SDK, el
+    # fondo se veía violeta. Índice 1 = blanco, el trazo de las letras.
+    paleta = [0, 0, 0, 255, 255, 255] + [0, 0, 0] * 254
     hoja.putpalette(paleta)
 
     recortados = []

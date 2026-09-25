@@ -10,6 +10,7 @@
 ---------------------------------------------------------------------------------*/
 #include <snes.h>        /* Librería PVSnesLib (funciones de vídeo, mando, texto...). */
 #include "secuencia.h"   /* Nuestra máquina de estados: secuencia_iniciar/actualizar. */
+#include "personajes.h"  /* Sprites de Tarouh y Bárbara (carga única en VRAM).       */
 
 /* La fuente vive en la ROM, pegada por data.asm con esas dos etiquetas. "extern
    char" le dice al compilador: "existe, está en otro archivo, aquí solo la uso".
@@ -19,13 +20,18 @@ extern char fuente_consola_til, fuente_consola_pal;
 int main(void)
 {
     /*--- 1. Vídeo y texto ---------------------------------------------------------
-        Dónde va la fuente en la VRAM (direcciones en hexadecimal): el mapa de
-        texto en 0x6800, los tiles de la fuente en 0x3000. El "offset" 0x0100 es
-        el número del primer tile de la fuente contado desde la base de tiles del
-        fondo (0x2000): (0x3000 - 0x2000) / 16 palabras por tile = 0x100. Son
-        los mismos valores que usan los ejemplos del SDK. → glosario: VRAM */
+        Reparto de la VRAM (64 KB = 0x8000 palabras de 2 bytes; direcciones en
+        hexadecimal). → glosario: VRAM
+            0x0000-0x1FFF  tiles de sprites (Tarouh 8 KB + Bárbara 8 KB = 512 tiles, el máximo)
+            0x2000-0x4FFF  tiles de fondos (reservado para el título)
+            0x5000-0x5FFF  base de tiles del fondo de texto
+            0x6000-0x65FF  tiles de la fuente (96 x 32 bytes)
+            0x6800-0x6BFF  mapa del fondo de texto (32x32 celdas x 2 bytes)
+        El "offset" 0x0100 es el número del primer tile de la fuente contado
+        desde la base del fondo de texto: (0x6000 - 0x5000) / 16 palabras por
+        tile = 0x100. */
     consoleSetTextMapPtr(0x6800);
-    consoleSetTextGfxPtr(0x3000);
+    consoleSetTextGfxPtr(0x6000);
     consoleSetTextOffset(0x0100);
 
     /* Cargamos NUESTRA fuente (Ark Pixel, mayúsculas): paleta 0, tamaño de la
@@ -34,10 +40,14 @@ int main(void)
     consoleInitText(0, 2 * 2, &fuente_consola_til, &fuente_consola_pal);
 
     /* La capa de texto es el fondo 0 (BG1 en la jerga de la PPU, numerado desde 0
-       en PVSnesLib). Base de tiles en 0x2000 y mapa en 0x6800, como arriba.
+       en PVSnesLib). Base de tiles en 0x5000 y mapa en 0x6800, como arriba.
        SC_32x32 = mapa de 32x32 celdas. */
-    bgSetGfxPtr(0, 0x2000);
+    bgSetGfxPtr(0, 0x5000);
     bgSetMapPtr(0, 0x6800, SC_32x32);
+
+    /* Sprites de los dos personajes: se copian a la VRAM una sola vez, aquí. Las
+       pantallas que los usan solo los muestran, animan y esconden. */
+    personajes_cargar();
 
     /* Mode 1: dos fondos de 16 colores y uno de 4. Por ahora solo usamos el fondo
        0, así que apagamos el 1 y el 2 para que no muestren basura de la VRAM. */

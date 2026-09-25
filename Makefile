@@ -30,8 +30,18 @@ res/fuente/ark_consola.pic: res/fuente/ark_consola.bmp
 	@echo convert font ... $(notdir $<)
 	$(GFXCONV) -s 8 -o 2 -u 16 -p -e 0 -t bmp -i $<
 
+# Sprites de los personajes: tiras de cuadros de 64x64 (-s 64), 16 colores, PNG.
+# gfx4snes empaqueta los bloques en filas de 128 px; ver src/personajes.c.
+res/personajes/tarouh_lobo.pic: res/personajes/tarouh_lobo.png
+	@echo convert sprites ... $(notdir $<)
+	$(GFXCONV) -s 64 -o 16 -u 16 -p -i $<
+
+res/personajes/barbara_samurai.pic: res/personajes/barbara_samurai.png
+	@echo convert sprites ... $(notdir $<)
+	$(GFXCONV) -s 64 -o 16 -u 16 -p -i $<
+
 .PHONY: bitmaps cleanGfxRes
-bitmaps: res/fuente/ark_consola.pic
+bitmaps: res/fuente/ark_consola.pic res/personajes/tarouh_lobo.pic res/personajes/barbara_samurai.pic
 
 # Borra las salidas de conversión que viven dentro de res/ (cleanGfx solo mira la raíz).
 cleanGfxRes:

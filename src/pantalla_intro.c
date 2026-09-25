@@ -12,6 +12,7 @@
 #include "pantallas.h"
 #include "secuencia.h"
 #include "comun.h"
+#include "personajes.h"  /* Tarouh y Bárbara aparecen en la escena 3. */
 
 /*--- Estado propio de esta pantalla -------------------------------------------*/
 static u8  escena;               /* Escena actual: 0, 1 o 2.                               */
@@ -28,7 +29,9 @@ static void preparar_escena(void)
         case 0: texto_centrado(3, "[ SCENE 1: THE VILLAGE ]"); break;
         case 1: texto_centrado(3, "[ SCENE 2: THE WIND ]");    break;
         case 2: texto_centrado(3, "[ SCENE 3: THE ROAD ]");
-                texto_centrado(9, "[ TAROUH SPRITE ]");        /* MARCADOR del sprite.     */
+                /* Los dos personajes, de pie sobre la línea de "suelo" (fila 17
+                   de texto = píxel 136; la celda mide 64, así que y = 136 - 64 = 72). */
+                personajes_mostrar(48, 72, 150, 72);
                 break;
         default: break;
     }
@@ -84,6 +87,8 @@ void pantalla_intro_actualizar(void)
         escribir_parrafo();
     }
 
+    personajes_animar();                             /* Solo hace algo si se ven (escena 3).*/
+
     /* ¿Terminó el tiempo de esta escena? (frames desde que empezó la escena) */
     if ((frames_en_pantalla - inicio_escena) >= DURACION_ESCENA_INTRO)
     {
@@ -96,12 +101,19 @@ void pantalla_intro_actualizar(void)
         }
         else                                         /* Era la última: rumbo al título.     */
         {
-            /* Mosaico: la capa de texto se vuelve bloques grandes (MOSAIC_BG1 es
-               la primera capa, la que usa la consola). Después fundido a negro. */
-            setMosaicEffect(MOSAIC_IN, MOSAIC_BG1);
+            personajes_ocultar();                    /* El título los vuelve a colocar.     */
+            /* Mosaico: la capa de texto se vuelve bloques cada vez más grandes
+               (MOSAIC_BG1 es la primera capa, la que usa la consola).
+               OJO: la documentación del SDK está invertida respecto a su código
+               (verificado en videos.asm el 2026-09-24): MOSAIC_OUT hace CRECER el
+               mosaico de 0 a 15 y lo deja al máximo; MOSAIC_IN lo encoge de 15 a 0.
+               Ambas bloquean unos 48 frames. */
+            setMosaicEffect(MOSAIC_OUT, MOSAIC_BG1);
             fade_out(FRAMES_FADE);
-            setMosaicEffect(MOSAIC_OUT, MOSAIC_BG1); /* Deshacemos el mosaico ya en negro,
-                                                        para que el título salga nítido.    */
+            /* Ya en negro, apagamos el mosaico de golpe escribiendo 0 en su
+               registro de la PPU (tamaño 0, ninguna capa): así el título sale
+               nítido sin esperar otra animación. → glosario: Mosaico */
+            REG_MOSAIC = 0;
             secuencia_cambiar(PANTALLA_TITULO);
         }
     }
