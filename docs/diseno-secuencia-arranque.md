@@ -99,7 +99,8 @@ NTSC) y se ajustan a ojo en Mesen.
   texto "LICENSED BY NINTENDO". Muda (como casi todas las de la época).
 - **Técnica:** Mode 1. BG1 = imagen del logo (16 colores, 4bpp). Texto con la
   fuente de consola en BG3 (o dentro de la misma imagen si se prefiere una sola
-  pieza). `setFadeEffectEx(FADE_IN, 30)` → espera → `setFadeEffectEx(FADE_OUT, 30)`.
+  pieza). `setFadeEffectEx(FADE_IN, 2)` → espera → `setFadeEffectEx(FADE_OUT, 2)`
+  (el parámetro es frames por paso de brillo; 16 pasos × 2 = 32 frames).
 - **Asset:** `res/nintendo/logo_nintendo.png` (256×224, indexado, ≤16 colores).
   Lo descarga el usuario; se adapta con `scripts/preparar_imagen.py`.
 
@@ -358,7 +359,7 @@ el uso: `snesromusage.exe -i ProyectoSNES.sym`. Si la ROM se llena, subir
 
 | # | Tarea | Qué se ve en Mesen al terminar | Estado |
 | --- | --- | --- | --- |
-| 1 | **Esqueleto**: carpetas `res/` y `scripts/`, `.gitignore`, `scripts/preparar_imagen.py`, `docs/glosario-snes.md`, máquina de estados `secuencia.c`, las 7 pantallas con **texto marcador** y los tiempos reales, fades, parpadeo, attract y Start funcionando. | La secuencia completa corre de punta a punta solo con texto. | **hecho** (2026-09-23, compila sin avisos; falta verla en Mesen) |
+| 1 | **Esqueleto**: carpetas `res/` y `scripts/`, `.gitignore`, `scripts/preparar_imagen.py`, `docs/glosario-snes.md`, máquina de estados `secuencia.c`, las 7 pantallas con **texto marcador** y los tiempos reales, fades, parpadeo, attract y Start funcionando. | La secuencia completa corre de punta a punta solo con texto. | **hecho** (2026-09-23). Vista en Mesen el 2026-09-24: fundidos de 8 s por un error de unidades (frames por paso, no totales), corregido. |
 | 1b | **Fuente Ark Pixel en la consola**: `scripts/generar_fuente_consola.py` (10 px → BMP 768×8, mayúsculas), regla `gfx4snes` en el Makefile, `data.asm` con la sección de la fuente, `consoleInitText` en `main.c`. | Todo el texto de la demo en Ark Pixel. | **hecho** (2026-09-24) |
 | 2 | **Nintendo real**: `res/nintendo/logo_nintendo.png` → `gfx4snes` → `data.asm` → `bgInitTileSet`/`bgInitMapSet` en BG1; texto "LICENSED BY NINTENDO" en BG3. | Logo rojo con fade. | pendiente (asset del usuario) |
 | 3 | **Publisher + audio**: logo Capcom del SDK, primer `.it` → `soundbank` (`AUDIOFILES`, `SOUNDBANK`, `spcBoot`, `spcLoad`, `spcPlay`, `spcProcess` en el bucle). | Logo con jingle. | pendiente |

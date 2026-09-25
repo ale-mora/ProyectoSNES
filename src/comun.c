@@ -85,8 +85,9 @@ u16 escribir_parcial(u8 fila, char *texto, u16 letras)
 /*--- fade_in / fade_out ---------------------------------------------------------
     setFadeEffectEx anima el brillo de la PPU (0 = negro, 15 = normal) y BLOQUEA
     el programa hasta terminar; por eso las pantallas las llaman solo al entrar y
-    al salir, nunca en medio de una animación. El segundo parámetro son frames
-    según la documentación del SDK; la duración exacta se ajusta a ojo en Mesen.
+    al salir, nunca en medio de una animación. El segundo parámetro son los
+    frames que espera ENTRE CADA UNO de los 16 pasos de brillo (no el total):
+    con 2, el fundido dura 2 * 16 = 32 frames, algo más de medio segundo.
     → glosario: Fade / brillo */
 void fade_in(u8 frames)
 {

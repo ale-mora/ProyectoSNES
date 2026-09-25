@@ -43,8 +43,11 @@ typedef enum
 #define DURACION_ESCENA_INTRO SEGUNDOS(8)   /* cada una de las 3 escenas                */
 #define ATTRACT_SIN_INPUT     SEGUNDOS(15)  /* título → intro si nadie toca nada        */
 #define FRAMES_PARPADEO       30            /* PRESS START: 0,5 s visible, 0,5 s oculto */
-#define FRAMES_FADE           30            /* fundidos normales (~0,5 s)               */
-#define FRAMES_FADE_LENTO     60            /* fundidos de la dedicatoria (~1 s)        */
+/* OJO: setFadeEffectEx recibe frames POR CADA PASO de brillo, y hay 16 pasos
+   (0..15). Duración real = valor * 16 frames: 2 → 32 frames (~0,5 s),
+   4 → 64 frames (~1 s). Verificado en videos.asm del SDK el 2026-09-24. */
+#define FRAMES_FADE           2             /* fundidos normales: 2*16 = 32 frames      */
+#define FRAMES_FADE_LENTO     4             /* dedicatoria: 4*16 = 64 frames            */
 #define FRAMES_POR_LETRA      3             /* máquina de escribir: 1 letra cada 3 frames */
 
 /*--- Salto de pantallas ---------------------------------------------------------
