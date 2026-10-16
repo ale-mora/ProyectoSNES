@@ -24,6 +24,12 @@ export ROMBANKS := 16
 # Incluir reglas estándar de compilación de PVSnesLib
 include ${PVSNESLIB_HOME}/devkitsnes/snes_rules
 
+# Los fuentes viven en subcarpetas de src/ (sistema/, pantallas/, juego/...) y se
+# incluyen con ruta desde src/: #include "sistema/comun.h". snes_rules ya pone
+# -I$(CURDIR); añadimos -Isrc DESPUÉS del include porque las recetas expanden
+# CFLAGS al ejecutarse, no al definirse. Decisión 13 de docs/diseno-demo-jugable.md.
+CFLAGS += -Isrc
+
 .PHONY: all clean
 
 # Regla por defecto para compilar.

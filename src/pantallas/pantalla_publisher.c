@@ -4,9 +4,9 @@
     (res/publisher/logo_publisher.png, 16 colores, paleta 1, fondo 1).
     El jingle llega con el soundbank (tarea de audio).
 ---------------------------------------------------------------------------------*/
-#include "pantallas.h"
-#include "secuencia.h"
-#include "comun.h"
+#include "sistema/pantallas.h"
+#include "sistema/secuencia.h"
+#include "sistema/comun.h"
 
 extern char publisher_til, publisher_til_end, publisher_pal, publisher_map, publisher_map_end;
 

@@ -5,7 +5,7 @@
     de cada función (C clásico) y preferimos variables globales a locales, porque
     el compilador de la SNES (tcc816) genera código más rápido con ellas.
 ---------------------------------------------------------------------------------*/
-#include "comun.h"
+#include "sistema/comun.h"
 
 /*--- Las dos fuentes viven en la ROM (data.asm) -------------------------------------*/
 extern char fuente_consola_til, fuente_consola_pal;      /* 16 colores (4bpp) */

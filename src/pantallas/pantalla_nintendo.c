@@ -6,9 +6,9 @@
     con la paleta 1; el texto en el fondo 0 (consola) por encima.
     → glosario: BG / capas, Paleta
 ---------------------------------------------------------------------------------*/
-#include "pantallas.h"
-#include "secuencia.h"
-#include "comun.h"
+#include "sistema/pantallas.h"
+#include "sistema/secuencia.h"
+#include "sistema/comun.h"
 
 /* Etiquetas de data.asm: dónde empiezan (y terminan) los tiles, la paleta y el mapa. */
 extern char nintendo_til, nintendo_til_end, nintendo_pal, nintendo_map, nintendo_map_end;

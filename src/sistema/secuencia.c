@@ -6,7 +6,7 @@
     cambiar a la siguiente y aquí se hace el cambio.
     → glosario: Máquina de estados, switch/case, enum
 ---------------------------------------------------------------------------------*/
-#include "secuencia.h"   /* Nuestro propio header: declara lo que este archivo implementa. */
+#include "sistema/secuencia.h"   /* Nuestro propio header: declara lo que este archivo implementa. */
 
 /*--- Estado de la máquina -------------------------------------------------------*/
 Pantalla pantalla_actual;      /* En qué pantalla estamos ahora (un valor del enum Pantalla). */

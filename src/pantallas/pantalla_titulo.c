@@ -13,10 +13,10 @@
     Espera Start; a los 15 s sin input vuelve a la intro (attract).
     → glosario: BG / capas, HDMA, Mando, Sprite
 ---------------------------------------------------------------------------------*/
-#include "pantallas.h"
-#include "secuencia.h"
-#include "comun.h"
-#include "personajes.h"
+#include "sistema/pantallas.h"
+#include "sistema/secuencia.h"
+#include "sistema/comun.h"
+#include "pantallas/personajes.h"
 
 extern char cerca_til, cerca_til_end, cerca_pal, cerca_map, cerca_map_end;
 extern char lejos_til, lejos_til_end, lejos_pal, lejos_map, lejos_map_end;

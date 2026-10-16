@@ -5,9 +5,9 @@
     ESTADO: texto definitivo puesto ("A la memoria de Tarouh"). La música llega
     con el soundbank (tarea 5 del plan).
 ---------------------------------------------------------------------------------*/
-#include "pantallas.h"
-#include "secuencia.h"
-#include "comun.h"
+#include "sistema/pantallas.h"
+#include "sistema/secuencia.h"
+#include "sistema/comun.h"
 
 /*--- Estado propio de esta pantalla -------------------------------------------*/
 static u16 letras_mostradas; /* Cuántas letras del mensaje ya se ven.                  */

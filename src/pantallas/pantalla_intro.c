@@ -10,10 +10,10 @@
       fondo 0 y los sprites de Tarouh y Bárbara delante.
     → glosario: Mode 1, Mosaico, Sprite, Paleta
 ---------------------------------------------------------------------------------*/
-#include "pantallas.h"
-#include "secuencia.h"
-#include "comun.h"
-#include "personajes.h"
+#include "sistema/pantallas.h"
+#include "sistema/secuencia.h"
+#include "sistema/comun.h"
+#include "pantallas/personajes.h"
 
 extern char escena1_til, escena1_til_end, escena1_pal, escena1_map, escena1_map_end;
 extern char escena2_til, escena2_til_end, escena2_pal, escena2_map, escena2_map_end;

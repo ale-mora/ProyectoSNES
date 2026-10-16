@@ -9,9 +9,9 @@
     → glosario: VBlank, Consola de texto, Mode 1
 ---------------------------------------------------------------------------------*/
 #include <snes.h>        /* Librería PVSnesLib (funciones de vídeo, mando, texto...). */
-#include "secuencia.h"   /* Nuestra máquina de estados: secuencia_iniciar/actualizar. */
-#include "comun.h"       /* video_texto_mode1() y el reparto de la VRAM.             */
-#include "personajes.h"  /* personajes_ocultar() al arrancar.                        */
+#include "sistema/secuencia.h"   /* Nuestra máquina de estados: secuencia_iniciar/actualizar. */
+#include "sistema/comun.h"       /* video_texto_mode1() y el reparto de la VRAM.             */
+#include "pantallas/personajes.h"  /* personajes_ocultar() al arrancar.                        */
 
 int main(void)
 {

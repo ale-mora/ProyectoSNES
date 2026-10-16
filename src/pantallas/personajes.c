@@ -18,7 +18,7 @@
         (pasó en la primera prueba: dos lobos).
     → glosario: Sprite, OAM, VRAM, Paleta
 ---------------------------------------------------------------------------------*/
-#include "personajes.h"
+#include "pantallas/personajes.h"
 
 /*--- Datos en ROM (pegados por data.asm) ----------------------------------------*/
 extern char tarouh_lobo_til, tarouh_lobo_til_end;      /* tiles del lobo             */

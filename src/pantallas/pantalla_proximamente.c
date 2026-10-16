@@ -5,9 +5,9 @@
     Cuando exista el Nivel 1, esta pantalla se reemplaza por la carga del nivel
     (Etapa 2/3 del plan); el resto de la secuencia no cambia.
 ---------------------------------------------------------------------------------*/
-#include "pantallas.h"
-#include "secuencia.h"
-#include "comun.h"
+#include "sistema/pantallas.h"
+#include "sistema/secuencia.h"
+#include "sistema/comun.h"
 
 void pantalla_proximamente_iniciar(void)
 {

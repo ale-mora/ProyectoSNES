@@ -3,7 +3,7 @@
     las funciones que cada pantalla ofrece al resto del programa.
 
     Este archivo es un "header" (.h): no contiene código que se ejecute, solo
-    declaraciones que otros archivos .c incluyen con #include "pantallas.h".
+    declaraciones que otros archivos .c incluyen con #include "sistema/pantallas.h".
     → glosario: #include, #define, enum
 ---------------------------------------------------------------------------------*/
 #ifndef PANTALLAS_H   /* Guarda de inclusión: si PANTALLAS_H aún no está definido... */

@@ -7,9 +7,9 @@
     Nota de diseño: la versión con zoom y rotación en Mode 7 se descartó
     (2026-09-24) porque no quedaba bien; el logo fijo es más limpio.
 ---------------------------------------------------------------------------------*/
-#include "pantallas.h"
-#include "secuencia.h"
-#include "comun.h"
+#include "sistema/pantallas.h"
+#include "sistema/secuencia.h"
+#include "sistema/comun.h"
 
 extern char devs_til, devs_til_end, devs_pal, devs_map, devs_map_end;
 

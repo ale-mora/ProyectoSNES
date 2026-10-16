@@ -8,7 +8,7 @@
 #ifndef SECUENCIA_H
 #define SECUENCIA_H
 
-#include "pantallas.h"   /* Necesitamos el tipo Pantalla (el enum) definido allí. */
+#include "sistema/pantallas.h"   /* Necesitamos el tipo Pantalla (el enum) definido allí. */
 
 /* Cuántos frames lleva activa la pantalla actual. Se pone en 0 en cada cambio
    de pantalla y sube 1 por frame. La variable VIVE en secuencia.c; "extern"
