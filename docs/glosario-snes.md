@@ -74,6 +74,14 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   rápido que la CPU. **HDMA** escribe un valor en un registro de la PPU **en
   cada línea de la pantalla**: así se hace el cielo con degradado
   (`setModeHdmaColor` con una tabla de un color por línea) sin gastar CPU.
+- **Línea del haz (contadores H/V)** — la PPU dibuja la imagen de arriba
+  abajo, una línea cada 63,5 µs (262 líneas por frame en NTSC; las 225..261
+  son el VBlank). Leer el registro `$2137` congela los contadores y `$213D`
+  devuelve en qué línea va el haz. El HUD de depuración lo usa como medidor de
+  coste: si la lógica termina en la línea L, usó (37 + L) / 262 del frame.
+- **`snes_vblank_count`** — contador de VBlanks del SDK (sube 1 en cada NMI).
+  Comparado con `frames_en_pantalla` dice si el juego pierde frames; comparado
+  con el reloj, si el emulador va a 60 por segundo.
 - **Banco / LoROM** — la ROM del cartucho se ve en trozos de **32 KB** llamados
   bancos. Nuestro proyecto tiene 16 (512 KB). Un asset (imagen, música) no puede
   cruzar de un banco a otro; `data.asm` reparte cada uno en una sección
@@ -204,6 +212,9 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   pantallas leen `frames_en_pantalla`, que vive en `secuencia.c`.
 - **`static`** (en variable global) — la variable solo se ve dentro de su
   archivo `.c`.
+- **`volatile`** — le dice al compilador que una variable puede cambiar "por
+  fuera" (es un registro de hardware) y que no guarde su valor en caché: cada
+  lectura de `REG_OPVCT` tiene que ir de verdad al chip.
 - **`void`** — "sin valor": una función `void` no devuelve nada; `f(void)` no
   recibe parámetros.
 - **Máquina de estados** — patrón: una variable dice en qué estado estamos; en

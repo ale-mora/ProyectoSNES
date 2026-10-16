@@ -368,17 +368,22 @@ el escenario y la cámara lo sigue.
 **Criterio de salida:** el prototipo es jugable de punta a punta con
 mando/teclado emulado, sin crashear, a 60 FPS estables.
 
+**Estado (2026-10-16):** Revisión 1 hecha y verificada en Mesen a 60 FPS
+(`docs/diseno-demo-jugable.md`): Tarou adulto camina, corre, salta, se agacha,
+usa la espada y duerme en un nivel plano de 512 px con parallax. Falta la
+colisión con el escenario (tileset + Tiled, ítem pendiente abajo).
+
 ### Ítems técnicos a estudiar
 
-- [ ] **El loop principal y VBlank/NMI** — toda la lógica del juego debe
+- [x] **El loop principal y VBlank/NMI** _(Revisión 1, 2026-10-16: `main.c` + `secuencia_vblank`; `docs/hardware-snes-por-modulo.md` §8)_ — toda la lógica del juego debe
       sincronizarse con el refresco de pantalla (60 Hz en NTSC); `src/main.c`
       ya usa `WaitForVBlank()` y hay que entender por qué.
       Recursos: `wiki.superfamicom.org` (sección "NMI/VBlank");
       `systems/timer` del SDK.
-- [ ] **Lectura de input (joypad)** — sin poder leer el control no hay
+- [x] **Lectura de input (joypad)** _(Revisión 1, 2026-10-16: `juego/mando.c`)_ — sin poder leer el control no hay
       gameplay; PVSnesLib expone funciones para leer el estado del joypad.
       Recursos: ejemplo `input/controller` del SDK.
-- [ ] **Aritmética de punto fijo (fixed-point)** — el 65816 no tiene unidad
+- [x] **Aritmética de punto fijo (fixed-point)** _(Revisión 1, 2026-10-16: 12.4 en `sistema/puntofijo.h`, probado en `tests/`)_ — el 65816 no tiene unidad
       de punto flotante (FPU); toda velocidad/aceleración/gravedad
       fraccionaria del personaje se debe representar con enteros escalados
       (ej. formato 8.8). Es un concepto ausente en programación de alto
@@ -386,7 +391,7 @@ mando/teclado emulado, sin crashear, a 60 FPS estables.
       retro.
       Recursos: artículos generales de "fixed point arithmetic for embedded
       systems"; el código de física de LikeMario como caso de estudio real.
-- [ ] **Física de plataformas 2D** (gravedad, salto, velocidad terminal) — es
+- [x] **Física de plataformas 2D** _(Revisión 1, 2026-10-16: gravedad, salto variable, terminal en `juego/tarou.c`; sin colisión con el escenario todavía)_ (gravedad, salto, velocidad terminal) — es
       el corazón del gameplay de un plataformer; cómo se calibra la curva de
       salto define si el juego "se siente bien".
       Recursos: "Retro Game Mechanics Explained" (análisis de la física de
@@ -398,19 +403,19 @@ mando/teclado emulado, sin crashear, a 60 FPS estables.
       Recursos: artículos generales sobre "AABB collision detection" y
       "tile-based collision" (universales a juegos 2D, no específicos de
       SNES).
-- [ ] **Máquinas de estado (state machines) para el personaje** — el
+- [x] **Máquinas de estado (state machines) para el personaje** _(Revisión 1, 2026-10-16: 13 estados en `juego/tarou.c`)_ — el
       personaje tiene estados discretos (parado, corriendo, saltando,
       cayendo) que determinan tanto la física como la animación; modelarlo
       como una máquina de estados evita código en espagueti.
       Recursos: `systems/gastates` del SDK (game states); cualquier
       introducción general a "finite state machines" en videojuegos.
-- [ ] **Scroll de cámara y registros de BG** — la cámara debe seguir al
+- [x] **Scroll de cámara y registros de BG** _(Revisión 1, 2026-10-16: `juego/camara.c` + `bgSetScroll` en `pantalla_nivel1.c`)_ — la cámara debe seguir al
       jugador desplazando el fondo; en SNES esto se hace escribiendo en los
       registros de scroll del PPU, no moviendo "objetos" como en un motor
       moderno.
       Recursos: `wiki.superfamicom.org` (sección "Backgrounds");
       `graphics/Backgrounds` del SDK.
-- [ ] **Debugging con el debugger de Mesen** — Mesen trae un debugger
+- [x] **Debugging con el debugger de Mesen** _(Revisión 1, 2026-10-16: HUD de depuración con medidor de línea; `docs/mesen-y-depuracion.md`)_ — Mesen trae un debugger
       completo (breakpoints, inspección de memoria/VRAM/registros) que es la
       herramienta principal para diagnosticar bugs de física/colisión sin
       hardware real.

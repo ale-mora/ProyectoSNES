@@ -189,7 +189,8 @@ NTSC) y se ajustan a ojo en Mesen.
   `res/titulo/fondo_cerca.png` (cerezos y suelo) y `res/titulo/fondo_lejos.png`
   (cielo y montañas), compuestos desde las 4 capas de _Spring Forest_
   (256×224 o 512×224 para scroll, ≤16 colores cada uno), `res/musica/titulo.it`.
-  En el título aparecen los dos sprites: Tarou (lobo) y Bárbara (samurái).
+  En el título aparecen los dos sprites: Tarou (su propio arte, el mismo del
+  nivel; hasta el 2026-10-16 era el lobo samurái del pack) y Bárbara (samurái).
 
 ### Pantalla 7 — Nivel 1 (antes "Coming soon")
 
@@ -204,28 +205,16 @@ NTSC) y se ajustan a ojo en Mesen.
 ## 4. Arquitectura del código
 
 ```text
-src/
-  main.c                  inicialización de consola y audio; bucle principal
-  secuencia.c / .h        máquina de estados: enum Pantalla + switch; contador
-                          de frames por pantalla; cambio de pantalla
-  pantallas.h             prototipos comunes: cada pantalla expone
-                          pantalla_X_iniciar() y pantalla_X_actualizar()
-  pantalla_nintendo.c
-  pantalla_publisher.c
-  pantalla_devs.c
-  pantalla_dedicatoria.c
-  pantalla_intro.c
-  pantalla_titulo.c
-  pantalla_nivel1.c       el nivel 1 (desde la Revisión 1; ver docs/diseno-demo-jugable.md)
-  comun.c / .h            utilidades: esperar_frames(), fade_in/out(),
-                          texto_maquina_escribir(), parpadeo()
-data.asm                  secciones ".rodataN" superfree, una por pantalla,
-                          con .include de los *_data.as que genera gfx4snes
-                          y .incbin de los .brr
-res/                      assets (ver §5)
-scripts/                  herramientas Python de preparación de assets
-docs/glosario-snes.md     glosario de conceptos SNES referenciado por comentarios
+src/sistema/        main.c · secuencia.c/.h · comun.c/.h · pantallas.h · tipos.h · puntofijo.h
+src/pantallas/      pantalla_nintendo.c · _publisher.c · _devs.c · _dedicatoria.c · _intro.c
+                    · _titulo.c · _nivel1.c (Revisión 1) · personajes.c/.h
+src/juego/          lógica y dibujo del nivel (ver docs/diseno-demo-jugable.md §11)
+data.asm            secciones superfree, una por asset: .incbin de los .pic/.pal/.map
+                    y .include de la tabla HDMA del cielo
 ```
+
+(Reorganizado el 2026-10-16: antes todos los archivos vivían planos en
+`src/`. La ficha de cada uno está en `docs/mapa-de-archivos.md`.)
 
 **Máquina de estados.** Un `enum` con un valor por pantalla y una variable
 `pantalla_actual`. Cada frame el bucle principal llama a
