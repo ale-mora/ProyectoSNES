@@ -116,10 +116,46 @@ static void frenar(Tarou *t, s16 frenado)
     }
 }
 
-/*--- suelo: los estados de pie en los que el jugador manda sobre x -----------------*/
-static void actualizar_suelo(Tarou *t, const Mando *m)
+/*--- saltar: despegue desde un estado de suelo ---------------------------------------
+    Da velocidad vertical hacia arriba (negativa) y conserva vx: correr alarga el
+    salto. La gravedad empieza a actuar en este mismo frame. */
+static void saltar(Tarou *t)
+{
+    t->vy_fp = VEL_SALTO;                       /* -96: 6 px por frame hacia arriba.        */
+    t->en_suelo = 0;
+    cambiar_estado(t, ESTADO_SALTANDO);
+}
+
+/*--- de pie: PARADO, CAMINANDO y CORRIENDO ------------------------------------------
+    Prioridad del mismo frame (§4): R > A > B > Abajo > dirección. Cada "return"
+    es un botón que gana a los de abajo. */
+static void manejar_pie(Tarou *t, const Mando *m)
 {
     u8 direccion = (u8)(m->izquierda || m->derecha);  /* 1 si hay una dirección pulsada. */
+
+    if (m->espada_pulsado)                      /* R: sacar o guardar la espada, quieto.    */
+    {
+        t->vx_fp = 0;
+        cambiar_estado(t, t->espada == ESPADA_FUERA ? ESTADO_ENVAINANDO : ESTADO_DESENVAINANDO);
+        return;
+    }
+    if (m->atacar_pulsado && t->espada == ESPADA_FUERA) /* A: solo con la espada fuera.  */
+    {
+        t->vx_fp = 0;                           /* El ataque frena en seco.                 */
+        cambiar_estado(t, ESTADO_ATACANDO);
+        return;
+    }
+    if (m->saltar_pulsado)                      /* B: salta conservando vx.                 */
+    {
+        saltar(t);
+        return;
+    }
+    if (m->abajo)                               /* Abajo: se agacha y se detiene.           */
+    {
+        t->vx_fp = 0;
+        cambiar_estado(t, ESTADO_AGACHADO);
+        return;
+    }
 
     if (direccion)
     {
@@ -142,14 +178,85 @@ static void actualizar_suelo(Tarou *t, const Mando *m)
     }
 }
 
-/*--- saltar: despegue desde un estado de suelo ---------------------------------------
-    Da velocidad vertical hacia arriba (negativa) y conserva vx: correr alarga el
-    salto. La gravedad empieza a actuar en este mismo frame. */
-static void saltar(Tarou *t)
+/*--- agachado: AGACHADO y AGACHADO_CAMINANDO ---------------------------------------
+    Solo B, soltar Abajo y la cruceta hacen algo; R y A se ignoran (§4). */
+static void manejar_agachado(Tarou *t, const Mando *m)
 {
-    t->vy_fp = VEL_SALTO;                       /* -96: 6 px por frame hacia arriba.        */
-    t->en_suelo = 0;
-    cambiar_estado(t, ESTADO_SALTANDO);
+    u8 direccion = (u8)(m->izquierda || m->derecha);
+
+    if (m->saltar_pulsado)                      /* Puede saltar agachado (se levanta).      */
+    {
+        saltar(t);
+        return;
+    }
+    if (!m->abajo)                              /* Soltar Abajo: de pie, andando o parado.  */
+    {
+        cambiar_estado(t, t->estado == ESTADO_AGACHADO_CAMINANDO ? ESTADO_CAMINANDO : ESTADO_PARADO);
+        return;
+    }
+
+    if (direccion)
+    {
+        if (t->estado != ESTADO_AGACHADO_CAMINANDO)
+        {
+            cambiar_estado(t, ESTADO_AGACHADO_CAMINANDO);
+        }
+        acelerar(t, m, ACEL_SUELO, FRENADO_SUELO, VEL_AGACHADO_MAX);   /* Y no cuenta.   */
+    }
+    else
+    {
+        frenar(t, FRENADO_SUELO);
+        if (t->vx_fp == 0 && t->estado != ESTADO_AGACHADO)
+        {
+            cambiar_estado(t, ESTADO_AGACHADO);
+        }
+    }
+}
+
+/*--- espada: DESENVAINANDO, ENVAINANDO y ATACANDO ignoran el mando -------------------
+    Esperan a que su animación termine (anim_terminada lo pone avanzar_animacion
+    al final del frame anterior) y entonces vuelven a PARADO. */
+static void manejar_espada(Tarou *t)
+{
+    if (!t->anim_terminada)
+    {
+        return;
+    }
+    if (t->estado == ESTADO_DESENVAINANDO)
+    {
+        t->espada = ESPADA_FUERA;               /* La espada cuenta como fuera al terminar. */
+    }
+    else if (t->estado == ESTADO_ENVAINANDO)
+    {
+        t->espada = ESPADA_ENVAINADA;
+    }
+    cambiar_estado(t, ESTADO_PARADO);
+}
+
+/*--- avanzar_animacion: un frame más del cuadro actual; cambia de cuadro cada
+     frames_por_cuadro; al final, vuelve al primero (bucle) o se queda en el último
+     y marca anim_terminada. Se llama al FINAL de cada frame (§5). ------------------*/
+static void avanzar_animacion(Tarou *t)
+{
+    const AnimDef *a = &ANIMACIONES[t->estado];
+    t->frames_cuadro++;
+    if (t->frames_cuadro >= a->frames_por_cuadro)
+    {
+        t->frames_cuadro = 0;
+        t->cuadro++;
+        if (t->cuadro >= a->cuadros)
+        {
+            if (a->bucle)
+            {
+                t->cuadro = 0;                  /* Reposo, caminar...: vuelve a empezar.    */
+            }
+            else
+            {
+                t->cuadro = (u8)(a->cuadros - 1); /* Ataque, salto...: se queda en el último.*/
+                t->anim_terminada = 1;
+            }
+        }
+    }
 }
 
 /*--- aire: solo control aéreo (la gravedad va aparte, en tarou_actualizar) ----------
@@ -192,21 +299,23 @@ void tarou_actualizar(Tarou *t, const Mando *m, u16 suelo_y)
         case ESTADO_PARADO:
         case ESTADO_CAMINANDO:
         case ESTADO_CORRIENDO:
-            if (m->saltar_pulsado)              /* B tiene prioridad sobre la cruceta (§4).*/
-            {
-                saltar(t);
-            }
-            else
-            {
-                actualizar_suelo(t, m);
-            }
+            manejar_pie(t, m);
+            break;
+        case ESTADO_AGACHADO:
+        case ESTADO_AGACHADO_CAMINANDO:
+            manejar_agachado(t, m);
             break;
         case ESTADO_SALTANDO:
         case ESTADO_CAYENDO:
             actualizar_aire(t, m);
             break;
+        case ESTADO_DESENVAINANDO:
+        case ESTADO_ENVAINANDO:
+        case ESTADO_ATACANDO:
+            manejar_espada(t);
+            break;
         default:
-            break;                              /* El resto de estados llega en 3.6-3.7.  */
+            break;                              /* Dormir y despertar llegan en 3.7.      */
     }
 
     /*--- 2. En el aire: corte del salto, gravedad y paso de subir a caer -----------*/
@@ -247,4 +356,46 @@ void tarou_actualizar(Tarou *t, const Mando *m, u16 suelo_y)
         t->y_fp = suelo_fp;                     /* Nunca se hunde en el suelo.               */
         aterrizar(t, m);
     }
+
+    /*--- 5. Avanzar la animación del estado en que termina el frame ------------------*/
+    avanzar_animacion(t);
+}
+
+/*=== Cajas (§5): coordenadas del mundo, relativas a la celda de 64x64 ===============*/
+
+void tarou_caja_cuerpo(const Tarou *t, Caja *c)
+{
+    u8 agachado = (u8)(t->estado == ESTADO_AGACHADO || t->estado == ESTADO_AGACHADO_CAMINANDO);
+    c->x = (s16)(PF_ENTERO(t->x_fp) + 20);     /* Columnas 20..44 de la celda.              */
+    c->ancho = 24;
+    if (agachado)
+    {
+        c->y = (s16)(PF_ENTERO(t->y_fp) + 32); /* Agachado: solo la mitad de abajo (32..64).*/
+        c->alto = 32;
+    }
+    else
+    {
+        c->y = (s16)(PF_ENTERO(t->y_fp) + 8);  /* De pie: filas 8..64.                      */
+        c->alto = 56;
+    }
+}
+
+u8 tarou_caja_golpe(const Tarou *t, Caja *c)
+{
+    if (t->estado != ESTADO_ATACANDO)
+    {
+        return 0;                               /* Solo hay golpe mientras ataca.            */
+    }
+    c->ancho = 28;
+    c->alto = 16;
+    c->y = (s16)(PF_ENTERO(t->y_fp) + 24);     /* Filas 24..40: la altura de la espada.     */
+    if (t->direccion == DIR_DERECHA)
+    {
+        c->x = (s16)(PF_ENTERO(t->x_fp) + 44); /* Delante, a la derecha: columnas 44..72.   */
+    }
+    else
+    {
+        c->x = (s16)(PF_ENTERO(t->x_fp) - 8);  /* Espejo: 64 - 72 = -8 → columnas -8..20.   */
+    }
+    return 1;
 }

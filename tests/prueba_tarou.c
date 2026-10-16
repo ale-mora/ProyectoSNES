@@ -281,8 +281,207 @@ static void prueba_salto_corriendo(void)
     COMPROBAR(t.estado == ESTADO_CORRIENDO);
 }
 
+/*=== Agacharse y espada (§4 AGACHADO, AGACHADO_CAMINANDO, DESENVAINANDO, ENVAINANDO,
+     ATACANDO; §5 cajas). Las animaciones sin bucle terminan a los
+     cuadros * frames_por_cuadro frames y el estado cambia en el frame siguiente. ===*/
+
+#define FRAMES_DESENVAINAR (4 * 5)              /* tarou_anim.h: 4 cuadros x 5 frames.  */
+#define FRAMES_ATACAR (5 * 4)                   /* 5 cuadros x 4 frames.                */
+
+static void prueba_agacharse(void)
+{
+    Tarou t; Mando m; Caja c;
+    preparar(&t, &m, 100);
+    tarou_caja_cuerpo(&t, &c);
+    COMPROBAR(c.x == 120 && c.y == 152);                /* De pie: x+20, y+8...           */
+    COMPROBAR(c.ancho == 24 && c.alto == 56);           /* ...24x56.                      */
+    m.abajo = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_AGACHADO);
+    tarou_caja_cuerpo(&t, &c);
+    COMPROBAR(c.y == 144 + 32 && c.alto == 32);         /* Agachado: la mitad de abajo.   */
+    COMPROBAR(c.x == 120 && c.ancho == 24);
+    m.abajo = 0; m.actividad = 0;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_PARADO);               /* Soltar Abajo: se levanta.      */
+}
+
+static void prueba_caminar_agachado(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.abajo = 1; m.derecha = 1; m.actividad = 1;
+    frames(&t, &m, 16);
+    COMPROBAR(t.estado == ESTADO_AGACHADO_CAMINANDO);
+    COMPROBAR(t.vx_fp == VEL_AGACHADO_MAX);             /* 8: medio píxel por frame.      */
+    m.correr = 1;
+    frames(&t, &m, 4);
+    COMPROBAR(t.vx_fp == VEL_AGACHADO_MAX);             /* Y no sirve agachado.           */
+    m.derecha = 0; m.correr = 0;
+    frames(&t, &m, 4);                                  /* 8 → 6 → 4 → 2 → 0.             */
+    COMPROBAR(t.vx_fp == 0);
+    COMPROBAR(t.estado == ESTADO_AGACHADO);
+    m.derecha = 1;
+    frames(&t, &m, 4);                                  /* Otra vez andando agachado.     */
+    m.abajo = 0;                                        /* Soltar Abajo en marcha...      */
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_CAMINANDO);            /* ...pasa a caminar de pie.      */
+}
+
+static void prueba_agachado_salta(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.abajo = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    m.saltar_pulsado = 1; m.saltar = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_SALTANDO);             /* Puede saltar agachado (§4).    */
+    COMPROBAR(t.en_suelo == 0);
+}
+
+static void prueba_entrar_agachado_caminando(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.derecha = 1; m.actividad = 1;
+    frames(&t, &m, 8);                                  /* vx = 16.                       */
+    m.abajo = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_AGACHADO);
+    COMPROBAR(t.vx_fp == 0);                            /* Agacharse frena en seco.       */
+}
+
+static void prueba_desenvainar(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.espada_pulsado = 1; m.derecha = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_DESENVAINANDO);
+    COMPROBAR(t.vx_fp == 0);                            /* No se mueve mientras saca...   */
+    m.espada_pulsado = 0;
+    frames(&t, &m, FRAMES_DESENVAINAR - 1);             /* ...ni con Derecha mantenida.   */
+    COMPROBAR(t.x_fp == PF(100));
+    COMPROBAR(t.estado == ESTADO_DESENVAINANDO);
+    COMPROBAR(t.anim_terminada == 1);                   /* Último cuadro alcanzado.       */
+    COMPROBAR(t.cuadro == 3);
+    COMPROBAR(t.espada == ESPADA_ENVAINADA);            /* Todavía no cuenta como fuera.  */
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_PARADO);               /* El frame siguiente cambia...   */
+    COMPROBAR(t.espada == ESPADA_FUERA);                /* ...y la espada ya está fuera.  */
+}
+
+static void prueba_envainar(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    t.espada = ESPADA_FUERA;
+    m.espada_pulsado = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_ENVAINANDO);
+    m.espada_pulsado = 0;
+    frames(&t, &m, FRAMES_DESENVAINAR);                 /* envainar dura lo mismo.        */
+    COMPROBAR(t.estado == ESTADO_PARADO);
+    COMPROBAR(t.espada == ESPADA_ENVAINADA);
+}
+
+static void prueba_atacar(void)
+{
+    Tarou t; Mando m; Caja c;
+    preparar(&t, &m, 100);
+    m.atacar_pulsado = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_PARADO);               /* Envainada: A no hace nada.     */
+    COMPROBAR(tarou_caja_golpe(&t, &c) == 0);
+
+    t.espada = ESPADA_FUERA;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_ATACANDO);
+    COMPROBAR(tarou_caja_golpe(&t, &c) == 1);           /* Caja de golpe activa...        */
+    COMPROBAR(c.x == 100 + 44 && c.y == 144 + 24);      /* ...delante, a la derecha...    */
+    COMPROBAR(c.ancho == 28 && c.alto == 16);           /* ...de 28x16 (§5).              */
+    m.atacar_pulsado = 0;
+    frames(&t, &m, FRAMES_ATACAR - 1);
+    COMPROBAR(t.estado == ESTADO_ATACANDO && t.anim_terminada == 1);
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_PARADO);
+    COMPROBAR(tarou_caja_golpe(&t, &c) == 0);           /* Se acabó el golpe.             */
+    COMPROBAR(t.espada == ESPADA_FUERA);                /* Sigue desenvainada.            */
+}
+
+static void prueba_atacar_izquierda(void)
+{
+    Tarou t; Mando m; Caja c;
+    preparar(&t, &m, 100);
+    t.espada = ESPADA_FUERA;
+    t.direccion = DIR_IZQUIERDA;
+    m.atacar_pulsado = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(tarou_caja_golpe(&t, &c) == 1);
+    COMPROBAR(c.x == 100 - 8);                          /* Espejo: 64 - 72 = -8.          */
+    COMPROBAR(c.y == 144 + 24 && c.ancho == 28);
+}
+
+static void prueba_atacar_caminando(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    t.espada = ESPADA_FUERA;
+    m.derecha = 1; m.actividad = 1;
+    frames(&t, &m, 8);                                  /* vx = 16, x = 100 + 72/16.      */
+    m.atacar_pulsado = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_ATACANDO);
+    COMPROBAR(t.vx_fp == 0);                            /* El ataque frena en seco...     */
+    COMPROBAR(t.x_fp == PF(100) + 72);                  /* ...en este mismo frame.        */
+}
+
+static void prueba_atacar_prohibido(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    t.espada = ESPADA_FUERA;
+    m.saltar_pulsado = 1; m.saltar = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    m.saltar_pulsado = 0; m.atacar_pulsado = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_SALTANDO);             /* En el aire no hay ataque.      */
+
+    preparar(&t, &m, 100);
+    t.espada = ESPADA_FUERA;
+    m.abajo = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    m.atacar_pulsado = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_AGACHADO);             /* Agachado tampoco.              */
+}
+
+/* Punto de atención 3: R y A el mismo frame → gana R. */
+static void prueba_prioridad_espada(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    t.espada = ESPADA_FUERA;
+    m.espada_pulsado = 1; m.atacar_pulsado = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_ENVAINANDO);
+}
+
 void pruebas_tarou(void)
 {
+    prueba_agacharse();
+    prueba_caminar_agachado();
+    prueba_agachado_salta();
+    prueba_entrar_agachado_caminando();
+    prueba_desenvainar();
+    prueba_envainar();
+    prueba_atacar();
+    prueba_atacar_izquierda();
+    prueba_atacar_caminando();
+    prueba_atacar_prohibido();
+    prueba_prioridad_espada();
+
     prueba_inicio();
     prueba_caminar();
     prueba_correr_y_soltar();
