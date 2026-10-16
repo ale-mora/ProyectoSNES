@@ -29,12 +29,14 @@ u16 pruebas_fallidas = 0;
 void pruebas_puntofijo(void);
 void pruebas_camara(void);
 void pruebas_animacion(void);
+void pruebas_tarou(void);
 
 int main(void)
 {
     pruebas_puntofijo();
     pruebas_camara();
     pruebas_animacion();
+    pruebas_tarou();
 
     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
     return pruebas_fallidas != 0;
