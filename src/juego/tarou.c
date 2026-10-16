@@ -9,9 +9,8 @@
       línea toca la PPU, la OAM ni el mando real.
 
       Orden de cada frame (docs/diseno-demo-jugable.md §5): transiciones de
-      estado → aceleración o frenado en x → (gravedad en y) → integrar → recortar
-      x → (aterrizar) → (avanzar la animación). Los pasos entre paréntesis llegan
-      en las tareas 3.5 a 3.7 del plan.
+      estado → aceleración o frenado en x → corte del salto y gravedad en y →
+      integrar → recortar x → aterrizar → (avanzar la animación: tarea 3.7).
 
     SE CONECTA CON
       Incluye:  juego/tarou.h, juego/nivel.h (ANCHO_NIVEL, ANCHO_CELDA),
@@ -143,9 +142,49 @@ static void actualizar_suelo(Tarou *t, const Mando *m)
     }
 }
 
+/*--- saltar: despegue desde un estado de suelo ---------------------------------------
+    Da velocidad vertical hacia arriba (negativa) y conserva vx: correr alarga el
+    salto. La gravedad empieza a actuar en este mismo frame. */
+static void saltar(Tarou *t)
+{
+    t->vy_fp = VEL_SALTO;                       /* -96: 6 px por frame hacia arriba.        */
+    t->en_suelo = 0;
+    cambiar_estado(t, ESTADO_SALTANDO);
+}
+
+/*--- aire: solo control aéreo (la gravedad va aparte, en tarou_actualizar) ----------
+    Con una dirección pulsada acelera despacio (ACEL_AIRE); sin dirección no hay
+    frenado: en el aire se conserva la velocidad que se llevaba. */
+static void actualizar_aire(Tarou *t, const Mando *m)
+{
+    if (m->izquierda || m->derecha)
+    {
+        acelerar(t, m, ACEL_AIRE, ACEL_AIRE, m->correr ? VEL_CORRER_MAX : VEL_CAMINAR_MAX);
+    }
+}
+
+/*--- aterrizar: al tocar el suelo, el estado depende del mando y de vx (§4) --------*/
+static void aterrizar(Tarou *t, const Mando *m)
+{
+    t->vy_fp = 0;
+    t->en_suelo = 1;
+    if (m->abajo)
+    {
+        cambiar_estado(t, ESTADO_AGACHADO);     /* Abajo mantenida: cae agachado.           */
+    }
+    else if (t->vx_fp != 0)
+    {
+        cambiar_estado(t, m->correr ? ESTADO_CORRIENDO : ESTADO_CAMINANDO);
+    }
+    else
+    {
+        cambiar_estado(t, ESTADO_PARADO);
+    }
+}
+
 void tarou_actualizar(Tarou *t, const Mando *m, u16 suelo_y)
 {
-    (void)suelo_y;                              /* Lo usará el aterrizaje (tarea 3.5).    */
+    s16 suelo_fp = PF(suelo_y - ANCHO_CELDA);   /* y de la celda cuando los pies tocan.   */
 
     /*--- 1. Transiciones y aceleración según el estado ---------------------------*/
     switch (t->estado)
@@ -153,13 +192,42 @@ void tarou_actualizar(Tarou *t, const Mando *m, u16 suelo_y)
         case ESTADO_PARADO:
         case ESTADO_CAMINANDO:
         case ESTADO_CORRIENDO:
-            actualizar_suelo(t, m);
+            if (m->saltar_pulsado)              /* B tiene prioridad sobre la cruceta (§4).*/
+            {
+                saltar(t);
+            }
+            else
+            {
+                actualizar_suelo(t, m);
+            }
+            break;
+        case ESTADO_SALTANDO:
+        case ESTADO_CAYENDO:
+            actualizar_aire(t, m);
             break;
         default:
-            break;                              /* El resto de estados llega en 3.5-3.7.  */
+            break;                              /* El resto de estados llega en 3.6-3.7.  */
     }
 
-    /*--- 2. Integrar x y recortar al nivel ------------------------------------------*/
+    /*--- 2. En el aire: corte del salto, gravedad y paso de subir a caer -----------*/
+    if (!t->en_suelo)
+    {
+        if (t->estado == ESTADO_SALTANDO && !m->saltar && t->vy_fp < VEL_SALTO_CORTE)
+        {
+            t->vy_fp = VEL_SALTO_CORTE;         /* Soltar B recorta la subida (altura variable).*/
+        }
+        t->vy_fp += GRAVEDAD;                   /* Cada frame cae un poco más rápido...        */
+        if (t->vy_fp > VEL_TERMINAL)
+        {
+            t->vy_fp = VEL_TERMINAL;            /* ...hasta la velocidad terminal.             */
+        }
+        if (t->estado == ESTADO_SALTANDO && t->vy_fp >= 0)
+        {
+            cambiar_estado(t, ESTADO_CAYENDO);  /* Apogeo: deja de subir.                      */
+        }
+    }
+
+    /*--- 3. Integrar x y recortar al nivel ------------------------------------------*/
     t->x_fp += t->vx_fp;
     if (t->x_fp < 0)
     {
@@ -170,5 +238,13 @@ void tarou_actualizar(Tarou *t, const Mando *m, u16 suelo_y)
     {
         t->x_fp = X_MAX_FP;                     /* Borde derecho.                            */
         t->vx_fp = 0;
+    }
+
+    /*--- 4. Integrar y y aterrizar ---------------------------------------------------*/
+    t->y_fp += t->vy_fp;
+    if (!t->en_suelo && t->y_fp >= suelo_fp)
+    {
+        t->y_fp = suelo_fp;                     /* Nunca se hunde en el suelo.               */
+        aterrizar(t, m);
     }
 }

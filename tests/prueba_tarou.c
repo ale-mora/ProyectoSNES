@@ -141,6 +141,146 @@ static void prueba_borde_derecho(void)
     COMPROBAR(t.vx_fp == 0);
 }
 
+/*=== Salto, gravedad y aterrizaje (§4 SALTANDO/CAYENDO, §5) ========================*/
+
+static void prueba_despegue(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.saltar_pulsado = 1; m.saltar = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_SALTANDO);
+    COMPROBAR(t.vy_fp == VEL_SALTO + GRAVEDAD);         /* -96 + 4: la gravedad ya actúa. */
+    COMPROBAR(t.en_suelo == 0);
+    COMPROBAR(t.y_fp == PF(144) + VEL_SALTO + GRAVEDAD);/* Sube 92/16 px el primer frame. */
+}
+
+static void prueba_apogeo_y_altura(void)
+{
+    Tarou t; Mando m;
+    s16 y_minimo;
+    u16 i;
+    preparar(&t, &m, 100);
+    m.saltar_pulsado = 1; m.saltar = 1; m.actividad = 1;
+    y_minimo = t.y_fp;
+    for (i = 0; i < 24; i++)
+    {
+        tarou_actualizar(&t, &m, SUELO);
+        m.saltar_pulsado = 0;                           /* Solo baja en el primer frame.  */
+        if (t.y_fp < y_minimo) y_minimo = t.y_fp;
+    }
+    COMPROBAR(t.vy_fp >= 0);                            /* Frame 24: -96 + 4*24 = 0.      */
+    COMPROBAR(t.estado == ESTADO_CAYENDO);              /* Ya no sube: cae.               */
+    COMPROBAR(PF_ENTERO(y_minimo) >= 73 && PF_ENTERO(y_minimo) <= 77); /* 144 - 69 = 75.  */
+}
+
+/* Punto de atención 2: soltar B en el primer frame recorta la subida, no la anula. */
+static void prueba_salto_corto(void)
+{
+    Tarou t; Mando m;
+    u16 i;
+    preparar(&t, &m, 100);
+    m.saltar_pulsado = 1; m.saltar = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    m.saltar_pulsado = 0; m.saltar = 0; m.actividad = 0;/* Suelta B en el frame 2.        */
+    frames(&t, &m, 1);
+    COMPROBAR(t.vy_fp == VEL_SALTO_CORTE + GRAVEDAD);   /* -32 + 4 = -28, no 0.           */
+    COMPROBAR(t.estado == ESTADO_SALTANDO);
+    for (i = 0; i < 17 && t.en_suelo == 0; i++)         /* Aterriza antes del frame 20.   */
+    {
+        tarou_actualizar(&t, &m, SUELO);
+    }
+    COMPROBAR(t.en_suelo == 1);
+}
+
+static void prueba_velocidad_terminal(void)
+{
+    Tarou t; Mando m;
+    s16 vy_maxima = 0;
+    u16 i;
+    preparar(&t, &m, 100);
+    t.y_fp = 0;                                         /* Lo soltamos desde lo alto...   */
+    t.en_suelo = 0;
+    t.estado = ESTADO_CAYENDO;
+    for (i = 0; i < 60; i++)
+    {
+        tarou_actualizar(&t, &m, SUELO);
+        if (t.vy_fp > vy_maxima) vy_maxima = t.vy_fp;
+    }
+    COMPROBAR(vy_maxima == VEL_TERMINAL);               /* Llega a 96 y no pasa de ahí.   */
+    COMPROBAR(t.en_suelo == 1);                         /* 144 px de caída: ya aterrizó.  */
+}
+
+static void prueba_aterrizaje(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.saltar_pulsado = 1; m.saltar = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    m.saltar_pulsado = 0;
+    frames(&t, &m, 49);                                 /* Aterriza en el frame 47.       */
+    COMPROBAR(t.y_fp == PF(144));                       /* Pies exactamente en el suelo.  */
+    COMPROBAR(t.vy_fp == 0);
+    COMPROBAR(t.en_suelo == 1);
+    COMPROBAR(t.estado == ESTADO_PARADO);               /* Sin dirección: parado.         */
+    COMPROBAR(t.x_fp == PF(100));                       /* Sin control aéreo: no se movió.*/
+}
+
+static void prueba_aterrizaje_caminando(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.saltar_pulsado = 1; m.saltar = 1; m.derecha = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    m.saltar_pulsado = 0;
+    frames(&t, &m, 49);
+    COMPROBAR(t.en_suelo == 1);
+    COMPROBAR(t.estado == ESTADO_CAMINANDO);            /* Derecha mantenida al tocar.    */
+    COMPROBAR(t.vx_fp == VEL_CAMINAR_MAX);              /* El control aéreo llegó a 16.   */
+}
+
+static void prueba_aterrizaje_agachado(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.saltar_pulsado = 1; m.saltar = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    m.saltar_pulsado = 0; m.abajo = 1;
+    frames(&t, &m, 49);
+    COMPROBAR(t.en_suelo == 1);
+    COMPROBAR(t.estado == ESTADO_AGACHADO);             /* Abajo mantenida al tocar.      */
+}
+
+static void prueba_control_aereo(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.saltar_pulsado = 1; m.saltar = 1; m.actividad = 1;
+    frames(&t, &m, 1);                                  /* Salta sin dirección.           */
+    m.saltar_pulsado = 0; m.derecha = 1;
+    frames(&t, &m, 10);                                 /* 10 frames de derecha en el aire*/
+    COMPROBAR(t.en_suelo == 0);
+    COMPROBAR(t.vx_fp == 10 * ACEL_AIRE);               /* 1 por frame.                   */
+    COMPROBAR(t.direccion == DIR_DERECHA);
+}
+
+static void prueba_salto_corriendo(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.derecha = 1; m.correr = 1; m.actividad = 1;
+    frames(&t, &m, 16);                                 /* vx = 32.                       */
+    m.saltar_pulsado = 1; m.saltar = 1;
+    frames(&t, &m, 1);
+    m.saltar_pulsado = 0;
+    frames(&t, &m, 5);
+    COMPROBAR(t.estado == ESTADO_SALTANDO);
+    COMPROBAR(t.vx_fp == VEL_CORRER_MAX);               /* La carrera se conserva.        */
+    frames(&t, &m, 44);                                 /* Aterriza corriendo.            */
+    COMPROBAR(t.en_suelo == 1);
+    COMPROBAR(t.estado == ESTADO_CORRIENDO);
+}
+
 void pruebas_tarou(void)
 {
     prueba_inicio();
@@ -150,4 +290,14 @@ void pruebas_tarou(void)
     prueba_izquierda();
     prueba_borde_izquierdo();
     prueba_borde_derecho();
+
+    prueba_despegue();
+    prueba_apogeo_y_altura();
+    prueba_salto_corto();
+    prueba_velocidad_terminal();
+    prueba_aterrizaje();
+    prueba_aterrizaje_caminando();
+    prueba_aterrizaje_agachado();
+    prueba_control_aereo();
+    prueba_salto_corriendo();
 }
