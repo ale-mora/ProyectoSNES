@@ -12,6 +12,15 @@ export ROMTITLE := TAROUH DEMO
 # export AUDIOFILES := res/musica/jingle_publisher.it res/musica/titulo.it
 # export SOUNDBANK  := res/musica/soundbank
 
+# --- Tamaño de la ROM: 16 bancos de 32 KB = 512 KB ---------------------------
+# Decisión del 2026-10-16 (docs/diseno-demo-jugable.md §2, decisión 4): los ~55
+# cuadros de 64x64 de Tarou ocupan ~110 KB y con 8 bancos (256 KB) quedaban
+# solo ~115 KB libres. ROMSIZE es el byte de tamaño de la cabecera de la SNES
+# (08 = 256 KB, 09 = 512 KB) y ROMBANKS cuántas secciones de 32 KB reparte el
+# enlazador. Deben ir ANTES del include de snes_rules.
+export ROMSIZE  := 09
+export ROMBANKS := 16
+
 # Incluir reglas estándar de compilación de PVSnesLib
 include ${PVSNESLIB_HOME}/devkitsnes/snes_rules
 

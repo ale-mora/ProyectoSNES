@@ -75,7 +75,7 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   cada línea de la pantalla**: así se hace el cielo con degradado
   (`setModeHdmaColor` con una tabla de un color por línea) sin gastar CPU.
 - **Banco / LoROM** — la ROM del cartucho se ve en trozos de **32 KB** llamados
-  bancos. Nuestro proyecto tiene 8 (256 KB). Un asset (imagen, música) no puede
+  bancos. Nuestro proyecto tiene 16 (512 KB). Un asset (imagen, música) no puede
   cruzar de un banco a otro; `data.asm` reparte cada uno en una sección
   `superfree` y el enlazador elige el banco.
 

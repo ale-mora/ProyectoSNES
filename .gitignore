@@ -11,6 +11,9 @@ tools/
 hdr.asm
 linkfile
 
+# Capturas de Mesen (salida de scripts/capturar_mesen.ps1)
+scripts/capturas/
+
 # Metadata local de herramientas de Claude Code (no es parte del juego)
 .remember/
 .code-review-graph/

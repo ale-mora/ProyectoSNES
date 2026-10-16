@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-A Super Nintendo (SNES) homebrew platformer written in C, built with **PVSnesLib** (a C SDK for the SNES built on the `tcc816` compiler and the `wla-65816`/`wlalink` toolchain). Target platform: LoROM, SlowROM, 8 ROM banks. Output is a `.sfc` ROM run in the **Mesen** emulator.
+A Super Nintendo (SNES) homebrew platformer written in C, built with **PVSnesLib** (a C SDK for the SNES built on the `tcc816` compiler and the `wla-65816`/`wlalink` toolchain). Target platform: LoROM, SlowROM, 16 ROM banks (512 KB). Output is a `.sfc` ROM run in the **Mesen** emulator.
 
 The vendored SDK and emulator live under `tools/` (`tools/pvsneslib/`, `tools/mesen/Mesen.exe`) and are third-party — do not edit files under `tools/`.
 
