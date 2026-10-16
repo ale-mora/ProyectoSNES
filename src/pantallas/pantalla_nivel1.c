@@ -54,10 +54,29 @@ extern const unsigned char hdmaGradcieloList[];   /* Tabla HDMA del cielo (gfx4s
 
 #define X_INICIAL 64               /* Tarou arranca a 64 px del borde izquierdo.          */
 
+/* Medidor de coste del frame ("barra de raster" en números): leer $2137 congela los
+   contadores del haz y $213D devuelve la línea actual (0..261 en NTSC, en dos lecturas:
+   byte bajo y luego el bit 8). Si al terminar la lógica el haz va por la línea L, el
+   frame ha usado (37 + L) de 262 líneas: L >= 225 significa que se pasó del frame y
+   el juego baja de 60 FPS. PVSnesLib no da nombre a estos registros. */
+#define REG_SLHV (*(volatile u8 *)0x2137)
+#define REG_OPVCT (*(volatile u8 *)0x213D)
+u16 diag_linea[3];                 /* Línea del haz tras: lógica, sprite, fin del frame.  */
+
 /*--- Estado propio de esta pantalla -------------------------------------------*/
 static u16 camara;                 /* Desplazamiento horizontal del nivel en pantalla.    */
 static Tarou tarou;                /* El protagonista (lógica pura, juego/tarou.h).       */
 static Mando mando;                /* Lo que el jugador quiere hacer este frame.          */
+
+/*--- leer_linea: línea del haz en este instante (ver REG_SLHV arriba) -------------*/
+static u16 leer_linea(void)
+{
+    u8 bajo, alto;
+    bajo = REG_SLHV;                                 /* Leer $2137 congela los contadores.  */
+    bajo = REG_OPVCT;                                /* Primera lectura: bits 0..7.         */
+    alto = (u8)(REG_OPVCT & 1);                      /* Segunda: bit 8.                     */
+    return (u16)(((u16)alto << 8) | bajo);
+}
 
 /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
 static void salir(Pantalla siguiente)
@@ -106,6 +125,7 @@ void pantalla_nivel1_actualizar(void)
 
     /*--- 2. Lógica pura: un frame de física y máquina de estados --------------------*/
     tarou_actualizar(&tarou, &mando, nivel_suelo_en(PF_ENTERO(tarou.x_fp) + ANCHO_CELDA / 2));
+    diag_linea[0] = leer_linea();                    /* Medida: coste de la lógica pura.    */
 
     /*--- 3. Cámara y parallax: la cercana sigue a la cámara; la lejana, a la mitad --*/
     camara = camara_para(PF_ENTERO(tarou.x_fp));
@@ -115,13 +135,16 @@ void pantalla_nivel1_actualizar(void)
     /*--- 4. Tarou: entradas de la OAM del cuadro actual y cierre del frame del
            motor dinámico (prepara la cola de copias a VRAM para _vblank) ----------*/
     tarou_sprite_dibujar(&tarou, camara);
+    diag_linea[1] = leer_linea();                    /* Medida: + dibujo del metasprite.    */
     oamInitDynamicSpriteEndFrame();
 
     /*--- 5. HUD de depuración (solo escribe si está encendido) ----------------------*/
     hud_debug_dibujar(&tarou, camara);
+    diag_linea[2] = leer_linea();                    /* Medida: fin del frame.              */
 }
 
 void pantalla_nivel1_vblank(void)
 {
     oamVramQueueUpdate();                            /* Copia a VRAM los tiles pendientes.  */
+    hud_debug_vblank();                              /* Y las filas del HUD, si está activo. */
 }

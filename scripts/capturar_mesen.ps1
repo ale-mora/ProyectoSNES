@@ -10,7 +10,9 @@
       Verificar la ROM "sin mirar la pantalla": el agente o el autor lanzan este
       script, esperan, y revisan los PNG. Captura con la API de Windows
       PrintWindow (contenido compuesto por DWM, incluido el lienzo de la GPU) y
-      pulsa teclas con keybd_event sobre la ventana de Mesen en primer plano.
+      "pulsa" teclas enviando mensajes WM_KEYDOWN/WM_KEYUP a la ventana de Mesen
+      con PostMessage. La ventana se aparta fuera de la pantalla: no roba el foco
+      ni estorba al autor, y las teclas nunca van a parar a otra aplicación.
 
     SE CONECTA CON
       Lee:     ProyectoSNES.sfc (la ROM).
@@ -37,15 +39,17 @@
       Espera     segundos de espera inicial para que aparezca la ventana
       Guion      tramos "desde,hasta,tecla" separados por ";" (tecla: Up, Down,
                  Left, Right, A, B, X, Y, L, R, Start, Select, en nombres de la SNES)
+      EnPantalla deja la ventana visible en vez de apartarla fuera de la pantalla
 ---------------------------------------------------------------------------------
 #>
 param(
     [string]$Rom = "E:\ProyectoSNES\ProyectoSNES.sfc",
-    [int]$Cada = 4,
+    [double]$Cada = 4,
     [int]$Duracion = 40,
     [string]$Salida = "E:\ProyectoSNES\scripts\capturas",
     [int]$Espera = 3,
-    [string]$Guion = ""
+    [string]$Guion = "",
+    [switch]$EnPantalla
 )
 
 # System.Drawing da mapas de bits y PNG; user32 da PrintWindow, el rectángulo de la
@@ -62,6 +66,13 @@ public class CapturaWin32 {
     [DllImport("user32.dll")] public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam);
+    [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+    [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+    [DllImport("user32.dll")] public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+    [DllImport("user32.dll")] public static extern IntPtr SetFocus(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern bool BringWindowToTop(IntPtr hWnd);
+    [DllImport("kernel32.dll")] public static extern uint GetCurrentThreadId();
     [DllImport("user32.dll")] public static extern uint MapVirtualKey(uint uCode, uint uMapType);
     [StructLayout(LayoutKind.Sequential)] public struct RECT { public int L, T, R, B; }
 }
@@ -84,42 +95,30 @@ $TECLAS = @{
 $KEYEVENTF_EXTENDEDKEY = 0x1
 $KEYEVENTF_KEYUP = 0x2
 
-# Windows solo deja cambiar la ventana activa si el proceso "acaba de recibir entrada":
-# un toque de tecla antes de SetForegroundWindow lo consigue. Se usa Shift, que Mesen no
-# tiene mapeado (Alt abriría su barra de menús). Se llama antes de cada tecla, porque otra
-# ventana (el editor, una notificación) puede robar el foco en cualquier momento.
-function Enfocar([IntPtr]$h) {
-    [CapturaWin32]::keybd_event(0xA0, 0, 0, [UIntPtr]::Zero)                  # Shift abajo
-    [CapturaWin32]::keybd_event(0xA0, 0, $KEYEVENTF_KEYUP, [UIntPtr]::Zero)   # Shift arriba
-    [CapturaWin32]::SetForegroundWindow($h) | Out-Null
-    Start-Sleep -Milliseconds 60
-}
-
 $WM_KEYDOWN = 0x100
 $WM_KEYUP = 0x101
 
-# Envía la tecla de dos formas: como mensaje WM_KEYDOWN/WM_KEYUP directo a la ventana de
-# Mesen (PostMessage: no depende de qué ventana tenga el foco) y, por si acaso, como
-# pulsación global (keybd_event) tras poner Mesen en primer plano.
+# Envía una tecla virtual como mensaje WM_KEYDOWN/WM_KEYUP directo a la ventana de Mesen.
+# PostMessage no depende de qué ventana tenga el foco ni de dónde esté la ventana, y no
+# toca el teclado real: nunca escribe en el editor del autor (keybd_event sí lo haría).
+function MensajeTecla([int]$vk, [bool]$ext, [bool]$abajo) {
+    # lParam de WM_KEYDOWN: bits 0-15 repetición (1), 16-23 código de barrido, 24 tecla
+    # extendida, 30 estado anterior y 31 transición (los dos últimos a 1 en WM_KEYUP).
+    $scan = [CapturaWin32]::MapVirtualKey([uint32]$vk, 0)
+    $lparam = [int64]1 -bor ([int64]$scan -shl 16)
+    if ($ext) { $lparam = $lparam -bor ([int64]1 -shl 24) }
+    if ($abajo) {
+        [CapturaWin32]::PostMessage($script:ventana, $WM_KEYDOWN, [UIntPtr][uint64]$vk, [IntPtr]$lparam) | Out-Null
+    } else {
+        $lparam = $lparam -bor ([int64]1 -shl 30) -bor ([int64]1 -shl 31)
+        [CapturaWin32]::PostMessage($script:ventana, $WM_KEYUP, [UIntPtr][uint64]$vk, [IntPtr]$lparam) | Out-Null
+    }
+}
+
 function Tecla([string]$boton, [bool]$abajo) {
     $t = $TECLAS[$boton]
     if (-not $t) { Write-Warning "botón desconocido en el guion: $boton"; return }
-    if ($abajo) { Enfocar $script:ventana }
-    # lParam de WM_KEYDOWN: bits 0-15 repetición (1), 16-23 código de barrido, 24 tecla
-    # extendida, 30 estado anterior y 31 transición (los dos últimos a 1 en WM_KEYUP).
-    $scan = [CapturaWin32]::MapVirtualKey([uint32]$t.vk, 0)
-    $lparam = [int64]1 -bor ([int64]$scan -shl 16)
-    if ($t.ext) { $lparam = $lparam -bor ([int64]1 -shl 24) }
-    if ($abajo) {
-        [CapturaWin32]::PostMessage($script:ventana, $WM_KEYDOWN, [UIntPtr][uint64]$t.vk, [IntPtr]$lparam) | Out-Null
-    } else {
-        $lparam = $lparam -bor ([int64]1 -shl 30) -bor ([int64]1 -shl 31)
-        [CapturaWin32]::PostMessage($script:ventana, $WM_KEYUP, [UIntPtr][uint64]$t.vk, [IntPtr]$lparam) | Out-Null
-    }
-    $flags = 0
-    if ($t.ext) { $flags = $flags -bor $KEYEVENTF_EXTENDEDKEY }
-    if (-not $abajo) { $flags = $flags -bor $KEYEVENTF_KEYUP }
-    [CapturaWin32]::keybd_event([byte]$t.vk, 0, [uint32]$flags, [UIntPtr]::Zero)
+    MensajeTecla $t.vk $t.ext $abajo
 }
 
 # Guion: lista de tramos con su estado (pulsada / soltada).
@@ -134,7 +133,13 @@ if ($Guion -ne "") {
 
 New-Item -ItemType Directory -Force $Salida | Out-Null
 
-$proceso = Start-Process -FilePath "E:\ProyectoSNES\tools\mesen\Mesen.exe" -ArgumentList @("`"$Rom`"") -PassThru
+# Opciones de línea de comandos de Mesen 2:
+#   --Emulation.EmulationSpeed=100  fuerza velocidad real (la configuración guardada del
+#                                   autor tenía 75 %, y todo —física, sueño, tiempos— se
+#                                   medía un 25 % más lento sin que la ROM tuviera culpa);
+#   -donotsavesettings              no guarda nada en settings.json al salir (ni la posición
+#                                   de la ventana fuera de pantalla ni la velocidad).
+$proceso = Start-Process -FilePath "E:\ProyectoSNES\tools\mesen\Mesen.exe" -ArgumentList @("`"$Rom`"", "--Emulation.EmulationSpeed=100", "-donotsavesettings") -PassThru
 Start-Sleep -Seconds $Espera
 
 # El identificador de la ventana principal puede tardar en existir: lo pedimos hasta tenerlo.
@@ -148,18 +153,77 @@ if ($ventana -eq [IntPtr]::Zero) { Write-Error "No encontré la ventana de Mesen
 $script:ventana = $ventana
 [CapturaWin32]::ShowWindow($ventana, 9) | Out-Null          # 9 = SW_RESTORE: si Mesen arrancó minimizado, lo restaura.
 Start-Sleep -Milliseconds 300
-Enfocar $ventana                                            # Las teclas van a la ventana activa.
-# Hasta que Mesen recibe una primera tecla, PrintWindow devuelve una capa antigua de la
-# ventana (su pantalla de juegos recientes) en vez del juego. Un toque de Shift, que no
-# está mapeado a nada, lo "despierta" sin tocar el mando emulado.
+
+# Activar una ventana: Windows solo deja cambiar el primer plano al hilo que "tiene la
+# entrada". El truco clásico es engancharse (AttachThreadInput) al hilo de la ventana que
+# está en primer plano, cambiar el foco y desengancharse. Devuelve si lo consiguió.
+function Activar([IntPtr]$h) {
+    $pid0 = [uint32]0
+    $hiloActual = [CapturaWin32]::GetWindowThreadProcessId([CapturaWin32]::GetForegroundWindow(), [ref]$pid0)
+    $miHilo = [CapturaWin32]::GetCurrentThreadId()
+    if ($hiloActual -ne 0 -and $hiloActual -ne $miHilo) { [CapturaWin32]::AttachThreadInput($miHilo, $hiloActual, $true) | Out-Null }
+    [CapturaWin32]::keybd_event(0xA0, 0, 0, [UIntPtr]::Zero)                  # Shift: "acabo de recibir entrada"
+    [CapturaWin32]::keybd_event(0xA0, 0, $KEYEVENTF_KEYUP, [UIntPtr]::Zero)
+    [CapturaWin32]::BringWindowToTop($h) | Out-Null
+    [CapturaWin32]::SetForegroundWindow($h) | Out-Null
+    [CapturaWin32]::SetFocus($h) | Out-Null
+    if ($hiloActual -ne 0 -and $hiloActual -ne $miHilo) { [CapturaWin32]::AttachThreadInput($miHilo, $hiloActual, $false) | Out-Null }
+    Start-Sleep -Milliseconds 150
+    return ([CapturaWin32]::GetForegroundWindow() -eq $h)
+}
+
+# Mesen tiene que activarse UNA vez: hasta entonces el foco de teclado dentro de su ventana
+# está en la barra de menús y los mensajes de tecla navegan el menú en vez de llegar al
+# mando emulado. Después se devuelve el foco a la ventana que tenía el autor; Mesen recuerda
+# su elemento con foco (el visor del juego) y sigue aceptando los mensajes de PostMessage.
+$anterior = [CapturaWin32]::GetForegroundWindow()
+$activada = $false
+for ($k = 0; $k -lt 5 -and -not $activada; $k++) { $activada = Activar $ventana; if (-not $activada) { Start-Sleep -Milliseconds 300 } }
+Write-Output "Mesen activada: $activada"
+Start-Sleep -Milliseconds 400
+
+# Con la ventana activa, un clic de ratón por mensaje (WM_LBUTTONDOWN/UP, 0x201/0x202, en
+# coordenadas del área cliente) sobre el visor del juego mueve el foco de teclado de la
+# barra de menús al visor, sin tocar el ratón real. Tiene que ir ANTES de devolver el
+# primer plano al autor: Avalonia solo atiende el clic mientras la ventana está activa.
+# lParam = (y << 16) | x; wParam = MK_LBUTTON (1) al pulsar.
+$posClic = [IntPtr]((250 -shl 16) -bor 250)
+[CapturaWin32]::PostMessage($ventana, 0x201, [UIntPtr][uint64]1, $posClic) | Out-Null
+Start-Sleep -Milliseconds 80
+[CapturaWin32]::PostMessage($ventana, 0x202, [UIntPtr]::Zero, $posClic) | Out-Null
+Start-Sleep -Milliseconds 400
+if ($anterior -ne [IntPtr]::Zero -and $anterior -ne $ventana) { Activar $anterior | Out-Null }
+
+# La ventana se lleva fuera de la pantalla (a la izquierda del monitor): DWM la sigue
+# componiendo y PrintWindow la captura igual, pero no tapa el editor del autor ni le roba
+# el foco, y nadie la minimiza por estorbar. 0x1 = SWP_NOSIZE, 0x4 = SWP_NOZORDER,
+# 0x10 = SWP_NOACTIVATE.
+if (-not $EnPantalla) {
+    [CapturaWin32]::SetWindowPos($ventana, [IntPtr]::Zero, -2600, 100, 0, 0, 0x15) | Out-Null
+} else {
+    # -EnPantalla: la ventana se queda visible (abajo a la derecha) para medir si DWM
+    # frena la emulación cuando la ventana no está en pantalla.
+    [CapturaWin32]::SetWindowPos($ventana, [IntPtr]::Zero, 1300, 400, 0, 0, 0x15) | Out-Null
+}
 Start-Sleep -Milliseconds 300
-[CapturaWin32]::keybd_event(0xA0, 0, 0, [UIntPtr]::Zero)                  # Shift izquierdo abajo
-[CapturaWin32]::keybd_event(0xA0, 0, $KEYEVENTF_KEYUP, [UIntPtr]::Zero)   # y arriba
+# Hasta que Mesen recibe una primera tecla, PrintWindow devuelve una capa antigua de la
+# ventana (su pantalla de juegos recientes) en vez del juego. Un toque de Shift (0x10),
+# que no está mapeado a nada, lo "despierta" sin tocar el mando emulado.
+MensajeTecla 0x10 $false $true
+MensajeTecla 0x10 $false $false
 
 function Capturar([IntPtr]$h, [string]$ruta) {
     $r = New-Object CapturaWin32+RECT
     [CapturaWin32]::GetWindowRect($h, [ref]$r) | Out-Null
     $ancho = $r.R - $r.L; $alto = $r.B - $r.T
+    # Una ventana minimizada devuelve un rectángulo diminuto (solo la barra de título):
+    # se restaura y se vuelve a medir, hasta 5 veces.
+    for ($k = 0; $k -lt 5 -and $alto -lt 200; $k++) {
+        [CapturaWin32]::ShowWindow($h, 9) | Out-Null              # SW_RESTORE
+        Start-Sleep -Milliseconds 200
+        [CapturaWin32]::GetWindowRect($h, [ref]$r) | Out-Null
+        $ancho = $r.R - $r.L; $alto = $r.B - $r.T
+    }
     if ($ancho -le 0 -or $alto -le 0) { return "ventana sin tamaño" }
     $bmp = New-Object System.Drawing.Bitmap $ancho, $alto
     $g = [System.Drawing.Graphics]::FromImage($bmp)

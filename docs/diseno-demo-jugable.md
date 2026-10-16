@@ -229,9 +229,18 @@ X 123  VX -16        (píxel entero y velocidad en fp)
 Y 144  VY 0
 EST CAMINANDO
 ESP FUERA  DIR DER
-CAM 0
+CAM 0  F 1234        (cámara y frames desde que empezó el nivel)
 GOLPE 167 168 28 16  (x, y, ancho, alto en píxeles del mundo; «-» si no hay)
+LIN 252 10 59  VB 3738  (línea del haz tras la lógica, tras el sprite y al final del
+                         frame: >= 225 = frame pasado de tiempo; y VBlanks totales)
 ```
+
+**Implementación (decidida en la Tarea 4.4/4.5):** el HUD no usa
+`consoleDrawText`; escribe las palabras del tilemap en RAM (tile = carácter −
+32, paleta 0) y las copia por DMA tras el VBlank, una fila por frame y sin
+divisiones (restas de potencias de diez). La fila `LIN` lee los contadores del
+haz (`$2137`/`$213D`) y es el medidor de coste del frame: con todo encendido,
+la lógica termina en la línea ~60 de 262 (≈ 47 % del tiempo de frame).
 
 ## 10. Pipeline de assets del protagonista
 
@@ -371,7 +380,15 @@ agachado · variantes de animación con espada fuera · cámara suavizada.
   se comprueba con el marcador numerado antes de fiarse de la fórmula.
 - **Nombres de las tablas `_meta.inc`:** se leen del archivo generado antes de
   escribir `tarou_sprite.c`.
-- **`consoleDrawText` con `%d` negativos:** se comprueba en el HUD.
+- **`consoleDrawText` con `%d` negativos:** imprime el signo, pero su formateo
+  es caro y no se usa en el nivel (ver §9).
+- **`tcc816`:** da un error interno (ICE) con expresiones `?:` de cadenas como
+  argumentos variádicos (elegir el texto antes con `if/else`); `/` y `%` llaman
+  a una rutina lenta: evitar divisiones en código por frame.
+- **Mesen:** la configuración guardada del autor tenía `EmulationSpeed = 75`
+  (45 FPS), lo que hizo parecer lenta la ROM; `scripts/capturar_mesen.ps1`
+  fuerza `--Emulation.EmulationSpeed=100`. Al medir velocidad, mirar `F` y
+  `VB` del HUD, no el reloj.
 - **Altura del suelo y cajas:** se miden sobre el arte real cuando llegue.
 - **Arte de Pixellab:** puede no venir «en el sitio» ni con 15 colores; el
   pipeline cuantiza y alinea, pero el resultado se revisa a ojo.
