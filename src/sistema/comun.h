@@ -1,6 +1,22 @@
 /*---------------------------------------------------------------------------------
-    comun.h — Utilidades que comparten todas las pantallas: modo de vídeo y
-    fuente, carga de fondos, texto centrado, máquina de escribir y fundidos.
+    comun.h — Interfaz de las utilidades compartidas y reparto de la VRAM.
+
+    PROPÓSITO
+      Declarar las funciones de comun.c y fijar, en un solo sitio, qué zona de
+      la VRAM usa cada cosa (sprites, tiles de fondos, fuente, mapas). Todas las
+      pantallas usan estas constantes; así ninguna pisa a otra.
+
+    SE CONECTA CON
+      Incluye:  <snes.h>.
+      Lo usan:  sistema/comun.c, sistema/main.c y todas las pantallas.
+
+    HARDWARE QUE TOCA
+      ninguno directamente; define direcciones de VRAM (en palabras de 2 bytes).
+
+    VARIABLES (globales y estáticas de este archivo)
+      ninguna; solo constantes VRAM_* (ver la tabla de abajo).
+
+    → glosario: VRAM, Mode 1, Mode 3, Mode 7
 ---------------------------------------------------------------------------------*/
 #ifndef COMUN_H
 #define COMUN_H

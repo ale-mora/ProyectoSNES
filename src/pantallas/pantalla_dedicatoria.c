@@ -1,9 +1,23 @@
 /*---------------------------------------------------------------------------------
     pantalla_dedicatoria.c — Pantalla (4): mensaje personal sobre negro, letra por
-    letra (máquina de escribir), con fundidos lentos y música suave. 7 segundos.
+    letra, con fundidos lentos. 7 segundos.
 
-    ESTADO: texto definitivo puesto ("A la memoria de Tarou"). La música llega
-    con el soundbank (tarea 5 del plan).
+    PROPÓSITO
+      Efecto máquina de escribir sobre fondo negro con el texto definitivo
+      "A la memoria de Tarou". La música suave llegará con el soundbank (sesión
+      de audio).
+
+    SE CONECTA CON
+      Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h.
+      Lo usan:  sistema/secuencia.c.
+
+    HARDWARE QUE TOCA
+      PPU a través de comun.c (Mode 1, consola de texto, brillo).
+
+    VARIABLES (globales y estáticas de este archivo)
+      letras_mostradas  u16  0..DURACION_DEDICATORIA/FRAMES_POR_LETRA  letras del mensaje ya visibles
+
+    → glosario: Consola de texto, Fade / brillo, Frame
 ---------------------------------------------------------------------------------*/
 #include "sistema/pantallas.h"
 #include "sistema/secuencia.h"

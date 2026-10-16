@@ -1,9 +1,33 @@
 /*---------------------------------------------------------------------------------
-    comun.c — Utilidades compartidas por las pantallas.
+    comun.c — Utilidades compartidas por las pantallas: modo de vídeo y fuente,
+    carga de fondos, texto centrado, máquina de escribir y fundidos.
 
-    Regla de PVSnesLib que se nota aquí: las variables se declaran al principio
-    de cada función (C clásico) y preferimos variables globales a locales, porque
-    el compilador de la SNES (tcc816) genera código más rápido con ellas.
+    PROPÓSITO
+      Concentrar aquí todo lo que varias pantallas repiten, para que cada
+      pantalla_xxx.c sea corta y se lea como un guion. Regla de PVSnesLib que se
+      nota aquí: las variables se declaran al principio de cada función (C
+      clásico) y preferimos variables globales a locales, porque el compilador
+      de la SNES (tcc816) genera código más rápido con ellas.
+
+    SE CONECTA CON
+      Incluye:  sistema/comun.h (su interfaz y el reparto de la VRAM).
+      Lee de la ROM: fuente_consola_til/pal y fuente_2bpp_til/pal (data.asm).
+      Lo usan:  todas las pantallas y sistema/main.c.
+
+    HARDWARE QUE TOCA
+      PPU: modo de vídeo (setMode), punteros y encendido de fondos (bgSetGfxPtr,
+      bgSetMapPtr, bgSetEnable/Disable), brillo (setFadeEffectEx, que bloquea).
+      VRAM y CGRAM: copias por DMA de tiles, mapas y paletas (bgInitTileSet,
+      bgInitMapSet, consoleInitText). La consola copia el texto a VRAM en el
+      siguiente VBlank.
+
+    VARIABLES (globales y estáticas de este archivo)
+      texto_parcial[33]  char  32 letras + 0 final   trozo de texto de la máquina de escribir
+      i                  u8    0..31                  índice de bucles
+      largo              u8    0..32 letras           largo del texto en curso
+      columna            u8    0..31 celdas           columna donde empieza un texto centrado
+
+    → glosario: VRAM, CGRAM, Tile, Tilemap, Paleta, Consola de texto, Fade / brillo, static
 ---------------------------------------------------------------------------------*/
 #include "sistema/comun.h"
 

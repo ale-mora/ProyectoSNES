@@ -1,8 +1,23 @@
 /*---------------------------------------------------------------------------------
     pantalla_publisher.c — Pantalla (2): logo del publisher, 3 segundos.
-    Provisional: logo de Capcom del ejemplo del SDK, ampliado x2 sobre negro
-    (res/publisher/logo_publisher.png, 16 colores, paleta 1, fondo 1).
-    El jingle llega con el soundbank (tarea de audio).
+
+    PROPÓSITO
+      Provisional: logo de Capcom del ejemplo del SDK, ampliado x2 sobre negro
+      (res/publisher/logo_publisher.png, 16 colores, paleta 1, fondo 1). El
+      jingle llegará con el soundbank (sesión de audio).
+
+    SE CONECTA CON
+      Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h.
+      Lee de la ROM: publisher_til/_til_end/_pal/_map/_map_end (data.asm).
+      Lo usan:  sistema/secuencia.c.
+
+    HARDWARE QUE TOCA
+      PPU y VRAM a través de comun.c. Mando: padsDown() si PERMITE_SALTO.
+
+    VARIABLES (globales y estáticas de este archivo)
+      ninguna.
+
+    → glosario: BG / capas, Paleta, Fade / brillo
 ---------------------------------------------------------------------------------*/
 #include "sistema/pantallas.h"
 #include "sistema/secuencia.h"

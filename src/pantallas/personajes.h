@@ -1,12 +1,27 @@
 /*---------------------------------------------------------------------------------
-    personajes.h — Los dos personajes de la demo como sprites: Tarou (lobo
-    samurái) y Bárbara (mujer samurái). Solo animación de reposo.
+    personajes.h — Interfaz de los sprites de Tarou y Bárbara de la secuencia de
+    arranque (solo animación de reposo).
 
-    Uso desde una pantalla:
-      personajes_mostrar(40, 150, 170, 150);   // al entrar: posiciones x,y de cada uno
-      personajes_animar();                     // una vez por frame
-      personajes_ocultar();                    // al salir
-    La carga en VRAM se hace UNA sola vez desde main.c con personajes_cargar().
+    PROPÓSITO
+      Uso desde una pantalla:
+        personajes_cargar();                    // al entrar (Mode 3/7 pisan la VRAM)
+        personajes_mostrar(40, 150, 170, 150);  // posiciones x,y de cada uno
+        personajes_animar();                    // una vez por frame
+        personajes_ocultar();                   // al salir
+      Tarou usa de momento el sprite provisional del lobo samurái (futuro
+      enemigo); Bárbara, el de la samurái del pack.
+
+    SE CONECTA CON
+      Incluye:  <snes.h>.
+      Lo usan:  pantallas/personajes.c, pantallas/pantalla_intro.c,
+                pantallas/pantalla_titulo.c, sistema/main.c.
+
+    HARDWARE QUE TOCA
+      ninguno directamente (ver personajes.c).
+
+    VARIABLES (globales y estáticas de este archivo)
+      ninguna.
+
     → glosario: Sprite, OAM
 ---------------------------------------------------------------------------------*/
 #ifndef PERSONAJES_H

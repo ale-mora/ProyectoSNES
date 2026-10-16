@@ -1,24 +1,44 @@
 /*---------------------------------------------------------------------------------
-    personajes.c — Sprites de Tarou y Bárbara para la secuencia de arranque. Tarou usa de
-    momento el lobo samurái del pack (lobo_samurai.png), que en el juego será un
-    enemigo; el arte real de Tarou (Pixellab) entra en la Tarea 5.1.
+    personajes.c — Sprites de Tarou y Bárbara para la secuencia de arranque.
 
-    Cómo están guardados los gráficos:
-      - Cada personaje es una tira de cuadros de 64x64 (res/personajes/*.png),
-        convertida por gfx4snes con bloques de 64 (-s 64). gfx4snes empaqueta
-        los bloques en filas de 128 píxeles de ancho (16 tiles), dos bloques de
-        64x64 por fila. Por eso el cuadro número n empieza en el tile:
-            (n / 2) * 128 + (n % 2) * 8
-        (128 tiles por fila de bloques; 8 tiles de desplazamiento para el
-        segundo bloque de la fila). Es la misma cuenta que hace el ejemplo
-        AnimatedSprite del SDK con su tabla sprTiles.
-      - LÍMITE DURO: la OAM direcciona como máximo 512 tiles de sprites (dos
-        tablas de 256). Cada bloque de 64x64 son 64 tiles, así que caben 8
-        bloques en total: Tarou usa los bloques 0..3 (4 cuadros) y Bárbara los
-        bloques 4..7 (4 cuadros), uno detrás de otro en la VRAM desde 0x0000
-        (16 KB). Con más cuadros, los tiles "dan la vuelta" y se ve otro sprite
-        (pasó en la primera prueba: dos lobos).
-    → glosario: Sprite, OAM, VRAM, Paleta
+    PROPÓSITO
+      Cargar en VRAM los cuadros de reposo de los dos personajes, mostrarlos,
+      animarlos y esconderlos. Tarou usa de momento el lobo samurái del pack
+      (res/personajes/lobo_samurai.png), que en el juego será un enemigo; el
+      arte real de Tarou (Pixellab) entra en la Tarea 5.1 del plan.
+
+      Cómo están guardados los gráficos: cada personaje es una tira de cuadros
+      de 64x64 convertida por gfx4snes con bloques de 64 (-s 64). gfx4snes
+      empaqueta los bloques en filas de 128 píxeles de ancho (16 tiles), dos
+      bloques por fila, así que el cuadro n empieza en el tile
+      (n / 2) * 128 + (n % 2) * 8 (misma cuenta que el ejemplo AnimatedSprite
+      del SDK). LÍMITE DURO: la OAM direcciona como máximo 512 tiles de sprites;
+      cada bloque de 64x64 son 64 tiles, así que caben 8 bloques: Tarou usa los
+      bloques 0..3 y Bárbara los 4..7, uno detrás de otro desde VRAM 0x0000.
+      Con más cuadros los tiles "dan la vuelta" y se ve otro sprite.
+
+    SE CONECTA CON
+      Incluye:  pantallas/personajes.h.
+      Lee de la ROM: lobo_samurai_til/_til_end/_pal y barbara_samurai_til/
+                _til_end/_pal (data.asm).
+      Lo usan:  pantallas/pantalla_intro.c (escena 3), pantallas/pantalla_titulo.c,
+                sistema/main.c (personajes_ocultar al arrancar).
+
+    HARDWARE QUE TOCA
+      OAM: oamInit, oamSet, oamSetEx, oamSetXY (la librería la copia a la PPU en
+      cada VBlank). VRAM: oamInitGfxSet y dmaCopyVram (tiles). CGRAM:
+      dmaCopyCGram (paletas de sprites 0 y 1, colores 128..159).
+
+    VARIABLES (globales y estáticas de este archivo)
+      x_tarou, y_tarou      u16  píxeles de pantalla  esquina superior izquierda de la celda de Tarou
+      x_barbara, y_barbara  u16  píxeles de pantalla  ídem Bárbara
+      cuadro_tarou          u8   0..CUADROS_TAROU-1   cuadro de animación de Tarou
+      cuadro_barbara        u8   0..CUADROS_BARBARA-1 cuadro de animación de Bárbara
+      frames_cuadro         u8   0..FRAMES_POR_CUADRO frames desde el último cambio de cuadro
+      visibles              u8   0 / 1                1 = se están mostrando
+      tile                  u16  0..511               número de tile calculado para la OAM
+
+    → glosario: Sprite, OAM, VRAM, Paleta, DMA / HDMA
 ---------------------------------------------------------------------------------*/
 #include "pantallas/personajes.h"
 

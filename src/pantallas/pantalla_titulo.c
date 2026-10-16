@@ -1,17 +1,35 @@
 /*---------------------------------------------------------------------------------
-    pantalla_titulo.c — Pantalla (6): título del juego.
+    pantalla_titulo.c — Pantalla (6): título del juego con parallax y PRESS START.
 
-    Capas (Mode 1 con BG3 en prioridad alta):
-      fondo 0 = capa CERCANA: arbustos, 512 px de ancho en bucle, scroll por
-                software cada frame (parallax).
-      fondo 1 = capa LEJANA: montañas y pinos, quieta, con el logo horneado.
-      fondo 2 = TEXTO ("PRESS START", ©) con la fuente de 4 colores (BG3 solo
-                puede mostrar 2 bits por píxel).
-      cielo   = el color de fondo, que un canal HDMA cambia en cada línea con la
-                tabla generada de res/titulo/cielo.bmp (degradado).
-      sprites = Tarou y Bárbara en reposo, delante de todo.
-    Espera Start; a los 15 s sin input vuelve a la intro (attract).
-    → glosario: BG / capas, HDMA, Mando, Sprite
+    PROPÓSITO
+      Mode 1 con BG3 en prioridad alta. fondo 0 = capa CERCANA (arbustos, 512 px
+      en bucle, scroll por software cada frame); fondo 1 = capa LEJANA (montañas
+      y pinos con el logotipo horneado, quieta); fondo 2 = TEXTO (PRESS START y
+      copyright) con la fuente de 4 colores; cielo = color de fondo que un canal
+      HDMA cambia en cada línea (tabla de res/titulo/cielo.bmp); sprites = Tarou
+      y Bárbara en reposo delante de todo. Espera Start; a los 15 s sin input
+      vuelve a la intro (attract).
+
+    SE CONECTA CON
+      Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h,
+                pantallas/personajes.h.
+      Lee de la ROM: cerca_*, lejos_* y hdmaGradcieloList (data.asm).
+      Lo usan:  sistema/secuencia.c. Start lleva a PANTALLA_PROXIMAMENTE (en la
+                Revisión 1 pasará a PANTALLA_NIVEL1).
+
+    HARDWARE QUE TOCA
+      PPU: modo y prioridad de BG3 (setMode), fondos y texto por comun.c, scroll
+      del fondo 0 (bgSetScroll). HDMA: canal 6 con un color por línea
+      (setModeHdmaColor / setModeHdmaReset). OAM por personajes.c. Mando:
+      padsDown() (Start) y padsCurrent() (cualquier botón reinicia el attract).
+
+    VARIABLES (globales y estáticas de este archivo)
+      frames_sin_input  u16  0..ATTRACT_SIN_INPUT   frames seguidos sin tocar ningún botón
+      frames_parpadeo   u8   0..FRAMES_PARPADEO     frames hasta el próximo cambio de PRESS START
+      texto_visible     u8   0 / 1                  1 = PRESS START se ve
+      scroll_cerca      u16  píxeles (da la vuelta) desplazamiento de la capa cercana
+
+    → glosario: BG / capas, HDMA, Mando, Sprite, Parallax
 ---------------------------------------------------------------------------------*/
 #include "sistema/pantallas.h"
 #include "sistema/secuencia.h"

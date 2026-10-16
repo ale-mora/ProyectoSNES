@@ -1,10 +1,29 @@
 /*---------------------------------------------------------------------------------
-    secuencia.c — La máquina de estados de la secuencia de arranque.
+    secuencia.c — La máquina de estados que encadena las pantallas.
 
-    Idea: una variable dice EN QUÉ PANTALLA estamos. En cada frame, un switch
-    ejecuta solo el código de esa pantalla. Cuando una pantalla termina, pide
-    cambiar a la siguiente y aquí se hace el cambio.
-    → glosario: Máquina de estados, switch/case, enum
+    PROPÓSITO
+      Una variable dice EN QUÉ PANTALLA estamos. En cada frame, un switch ejecuta
+      solo el código de esa pantalla. Cuando una pantalla termina, pide cambiar a
+      la siguiente y aquí se hace el cambio. Hay tres momentos por pantalla:
+      _iniciar (una vez, al entrar), _actualizar (cada frame, antes del VBlank) y
+      _vblank (cada frame, justo después del VBlank; solo para las pantallas que
+      copian datos a la VRAM, como el nivel).
+
+    SE CONECTA CON
+      Incluye:  sistema/secuencia.h (su propia interfaz y, a través de ella,
+                sistema/pantallas.h con el enum Pantalla y los prototipos).
+      Lo usan:  sistema/main.c (llama a las tres funciones del bucle); cada
+                pantalla_xxx.c llama a secuencia_cambiar() y lee
+                frames_en_pantalla.
+
+    HARDWARE QUE TOCA
+      ninguno: es lógica pura; el hardware lo tocan las pantallas.
+
+    VARIABLES (globales y estáticas de este archivo)
+      pantalla_actual     Pantalla  0..CANTIDAD_PANTALLAS-1  estado activo de la máquina
+      frames_en_pantalla  u16       0..65535 frames          tiempo que lleva la pantalla activa
+
+    → glosario: Máquina de estados, switch/case, enum, Frame
 ---------------------------------------------------------------------------------*/
 #include "sistema/secuencia.h"   /* Nuestro propio header: declara lo que este archivo implementa. */
 
@@ -67,4 +86,17 @@ void secuencia_actualizar(void)
     /* Un frame más en esta pantalla. Si la pantalla acaba de cambiar dentro del
        switch, el contador ya estaba en 0 y aquí pasa a 1: irrelevante. */
     frames_en_pantalla++;
+}
+
+/*--- secuencia_vblank -----------------------------------------------------------
+    Tercer momento de cada pantalla: main.c la llama justo después de
+    WaitForVBlank(), cuando la PPU ha terminado de dibujar y la VRAM se puede
+    escribir sin romper la imagen. Hoy ninguna pantalla lo necesita; el nivel 1
+    (Revisión 1) añadirá aquí su case para oamVramQueueUpdate(). */
+void secuencia_vblank(void)
+{
+    switch (pantalla_actual)
+    {
+        default:                    break;   /* Ninguna pantalla define _vblank todavía. */
+    }
 }

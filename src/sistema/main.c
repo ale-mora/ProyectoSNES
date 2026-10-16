@@ -1,12 +1,29 @@
 /*---------------------------------------------------------------------------------
-    Tarou: A Dog's Journey — punto de entrada del programa.
+    main.c — Punto de entrada del programa: prepara el vídeo, arranca la secuencia
+    de pantallas y entra en el bucle de un frame por vuelta.
 
-    main.c hace tres cosas y nada más:
-      1. Configura la pantalla y la consola de texto de PVSnesLib.
-      2. Arranca la secuencia de pantallas (secuencia.c).
-      3. Entra en el bucle principal: un frame por vuelta, sincronizado con VBlank.
-    Toda la lógica de cada pantalla vive en su propio archivo pantalla_xxx.c.
-    → glosario: VBlank, Consola de texto, Mode 1
+    PROPÓSITO
+      main() hace tres cosas y nada más: (1) deja la PPU en Mode 1 con la consola
+      de texto y la pantalla en negro, (2) arranca la máquina de estados en la
+      pantalla de Nintendo y (3) repite para siempre: actualizar la pantalla
+      activa, esperar al VBlank y hacer el trabajo que solo puede hacerse justo
+      después del VBlank. Toda la lógica de cada pantalla vive en pantalla_xxx.c.
+
+    SE CONECTA CON
+      Incluye:  <snes.h> (PVSnesLib), sistema/secuencia.h (secuencia_iniciar,
+                secuencia_actualizar, secuencia_vblank), sistema/comun.h
+                (video_texto_mode1), pantallas/personajes.h (personajes_ocultar).
+      Lo usan:  nadie. El enlazador salta aquí tras el código de arranque del SDK.
+
+    HARDWARE QUE TOCA
+      PPU: modo de vídeo y fuente (por comun.c), encendido (setScreenOn), brillo
+      (setBrightness). OAM: limpieza inicial (oamInit). CPU: WaitForVBlank()
+      duerme hasta la interrupción NMI que la PPU dispara al final de cada frame.
+
+    VARIABLES (globales y estáticas de este archivo)
+      ninguna.
+
+    → glosario: VBlank, Consola de texto, Mode 1, Máquina de estados
 ---------------------------------------------------------------------------------*/
 #include <snes.h>        /* Librería PVSnesLib (funciones de vídeo, mando, texto...). */
 #include "sistema/secuencia.h"   /* Nuestra máquina de estados: secuencia_iniciar/actualizar. */
@@ -41,6 +58,7 @@ int main(void)
     {
         secuencia_actualizar();   /* Un frame de la pantalla actual.                  */
         WaitForVBlank();          /* Esperar al final del dibujo de este frame.       */
+        secuencia_vblank();       /* Lo que solo puede hacerse recién pasado el VBlank.*/
     }
 
     return 0;                     /* Nunca se llega aquí; C exige que main devuelva.  */

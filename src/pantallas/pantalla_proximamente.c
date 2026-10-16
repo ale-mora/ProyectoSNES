@@ -1,9 +1,22 @@
 /*---------------------------------------------------------------------------------
-    pantalla_proximamente.c — Pantalla (7): "LEVEL 1 - COMING SOON". Es el enchufe
-    donde en el futuro arrancará el gameplay. Hoy: espera Start y vuelve al título.
+    pantalla_proximamente.c — Pantalla (7): "LEVEL 1 - COMING SOON".
 
-    Cuando exista el Nivel 1, esta pantalla se reemplaza por la carga del nivel
-    (Etapa 2/3 del plan); el resto de la secuencia no cambia.
+    PROPÓSITO
+      Es el enchufe donde arrancará el gameplay: hoy espera Start y vuelve al
+      título. En la Revisión 1 (docs/diseno-demo-jugable.md) se reemplaza por
+      pantalla_nivel1.c; el resto de la secuencia no cambia.
+
+    SE CONECTA CON
+      Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h.
+      Lo usan:  sistema/secuencia.c.
+
+    HARDWARE QUE TOCA
+      PPU a través de comun.c (Mode 1, texto, brillo). Mando: padsDown().
+
+    VARIABLES (globales y estáticas de este archivo)
+      ninguna.
+
+    → glosario: Pantalla, Mando
 ---------------------------------------------------------------------------------*/
 #include "sistema/pantallas.h"
 #include "sistema/secuencia.h"

@@ -1,14 +1,34 @@
 /*---------------------------------------------------------------------------------
-    pantalla_intro.c — Pantalla (5): intro en tres escenas. Cada escena muestra un
-    fondo y un párrafo corto que aparece letra por letra. 8 segundos por escena.
-    Sale hacia el título con efecto mosaico.
+    pantalla_intro.c — Pantalla (5): intro en tres escenas con texto letra a letra.
 
-    Escenas 1 y 2: MODE 3, imagen de 256 colores en el fondo 0 (256x120 arriba;
+    PROPÓSITO
+      Cada escena muestra un fondo y un párrafo corto que aparece letra por
+      letra, 8 segundos por escena; sale hacia el título con efecto mosaico.
+      Escenas 1 y 2: MODE 3, imagen de 256 colores en el fondo 0 (256x120 arriba;
       abajo, banda transparente) y el texto en el fondo 1 con la paleta 7 (los
-      colores 112..127, que las imágenes dejan libres).
-    Escena 3: MODE 1, imagen de 16 colores en el fondo 1 (paleta 1), texto en el
-      fondo 0 y los sprites de Tarou y Bárbara delante.
-    → glosario: Mode 1, Mosaico, Sprite, Paleta
+      colores 112..127, que las imágenes dejan libres). Escena 3: MODE 1, imagen
+      de 16 colores en el fondo 1 (paleta 1), texto en el fondo 0 y los sprites
+      de Tarou y Bárbara delante.
+
+    SE CONECTA CON
+      Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h,
+                pantallas/personajes.h (sprites de la escena 3).
+      Lee de la ROM: escena1_*, escena2_*, escena3_* (data.asm).
+      Lo usan:  sistema/secuencia.c.
+
+    HARDWARE QUE TOCA
+      PPU: Mode 3 y Mode 1 (setMode), fondos y texto por comun.c, mosaico
+      (setMosaicEffect, REG_MOSAIC), brillo. VRAM/CGRAM por comun.c y
+      personajes.c (Mode 3 pisa las 256 entradas de color y la VRAM de sprites).
+      Mando: padsDown() si PERMITE_SALTO.
+
+    VARIABLES (globales y estáticas de este archivo)
+      escena         u8   0..2             escena actual
+      letras         u16  0..~200          letras del párrafo ya mostradas
+      restante       u16  0..~100          letras que sobran para la línea siguiente (encadenado)
+      inicio_escena  u16  frames           frame en que empezó la escena actual
+
+    → glosario: Mode 1, Mode 3, Mosaico, Sprite, Paleta, Consola de texto
 ---------------------------------------------------------------------------------*/
 #include "sistema/pantallas.h"
 #include "sistema/secuencia.h"

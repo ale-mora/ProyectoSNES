@@ -1,15 +1,38 @@
 ; ---------------------------------------------------------------------------------
 ;   data.asm — Datos binarios (gráficos, paletas, mapas) que van dentro de la ROM.
 ;
-;   Este archivo es ensamblador, no C. Su único trabajo es "pegar" archivos
-;   binarios en la ROM con .incbin y darles un nombre (etiqueta) para que el
-;   código C los encuentre con `extern char nombre;`. Cada bloque va en una
-;   sección "superfree": el enlazador la coloca en cualquier banco de 32 KB donde
-;   quepa, así que ninguna sección puede superar 32 KB. Por eso los tiles grandes
-;   van en una sección y su paleta + mapa en otra. → glosario: Banco / LoROM
+;   PROPÓSITO
+;     Este archivo es ensamblador, no C. Su único trabajo es "pegar" archivos
+;     binarios en la ROM con .incbin y darles un nombre (etiqueta) para que el
+;     código C los encuentre con `extern char nombre;`. Cada bloque va en una
+;     sección "superfree": el enlazador la coloca en cualquier banco de 32 KB
+;     donde quepa, así que ninguna sección puede superar 32 KB. Por eso los
+;     tiles grandes van en una sección y su paleta + mapa en otra.
+;
+;   SE CONECTA CON
+;     Incluye:  hdr.asm (generado por el Makefile: cabecera y mapa de bancos).
+;     Lee:      los .pic/.pal/.map/.as que gfx4snes genera en res/ (el Makefile
+;               los produce antes de ensamblar: data.obj depende de ASSETS).
+;     Lo usan:  sistema/comun.c (fuentes), pantallas/personajes.c (sprites) y
+;               cada pantalla_xxx.c (sus fondos), siempre vía `extern char`.
+;
+;   HARDWARE QUE TOCA
+;     ROM: ocupa bancos LoROM de 32 KB. La CPU no lee estos datos directamente:
+;     el código C los copia a VRAM/CGRAM por DMA en cada carga de pantalla.
+;
+;   VARIABLES (etiquetas que exporta, por sección)
+;     .rodata_fuente     fuente_consola_til/_til_end/_pal, fuente_2bpp_til/_til_end/_pal
+;     .rodata_lobo       lobo_samurai_til/_til_end/_pal (sprite provisional de Tarou)
+;     .rodata_barbara    barbara_samurai_til/_til_end/_pal
+;     .rodata_nintendo   nintendo_til/_til_end/_pal/_map/_map_end
+;     .rodata_publisher  publisher_*            .rodata_devs  devs_*
+;     .rodata_escena1_*  escena1_*              .rodata_escena2_*  escena2_*
+;     .rodata_escena3    escena3_*
+;     .rodata_titulo_*   cerca_*, lejos_*, hdmaGradcieloList (tabla HDMA)
 ;
 ;   Extensiones que genera gfx4snes: .pic tiles, .pal paleta, .map mapa;
 ;   en Mode 7: .pc7 tiles y .mp7 mapa. Todo se regenera con `make`.
+;   → glosario: Banco / LoROM, DMA / HDMA
 ; ---------------------------------------------------------------------------------
 .include "hdr.asm"
 

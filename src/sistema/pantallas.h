@@ -1,10 +1,27 @@
 /*---------------------------------------------------------------------------------
-    pantallas.h — Lista de pantallas de la secuencia de arranque, sus tiempos y
-    las funciones que cada pantalla ofrece al resto del programa.
+    pantallas.h — Lista de pantallas de la secuencia, sus tiempos en frames y las
+    funciones que cada pantalla ofrece al resto del programa.
 
-    Este archivo es un "header" (.h): no contiene código que se ejecute, solo
-    declaraciones que otros archivos .c incluyen con #include "sistema/pantallas.h".
-    → glosario: #include, #define, enum
+    PROPÓSITO
+      Es un header: no contiene código que se ejecute, solo declaraciones. Aquí
+      está el enum Pantalla (el orden ES el orden de la secuencia), las
+      duraciones (SEGUNDOS(n) → frames) y los prototipos pantalla_xxx_iniciar/
+      _actualizar(/_vblank) que secuencia.c llama.
+
+    SE CONECTA CON
+      Incluye:  <snes.h> (tipos u8/u16 y la API de la SNES).
+      Lo usan:  sistema/secuencia.h/.c y cada pantalla_xxx.c.
+
+    HARDWARE QUE TOCA
+      ninguno.
+
+    VARIABLES (globales y estáticas de este archivo)
+      ninguna; constantes FPS, SEGUNDOS(), DURACION_*, ATTRACT_SIN_INPUT,
+      FRAMES_PARPADEO, FRAMES_FADE, FRAMES_FADE_LENTO, FRAMES_POR_LETRA,
+      PERMITE_SALTO. OJO: tras cambiar este archivo hay que hacer `make clean`
+      (snes_rules no rastrea cabeceras).
+
+    → glosario: #include, #define, #ifndef, enum, Frame, void
 ---------------------------------------------------------------------------------*/
 #ifndef PANTALLAS_H   /* Guarda de inclusión: si PANTALLAS_H aún no está definido... */
 #define PANTALLAS_H   /* ...lo definimos y seguimos; la 2.ª vez se salta todo. → glosario: #ifndef */

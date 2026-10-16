@@ -1,10 +1,24 @@
 /*---------------------------------------------------------------------------------
     pantalla_nintendo.c — Pantalla (1): logo "Nintendo" y "LICENSED BY NINTENDO".
-    Muda, 3 segundos, fade in y fade out (como en los juegos de la época).
 
-    Gráficos: res/nintendo/logo_nintendo.png (256x224, 16 colores) en el fondo 1
-    con la paleta 1; el texto en el fondo 0 (consola) por encima.
-    → glosario: BG / capas, Paleta
+    PROPÓSITO
+      Muda, 3 segundos, fade in y fade out, como en los juegos de la época. El
+      logo (res/nintendo/logo_nintendo.png, 256x224, 16 colores) va en el fondo 1
+      con la paleta 1; el texto en el fondo 0 (consola), por encima.
+
+    SE CONECTA CON
+      Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h.
+      Lee de la ROM: nintendo_til/_til_end/_pal/_map/_map_end (data.asm).
+      Lo usan:  sistema/secuencia.c (llama a _iniciar y _actualizar).
+
+    HARDWARE QUE TOCA
+      PPU y VRAM a través de comun.c (modo, fondo, texto, brillo). Mando:
+      padsDown() solo si PERMITE_SALTO está activo.
+
+    VARIABLES (globales y estáticas de este archivo)
+      ninguna.
+
+    → glosario: BG / capas, Paleta, Fade / brillo, Mando
 ---------------------------------------------------------------------------------*/
 #include "sistema/pantallas.h"
 #include "sistema/secuencia.h"
