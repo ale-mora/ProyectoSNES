@@ -42,3 +42,10 @@ res/descargas/graficos/*
 res/descargas/audio/*
 !res/descargas/graficos/.gitkeep
 !res/descargas/audio/.gitkeep
+# Exportaciones de Pixellab por personaje: se ignoran, salvo el README de cada carpeta
+!res/descargas/graficos/pixellab/
+res/descargas/graficos/pixellab/*
+!res/descargas/graficos/pixellab/tarou/
+!res/descargas/graficos/pixellab/barbara/
+res/descargas/graficos/pixellab/*/*
+!res/descargas/graficos/pixellab/*/README.md
