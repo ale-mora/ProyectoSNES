@@ -41,7 +41,7 @@ typedef enum
     PANTALLA_DEDICATORIA,      /* (4) mensaje personal, máquina de escribir                  */
     PANTALLA_INTRO,            /* (5) tres escenas con texto                                 */
     PANTALLA_TITULO,           /* (6) título con PRESS START, attract a los 15 s             */
-    PANTALLA_PROXIMAMENTE,     /* (7) "LEVEL 1 - COMING SOON", vuelve al título con Start    */
+    PANTALLA_NIVEL1,           /* (7) el nivel 1: Tarou juega; Start vuelve al título        */
     CANTIDAD_PANTALLAS         /* no es una pantalla: cuenta cuántas hay arriba              */
 } Pantalla;                    /* "Pantalla" pasa a ser un tipo de dato, como u8 o u16.      */
 
@@ -99,7 +99,10 @@ void pantalla_intro_actualizar(void);
 void pantalla_titulo_iniciar(void);
 void pantalla_titulo_actualizar(void);
 
-void pantalla_proximamente_iniciar(void);
-void pantalla_proximamente_actualizar(void);
+/* El nivel 1 es la única pantalla con _vblank: copia a VRAM los tiles del sprite
+   dinámico justo después del VBlank (ver secuencia_vblank en secuencia.c). */
+void pantalla_nivel1_iniciar(void);
+void pantalla_nivel1_actualizar(void);
+void pantalla_nivel1_vblank(void);
 
 #endif /* PANTALLAS_H — cierra la guarda de inclusión abierta arriba. */

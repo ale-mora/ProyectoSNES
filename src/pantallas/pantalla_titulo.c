@@ -14,8 +14,7 @@
       Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h,
                 pantallas/personajes.h.
       Lee de la ROM: cerca_*, lejos_* y hdmaGradcieloList (data.asm).
-      Lo usan:  sistema/secuencia.c. Start lleva a PANTALLA_PROXIMAMENTE (en la
-                Revisión 1 pasará a PANTALLA_NIVEL1).
+      Lo usan:  sistema/secuencia.c. Start lleva a PANTALLA_NIVEL1.
 
     HARDWARE QUE TOCA
       PPU: modo y prioridad de BG3 (setMode), fondos y texto por comun.c, scroll
@@ -88,10 +87,10 @@ void pantalla_titulo_iniciar(void)
 
 void pantalla_titulo_actualizar(void)
 {
-    /*--- 1. Start: pasamos a "coming soon" --------------------------------------*/
+    /*--- 1. Start: entramos al nivel 1 --------------------------------------------*/
     if (padsDown(0) & KEY_START)
     {
-        salir(PANTALLA_PROXIMAMENTE);
+        salir(PANTALLA_NIVEL1);
         return;
     }
 

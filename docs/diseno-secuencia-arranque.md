@@ -20,8 +20,9 @@ hoja de ruta está en `docs/plan-desarrollo.md`, Etapa 1.5.
   experimento. Sirve además como demo técnica para medir alcances: qué tan
   lejos se puede llevar el hardware (Mode 7, HDMA, parallax, audio SPC) antes
   de tocar gameplay.
-- **Qué no es:** no incluye gameplay. Al presionar Start no arranca ningún
-  nivel; se muestra una pantalla "LEVEL 1 — COMING SOON" que vuelve al título.
+- **Qué no es:** esta demo no incluía gameplay: Start mostraba "LEVEL 1 —
+  COMING SOON". Desde la Revisión 1 (2026-10-16, `docs/diseno-demo-jugable.md`)
+  Start entra al nivel 1, que se documenta allí.
 - **Para quién:** proyecto personal, sin venta ni distribución. Por eso se usa
   material original con copyright de la época (logo de Nintendo, logos de
   publisher/desarrollador de ejemplo) en uso privado. Cada logo vive aislado
@@ -29,8 +30,9 @@ hoja de ruta está en `docs/plan-desarrollo.md`, Etapa 1.5.
   cambia la premisa.
 - **Criterio de éxito:** una ROM `.sfc` que, al cargarse en Mesen, recorre las
   seis pantallas en orden sin intervención, llega al título, entra en modo
-  attract a los 15 s, y responde a Start con la transición a "coming soon" y
-  de vuelta. Sin glitches gráficos ni de audio, a 60 FPS.
+  attract a los 15 s, y responde a Start entrando al nivel 1 (antes, "coming
+  soon"), desde donde START devuelve al título. Sin glitches gráficos ni de
+  audio, a 60 FPS.
 
 ## 2. Estética y referencias
 
@@ -70,7 +72,7 @@ Orden final (convención de época: Nintendo → publisher → desarrollador):
        └───────────────────────────────────────────── [6] TITLE ◄──────┐
                                                               │ Start   │ Start
                                                               ▼         │
-                                                     [7] COMING SOON ───┘
+                                                     [7] NIVEL 1 ────────┘
 ```
 
 Ninguna pantalla se puede saltar por ahora. Cada pantalla tiene una constante
@@ -87,7 +89,7 @@ para el desarrollo posterior).
 | 4 Dedication | 7 s | fade in lento (1 s) | fade out lento (1 s) |
 | 5 Intro | 3 × 8 s | fade in | fade entre escenas; **mosaico** hacia título |
 | 6 Title | indefinida; attract a los 15 s sin input | mosaico in | fade out |
-| 7 Coming soon | hasta Start | fade in | fade out → título |
+| 7 Nivel 1 (antes Coming soon) | hasta START | fade in | fade out → título |
 | "PRESS START" | parpadeo 0,5 s encendido / 0,5 s apagado | | |
 
 Todos los tiempos se expresan en **frames** en el código (60 frames = 1 s en
@@ -181,7 +183,7 @@ NTSC) y se ajustan a ojo en Mesen.
   - Tarou = OAM, misma spritesheet que la intro.
   - Attract: contador de frames sin input; a los 900 frames (15 s) →
     fade out → Intro.
-  - Start (`padsDown(0) & KEY_START`) → fade out → Coming soon.
+  - Start (`padsDown(0) & KEY_START`) → fade out → Nivel 1.
 - **Assets:** `res/titulo/logo_titulo.png` (generado por
   `scripts/generar_logo_titulo.py` a partir de una fuente libre; reemplazable),
   `res/titulo/fondo_cerca.png` (cerezos y suelo) y `res/titulo/fondo_lejos.png`
@@ -189,13 +191,15 @@ NTSC) y se ajustan a ojo en Mesen.
   (256×224 o 512×224 para scroll, ≤16 colores cada uno), `res/musica/titulo.it`.
   En el título aparecen los dos sprites: Tarou (lobo) y Bárbara (samurái).
 
-### Pantalla 7 — Coming soon
+### Pantalla 7 — Nivel 1 (antes "Coming soon")
 
-- **Contenido:** "LEVEL 1 — COMING SOON" centrado sobre negro, y debajo
-  "PRESS START TO RETURN".
-- **Técnica:** Mode 1, solo texto. Es el **enchufe** para el gameplay: la
-  función `iniciar_juego()` que hoy muestra este texto será reemplazada por la
-  carga del Nivel 1 en la Etapa 2/3.
+- **Hasta el 2026-10-16:** "LEVEL 1 — COMING SOON" centrado sobre negro y
+  "PRESS START TO RETURN", en Mode 1 solo con texto: el **enchufe** para el
+  gameplay (`pantalla_proximamente.c`).
+- **Desde la Revisión 1:** `pantalla_nivel1.c` carga el nivel 1 (Tarou adulto,
+  parallax, HUD de depuración). Contenido, técnica y verificación en
+  `docs/diseno-demo-jugable.md`; esta pantalla ya no forma parte de la
+  secuencia de arranque propiamente dicha.
 
 ## 4. Arquitectura del código
 
@@ -212,7 +216,7 @@ src/
   pantalla_dedicatoria.c
   pantalla_intro.c
   pantalla_titulo.c
-  pantalla_proximamente.c
+  pantalla_nivel1.c       el nivel 1 (desde la Revisión 1; ver docs/diseno-demo-jugable.md)
   comun.c / .h            utilidades: esperar_frames(), fade_in/out(),
                           texto_maquina_escribir(), parpadeo()
 data.asm                  secciones ".rodataN" superfree, una por pantalla,
@@ -300,8 +304,8 @@ el uso: `snesromusage.exe -i ProyectoSNES.sym`. Si la ROM se llena, subir
    nada, en los tiempos de la tabla (cronometrar con el contador de frames de
    Mesen o a ojo).
 2. En el título: no tocar nada 15 s → vuelve a la intro (escena 1).
-3. En el título: Start → fade → "COMING SOON"; Start → fade → título con la
-   música reiniciada.
+3. En el título: Start → fade → nivel 1; START en el nivel → fade → título
+   con la música reiniciada.
 4. Sin sprites basura, sin filas de tiles corruptas al cambiar de Mode 7 a
    Mode 1, sin cortes de audio.
 5. `make` sin warnings nuevos; `snesromusage` muestra todas las secciones
@@ -317,7 +321,7 @@ el uso: `snesromusage.exe -i ProyectoSNES.sym`. Si la ROM se llena, subir
 | Q4 | La Etapa 0 sigue en paralelo; se adelanta el tema binario/hexadecimal. |
 | Q5/Q21 | Seis pantallas en orden de época: Nintendo → publisher → developers → dedication → intro → title. |
 | Q6 | No se saltan pantallas; `PERMITE_SALTO = 0` deja la opción lista. |
-| Q7 | Start → fade → "LEVEL 1 — COMING SOON" → Start → título. |
+| Q7 | Start → fade → "LEVEL 1 — COMING SOON" → Start → título. (Sustituido por el nivel 1 en la Revisión 1.) |
 | Q8 | Attract a los 15 s, vuelve a la intro. |
 | Q9/Q17 | Proyecto personal sin distribución; se usa material original con copyright; logos aislados como assets reemplazables. Premisa del plan actualizada. |
 | Q10/Q23 | Logo de estudio provisional estilo Konami + "ALEJANDRO MORA" y roles. |

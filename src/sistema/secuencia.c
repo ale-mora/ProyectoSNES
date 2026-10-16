@@ -51,7 +51,7 @@ void secuencia_cambiar(Pantalla nueva)
         case PANTALLA_DEDICATORIA:  pantalla_dedicatoria_iniciar();  break;
         case PANTALLA_INTRO:        pantalla_intro_iniciar();        break;
         case PANTALLA_TITULO:       pantalla_titulo_iniciar();       break;
-        case PANTALLA_PROXIMAMENTE: pantalla_proximamente_iniciar(); break;
+        case PANTALLA_NIVEL1:       pantalla_nivel1_iniciar();       break;
         default:                    break;   /* Valor desconocido: no hacemos nada (defensa). */
     }
 }
@@ -79,7 +79,7 @@ void secuencia_actualizar(void)
         case PANTALLA_DEDICATORIA:  pantalla_dedicatoria_actualizar();  break;
         case PANTALLA_INTRO:        pantalla_intro_actualizar();        break;
         case PANTALLA_TITULO:       pantalla_titulo_actualizar();       break;
-        case PANTALLA_PROXIMAMENTE: pantalla_proximamente_actualizar(); break;
+        case PANTALLA_NIVEL1:       pantalla_nivel1_actualizar();       break;
         default:                    break;
     }
 
@@ -91,12 +91,13 @@ void secuencia_actualizar(void)
 /*--- secuencia_vblank -----------------------------------------------------------
     Tercer momento de cada pantalla: main.c la llama justo después de
     WaitForVBlank(), cuando la PPU ha terminado de dibujar y la VRAM se puede
-    escribir sin romper la imagen. Hoy ninguna pantalla lo necesita; el nivel 1
-    (Revisión 1) añadirá aquí su case para oamVramQueueUpdate(). */
+    escribir sin romper la imagen. Solo el nivel 1 lo necesita: su _vblank copia
+    a la VRAM los tiles del sprite dinámico (oamVramQueueUpdate). */
 void secuencia_vblank(void)
 {
     switch (pantalla_actual)
     {
-        default:                    break;   /* Ninguna pantalla define _vblank todavía. */
+        case PANTALLA_NIVEL1:       pantalla_nivel1_vblank();       break;
+        default:                    break;   /* Las demás pantallas no necesitan _vblank. */
     }
 }
