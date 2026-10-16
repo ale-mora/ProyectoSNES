@@ -44,6 +44,7 @@
 #include "juego/tarou.h"
 #include "juego/tarou_sprite.h"
 #include "juego/mando.h"
+#include "juego/hud_debug.h"
 #include "sistema/puntofijo.h"
 
 extern char cerca_til, cerca_til_end, cerca_pal, cerca_map, cerca_map_end;
@@ -75,8 +76,7 @@ void pantalla_nivel1_iniciar(void)
     fondo16_cargar(1, &nivel1_lejos_til, &nivel1_lejos_til_end, &nivel1_lejos_pal, 2,
                    &nivel1_lejos_map, &nivel1_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
     fuente_2bpp(2);                                  /* Texto del HUD en el fondo 2...      */
-    limpiar_texto();
-    bgSetDisable(2);                                 /* ...apagado hasta que lo pida SELECT.*/
+    hud_debug_iniciar();                             /* ...apagado hasta que lo pida SELECT.*/
 
     tarou_sprite_cargar();                           /* Motor dinámico + paleta de Tarou.   */
     tarou_iniciar(&tarou, X_INICIAL, nivel_suelo_en(X_INICIAL + ANCHO_CELDA / 2));
@@ -99,6 +99,10 @@ void pantalla_nivel1_actualizar(void)
         salir(PANTALLA_TITULO);
         return;
     }
+    if (mando.hud_pulsado)                           /* SELECT: HUD de depuración sí/no.    */
+    {
+        hud_debug_alternar();
+    }
 
     /*--- 2. Lógica pura: un frame de física y máquina de estados --------------------*/
     tarou_actualizar(&tarou, &mando, nivel_suelo_en(PF_ENTERO(tarou.x_fp) + ANCHO_CELDA / 2));
@@ -112,6 +116,9 @@ void pantalla_nivel1_actualizar(void)
            motor dinámico (prepara la cola de copias a VRAM para _vblank) ----------*/
     tarou_sprite_dibujar(&tarou, camara);
     oamInitDynamicSpriteEndFrame();
+
+    /*--- 5. HUD de depuración (solo escribe si está encendido) ----------------------*/
+    hud_debug_dibujar(&tarou, camara);
 }
 
 void pantalla_nivel1_vblank(void)
