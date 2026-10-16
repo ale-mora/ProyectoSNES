@@ -27,10 +27,12 @@ u16 pruebas_fallidas = 0;
 
 /* Cada suite vive en su propio archivo y se declara aquí (no hace falta header). */
 void pruebas_puntofijo(void);
+void pruebas_camara(void);
 
 int main(void)
 {
     pruebas_puntofijo();
+    pruebas_camara();
 
     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
     return pruebas_fallidas != 0;
