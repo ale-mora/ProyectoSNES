@@ -124,11 +124,12 @@ y enlazan, pero `wlalink` descarta sus secciones porque nadie las llama.
 
 | Módulo | Para qué será | Cuándo |
 |---|---|---|
-| `enemigos` | cargar, mover, dibujar y golpear enemigos (el lobo samurái, con el motor dinámico) | Etapa 3 |
-| `objetos` | ítems recogibles al tocarlos | Etapa 3 |
-| `hud` | marcador del jugador (vida, objetos) en BG3; distinto de `hud_debug` | Etapa 3 |
-| `audio` | `spcBoot`, soundbank, música por pantalla, efectos | sesión de audio |
-| `niveles` | mapas de tiles (Tiled), scroll por columnas, colisión por tiles, como LikeMario | Etapa 2/3 |
+| `src/enemigos/enemigos.h`, `enemigos.c` | cargar, mover, dibujar y golpear enemigos (el lobo samurái, con el motor dinámico) | Etapa 3 |
+| `src/objetos/objetos.h`, `objetos.c` | ítems recogibles al tocarlos | Etapa 3 |
+| `src/hud/hud.h`, `hud.c` | marcador del jugador (vida, objetos) en BG3; distinto de `hud_debug` | Etapa 3 |
+| `src/audio/audio.h`, `audio.c` | `spcBoot`, soundbank, música por pantalla, efectos | sesión de audio |
+| `src/niveles/niveles.h`, `niveles.c` | mapas de tiles (Tiled), scroll por columnas, colisión por tiles, como LikeMario | Etapa 2/3 |
+| `src/juego/barbara.h`, `barbara.c`; `src/juego/cambio_protagonista.h`, `cambio_protagonista.c` | la segunda protagonista y el cambio entre ambos (ver §5) | Revisión 2 / Etapa 4 |
 
 ## 7. `res/` — assets preparados
 
@@ -140,11 +141,11 @@ salidas (`.pic` tiles, `.pal` paleta, `.map` mapa, `.inc`/`_meta.inc` tablas,
 | Carpeta / archivo | Qué es | Quién lo genera | Quién lo consume |
 |---|---|---|---|
 | `res/fuente/ark_consola.bmp`, `ark_consola_2bpp.bmp` | Fuente Ark Pixel 10 px: 96 glifos ASCII 32..127 en mayúsculas; versión de 4 colores para BG3. | `scripts/generar_fuente_consola.py` (desde `res/descargas/fuentes/`) | Makefile (`-s 8 -o 2 -u 16` / `-u 4`), `data.asm` (`fuente_consola_*`, `fuente_2bpp_*`), `comun.c` |
-| `res/nintendo/`, `publisher/`, `devs/` (`logo_*.png`) | Logos de las pantallas 1–3, 256×224, 16 colores. | `scripts/componer_escenas.py` | Makefile (`-e 1 -m`), `data.asm`, `pantalla_*.c` |
-| `res/intro/escena_1/2/3.png` | Fondos de la intro: 1 y 2 de 256 colores (Mode 3, imagen 256×120 arriba), 3 de 16 colores. | `componer_escenas.py` | Makefile, `data.asm`, `pantalla_intro.c` |
+| `res/nintendo/logo_nintendo.png`, `res/publisher/logo_publisher.png`, `res/devs/logo_devs.png` | Logos de las pantallas 1–3, 256×224, 16 colores. | `scripts/componer_escenas.py` | Makefile (`-e 1 -m`), `data.asm`, `pantalla_*.c` |
+| `res/intro/escena_1.png`, `escena_2.png`, `escena_3.png` | Fondos de la intro: 1 y 2 de 256 colores (Mode 3, imagen 256×120 arriba), 3 de 16 colores. | `componer_escenas.py` | Makefile, `data.asm`, `pantalla_intro.c` |
 | `res/titulo/fondo_cerca.png` (512×256), `fondo_lejos.png` (256×224), `cielo.bmp` | Capas del título (cercana en bucle para scroll, lejana con el logotipo "TAROU" horneado) y el degradado del cielo (una fila de color por línea). | `componer_escenas.py` | Makefile (`-y` para la cercana, `-n` para el cielo), `data.asm`, `pantalla_titulo.c`; la cercana también la usa el nivel |
 | `res/nivel1/fondo_lejos.png` (512×256) | Capa lejana del nivel: la del título sin logotipo, en espejo hasta 512 px, rellena hasta 256 de alto (`gfx4snes -y` lo exige). | `scripts/preparar_fondo_nivel.py` | Makefile (`-y -e 2`), `data.asm` (`nivel1_lejos_*`), `pantalla_nivel1.c` |
-| `res/personajes/tarou/tarou_<anim>.png` ×13, `tarou_anim.h` | Tiras de 64×64 por cuadro de las 13 animaciones de Tarou, una sola paleta (hoy marcadores numerados hasta que llegue el arte de Pixellab), y el header con la cantidad de cuadros. | `scripts/preparar_personaje.py tarou` | Makefile (`-s 32 -T -X 64 -Y 64 -P 3`), `data.asm` (13 secciones), `tarou_sprite.c` (`_meta.inc`), `animaciones.c` (`tarou_anim.h`), `personajes.c` (reposo) |
+| `res/personajes/tarou/tarou_reposo.png`, `tarou_caminar.png`, `tarou_correr.png`, `tarou_saltar.png`, `tarou_caer.png`, `tarou_agachado.png`, `tarou_agachado_caminar.png`, `tarou_desenvainar.png`, `tarou_envainar.png`, `tarou_atacar.png`, `tarou_echarse.png`, `tarou_dormido.png`, `tarou_despertar.png`, `tarou_anim.h` | Tiras de 64×64 por cuadro de las 13 animaciones de Tarou, una sola paleta (hoy marcadores numerados hasta que llegue el arte de Pixellab), y el header con la cantidad de cuadros. | `scripts/preparar_personaje.py tarou` | Makefile (`-s 32 -T -X 64 -Y 64 -P 3`), `data.asm` (13 secciones), `tarou_sprite.c` (`_meta.inc`), `animaciones.c` (`tarou_anim.h`), `personajes.c` (reposo) |
 | `res/personajes/barbara_samurai.png` | Bárbara (samurái del pack), tira de cuadros de 64×64. | `scripts/preparar_sprites.py` | Makefile (`-s 64`), `data.asm`, `personajes.c` |
 | `res/personajes/lobo_samurai.png` | El lobo samurái del pack: antes era Tarou; futuro enemigo. Se convierte pero **no va en la ROM**. | `preparar_sprites.py` | Makefile (regla conservada) |
 | `res/dedicatoria/`, `musica/`, `sfx/` (`.gitkeep`) | Reservadas: la dedicatoria no tiene gráficos; música y efectos llegan en la sesión de audio. | — | — |
@@ -189,7 +190,7 @@ salidas (`.pic` tiles, `.pal` paleta, `.map` mapa, `.inc`/`_meta.inc` tablas,
 | `docs/glosario-snes.md` | El glosario único: vocabulario del proyecto, hardware, gráficos, mecánicas, C. |
 | `docs/mapa-de-archivos.md`, `tuberia-de-compilacion.md`, `mesen-y-depuracion.md`, `hardware-snes-por-modulo.md` | Esta serie. |
 | `docs/screenshots/` | Capturas de referencia (secuencia de arranque y `revision-1/`). |
-| `aprendizaje/` | Unidades de estudio: hoy `etapa0/` (C en PC); el plan completo en `aprendizaje/PLAN.md`. |
+| `aprendizaje/` | Unidades de estudio. Hoy `etapa0/` (C en PC con gcc): `demo_01_logica.c`, `demo_02_funciones.c`, `demo_03_tipos_arrays.c` y sus `ejercicio_01_logica.c`, `ejercicio_02_funciones.c`, `ejercicio_03_tipos_arrays.c`. El plan completo de unidades está en `aprendizaje/PLAN.md`. |
 | `examples/likemario/` | Copia comentada del ejemplo LikeMario del SDK (motor de mapas, objetos y sprites dinámicos) y su estudio `LikeMario.md`. |
 | `.vscode/tasks.json` | Tareas "Build SNES ROM" (`Ctrl+Shift+B`, solo compila) y "Clean Project", ambas por `bash.exe` de MSYS2 con `PVSNESLIB_HOME`. |
 | `.vscode/c_cpp_properties.json` | IntelliSense: rutas de inclusión (`src`, el SDK), `__snes__`, `tcc816` como compilador. |
