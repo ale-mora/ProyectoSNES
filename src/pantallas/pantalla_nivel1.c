@@ -11,23 +11,28 @@
       LEJANA (montañas sin logotipo, 512 px, scroll a la mitad); fondo 2 = HUD
       de depuración (texto de 4 colores, apagado al inicio); cielo = degradado
       HDMA del título. START vuelve al título con fundido.
-      ESTADO (tarea 4.1): fondos, cielo y cámara; la cruceta mueve la cámara 2 px
-      por frame para probar el scroll. Tarou, el mando y el HUD llegan en 4.2-4.4.
+      Flujo por frame (docs/diseno-demo-jugable.md §11): mando_leer →
+      tarou_actualizar (lógica pura) → camara_para → bgSetScroll de las dos
+      capas → tarou_sprite_dibujar → oamInitDynamicSpriteEndFrame; y, tras el
+      VBlank, oamVramQueueUpdate. El HUD de depuración llega en la tarea 4.4.
 
     SE CONECTA CON
       Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h,
-                juego/nivel.h (ANCHO_NIVEL, ANCHO_PANTALLA), juego/camara.h.
+                juego/nivel.h, juego/camara.h, juego/mando.h, juego/tarou.h,
+                juego/tarou_sprite.h.
       Lee de la ROM: cerca_* (título), nivel1_lejos_* y hdmaGradcieloList (data.asm).
       Lo usan:  sistema/secuencia.c (_iniciar, _actualizar y _vblank).
 
     HARDWARE QUE TOCA
       PPU: modo (setMode), fondos por comun.c (VRAM, CGRAM), scroll de los
       fondos 0 y 1 (bgSetScroll), BG2 apagado (bgSetDisable). HDMA: canal 6 con
-      un color por línea (setModeHdmaColor / setModeHdmaReset). Mando:
-      padsDown() (START) y padsCurrent() (cruceta, provisional).
+      un color por línea (setModeHdmaColor / setModeHdmaReset). OAM y VRAM de
+      sprites por tarou_sprite.c. Mando: por mando.c.
 
     VARIABLES (globales y estáticas de este archivo)
-      camara  u16  0..ANCHO_NIVEL-ANCHO_PANTALLA (0..256) px  desplazamiento del nivel
+      camara  u16    0..ANCHO_NIVEL-ANCHO_PANTALLA (0..256) px  desplazamiento del nivel
+      tarou   Tarou  ver juego/tarou.h                          el protagonista
+      mando   Mando  ver juego/mando.h                          intenciones del jugador este frame
 
     → glosario: Nivel, Cámara, Parallax, BG / capas, HDMA, VBlank
 ---------------------------------------------------------------------------------*/
@@ -38,18 +43,20 @@
 #include "juego/camara.h"
 #include "juego/tarou.h"
 #include "juego/tarou_sprite.h"
+#include "juego/mando.h"
+#include "sistema/puntofijo.h"
 
 extern char cerca_til, cerca_til_end, cerca_pal, cerca_map, cerca_map_end;
 extern char nivel1_lejos_til, nivel1_lejos_til_end, nivel1_lejos_pal;
 extern char nivel1_lejos_map, nivel1_lejos_map_end;
 extern const unsigned char hdmaGradcieloList[];   /* Tabla HDMA del cielo (gfx4snes -n). */
 
-#define CAMARA_MAX (ANCHO_NIVEL - ANCHO_PANTALLA)   /* 256.                               */
-#define PASO_CAMARA_PRUEBA 2                        /* px por frame con la cruceta (4.1). */
+#define X_INICIAL 64               /* Tarou arranca a 64 px del borde izquierdo.          */
 
 /*--- Estado propio de esta pantalla -------------------------------------------*/
 static u16 camara;                 /* Desplazamiento horizontal del nivel en pantalla.    */
 static Tarou tarou;                /* El protagonista (lógica pura, juego/tarou.h).       */
+static Mando mando;                /* Lo que el jugador quiere hacer este frame.          */
 
 /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
 static void salir(Pantalla siguiente)
@@ -71,12 +78,11 @@ void pantalla_nivel1_iniciar(void)
     limpiar_texto();
     bgSetDisable(2);                                 /* ...apagado hasta que lo pida SELECT.*/
 
-    camara = 0;
-    bgSetScroll(0, 0, 0);
-    bgSetScroll(1, 0, 0);
-
     tarou_sprite_cargar();                           /* Motor dinámico + paleta de Tarou.   */
-    tarou_iniciar(&tarou, 64, nivel_suelo_en(64 + ANCHO_CELDA / 2)); /* Parado en x=64. */
+    tarou_iniciar(&tarou, X_INICIAL, nivel_suelo_en(X_INICIAL + ANCHO_CELDA / 2));
+    camara = camara_para(X_INICIAL);                 /* 0: cerca del borde izquierdo.       */
+    bgSetScroll(0, camara, 0);
+    bgSetScroll(1, camara >> 1, 0);
     tarou_sprite_dibujar(&tarou, camara);            /* Primer cuadro antes del fade in.    */
     oamInitDynamicSpriteEndFrame();
 
@@ -86,27 +92,19 @@ void pantalla_nivel1_iniciar(void)
 
 void pantalla_nivel1_actualizar(void)
 {
-    /*--- 1. START: volver al título ----------------------------------------------*/
-    if (padsDown(0) & KEY_START)
+    /*--- 1. Mando: de bits del pad a intenciones con nombre -------------------------*/
+    mando_leer(&mando);
+    if (mando.salir_pulsado)                         /* START: volver al título.            */
     {
         salir(PANTALLA_TITULO);
         return;
     }
 
-    /*--- 2. Cámara de prueba (solo hasta la tarea 4.3): la cruceta la desplaza y
-           gira a Tarou, para ver el espejo del metasprite ---------------------------*/
-    if (padsCurrent(0) & KEY_RIGHT)
-    {
-        camara = (camara + PASO_CAMARA_PRUEBA > CAMARA_MAX) ? CAMARA_MAX : camara + PASO_CAMARA_PRUEBA;
-        tarou.direccion = DIR_DERECHA;
-    }
-    if (padsCurrent(0) & KEY_LEFT)
-    {
-        camara = (camara < PASO_CAMARA_PRUEBA) ? 0 : camara - PASO_CAMARA_PRUEBA;
-        tarou.direccion = DIR_IZQUIERDA;
-    }
+    /*--- 2. Lógica pura: un frame de física y máquina de estados --------------------*/
+    tarou_actualizar(&tarou, &mando, nivel_suelo_en(PF_ENTERO(tarou.x_fp) + ANCHO_CELDA / 2));
 
-    /*--- 3. Parallax: la cercana sigue a la cámara; la lejana, a la mitad ---------*/
+    /*--- 3. Cámara y parallax: la cercana sigue a la cámara; la lejana, a la mitad --*/
+    camara = camara_para(PF_ENTERO(tarou.x_fp));
     bgSetScroll(0, camara, 0);
     bgSetScroll(1, camara >> 1, 0);
 
