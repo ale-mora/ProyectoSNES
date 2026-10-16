@@ -29,6 +29,7 @@
 ;     .rodata_escena1_*  escena1_*              .rodata_escena2_*  escena2_*
 ;     .rodata_escena3    escena3_*
 ;     .rodata_titulo_*   cerca_*, lejos_*, hdmaGradcieloList (tabla HDMA)
+;     .rodata_tarou_*    tarou_<anim>_til/_til_end (13 animaciones) y tarou_pal
 ;
 ;   Extensiones que genera gfx4snes: .pic tiles, .pal paleta, .map mapa;
 ;   en Mode 7: .pc7 tiles y .mp7 mapa. Todo se regenera con `make`.
@@ -134,4 +135,68 @@ lejos_map_end:
 
 .section ".rodata_titulo_cielo" superfree
 .include "res/titulo/cielo_grad_data.as"                          ; tabla HDMA: un color por línea
+.ends
+
+; --- Tarou (Revisión 1): 13 animaciones como piezas de 32x32 para el motor de
+;     metasprites dinámicos (src/juego/tarou_sprite.c). Una sección por animación:
+;     como máximo 15 cuadros de 2 KB = 30 KB, que caben en un banco. La paleta es
+;     la misma en todas (preparar_personaje.py); solo se incrusta la de reposo. ----
+;     Numeración de bloques (verificada el 2026-10-16 en tarou_reposo_meta.inc):
+;     gfx4snes -T numera los bloques de 32x32 por filas de la imagen de origen
+;     (una tira de N cuadros tiene 2N bloques por fila), así que el cuadro n usa
+;     los bloques 2n, 2n+1 (arriba) y 2N+2n, 2N+2n+1 (abajo). Con 4 cuadros:
+;     cuadro 0 = 0, 1, 8, 9. Mientras ningún .c las referencie, wlalink descarta
+;     estas secciones (se ve como "discarded" en el .log).
+.section ".rodata_tarou_reposo" superfree
+tarou_reposo_til:     .incbin "res/personajes/tarou/tarou_reposo.pic"
+tarou_reposo_til_end:
+tarou_pal:            .incbin "res/personajes/tarou/tarou_reposo.pal"
+.ends
+.section ".rodata_tarou_caminar" superfree
+tarou_caminar_til:    .incbin "res/personajes/tarou/tarou_caminar.pic"
+tarou_caminar_til_end:
+.ends
+.section ".rodata_tarou_correr" superfree
+tarou_correr_til:     .incbin "res/personajes/tarou/tarou_correr.pic"
+tarou_correr_til_end:
+.ends
+.section ".rodata_tarou_saltar" superfree
+tarou_saltar_til:     .incbin "res/personajes/tarou/tarou_saltar.pic"
+tarou_saltar_til_end:
+.ends
+.section ".rodata_tarou_caer" superfree
+tarou_caer_til:       .incbin "res/personajes/tarou/tarou_caer.pic"
+tarou_caer_til_end:
+.ends
+.section ".rodata_tarou_agachado" superfree
+tarou_agachado_til:   .incbin "res/personajes/tarou/tarou_agachado.pic"
+tarou_agachado_til_end:
+.ends
+.section ".rodata_tarou_agachado_caminar" superfree
+tarou_agachado_caminar_til:.incbin "res/personajes/tarou/tarou_agachado_caminar.pic"
+tarou_agachado_caminar_til_end:
+.ends
+.section ".rodata_tarou_desenvainar" superfree
+tarou_desenvainar_til:.incbin "res/personajes/tarou/tarou_desenvainar.pic"
+tarou_desenvainar_til_end:
+.ends
+.section ".rodata_tarou_envainar" superfree
+tarou_envainar_til:   .incbin "res/personajes/tarou/tarou_envainar.pic"
+tarou_envainar_til_end:
+.ends
+.section ".rodata_tarou_atacar" superfree
+tarou_atacar_til:     .incbin "res/personajes/tarou/tarou_atacar.pic"
+tarou_atacar_til_end:
+.ends
+.section ".rodata_tarou_echarse" superfree
+tarou_echarse_til:    .incbin "res/personajes/tarou/tarou_echarse.pic"
+tarou_echarse_til_end:
+.ends
+.section ".rodata_tarou_dormido" superfree
+tarou_dormido_til:    .incbin "res/personajes/tarou/tarou_dormido.pic"
+tarou_dormido_til_end:
+.ends
+.section ".rodata_tarou_despertar" superfree
+tarou_despertar_til:  .incbin "res/personajes/tarou/tarou_despertar.pic"
+tarou_despertar_til_end:
 .ends
