@@ -1,0 +1,13 @@
+# Estilo de formato del proyecto (ver docs/diseno-demo-jugable.md §12 y plan, Tarea 0.1).
+# Reproduce el formato que el editor aplicó el 2026-10-04 y que se aceptó como estilo de la casa:
+# sangría de 4 espacios, llaves en línea propia (Allman), `case` al nivel del `switch`,
+# comentarios de final de línea a un espacio y alineados entre líneas consecutivas, sin recorte de columnas.
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Never
+BreakBeforeBraces: Allman
+IndentCaseLabels: false
+ColumnLimit: 0
+AlignTrailingComments: true
+SpacesBeforeTrailingComments: 1
+SortIncludes: false

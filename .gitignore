@@ -2,6 +2,7 @@
 tools/
 
 # Artefactos de compilacion (regenerados por `make`)
+*.exe
 *.sfc
 *.sym
 *.symfull

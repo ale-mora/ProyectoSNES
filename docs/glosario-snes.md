@@ -5,6 +5,44 @@ que se explica aquí una sola vez. Está ordenado de lo más general a lo más
 específico; cada entrada dice **qué es**, **por qué importa en este proyecto**
 y, cuando aplica, **qué función de PVSnesLib lo toca**.
 
+## Vocabulario del proyecto
+
+Términos acordados el 2026-10-16 (Revisión 1 del MVP). Un concepto, una
+palabra: si un documento o comentario usa otra, es un error a corregir.
+
+- **Etapa** — fase del plan de desarrollo (`docs/plan-desarrollo.md`, Etapa 0
+  a 6). Nunca una zona del juego ni una fase de vida del personaje.
+- **Revisión** — iteración numerada del producto mínimo viable (MVP).
+  Revisión 1: Tarou adulto camina, corre, salta, se agacha, usa la espada y
+  duerme en el nivel 1. Revisión 2: Bárbara.
+- **Nivel** — zona jugable con principio y fin (`nivel.c`, `PANTALLA_NIVEL1`).
+  El nivel 1 mide 512 px de ancho.
+- **Escenario** — lo que se ve y se pisa dentro de un nivel: las capas de fondo
+  y la geometría del suelo. Es una parte del nivel, no un sinónimo.
+- **Pantalla** — un estado de la máquina de estados de `secuencia.c`
+  (`PANTALLA_TITULO`, `PANTALLA_NIVEL1`...). El ancho físico de 256 px se llama
+  «ancho de pantalla» (`ANCHO_PANTALLA`), nunca «una pantalla».
+- **Protagonista** — el personaje que el jugador controla en este momento. Hay
+  dos: **Tarou** (perro samurái, Revisión 1) y **Bárbara** (mujer samurái,
+  Revisión 2). Cada uno tiene su archivo (`tarou.c`, `barbara.c`).
+- **Jugador** — la persona que sostiene el mando. Nunca el personaje.
+- **Edad** — fase de vida de Tarou: cachorro, adulto, viejo. La Revisión 1 usa
+  solo el adulto.
+- **Enemigo** — entidad que daña al protagonista. Los sprites del lobo samurái
+  y de la samurái que hoy salen en la secuencia de arranque serán enemigos
+  cuando toque (Etapa 3).
+- **Estado** (del protagonista) — qué está haciendo ahora, una sola cosa a la
+  vez: parado, caminando, corriendo, saltando, cayendo, agachado, agachado
+  caminando, desenvainando, envainando, atacando, echándose, dormido,
+  despertando. Es una variable; cambia según el mando y la física.
+- **Espada** — si la espada está envainada o desenvainada. Persiste entre
+  estados (se puede correr con ella fuera). Solo se ataca con ella fuera.
+- **Dirección** — hacia dónde mira el protagonista: izquierda o derecha.
+  Decide el espejo horizontal (`hflip`) del sprite.
+- **Stub** — archivo que compila pero no hace nada: reserva el sitio de un
+  subsistema futuro y documenta en su cabecera el contrato previsto y la Etapa
+  que lo construirá («PENDIENTE: Etapa N»).
+
 ## Hardware
 
 - **SNES / Super Nintendo** — consola de 16 bits (1990). Tres chips que
@@ -64,9 +102,15 @@ y, cuando aplica, **qué función de PVSnesLib lo toca**.
   **rotar y escalar** en tiempo real con una matriz de 4 valores (A, B, C, D en
   formato 8.8) y un centro (M7X, M7Y). Se probó para el logo del estudio y se
   descartó en la demo (ver spec §10).
-- **Formato 8.8 (punto fijo)** — un número de 16 bits donde el byte alto es la
-  parte entera y el bajo la fracción: 0x0100 = 1.0, 0x0080 = 0.5, 0x0200 = 2.0.
-  La SNES no tiene decimales; así se representan escalas y velocidades.
+- **Punto fijo (formatos 8.8 y 12.4)** — un entero que guarda una fracción:
+  se reservan algunos bits bajos para los «decimales». La SNES no tiene
+  decimales (no hay unidad de coma flotante), así que es la única forma de
+  tener velocidades como 1,5 px por frame. **8.8**: byte alto entero, byte bajo
+  fracción (0x0100 = 1.0, 0x0080 = 0.5); lo usan las matrices de Mode 7.
+  **12.4**: 12 bits de entero y 4 de fracción (1/16 px) en un `s16`; lo usan la
+  posición y la velocidad del protagonista, porque 12 bits llegan a 2047 px y
+  todo sigue siendo aritmética de 16 bits. El píxel se obtiene desplazando:
+  `x >> 4`.
 - **Registro de doble escritura** — varios registros de la PPU (M7A..D, M7X,
   M7Y, scroll) reciben 16 bits en dos escrituras seguidas de 8: primero el byte
   bajo, luego el alto.
@@ -74,6 +118,14 @@ y, cuando aplica, **qué función de PVSnesLib lo toca**.
   8×8 a 64×64. Límite: 128 en pantalla, 32 por línea horizontal, y **512 tiles
   de gráficos** en total (un sprite de 64×64 gasta 64). La coordenada y "da la
   vuelta" cada 256 px: un sprite de 64 en y = 240 asoma por arriba.
+- **Metasprite** — sprite grande compuesto por varios sprites de hardware que
+  se mueven como uno solo. Tarou de 64×64 son 4 sprites de 32×32. PVSnesLib
+  genera la tabla de piezas con `gfx4snes -T` y lo dibuja con
+  `oamMetaDrawDyn32`.
+- **Sprite dinámico** — técnica en la que todos los cuadros de animación viven
+  en la ROM y, en cada VBlank, solo se copia a VRAM el cuadro que se va a
+  mostrar. Así el límite de 512 tiles deja de importar. PVSnesLib:
+  `oamInitDynamicSprite`, `oamVramQueueUpdate`, `oamInitDynamicSpriteEndFrame`.
 - **Fade (fundido) / brillo** — la PPU tiene un control de brillo de 0 (negro)
   a 15 (normal). `setBrightness(n)` lo fija; `setFadeEffectEx(FADE_IN, f)` lo
   anima en `f` pasos. **Ojo:** estas funciones bloquean el programa mientras
@@ -96,11 +148,48 @@ y, cuando aplica, **qué función de PVSnesLib lo toca**.
   `spcBoot()` arranca el chip de sonido; `spcLoad(MOD_X)` carga una canción;
   `spcPlay(0)` la reproduce; `spcProcess()` debe llamarse cada frame.
 
+## Mecánicas del juego (Revisión 1)
+
+- **Velocidad, aceleración y frenado** — en píxeles por frame, en punto fijo.
+  Cada frame: si hay una dirección pulsada, `velocidad += aceleración` hasta
+  un máximo; si no, la velocidad se acerca a 0 restando el frenado. Después
+  `posición += velocidad`.
+- **Gravedad** — aceleración vertical constante que se suma a la velocidad
+  vertical en cada frame mientras el protagonista está en el aire. La
+  velocidad de caída se limita a una **velocidad terminal**.
+- **Salto de altura variable** — al pulsar B se asigna una velocidad vertical
+  hacia arriba; si se suelta B mientras todavía sube, esa velocidad se
+  recorta y el salto queda más corto. Mantener B da el salto completo.
+- **Suelo** — altura `y` del nivel sobre la que se apoyan los pies. En la
+  Revisión 1 es plano: `nivel_suelo_en(x)` devuelve una constante. Cuando haya
+  desniveles solo cambia el interior de esa función.
+- **Cámara** — cuánto se ha desplazado el nivel respecto a la pantalla. Sigue
+  al protagonista y se recorta entre 0 y `ANCHO_NIVEL - ANCHO_PANTALLA`. Se
+  aplica escribiendo el scroll de cada capa (`bgSetScroll`).
+- **Parallax** — capas de fondo que se desplazan a velocidades distintas (la
+  lejana, a la mitad de la cámara) para dar sensación de profundidad.
+- **Caja de colisión / caja de golpe (hitbox)** — rectángulo que representa el
+  cuerpo del protagonista (colisión) o el alcance de la espada (golpe). En la
+  Revisión 1 se calculan y se muestran en el HUD de depuración; todavía no hay
+  nada contra lo que chocar.
+- **HUD de depuración** — texto en la capa BG3 con posición, velocidad, estado,
+  espada y cámara. Se alterna con SELECT, arranca apagado y no es parte del
+  juego: es una herramienta para verificar y aprender.
+- **Animación de espera (dormir)** — tras unos segundos sin tocar el mando, el
+  protagonista se echa y duerme; cualquier botón lo despierta y, mientras se
+  levanta, el mando se ignora.
+
 ## C (lo que aparece en este proyecto)
 
 - **`u8`, `u16`** — enteros sin signo de 8 bits (0-255) y 16 bits (0-65535),
   definidos por PVSnesLib. Se prefieren a `int` porque la CPU es de 16 bits y
   cada byte de RAM cuenta (hay 128 KB).
+- **`s16`** — entero con signo de 16 bits (−32768 a 32767). Se usa para
+  velocidades y posiciones en punto fijo, que pueden ser negativas (hacia la
+  izquierda o hacia arriba).
+- **`struct`** — tipo compuesto que agrupa varias variables con nombre en una
+  sola (posición, velocidad, estado...). El protagonista será una `struct`
+  para que todo su estado viaje junto.
 - **`#include`** — pega el contenido de otro archivo. `<snes.h>` es la
   librería; `"comun.h"` es nuestro.
 - **`#define`** — constante o macro que el preprocesador reemplaza antes de
