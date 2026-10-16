@@ -36,6 +36,8 @@
 #include "sistema/comun.h"
 #include "juego/nivel.h"
 #include "juego/camara.h"
+#include "juego/tarou.h"
+#include "juego/tarou_sprite.h"
 
 extern char cerca_til, cerca_til_end, cerca_pal, cerca_map, cerca_map_end;
 extern char nivel1_lejos_til, nivel1_lejos_til_end, nivel1_lejos_pal;
@@ -47,12 +49,14 @@ extern const unsigned char hdmaGradcieloList[];   /* Tabla HDMA del cielo (gfx4s
 
 /*--- Estado propio de esta pantalla -------------------------------------------*/
 static u16 camara;                 /* Desplazamiento horizontal del nivel en pantalla.    */
+static Tarou tarou;                /* El protagonista (lógica pura, juego/tarou.h).       */
 
 /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
 static void salir(Pantalla siguiente)
 {
     fade_out(FRAMES_FADE);
     setModeHdmaReset(0);                             /* Corta el HDMA del cielo.            */
+    tarou_sprite_ocultar();
     secuencia_cambiar(siguiente);
 }
 
@@ -71,6 +75,11 @@ void pantalla_nivel1_iniciar(void)
     bgSetScroll(0, 0, 0);
     bgSetScroll(1, 0, 0);
 
+    tarou_sprite_cargar();                           /* Motor dinámico + paleta de Tarou.   */
+    tarou_iniciar(&tarou, 64, nivel_suelo_en(64 + ANCHO_CELDA / 2)); /* Parado en x=64. */
+    tarou_sprite_dibujar(&tarou, camara);            /* Primer cuadro antes del fade in.    */
+    oamInitDynamicSpriteEndFrame();
+
     setModeHdmaColor(HDMA_CHANNEL6, (u8 *)&hdmaGradcieloList);   /* Cielo por línea.  */
     fade_in(FRAMES_FADE);
 }
@@ -84,22 +93,30 @@ void pantalla_nivel1_actualizar(void)
         return;
     }
 
-    /*--- 2. Cámara de prueba (solo hasta la tarea 4.3): la cruceta la desplaza -----*/
+    /*--- 2. Cámara de prueba (solo hasta la tarea 4.3): la cruceta la desplaza y
+           gira a Tarou, para ver el espejo del metasprite ---------------------------*/
     if (padsCurrent(0) & KEY_RIGHT)
     {
         camara = (camara + PASO_CAMARA_PRUEBA > CAMARA_MAX) ? CAMARA_MAX : camara + PASO_CAMARA_PRUEBA;
+        tarou.direccion = DIR_DERECHA;
     }
     if (padsCurrent(0) & KEY_LEFT)
     {
         camara = (camara < PASO_CAMARA_PRUEBA) ? 0 : camara - PASO_CAMARA_PRUEBA;
+        tarou.direccion = DIR_IZQUIERDA;
     }
 
     /*--- 3. Parallax: la cercana sigue a la cámara; la lejana, a la mitad ---------*/
     bgSetScroll(0, camara, 0);
     bgSetScroll(1, camara >> 1, 0);
+
+    /*--- 4. Tarou: entradas de la OAM del cuadro actual y cierre del frame del
+           motor dinámico (prepara la cola de copias a VRAM para _vblank) ----------*/
+    tarou_sprite_dibujar(&tarou, camara);
+    oamInitDynamicSpriteEndFrame();
 }
 
 void pantalla_nivel1_vblank(void)
 {
-    /* Vacía hasta la tarea 4.2 (oamVramQueueUpdate del sprite dinámico). */
+    oamVramQueueUpdate();                            /* Copia a VRAM los tiles pendientes.  */
 }

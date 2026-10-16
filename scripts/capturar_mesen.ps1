@@ -60,6 +60,9 @@ public class CapturaWin32 {
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
     [DllImport("user32.dll")] public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam);
+    [DllImport("user32.dll")] public static extern uint MapVirtualKey(uint uCode, uint uMapType);
     [StructLayout(LayoutKind.Sequential)] public struct RECT { public int L, T, R, B; }
 }
 "@
@@ -81,9 +84,38 @@ $TECLAS = @{
 $KEYEVENTF_EXTENDEDKEY = 0x1
 $KEYEVENTF_KEYUP = 0x2
 
+# Windows solo deja cambiar la ventana activa si el proceso "acaba de recibir entrada":
+# un toque de tecla antes de SetForegroundWindow lo consigue. Se usa Shift, que Mesen no
+# tiene mapeado (Alt abriría su barra de menús). Se llama antes de cada tecla, porque otra
+# ventana (el editor, una notificación) puede robar el foco en cualquier momento.
+function Enfocar([IntPtr]$h) {
+    [CapturaWin32]::keybd_event(0xA0, 0, 0, [UIntPtr]::Zero)                  # Shift abajo
+    [CapturaWin32]::keybd_event(0xA0, 0, $KEYEVENTF_KEYUP, [UIntPtr]::Zero)   # Shift arriba
+    [CapturaWin32]::SetForegroundWindow($h) | Out-Null
+    Start-Sleep -Milliseconds 60
+}
+
+$WM_KEYDOWN = 0x100
+$WM_KEYUP = 0x101
+
+# Envía la tecla de dos formas: como mensaje WM_KEYDOWN/WM_KEYUP directo a la ventana de
+# Mesen (PostMessage: no depende de qué ventana tenga el foco) y, por si acaso, como
+# pulsación global (keybd_event) tras poner Mesen en primer plano.
 function Tecla([string]$boton, [bool]$abajo) {
     $t = $TECLAS[$boton]
     if (-not $t) { Write-Warning "botón desconocido en el guion: $boton"; return }
+    if ($abajo) { Enfocar $script:ventana }
+    # lParam de WM_KEYDOWN: bits 0-15 repetición (1), 16-23 código de barrido, 24 tecla
+    # extendida, 30 estado anterior y 31 transición (los dos últimos a 1 en WM_KEYUP).
+    $scan = [CapturaWin32]::MapVirtualKey([uint32]$t.vk, 0)
+    $lparam = [int64]1 -bor ([int64]$scan -shl 16)
+    if ($t.ext) { $lparam = $lparam -bor ([int64]1 -shl 24) }
+    if ($abajo) {
+        [CapturaWin32]::PostMessage($script:ventana, $WM_KEYDOWN, [UIntPtr][uint64]$t.vk, [IntPtr]$lparam) | Out-Null
+    } else {
+        $lparam = $lparam -bor ([int64]1 -shl 30) -bor ([int64]1 -shl 31)
+        [CapturaWin32]::PostMessage($script:ventana, $WM_KEYUP, [UIntPtr][uint64]$t.vk, [IntPtr]$lparam) | Out-Null
+    }
     $flags = 0
     if ($t.ext) { $flags = $flags -bor $KEYEVENTF_EXTENDEDKEY }
     if (-not $abajo) { $flags = $flags -bor $KEYEVENTF_KEYUP }
@@ -113,7 +145,16 @@ for ($i = 0; $i -lt 20 -and $ventana -eq [IntPtr]::Zero; $i++) {
     if ($ventana -eq [IntPtr]::Zero) { Start-Sleep -Milliseconds 500 }
 }
 if ($ventana -eq [IntPtr]::Zero) { Write-Error "No encontré la ventana de Mesen"; Stop-Process -Id $proceso.Id -Force; exit 1 }
-[CapturaWin32]::SetForegroundWindow($ventana) | Out-Null   # Las teclas van a la ventana activa.
+$script:ventana = $ventana
+[CapturaWin32]::ShowWindow($ventana, 9) | Out-Null          # 9 = SW_RESTORE: si Mesen arrancó minimizado, lo restaura.
+Start-Sleep -Milliseconds 300
+Enfocar $ventana                                            # Las teclas van a la ventana activa.
+# Hasta que Mesen recibe una primera tecla, PrintWindow devuelve una capa antigua de la
+# ventana (su pantalla de juegos recientes) en vez del juego. Un toque de Shift, que no
+# está mapeado a nada, lo "despierta" sin tocar el mando emulado.
+Start-Sleep -Milliseconds 300
+[CapturaWin32]::keybd_event(0xA0, 0, 0, [UIntPtr]::Zero)                  # Shift izquierdo abajo
+[CapturaWin32]::keybd_event(0xA0, 0, $KEYEVENTF_KEYUP, [UIntPtr]::Zero)   # y arriba
 
 function Capturar([IntPtr]$h, [string]$ruta) {
     $r = New-Object CapturaWin32+RECT
