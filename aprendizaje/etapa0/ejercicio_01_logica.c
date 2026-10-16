@@ -6,7 +6,7 @@ int main(void)
      * EJERCICIO 1: Logica de programacion (variables, condicionales, bucles)
      *
      * Objetivo: usando un bucle for, una variable entera, y condicionales
-     * if / else if / else, simular como cambia la etapa de vida de Tarouh
+     * if / else if / else, simular como cambia la etapa de vida de Tarou
      * (cachorro -> adulto -> viejo) a medida que pasan los "anios" del juego.
      *
      * Reglas:
@@ -15,14 +15,14 @@ int main(void)
      *   - edad >= 8         -> "viejo"
      *
      * Salida esperada (aproximada), una linea por cada anio de 0 a 10:
-     *   Anio 0: Tarouh es cachorro
-     *   Anio 1: Tarouh es cachorro
-     *   Anio 2: Tarouh es cachorro
-     *   Anio 3: Tarouh es adulto
+     *   Anio 0: Tarou es cachorro
+     *   Anio 1: Tarou es cachorro
+     *   Anio 2: Tarou es cachorro
+     *   Anio 3: Tarou es adulto
      *   ...
-     *   Anio 8: Tarouh es viejo
+     *   Anio 8: Tarou es viejo
      *   ...
-     *   Anio 10: Tarouh es viejo
+     *   Anio 10: Tarou es viejo
      *
      * Completa el codigo donde dice TODO. No hace falta que sea perfecto,
      * el objetivo es que compile y que el resultado tenga sentido.
@@ -41,22 +41,22 @@ int main(void)
     for (edad = 0; edad <= 10; edad++)
     {
         // TODO 3: ESTA PARTE ES TUYA. Usa if / else if / else para
-        //         imprimir una linea como "Anio 4: Tarouh es adulto"
+        //         imprimir una linea como "Anio 4: Tarou es adulto"
         //         segun las reglas de arriba. Usa printf con %d para
         //         el numero de "edad". Mira el demo (demo_01_logica.c)
         //         si necesitas recordar la sintaxis de printf y de if.
         if (edad <= 2)
         // Error: El "=" es de asignación mientras que el "==" es de equivalencia.
         {
-            printf("Tarouh es Cachorro y tiene %d anio. \n", edad);
+            printf("Tarou es Cachorro y tiene %d anio. \n", edad);
         }
         else if (edad < 8)
         {
-            printf("Tarouh es Adulto y tiene %d anios. \n", edad);
+            printf("Tarou es Adulto y tiene %d anios. \n", edad);
         }
         else
         {
-            printf("Tarouh es Viejito y tiene %d anios. \n", edad);
+            printf("Tarou es Viejito y tiene %d anios. \n", edad);
         }
     };
     return 0;

@@ -4,7 +4,7 @@
  * EJERCICIO 2: Funciones y modularidad
  *
  * Objetivo: tomar la logica que ya escribiste en el Ejercicio 1 (decidir
- * si Tarouh es cachorro/adulto/viejo segun su edad) y convertirla en una
+ * si Tarou es cachorro/adulto/viejo segun su edad) y convertirla en una
  * FUNCION reutilizable, en vez de tenerla pegada adentro de un bucle en
  * main(). Esta es la idea central de "modularidad": sacar un pedazo de
  * logica que hace una sola cosa clara, ponerle un nombre, y poder
@@ -25,15 +25,15 @@ void imprimirEtapaDeVida(int edad)
 {
     if (edad <= 2)
     {
-        printf("Tarouh es Cachorro y tiene %d anio. \n", edad);
+        printf("Tarou es Cachorro y tiene %d anio. \n", edad);
     }
     else if (edad < 8)
     {
-        printf("Tarouh es Adulto y tiene %d anios. \n", edad);
+        printf("Tarou es Adulto y tiene %d anios. \n", edad);
     }
     else
     {
-        printf("Tarouh es Viejito y tiene %d anios. \n", edad);
+        printf("Tarou es Viejito y tiene %d anios. \n", edad);
     }
 };
 
@@ -41,7 +41,7 @@ void imprimirEtapaDeVida(int edad)
 // anterior: el if / else if / else con los tres printf, usando el
 // parametro "edad" en vez de la variable que usabas antes.
 // Pista: es "void" porque la funcion no calcula ni devuelve un numero,
-// solo imprime un mensaje (efecto), como "saludarTarouh" en el demo.
+// solo imprime un mensaje (efecto), como "saludarTarou" en el demo.
 
 int main(void)
 {

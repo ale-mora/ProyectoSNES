@@ -8,8 +8,8 @@ int duplicar(int numero) {
 
 // Funcion "void": no devuelve ningun valor, solo tiene un efecto (acá,
 // imprimir un mensaje). Por eso no lleva "return valor;" al final.
-void saludarTarouh(int edad) {
-    printf("Hola, soy Tarouh y tengo %d anios.\n", edad);
+void saludarTarou(int edad) {
+    printf("Hola, soy Tarou y tengo %d anios.\n", edad);
 }
 
 int main(void) {
@@ -24,7 +24,7 @@ int main(void) {
 
     // Llamamos a una funcion void: no guardamos nada, porque no
     // devuelve nada. Solo nos interesa el efecto (que imprima).
-    saludarTarouh(5);
+    saludarTarou(5);
 
     return 0;
 }

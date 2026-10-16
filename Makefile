@@ -4,7 +4,7 @@ endif
 
 # Nombre y título de la ROM de salida
 export ROMNAME := ProyectoSNES
-export ROMTITLE := TAROUH DEMO
+export ROMTITLE := TAROU DEMO
 
 # --- Audio (se activa en la tarea 3 del plan, cuando haya módulos .it) ---------
 # AUDIOFILES y SOUNDBANK deben declararse ANTES del include de snes_rules.
@@ -47,7 +47,7 @@ res/fuente/ark_consola.pic: res/fuente/ark_consola.bmp
 
 # Sprites de los personajes: tiras de cuadros de 64x64 (-s 64), 16 colores, PNG.
 # gfx4snes empaqueta los bloques en filas de 128 px; ver src/personajes.c.
-res/personajes/tarouh_lobo.pic: res/personajes/tarouh_lobo.png
+res/personajes/lobo_samurai.pic: res/personajes/lobo_samurai.png
 	@echo convert sprites ... $(notdir $<)
 	$(GFXCONV) -s 64 -o 16 -u 16 -p -i $<
 
@@ -89,7 +89,7 @@ res/titulo/cielo_grad_data.as: res/titulo/cielo.bmp
 # Todos los assets convertidos. data.asm los incrusta con .incbin, y make no
 # ve esa dependencia: declaramos que data.obj depende de ellos para que se
 # reensamble cuando cambie cualquier imagen.
-ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/tarouh_lobo.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as
+ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as
 
 .PHONY: bitmaps cleanGfxRes
 bitmaps: $(ASSETS)

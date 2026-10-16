@@ -236,7 +236,7 @@ def titulo():
     lejos = Image.new("RGBA", (ANCHO, ALTO), (0, 0, 0, 0))
     montes = ajustar_ancho(spring_compuesto((2, 3)), 256)              # 256x144, transparente arriba
     lejos.paste(montes, (0, ALTO - montes.height), montes)
-    texto(lejos, (128, 20), "TAROUH", ARK16, (255, 255, 255), borde=(40, 20, 60), escala=2)
+    texto(lejos, (128, 20), "TAROU", ARK16, (255, 255, 255), borde=(40, 20, 60), escala=2)
     texto(lejos, (128, 62), "A DOG'S JOURNEY", ARK16, (255, 220, 240), borde=(40, 20, 60))
     im = indexar(lejos, 16, transparente=True)
     print("  lejos: tiles distintos", tiles_unicos(im))

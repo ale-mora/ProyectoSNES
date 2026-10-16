@@ -1,6 +1,6 @@
 # Diseño — Demo técnica: secuencia de arranque
 
-**Proyecto:** _Tarouh: A Dog's Journey_ · **Etapa del plan:** 1.5 · **Fecha de
+**Proyecto:** _Tarou: A Dog's Journey_ · **Etapa del plan:** 1.5 · **Fecha de
 diseño:** 2026-09-23 · **Estado:** aprobado por entrevista (35 decisiones), en
 implementación.
 
@@ -133,7 +133,7 @@ NTSC) y se ajustan a ojo en Mesen.
 
 - **Contenido:** texto centrado sobre negro que aparece letra por letra
   (máquina de escribir), con música suave. Texto **pendiente**: el usuario lo
-  entregó el 2026-09-24: **"A la memoria de Tarouh"**, en español por ser sus propias palabras.
+  entregó el 2026-09-24: **"A la memoria de Tarou"**, en español por ser sus propias palabras.
 - **Técnica:** Mode 1, solo BG3 con la fuente de consola. Fade in y fade out
   lentos (60 frames). Rutina común `texto_maquina_escribir()` en `comun.c`.
 - **Assets:** ninguno gráfico; `res/musica/dedicatoria.it`.
@@ -142,10 +142,10 @@ NTSC) y se ajustan a ojo en Mesen.
 
 - **Contenido:** tres escenas, cada una con un fondo distinto y un párrafo
   corto en inglés que aparece con efecto máquina de escribir en una franja
-  inferior. Redacta Claude un marcador (presentación de Tarouh y Bárbara → el
+  inferior. Redacta Claude un marcador (presentación de Tarou y Bárbara → el
   hecho que dispara el viaje → el camino por delante); el usuario lo corrige.
   El guion definitivo no está escrito y estos textos no lo comprometen.
-- **Sprites (decisión del 2026-09-24, solo para la demo):** **Tarouh** usa el
+- **Sprites (decisión del 2026-09-24, solo para la demo):** **Tarou** usa el
   pack _Wolf Samurai_ (lobo con katana, cuadros de 192×64, se recorta al
   cuerpo y se arma con 2 o 3 sprites de 32×32 o 64×64) y **Bárbara** aparece
   con el pack _Samurai #4_ (mujer samurái, cuadros de 96×96, se recorta a
@@ -160,14 +160,14 @@ NTSC) y se ajustan a ojo en Mesen.
   cerezos, torii = el pueblo), `escena_2.png` (_Autumn Forest_: bosque
   otoñal oscuro, pozo y farolillos = el viento), `escena_3.png` (capas de
   cielo y árboles de _Spring Forest_ sin la herrería, con el torii = el
-  camino); 256×224, indexado, 256 colores cada uno, `res/intro/tarouh_cachorro.png`
+  camino); 256×224, indexado, 256 colores cada uno, `res/intro/tarou_cachorro.png`
   y `res/intro/barbara.png` (spritesheets, indexado 16 colores),
   `res/musica/intro.it`.
 
 ### Pantalla 6 — Title
 
-- **Contenido:** logo del título "Tarouh: A Dog's Journey", fondo con
-  **parallax** de dos capas, **cielo con degradado HDMA**, Tarouh (lobo) y
+- **Contenido:** logo del título "Tarou: A Dog's Journey", fondo con
+  **parallax** de dos capas, **cielo con degradado HDMA**, Tarou (lobo) y
   Bárbara (samurái) animados en reposo, "PRESS START" parpadeando y la línea "© 2026 [ESTUDIO]"
   al pie. Música en bucle.
 - **Técnica:**
@@ -178,7 +178,7 @@ NTSC) y se ajustan a ojo en Mesen.
   - Degradado: `setModeHdmaGradient()` sobre el color de fondo (canal 3).
   - BG3 = logo del título (4 colores: 3 + transparente) + textos. Mejora
     futura: logo como sprites de 32×32 (16 colores).
-  - Tarouh = OAM, misma spritesheet que la intro.
+  - Tarou = OAM, misma spritesheet que la intro.
   - Attract: contador de frames sin input; a los 900 frames (15 s) →
     fade out → Intro.
   - Start (`padsDown(0) & KEY_START`) → fade out → Coming soon.
@@ -187,7 +187,7 @@ NTSC) y se ajustan a ojo en Mesen.
   `res/titulo/fondo_cerca.png` (cerezos y suelo) y `res/titulo/fondo_lejos.png`
   (cielo y montañas), compuestos desde las 4 capas de _Spring Forest_
   (256×224 o 512×224 para scroll, ≤16 colores cada uno), `res/musica/titulo.it`.
-  En el título aparecen los dos sprites: Tarouh (lobo) y Bárbara (samurái).
+  En el título aparecen los dos sprites: Tarou (lobo) y Bárbara (samurái).
 
 ### Pantalla 7 — Coming soon
 
@@ -276,7 +276,7 @@ música. Los `.xm`/`.mod`/`.s3m` se convierten a `.it` con OpenMPT (gratis).
 - `scripts/preparar_imagen.py <entrada> <salida> [--colores 16|256] [--ancho W --alto H]`
   Recorta/centra al tamaño pedido, reduce a la cantidad de colores indicada y
   guarda PNG indexado listo para `gfx4snes`. Ejecutar desde la raíz del repo.
-- `scripts/generar_logo_titulo.py`: renderiza "TAROUH" y "A Dog's Journey" con
+- `scripts/generar_logo_titulo.py`: renderiza "TAROU" y "A Dog's Journey" con
   una fuente libre a un PNG indexado de 4 colores para BG3
   (`res/titulo/logo_titulo.png`).
 
@@ -321,7 +321,7 @@ el uso: `snesromusage.exe -i ProyectoSNES.sym`. Si la ROM se llena, subir
 | Q8 | Attract a los 15 s, vuelve a la intro. |
 | Q9/Q17 | Proyecto personal sin distribución; se usa material original con copyright; logos aislados como assets reemplazables. Premisa del plan actualizada. |
 | Q10/Q23 | Logo de estudio provisional estilo Konami + "ALEJANDRO MORA" y roles. |
-| Q11/Q26 | Intro: 3 escenas, texto máquina de escribir (marcador redactado por Claude), Tarouh sprite en la 3.ª. |
+| Q11/Q26 | Intro: 3 escenas, texto máquina de escribir (marcador redactado por Claude), Tarou sprite en la 3.ª. |
 | Q12 | Estética _Secret of Mana_. |
 | Q13/Q20 | Assets descargados por el usuario a `res/descargas/`; script Python de indexado; el arte debe exprimir la SNES. |
 | Q14 | Textos en pantalla en inglés; comentarios en español. |
@@ -331,21 +331,21 @@ el uso: `snesromusage.exe -i ProyectoSNES.sym`. Si la ROM se llena, subir
 | Q24 | Publisher provisional: Capcom del SDK. |
 | Q25/Q33 | Dedicatoria: texto sobre negro, 7 s, música suave; texto pendiente, marcador "For ...". |
 | Q27 | Logo del título generado por script desde fuente libre. |
-| Q28 | Título: parallax + HDMA + Tarouh animado + PRESS START parpadeante + © + música. |
+| Q28 | Título: parallax + HDMA + Tarou animado + PRESS START parpadeante + © + música. |
 | Q29 | Efectos: fade, mosaico, degradado HDMA, parallax, Mode 7 (devs). Transparencia y ventanas para el gameplay. |
 | Q30 | Tiempos según tabla de §3. |
 | Q31 | Un `.c` por pantalla + `secuencia.c` con enum/switch + `main.c` mínimo. |
 | Q32 | Este documento + resumen en el plan. |
-| Q34 | `res/`, rama `demo-secuencia-arranque`, Mode 1 base, fuente SDK provisional, solo Tarouh cachorro, verificación en Mesen, CLAUDE.md actualizado. |
+| Q34 | `res/`, rama `demo-secuencia-arranque`, Mode 1 base, fuente SDK provisional, solo Tarou cachorro, verificación en Mesen, CLAUDE.md actualizado. |
 | Q35 | Implementación arranca en la misma sesión: estructura, carpetas, máquina de estados y pantalla Nintendo con marcadores. |
 
 ## 8. Pendientes que dependen del usuario
 
-- [x] Texto de la dedicatoria: **"A la memoria de Tarouh"** (en español, palabras del autor; 2026-09-24).
+- [x] Texto de la dedicatoria: **"A la memoria de Tarou"** (en español, palabras del autor; 2026-09-24).
 - [x] Nombre del estudio: **Don Pollo Studios** (2026-09-24).
 - [x] Descargas en `res/descargas/graficos/` (2026-09-24): logo Nintendo
       (Wikimedia Commons), fondos _Spring Forest_ y _Autumn Forest_ (intro y
-      título), sprites _Wolf Samurai_ (Tarouh) y _Samurai #4_ (Bárbara). En
+      título), sprites _Wolf Samurai_ (Tarou) y _Samurai #4_ (Bárbara). En
       reserva: CraftPix Nature Landscapes, Village landscape, `dogpack_assets`.
       Logo de estudio: Konami del SDK.
 - [~] Descargas en `res/descargas/audio/`: dos `.it` que pasan `smconv` sin
@@ -364,13 +364,13 @@ el uso: `snesromusage.exe -i ProyectoSNES.sym`. Si la ROM se llena, subir
 | --- | --- | --- | --- |
 | 1 | **Esqueleto**: carpetas `res/` y `scripts/`, `.gitignore`, `scripts/preparar_imagen.py`, `docs/glosario-snes.md`, máquina de estados `secuencia.c`, las 7 pantallas con **texto marcador** y los tiempos reales, fades, parpadeo, attract y Start funcionando. | La secuencia completa corre de punta a punta solo con texto. | **hecho** (2026-09-23). Vista en Mesen el 2026-09-24: fundidos de 8 s por un error de unidades (frames por paso, no totales), corregido. |
 | 1b | **Fuente Ark Pixel en la consola**: `scripts/generar_fuente_consola.py` (10 px → BMP 768×8, mayúsculas), regla `gfx4snes` en el Makefile, `data.asm` con la sección de la fuente, `consoleInitText` en `main.c`. | Todo el texto de la demo en Ark Pixel. | **hecho** (2026-09-24) |
-| 1c | **Sprites de Tarouh y Bárbara**: `scripts/preparar_sprites.py` (tiras de 4 cuadros de 64×64, 16 colores), `src/personajes.c` (carga única en VRAM 0x0000, animación de reposo, lobo volteado), visibles en la escena 3 y el título. Límite duro: 512 tiles de sprites = 8 bloques de 64×64. | Los dos personajes animados en la intro y el título. | **hecho** (2026-09-24) |
+| 1c | **Sprites de Tarou y Bárbara**: `scripts/preparar_sprites.py` (tiras de 4 cuadros de 64×64, 16 colores), `src/personajes.c` (carga única en VRAM 0x0000, animación de reposo, lobo volteado), visibles en la escena 3 y el título. Límite duro: 512 tiles de sprites = 8 bloques de 64×64. | Los dos personajes animados en la intro y el título. | **hecho** (2026-09-24) |
 | 2 | **Nintendo real**: `res/nintendo/logo_nintendo.png` → `gfx4snes` → `data.asm` → `bgInitTileSet`/`bgInitMapSet` en BG1; texto "LICENSED BY NINTENDO" en BG3. | Logo rojo con fade. | **hecho** (2026-09-24) |
 | 3 | **Publisher + audio**: logo Capcom del SDK, primer `.it` → `soundbank` (`AUDIOFILES`, `SOUNDBANK`, `spcBoot`, `spcLoad`, `spcPlay`, `spcProcess` en el bucle). | Logo Capcom (sin jingle aún: falta el audio). | **hecho** parcial (2026-09-24), audio pendiente |
 | 4 | **Devs en Mode 7**: imagen 256 colores (`-M 7`), `bgInitMapTileSet7`, zoom + rotación por frame (`m7sx/m7sy`, `setMode7Rot`), vuelta limpia a Mode 1. | Logo propio "DON POLLO STUDIOS" fijo. **Mode 7 descartado** el 2026-09-24: la PPU lo rotaba/escalaba mal con la librería y se decidió el logo fijo. | **hecho** (2026-09-24) |
 | 5 | **Dedicatoria**: música suave, texto definitivo, fades lentos. | Texto máquina de escribir con música. | pendiente (texto del usuario) |
-| 6 | **Intro**: 3 fondos en BG1, franja de texto en BG3 con prioridad alta, sprite de Tarouh (`oamInitGfxSet`, `oamSet`) animado en la escena 3, salida con mosaico. | Tres escenas japonesas (Spring/Autumn Forest), escenas 1-2 en Mode 3, escena 3 en Mode 1 con los dos sprites. | **hecho** (2026-09-24) |
-| 7 | **Título**: `scripts/generar_logo_titulo.py` → logo en BG3, parallax por software en BG1/BG2, `setModeHdmaGradient`, sprite de Tarouh, música en bucle. | Título con parallax (arbustos), montañas, cielo HDMA, logo Ark Pixel, sprites, PRESS START. | **hecho** (2026-09-24) |
+| 6 | **Intro**: 3 fondos en BG1, franja de texto en BG3 con prioridad alta, sprite de Tarou (`oamInitGfxSet`, `oamSet`) animado en la escena 3, salida con mosaico. | Tres escenas japonesas (Spring/Autumn Forest), escenas 1-2 en Mode 3, escena 3 en Mode 1 con los dos sprites. | **hecho** (2026-09-24) |
+| 7 | **Título**: `scripts/generar_logo_titulo.py` → logo en BG3, parallax por software en BG1/BG2, `setModeHdmaGradient`, sprite de Tarou, música en bucle. | Título con parallax (arbustos), montañas, cielo HDMA, logo Ark Pixel, sprites, PRESS START. | **hecho** (2026-09-24) |
 | 7b | **Pulido visual** (pedido del usuario el 2026-09-24: "tenemos que mejorar todo después"): revisar composición de cada pantalla, logo del estudio, colores, tiempos, y las mejoras futuras anotadas en cada sección. | Demo con acabado. | pendiente |
 | 8 | **Cierre**: pase completo de verificación (§6), `snesromusage` por bancos, ajuste de tiempos a ojo, merge de `demo-secuencia-arranque` a `main`. | Demo terminada. | pendiente |
 

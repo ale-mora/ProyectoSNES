@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------
-    personajes.h — Los dos personajes de la demo como sprites: Tarouh (lobo
+    personajes.h — Los dos personajes de la demo como sprites: Tarou (lobo
     samurái) y Bárbara (mujer samurái). Solo animación de reposo.
 
     Uso desde una pantalla:
@@ -17,7 +17,7 @@
 /* Copia los tiles y paletas de ambos personajes a la VRAM/CGRAM. Llamar una vez. */
 void personajes_cargar(void);
 
-/* Pone a Tarouh en (xt, yt) y a Bárbara en (xb, yb) y los hace visibles.
+/* Pone a Tarou en (xt, yt) y a Bárbara en (xb, yb) y los hace visibles.
    Las coordenadas son la esquina superior izquierda de la celda de 64x64. */
 void personajes_mostrar(u16 xt, u16 yt, u16 xb, u16 yb);
 

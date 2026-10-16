@@ -7,7 +7,7 @@
       abajo, banda transparente) y el texto en el fondo 1 con la paleta 7 (los
       colores 112..127, que las imágenes dejan libres).
     Escena 3: MODE 1, imagen de 16 colores en el fondo 1 (paleta 1), texto en el
-      fondo 0 y los sprites de Tarouh y Bárbara delante.
+      fondo 0 y los sprites de Tarou y Bárbara delante.
     → glosario: Mode 1, Mosaico, Sprite, Paleta
 ---------------------------------------------------------------------------------*/
 #include "sistema/pantallas.h"

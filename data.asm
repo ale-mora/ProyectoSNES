@@ -24,10 +24,10 @@ fuente_2bpp_pal:     .incbin "res/fuente/ark_consola_2bpp.pal"
 .ends
 
 ; --- Sprites de los personajes (solo para la demo) --------------------------------
-.section ".rodata_tarouh" superfree
-tarouh_lobo_til:     .incbin "res/personajes/tarouh_lobo.pic"      ; 4 cuadros de 64x64
-tarouh_lobo_til_end:
-tarouh_lobo_pal:     .incbin "res/personajes/tarouh_lobo.pal"
+.section ".rodata_lobo" superfree
+lobo_samurai_til:     .incbin "res/personajes/lobo_samurai.pic"      ; 4 cuadros de 64x64
+lobo_samurai_til_end:
+lobo_samurai_pal:     .incbin "res/personajes/lobo_samurai.pal"
 .ends
 
 .section ".rodata_barbara" superfree

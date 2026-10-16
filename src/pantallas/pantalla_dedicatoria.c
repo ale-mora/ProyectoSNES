@@ -2,7 +2,7 @@
     pantalla_dedicatoria.c — Pantalla (4): mensaje personal sobre negro, letra por
     letra (máquina de escribir), con fundidos lentos y música suave. 7 segundos.
 
-    ESTADO: texto definitivo puesto ("A la memoria de Tarouh"). La música llega
+    ESTADO: texto definitivo puesto ("A la memoria de Tarou"). La música llega
     con el soundbank (tarea 5 del plan).
 ---------------------------------------------------------------------------------*/
 #include "sistema/pantallas.h"

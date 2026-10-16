@@ -9,7 +9,7 @@
                 puede mostrar 2 bits por píxel).
       cielo   = el color de fondo, que un canal HDMA cambia en cada línea con la
                 tabla generada de res/titulo/cielo.bmp (degradado).
-      sprites = Tarouh y Bárbara en reposo, delante de todo.
+      sprites = Tarou y Bárbara en reposo, delante de todo.
     Espera Start; a los 15 s sin input vuelve a la intro (attract).
     → glosario: BG / capas, HDMA, Mando, Sprite
 ---------------------------------------------------------------------------------*/

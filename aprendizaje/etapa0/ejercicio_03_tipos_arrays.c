@@ -7,7 +7,7 @@
  * y usar un if adentro del bucle para contar cuantos elementos cumplen
  * una condicion.
  *
- * Datos: vidas perdidas por Tarouh en cada uno de los primeros 5 niveles:
+ * Datos: vidas perdidas por Tarou en cada uno de los primeros 5 niveles:
  *   Nivel 1: 2 vidas perdidas
  *   Nivel 2: 0 vidas perdidas
  *   Nivel 3: 1 vida perdida

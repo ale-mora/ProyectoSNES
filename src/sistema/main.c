@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------
-    Tarouh: A Dog's Journey — punto de entrada del programa.
+    Tarou: A Dog's Journey — punto de entrada del programa.
 
     main.c hace tres cosas y nada más:
       1. Configura la pantalla y la consola de texto de PVSnesLib.

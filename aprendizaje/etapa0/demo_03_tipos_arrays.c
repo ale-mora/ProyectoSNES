@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 int main(void) {
-    // Un array de 5 enteros: el puntaje que Tarouh consigue en cada nivel.
+    // Un array de 5 enteros: el puntaje que Tarou consigue en cada nivel.
     int puntajePorNivel[5] = {120, 340, 90, 500, 275};
 
     // Los indices de un array van de 0 a (tamanio - 1). Este array tiene

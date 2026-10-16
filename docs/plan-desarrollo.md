@@ -1,4 +1,4 @@
-# Plan de desarrollo — Tarouh: A Dog's Journey
+# Plan de desarrollo — Tarou: A Dog's Journey
 
 Este documento es el plan de creación y desarrollo del proyecto, organizado en
 etapas que recrean el proceso profesional de desarrollo de videojuegos: de lo
@@ -13,7 +13,7 @@ completando.
 
 ## Premisas del proyecto (confirmadas)
 
-- **Título del juego:** _Tarouh: A Dog's Journey_.
+- **Título del juego:** _Tarou: A Dog's Journey_.
 - **Meta técnica:** el juego debe poder ejecutarse en una SNES real (no solo
   en el emulador Mesen). Esto implica testeo en hardware/flashcart real como
   parte obligatoria del plan, no un extra opcional.
@@ -36,7 +36,7 @@ completando.
 
 ## Concepto del juego
 
-- **Protagonistas:** Tarouh, un perro, y Bárbara, su mejor amiga. Se ayudan
+- **Protagonistas:** Tarou, un perro, y Bárbara, su mejor amiga. Se ayudan
   mutuamente a completar cada nivel.
 - **Estructura de niveles:** cada nivel es una misión/etapa que ambos
   completan juntos.
@@ -46,17 +46,17 @@ completando.
   exactos (qué pasa si el personaje activo recibe daño, cómo se recupera al
   compañero, en qué difieren sus habilidades) quedan **pendientes de
   definir** como parte del GDD en la Etapa 1.
-- **Progresión de Tarouh:** el perro pasa por tres etapas de vida — cachorro,
+- **Progresión de Tarou:** el perro pasa por tres etapas de vida — cachorro,
   adulto y viejo — a lo largo del juego. Cómo se gatilla ese cambio (por
   nivel, por capítulo, por evento de historia) y qué cambia mecánicamente en
   cada etapa (habilidades, velocidad, sprite) queda **pendiente de definir**
   en el GDD.
 - **Guion:** todavía no está escrito. La premisa emocional confirmada es que
-  Tarouh y Bárbara son mejores amigos; el resto de la narrativa se
+  Tarou y Bárbara son mejores amigos; el resto de la narrativa se
   desarrolla progresivamente.
 - **Plan de producción incremental:** el primer nivel (Etapa 3 — Vertical
   Slice de este plan) es una demo técnica conceptual que usa **únicamente a
-  Tarouh cachorro**, sin Bárbara y sin el mecanismo de cambio de personaje.
+  Tarou cachorro**, sin Bárbara y sin el mecanismo de cambio de personaje.
   Bárbara, el cambio de personaje, y las etapas de vida adulta/vieja se
   incorporan progresivamente a partir de la Etapa 4 — Producción.
 
@@ -157,8 +157,8 @@ referencias, alcance) y entender en profundidad el hardware SNES y el
 toolchain del proyecto (PVSnesLib) antes de escribir gameplay real.
 
 **Entregable(s):** un Game Design Document (GDD) breve (2-5 páginas) para
-_Tarouh: A Dog's Journey_ que resuelva las preguntas de diseño abiertas —
-cómo funciona exactamente el cambio de personaje Tarouh/Bárbara (inspirado
+_Tarou: A Dog's Journey_ que resuelva las preguntas de diseño abiertas —
+cómo funciona exactamente el cambio de personaje Tarou/Bárbara (inspirado
 en Donkey Kong Country), cómo se gatilla la progresión cachorro→adulto→viejo
 y qué cambia en cada etapa, y al menos una lista preliminar de
 niveles/misiones — más comprensión de la arquitectura técnica del hardware
@@ -227,7 +227,7 @@ hace `hdr.asm`, qué son los 8 bancos de ROM, y tener el GDD escrito.
       (buscar en el canal de YouTube "GDC" / "GDC Vault").
 - [ ] **Mecánica de personaje doble estilo Donkey Kong Country** (Donkey
       Kong / Diddy Kong) — es el modelo de referencia elegido para la
-      dinámica Tarouh/Bárbara; hay que analizar en detalle cómo DKC maneja
+      dinámica Tarou/Bárbara; hay que analizar en detalle cómo DKC maneja
       el cambio de personaje, la pérdida/recuperación del compañero, y las
       habilidades diferenciadas entre ambos, para poder adaptarlo al GDD.
       Recursos: desgloses de gameplay de DKC (canal "Retro Game Mechanics
@@ -235,7 +235,7 @@ hace `hdr.asm`, qué son los 8 bancos de ROM, y tener el GDD escrito.
       producción de DKC.
 - [ ] **Diseño narrativo básico y estructura de misiones/niveles** — aunque
       el guion no está cerrado, cada nivel se organiza como una misión que
-      Tarouh y Bárbara completan juntos; conviene tener al menos un boceto
+      Tarou y Bárbara completan juntos; conviene tener al menos un boceto
       de la lista de niveles/misiones en el GDD antes de entrar en
       Producción.
       Recursos: "The Art of Game Design: A Book of Lenses" (secciones de
@@ -267,7 +267,7 @@ línea del código tiene su comentario explicativo.
 
 **Estado (2026-09-24):** la secuencia completa corre en Mesen con gráficos
 reales en todas las pantallas (logos, tres escenas japonesas, sprites de
-Tarouh y Bárbara, título con parallax y cielo HDMA). Falta el **audio** y una
+Tarou y Bárbara, título con parallax y cielo HDMA). Falta el **audio** y una
 pasada de **pulido visual**. Detalle y hallazgos técnicos en
 `docs/diseno-secuencia-arranque.md` §9 y §10.
 
@@ -289,7 +289,7 @@ pasada de **pulido visual**. Detalle y hallazgos técnicos en
   (`enum` + `switch`) + `main.c` mínimo. No se usa `gamestates.h` del SDK.
 - Efectos a demostrar: fade y mosaico (transiciones), Mode 7 (logo de
   desarrolladores entrando con zoom y rotación), degradado HDMA y parallax de
-  dos capas (título), sprite animado de Tarouh cachorro (intro y título).
+  dos capas (título), sprite animado de Tarou cachorro (intro y título).
 - Estética de referencia: _Secret of Mana_. Textos en pantalla en inglés.
 - Assets: el usuario descarga a `res/descargas/` (gráficos y audio); se
   convierten con scripts Python a PNG indexado; música solo en formato `.it`.
@@ -322,7 +322,7 @@ pasada de **pulido visual**. Detalle y hallazgos técnicos en
       dos capas moviéndose a distinta velocidad dan profundidad; es la misma
       cámara que usará el nivel.
       Recursos: `graphics/Backgrounds/Mode1Scroll` del SDK.
-- [x] **Sprites (OAM) y animación por cuadros** — Tarouh cachorro en reposo en
+- [x] **Sprites (OAM) y animación por cuadros** — Tarou cachorro en reposo en
       la intro y el título.
       Recursos: `graphics/Sprites/SimpleSprite` y `AnimatedSprite` del SDK.
 - [x] **Texto por consola y efecto máquina de escribir** — dedicatoria, intro,
@@ -358,7 +358,7 @@ pasada de **pulido visual**. Detalle y hallazgos técnicos en
 **Objetivo:** programar las mecánicas núcleo del juego (movimiento, salto,
 colisión, cámara) con gráficos y audio de marcador de posición, para validar
 que el gameplay se siente bien antes de invertir en arte/audio final. El
-personaje del prototipo es Tarouh en su etapa de cachorro únicamente — el
+personaje del prototipo es Tarou en su etapa de cachorro únicamente — el
 mecanismo de cambio de personaje con Bárbara se aborda recién en la Etapa 4.
 
 **Entregable(s):** un `.sfc` ejecutable en Mesen donde un personaje (aunque
@@ -421,14 +421,14 @@ mando/teclado emulado, sin crashear, a 60 FPS estables.
 
 ## Etapa 3 — Vertical Slice
 
-**Objetivo:** construir el primer nivel de _Tarouh: A Dog's Journey_ como
-demo técnica conceptual — jugando únicamente con Tarouh cachorro, sin
+**Objetivo:** construir el primer nivel de _Tarou: A Dog's Journey_ como
+demo técnica conceptual — jugando únicamente con Tarou cachorro, sin
 Bárbara ni el cambio de personaje — con arte definitivo, audio definitivo, y
 todos los sistemas integrados. Es la prueba de que el pipeline completo
 funciona de punta a punta, no solo el prototipo aislado.
 
 **Entregable(s):** el primer nivel jugable de principio a fin (inicio →
-meta), protagonizado solo por Tarouh cachorro, con la calidad visual y
+meta), protagonizado solo por Tarou cachorro, con la calidad visual y
 sonora que representa el estándar del juego terminado.
 
 **Criterio de salida:** el nivel corre a 60 FPS estables en Mesen sin
@@ -491,7 +491,7 @@ juego: todos los niveles, todos los enemigos/objetos, y los sistemas
 restantes que el vertical slice no necesitó cubrir (HUD completo, power-ups,
 IA de enemigos, etc.). En esta etapa se incorporan también los elementos que
 el primer nivel dejó afuera a propósito: Bárbara, el cambio de personaje
-estilo Donkey Kong Country, y las etapas de vida adulta y vieja de Tarouh.
+estilo Donkey Kong Country, y las etapas de vida adulta y vieja de Tarou.
 
 **Entregable(s):** todos los niveles planeados en el GDD, implementados y
 jugables de principio a fin, con todo el contenido (enemigos, objetos, HUD)
@@ -503,14 +503,14 @@ pulido.
 
 ### Ítems técnicos a estudiar
 
-- [ ] **Implementación del cambio de personaje (Tarouh/Bárbara)** — llevar a
+- [ ] **Implementación del cambio de personaje (Tarou/Bárbara)** — llevar a
       código la mecánica diseñada en la Etapa 1 (inspirada en Donkey Kong
       Country): gestión de dos actores simultáneos en memoria, input para
       alternar el control, habilidades diferenciadas entre ambos, y
       recuperación del compañero perdido.
       Recursos: tu propio GDD (Etapa 1) con el diseño ya resuelto;
       `systems/objects` del SDK para la gestión de múltiples entidades.
-- [ ] **Progresión de edad de Tarouh** (cachorro → adulto → viejo) —
+- [ ] **Progresión de edad de Tarou** (cachorro → adulto → viejo) —
       implementar el disparador definido en el GDD (por nivel, capítulo o
       evento) y los cambios mecánicos asociados a cada etapa de vida
       (sprite, habilidades, velocidad).
