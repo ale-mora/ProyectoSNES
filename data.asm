@@ -30,6 +30,7 @@
 ;     .rodata_escena3    escena3_*
 ;     .rodata_titulo_*   cerca_*, lejos_*, hdmaGradcieloList (tabla HDMA)
 ;     .rodata_tarou_*    tarou_<anim>_til/_til_end (13 animaciones) y tarou_pal
+;     .rodata_nivel1_lejos  nivel1_lejos_til/_til_end/_pal/_map/_map_end (capa lejana del nivel 1)
 ;
 ;   Extensiones que genera gfx4snes: .pic tiles, .pal paleta, .map mapa;
 ;   en Mode 7: .pc7 tiles y .mp7 mapa. Todo se regenera con `make`.
@@ -135,6 +136,15 @@ lejos_map_end:
 
 .section ".rodata_titulo_cielo" superfree
 .include "res/titulo/cielo_grad_data.as"                          ; tabla HDMA: un color por línea
+.ends
+
+; --- Nivel 1: capa lejana de 512 px (64x32), sin el logotipo del título ----------
+.section ".rodata_nivel1_lejos" superfree
+nivel1_lejos_til:     .incbin "res/nivel1/fondo_lejos.pic"
+nivel1_lejos_til_end:
+nivel1_lejos_pal:     .incbin "res/nivel1/fondo_lejos.pal"
+nivel1_lejos_map:     .incbin "res/nivel1/fondo_lejos.map"
+nivel1_lejos_map_end:
 .ends
 
 ; --- Tarou (Revisión 1): 13 animaciones como piezas de 32x32 para el motor de

@@ -75,6 +75,11 @@ res/titulo/fondo_lejos.pic: res/titulo/fondo_lejos.png
 res/titulo/fondo_cerca.pic: res/titulo/fondo_cerca.png
 	$(GFXCONV) -y -s 8 -o 16 -u 16 -e 1 -p -m -i $<
 
+# Capa lejana del nivel 1: la del título sin logotipo y duplicada en espejo hasta
+# 512 px (scripts/preparar_fondo_nivel.py). -y = mapa en páginas de 32x32 (SC_64x32).
+res/nivel1/fondo_lejos.pic: res/nivel1/fondo_lejos.png
+	$(GFXCONV) -y -s 8 -o 16 -u 16 -e 2 -p -m -i $<
+
 # Escenas de 256 colores (Mode 3).
 res/intro/escena_1.pic: res/intro/escena_1.png
 	$(GFXCONV) -s 8 -o 256 -u 256 -e 0 -p -m -i $<
@@ -102,7 +107,7 @@ res/personajes/tarou/%.pic: res/personajes/tarou/%.png
 	@echo convert metasprite ... $(notdir $<)
 	$(GFXCONV) -s 32 -o 16 -u 16 -p -T -X 64 -Y 64 -P 3 -i $<
 
-ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as $(TAROU_PICS)
+ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic $(TAROU_PICS)
 
 .PHONY: bitmaps cleanGfxRes
 bitmaps: $(ASSETS)
