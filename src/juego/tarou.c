@@ -133,6 +133,23 @@ static void manejar_pie(Tarou *t, const Mando *m)
 {
     u8 direccion = (u8)(m->izquierda || m->derecha);  /* 1 si hay una dirección pulsada. */
 
+    /* Contador de sueño: solo cuenta PARADO y sin actividad; cualquier botón lo
+       pone a cero. A los FRAMES_PARA_DORMIR (10 s) se echa a dormir (§4). */
+    if (t->estado == ESTADO_PARADO && !m->actividad)
+    {
+        t->frames_quieto++;
+        if (t->frames_quieto >= FRAMES_PARA_DORMIR)
+        {
+            t->frames_quieto = 0;
+            cambiar_estado(t, ESTADO_ECHANDOSE);
+            return;
+        }
+    }
+    else
+    {
+        t->frames_quieto = 0;
+    }
+
     if (m->espada_pulsado)                      /* R: sacar o guardar la espada, quieto.    */
     {
         t->vx_fp = 0;
@@ -233,6 +250,40 @@ static void manejar_espada(Tarou *t)
     cambiar_estado(t, ESTADO_PARADO);
 }
 
+/*--- sueño: ECHANDOSE, DORMIDO y DESPERTANDO -----------------------------------------
+    Cualquier actividad despierta (también mientras se está echando: directo a
+    DESPERTANDO, nunca pasa por DORMIDO). Despertar ignora el mando hasta que
+    termina su animación; por eso un salto pulsado al despertar no salta. */
+static void manejar_sueno(Tarou *t, const Mando *m)
+{
+    t->frames_quieto = 0;                       /* Al despertar se vuelve a contar de cero. */
+    switch (t->estado)
+    {
+        case ESTADO_ECHANDOSE:
+            if (m->actividad)
+            {
+                cambiar_estado(t, ESTADO_DESPERTANDO);
+            }
+            else if (t->anim_terminada)
+            {
+                cambiar_estado(t, ESTADO_DORMIDO);
+            }
+            break;
+        case ESTADO_DORMIDO:
+            if (m->actividad)
+            {
+                cambiar_estado(t, ESTADO_DESPERTANDO);
+            }
+            break;
+        default:                                /* ESTADO_DESPERTANDO                       */
+            if (t->anim_terminada)
+            {
+                cambiar_estado(t, ESTADO_PARADO);
+            }
+            break;
+    }
+}
+
 /*--- avanzar_animacion: un frame más del cuadro actual; cambia de cuadro cada
      frames_por_cuadro; al final, vuelve al primero (bucle) o se queda en el último
      y marca anim_terminada. Se llama al FINAL de cada frame (§5). ------------------*/
@@ -314,8 +365,13 @@ void tarou_actualizar(Tarou *t, const Mando *m, u16 suelo_y)
         case ESTADO_ATACANDO:
             manejar_espada(t);
             break;
+        case ESTADO_ECHANDOSE:
+        case ESTADO_DORMIDO:
+        case ESTADO_DESPERTANDO:
+            manejar_sueno(t, m);
+            break;
         default:
-            break;                              /* Dormir y despertar llegan en 3.7.      */
+            break;                              /* Valor imposible: no hacer nada.        */
     }
 
     /*--- 2. En el aire: corte del salto, gravedad y paso de subir a caer -----------*/

@@ -468,8 +468,126 @@ static void prueba_prioridad_espada(void)
     COMPROBAR(t.estado == ESTADO_ENVAINANDO);
 }
 
+/*=== Dormir y despertar (§4 ECHANDOSE, DORMIDO, DESPERTANDO) y animación (§7) ======*/
+
+#define FRAMES_ECHARSE (4 * 8)                  /* tarou_anim.h: 4 cuadros x 8 frames.  */
+#define FRAMES_DESPERTAR (4 * 8)
+
+static void prueba_dormirse(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);                              /* Nadie toca el mando.           */
+    frames(&t, &m, FRAMES_PARA_DORMIR - 1);
+    COMPROBAR(t.estado == ESTADO_PARADO);               /* 599 frames: sigue despierto.   */
+    COMPROBAR(t.frames_quieto == FRAMES_PARA_DORMIR - 1);
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_ECHANDOSE);            /* 600 = 10 s: se echa.           */
+    frames(&t, &m, FRAMES_ECHARSE);                     /* Animación de echarse + 1...    */
+    COMPROBAR(t.estado == ESTADO_DORMIDO);              /* ...y ya duerme.                */
+    COMPROBAR(t.cuadro == 0);
+    frames(&t, &m, 20);                                 /* Dormido: 20 frames por cuadro. */
+    COMPROBAR(t.cuadro == 1);
+    frames(&t, &m, 60);                                 /* 4 cuadros x 20 = 80: bucle.    */
+    COMPROBAR(t.cuadro == 0);
+    COMPROBAR(t.estado == ESTADO_DORMIDO);
+}
+
+static void prueba_despertar(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    t.estado = ESTADO_DORMIDO;                          /* Lo dormimos directamente.      */
+    m.derecha = 1; m.actividad = 1;                     /* Cualquier actividad despierta. */
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_DESPERTANDO);
+    frames(&t, &m, FRAMES_DESPERTAR - 1);
+    COMPROBAR(t.estado == ESTADO_DESPERTANDO);          /* Mientras se levanta...         */
+    COMPROBAR(t.vx_fp == 0 && t.x_fp == PF(100));       /* ...Derecha no mueve.           */
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_PARADO);               /* Ya está de pie.                */
+    COMPROBAR(t.frames_quieto == 0);
+}
+
+/* Punto de atención 4: actividad mientras se echa → despierta sin pasar por DORMIDO. */
+static void prueba_interrumpir_echarse(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    frames(&t, &m, FRAMES_PARA_DORMIR);
+    frames(&t, &m, 1);                                  /* Frame 2 de ECHANDOSE.          */
+    COMPROBAR(t.estado == ESTADO_ECHANDOSE);
+    m.saltar_pulsado = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    COMPROBAR(t.estado == ESTADO_DESPERTANDO);          /* Directo a despertar...         */
+    COMPROBAR(t.en_suelo == 1 && t.vy_fp == 0);         /* ...sin saltar: el mando se ignora.*/
+}
+
+static void prueba_quieto_solo_cuenta_parado(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.derecha = 1; m.actividad = 1;
+    frames(&t, &m, 100);                                /* Camina 100 frames.             */
+    COMPROBAR(t.frames_quieto == 0);
+    m.derecha = 0; m.actividad = 0;
+    frames(&t, &m, 8);                                  /* Frena hasta PARADO.            */
+    COMPROBAR(t.estado == ESTADO_PARADO);
+    COMPROBAR(t.frames_quieto == 0);                    /* Frenando no cuenta.            */
+    frames(&t, &m, 10);
+    COMPROBAR(t.frames_quieto == 10);                   /* Parado sí.                     */
+}
+
+static void prueba_animacion_bucle(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.derecha = 1; m.actividad = 1;
+    frames(&t, &m, 5);
+    COMPROBAR(t.estado == ESTADO_CAMINANDO && t.cuadro == 0);
+    frames(&t, &m, 1);                                  /* Frame 6: cambia de cuadro.     */
+    COMPROBAR(t.cuadro == 1 && t.frames_cuadro == 0);
+    frames(&t, &m, 42);                                 /* 8 cuadros x 6 = 48: da la vuelta.*/
+    COMPROBAR(t.cuadro == 0);
+    COMPROBAR(t.anim_terminada == 0);                   /* Las de bucle nunca "terminan". */
+}
+
+static void prueba_animacion_sin_bucle(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    t.espada = ESPADA_FUERA;
+    m.atacar_pulsado = 1; m.actividad = 1;
+    frames(&t, &m, 1);
+    m.atacar_pulsado = 0;
+    frames(&t, &m, 16);                                 /* 17 frames: cuadro 4 (el último).*/
+    COMPROBAR(t.cuadro == 4);
+    frames(&t, &m, 3);                                  /* 20: termina y se queda en el 4.*/
+    COMPROBAR(t.cuadro == 4 && t.anim_terminada == 1);
+}
+
+static void prueba_cambio_de_estado_reinicia(void)
+{
+    Tarou t; Mando m;
+    preparar(&t, &m, 100);
+    m.derecha = 1; m.actividad = 1;
+    frames(&t, &m, 10);                                 /* cuadro 1, frames_cuadro 4.     */
+    COMPROBAR(t.cuadro == 1 && t.frames_cuadro == 4);
+    m.abajo = 1;
+    frames(&t, &m, 1);                                  /* Agacharse reinicia...          */
+    COMPROBAR(t.estado == ESTADO_AGACHADO);
+    COMPROBAR(t.cuadro == 0 && t.frames_cuadro == 1);   /* ...y este frame ya cuenta 1.   */
+}
+
 void pruebas_tarou(void)
 {
+    prueba_dormirse();
+    prueba_despertar();
+    prueba_interrumpir_echarse();
+    prueba_quieto_solo_cuenta_parado();
+    prueba_animacion_bucle();
+    prueba_animacion_sin_bucle();
+    prueba_cambio_de_estado_reinicia();
+
     prueba_agacharse();
     prueba_caminar_agachado();
     prueba_agachado_salta();
