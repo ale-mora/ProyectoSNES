@@ -71,7 +71,7 @@ void pantalla_titulo_iniciar(void)
     texto_visible = 1;
     texto_centrado(22, "PRESS START");
 
-    personajes_mostrar(40, 96, 160, 96);             /* Pies en el píxel 160, sobre arbustos.*/
+    personajes_mostrar(40, 96, 0, 160, 96);          /* Pies en el píxel 160, sobre arbustos.*/
 
     scroll_cerca = 0;
     bgSetScroll(0, 0, 0);

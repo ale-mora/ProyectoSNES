@@ -22,7 +22,6 @@
 ;
 ;   VARIABLES (etiquetas que exporta, por sección)
 ;     .rodata_fuente     fuente_consola_til/_til_end/_pal, fuente_2bpp_til/_til_end/_pal
-;     .rodata_lobo       lobo_samurai_til/_til_end/_pal (sprite provisional de Tarou)
 ;     .rodata_barbara    barbara_samurai_til/_til_end/_pal
 ;     .rodata_nintendo   nintendo_til/_til_end/_pal/_map/_map_end
 ;     .rodata_publisher  publisher_*            .rodata_devs  devs_*
@@ -48,13 +47,10 @@ fuente_2bpp_til_end:
 fuente_2bpp_pal:     .incbin "res/fuente/ark_consola_2bpp.pal"
 .ends
 
-; --- Sprites de los personajes (solo para la demo) --------------------------------
-.section ".rodata_lobo" superfree
-lobo_samurai_til:     .incbin "res/personajes/lobo_samurai.pic"      ; 4 cuadros de 64x64
-lobo_samurai_til_end:
-lobo_samurai_pal:     .incbin "res/personajes/lobo_samurai.pal"
-.ends
-
+;  --- Sprites de los personajes de la secuencia de arranque --------------------------
+; El lobo samurái (res/personajes/lobo_samurai.png) ya no va en la ROM: Tarou usa su
+; propio arte (sección .rodata_tarou_reposo, más abajo). El PNG y su regla del
+; Makefile se conservan para cuando sea un enemigo (Etapa 3).
 .section ".rodata_barbara" superfree
 barbara_samurai_til: .incbin "res/personajes/barbara_samurai.pic"
 barbara_samurai_til_end:

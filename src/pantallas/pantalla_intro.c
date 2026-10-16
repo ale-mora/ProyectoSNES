@@ -74,7 +74,7 @@ static void preparar_escena(void)
         fondo16_cargar(1, &escena3_til, &escena3_til_end, &escena3_pal, 1,
                        &escena3_map, &escena3_map_end, VRAM_FONDO_A, VRAM_MAPA_B, SC_32x32);
         /* Pies sobre el borde inferior de la imagen (fila 128): celda 64..128. */
-        personajes_mostrar(48, 64, 150, 64);
+        personajes_mostrar(48, 64, 0, 150, 64);  /* Tarou mira a la derecha.         */
         break;
     default:
         break;
