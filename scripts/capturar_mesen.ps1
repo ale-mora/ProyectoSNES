@@ -11,8 +11,12 @@
       script, esperan, y revisan los PNG. Captura con la API de Windows
       PrintWindow (contenido compuesto por DWM, incluido el lienzo de la GPU) y
       "pulsa" teclas enviando mensajes WM_KEYDOWN/WM_KEYUP a la ventana de Mesen
-      con PostMessage. La ventana se aparta fuera de la pantalla: no roba el foco
-      ni estorba al autor, y las teclas nunca van a parar a otra aplicación.
+      con PostMessage. Al arrancar activa Mesen UNA vez (le pasa el primer plano
+      un instante y lo devuelve) y, con Mesen en primer plano, le da UN toque
+      real de Shift (keybd_event): sin él PrintWindow devuelve la pantalla de
+      juegos recientes en vez del juego. Shift solo no escribe nada. Todo lo
+      demás son mensajes a la ventana de Mesen, que después se aparta fuera de
+      la pantalla: ninguna tecla del guion puede ir a parar a otra aplicación.
 
     SE CONECTA CON
       Lee:     ProyectoSNES.sfc (la ROM).
@@ -28,6 +32,8 @@
       .\scripts\capturar_mesen.ps1 -Duracion 20 -Cada 2
       .\scripts\capturar_mesen.ps1 -Duracion 90 -Cada 2 -Guion "76,76.2,Start;78,81,Right;81,84,Left"
         → a los 76 s pulsa Start 0,2 s; de 78 a 81 mantiene Derecha; de 81 a 84, Izquierda.
+      .\scripts\capturar_mesen.ps1 -Duracion 58 -Cada 0.1 -Desde 55.4 -Guion "55,55.3,Start"
+        → pulsa Start en el título y captura 10 veces por segundo solo la entrada al nivel.
       Los segundos del guion y de las capturas cuentan desde el fin de la espera
       inicial (-Espera), no desde el arranque del proceso.
 
@@ -39,6 +45,8 @@
       Espera     segundos de espera inicial para que aparezca la ventana
       Guion      tramos "desde,hasta,tecla" separados por ";" (tecla: Up, Down,
                  Left, Right, A, B, X, Y, L, R, Start, Select, en nombres de la SNES)
+      Desde      segundo de la primera captura (0): para mirar de cerca un
+                 instante con -Cada 0.1 sin llenar la carpeta con el arranque
       EnPantalla deja la ventana visible en vez de apartarla fuera de la pantalla
 ---------------------------------------------------------------------------------
 #>
@@ -49,6 +57,7 @@ param(
     [string]$Salida = "E:\ProyectoSNES\scripts\capturas",
     [int]$Espera = 3,
     [string]$Guion = "",
+    [double]$Desde = 0,
     [switch]$EnPantalla
 )
 
@@ -62,8 +71,8 @@ public class CapturaWin32 {
     [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdc, uint flags);
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT r);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
-    [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
     [DllImport("user32.dll")] public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+    [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
@@ -100,7 +109,8 @@ $WM_KEYUP = 0x101
 
 # Envía una tecla virtual como mensaje WM_KEYDOWN/WM_KEYUP directo a la ventana de Mesen.
 # PostMessage no depende de qué ventana tenga el foco ni de dónde esté la ventana, y no
-# toca el teclado real: nunca escribe en el editor del autor (keybd_event sí lo haría).
+# toca el teclado real: nunca escribe en el editor del autor (el único keybd_event del
+# script es el Shift de la activación, con Mesen en primer plano; ver más abajo).
 function MensajeTecla([int]$vk, [bool]$ext, [bool]$abajo) {
     # lParam de WM_KEYDOWN: bits 0-15 repetición (1), 16-23 código de barrido, 24 tecla
     # extendida, 30 estado anterior y 31 transición (los dos últimos a 1 en WM_KEYUP).
@@ -157,13 +167,13 @@ Start-Sleep -Milliseconds 300
 # Activar una ventana: Windows solo deja cambiar el primer plano al hilo que "tiene la
 # entrada". El truco clásico es engancharse (AttachThreadInput) al hilo de la ventana que
 # está en primer plano, cambiar el foco y desengancharse. Devuelve si lo consiguió.
+# No simula ninguna tecla real: si la activación falla, el script lo dice ("Mesen
+# activada: False") y la salida es repetir la tanda, no escribir en otra ventana.
 function Activar([IntPtr]$h) {
     $pid0 = [uint32]0
     $hiloActual = [CapturaWin32]::GetWindowThreadProcessId([CapturaWin32]::GetForegroundWindow(), [ref]$pid0)
     $miHilo = [CapturaWin32]::GetCurrentThreadId()
     if ($hiloActual -ne 0 -and $hiloActual -ne $miHilo) { [CapturaWin32]::AttachThreadInput($miHilo, $hiloActual, $true) | Out-Null }
-    [CapturaWin32]::keybd_event(0xA0, 0, 0, [UIntPtr]::Zero)                  # Shift: "acabo de recibir entrada"
-    [CapturaWin32]::keybd_event(0xA0, 0, $KEYEVENTF_KEYUP, [UIntPtr]::Zero)
     [CapturaWin32]::BringWindowToTop($h) | Out-Null
     [CapturaWin32]::SetForegroundWindow($h) | Out-Null
     [CapturaWin32]::SetFocus($h) | Out-Null
@@ -181,6 +191,20 @@ $activada = $false
 for ($k = 0; $k -lt 5 -and -not $activada; $k++) { $activada = Activar $ventana; if (-not $activada) { Start-Sleep -Milliseconds 300 } }
 Write-Output "Mesen activada: $activada"
 Start-Sleep -Milliseconds 400
+
+# UN toque real de Shift (keybd_event), SOLO si Mesen quedó en primer plano: es lo único
+# que hace que PrintWindow pase a capturar el lienzo del juego; sin él devuelve la pantalla
+# de juegos recientes de Mesen. Se probó sin éxito con Shift por mensaje (WM_KEYDOWN), con
+# SetWindowPos(SWP_FRAMECHANGED) + RedrawWindow + WM_NCACTIVATE, y con minimizar y
+# restaurar (lienzo negro). Shift solo no escribe nada, y con Mesen en primer plano no
+# puede llegar a otra aplicación; si la activación falló, no se envía.
+if ($activada -and [CapturaWin32]::GetForegroundWindow() -eq $ventana) {
+    [CapturaWin32]::keybd_event(0xA0, 0, 0, [UIntPtr]::Zero)
+    [CapturaWin32]::keybd_event(0xA0, 0, $KEYEVENTF_KEYUP, [UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 150
+} else {
+    Write-Warning "Mesen no está en primer plano: las capturas pueden mostrar la pantalla de inicio de Mesen"
+}
 
 # Con la ventana activa, un clic de ratón por mensaje (WM_LBUTTONDOWN/UP, 0x201/0x202, en
 # coordenadas del área cliente) sobre el visor del juego mueve el foco de teclado de la
@@ -206,11 +230,6 @@ if (-not $EnPantalla) {
     [CapturaWin32]::SetWindowPos($ventana, [IntPtr]::Zero, 1300, 400, 0, 0, 0x15) | Out-Null
 }
 Start-Sleep -Milliseconds 300
-# Hasta que Mesen recibe una primera tecla, PrintWindow devuelve una capa antigua de la
-# ventana (su pantalla de juegos recientes) en vez del juego. Un toque de Shift (0x10),
-# que no está mapeado a nada, lo "despierta" sin tocar el mando emulado.
-MensajeTecla 0x10 $false $true
-MensajeTecla 0x10 $false $false
 
 function Capturar([IntPtr]$h, [string]$ruta) {
     $r = New-Object CapturaWin32+RECT
@@ -241,7 +260,7 @@ function Capturar([IntPtr]$h, [string]$ruta) {
 
 $inicio = Get-Date
 $n = 0
-$proximaCaptura = 0.0
+$proximaCaptura = $Desde          # Antes de -Desde no se captura (el guion sí corre).
 while ($true) {
     $seg = ((Get-Date) - $inicio).TotalSeconds
     if ($seg -ge $Duracion) { break }
@@ -255,7 +274,7 @@ while ($true) {
     # Capturas a intervalos de $Cada segundos.
     if ($seg -ge $proximaCaptura) {
         $n++
-        $ruta = Join-Path $Salida ("frame_{0:D3}_t{1:D2}s.png" -f $n, [int]$seg)
+        $ruta = Join-Path $Salida ("frame_{0:D3}_t{1}s.png" -f $n, ([math]::Floor($seg * 10) / 10).ToString("00.0", [cultureinfo]::InvariantCulture))
         $res = Capturar $ventana $ruta
         Write-Output ("captura {0} t={1}s: {2}" -f $n, [int]$seg, $res)
         $proximaCaptura += $Cada

@@ -128,7 +128,9 @@ mirando la pantalla. Uso desde PowerShell, en la raíz:
 - `-Guion`: tramos `desde,hasta,tecla` en segundos (desde el fin de la espera
   inicial); varias teclas a la vez son varios tramos solapados. Nombres de
   botón de la SNES: `Up Down Left Right A B X Y L R Start Select`.
-- `-Cada`: segundos entre capturas (admite decimales); `-Duracion`: total.
+- `-Cada`: segundos entre capturas (admite decimales); `-Duracion`: total;
+  `-Desde`: segundo de la primera captura (el guion corre desde 0), para
+  mirar de cerca un instante con `-Cada 0.1` sin llenar la carpeta.
 - Salida: `scripts/capturas/frame_NNN_tSSs.png` (ignorados por git).
 - `-EnPantalla`: deja la ventana visible (por defecto se aparta fuera de la
   pantalla para no estorbar).
@@ -140,16 +142,21 @@ Qué hace por dentro, y por qué (cada punto costó una tanda fallida):
    truco de `AttachThreadInput` (Windows no cede el primer plano a quien no
    tiene la entrada). Sin esta activación, el foco de teclado dentro de Mesen
    está en la barra de menús y las teclas navegan el menú.
-3. Mientras está activa, envía un **clic por mensaje** (`WM_LBUTTONDOWN/UP`)
+3. Con Mesen ya en primer plano le da **un único toque real de Shift**
+   (`keybd_event`): es lo único que hace que `PrintWindow` capture el lienzo
+   del juego; sin él devuelve la pantalla de juegos recientes de Mesen. Se
+   probó sin éxito con Shift por mensaje, con `SWP_FRAMECHANGED` +
+   `RedrawWindow` + `WM_NCACTIVATE`, y con minimizar y restaurar (lienzo
+   negro). Shift solo no escribe nada y, con Mesen en primer plano, no puede
+   llegar a otra aplicación; si la activación falló, no se envía y el script
+   avisa.
+4. Mientras está activa, envía un **clic por mensaje** (`WM_LBUTTONDOWN/UP`)
    sobre el visor para fijar el foco ahí, devuelve el primer plano a la
    ventana del autor y aparta Mesen fuera de la pantalla (`SetWindowPos` a
    x = −2600): DWM la sigue dibujando y `PrintWindow` la captura igual.
-4. Un toque de Shift por mensaje "despierta" la ventana: hasta recibir una
-   tecla, `PrintWindow` devolvía una capa antigua (la pantalla de juegos
-   recientes de Mesen) en lugar del juego.
 5. Las teclas del guion se envían con `PostMessage(WM_KEYDOWN/WM_KEYUP)`
    directamente a la ventana: no dependen del foco y nunca acaban en otra
-   aplicación (`keybd_event` sí lo haría: escribiría en tu editor).
+   aplicación (un `keybd_event` iría a la ventana activa, que ya es la tuya).
 6. Captura con `PrintWindow(PW_RENDERFULLCONTENT)` tras declarar el proceso
    DPI-aware (si no, con la pantalla al 125 % la captura salía recortada).
 
