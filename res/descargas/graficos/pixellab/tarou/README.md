@@ -33,6 +33,9 @@ script y `make`: el arte entra sin tocar código.
 | despertar | `despertar` | levantarse | 4 |
 
 Máximo **15 cuadros** por animación (límite de un banco de ROM de 32 KB).
+El reposo puede tener los cuadros que quieras: para la intro y el título el
+script saca aparte `tarou_reposo_estatico.png` con **4** cuadros repartidos a
+lo largo del reposo (allí se cargan de una vez en VRAM y no caben más).
 
 ## Formatos aceptados (uno por animación)
 

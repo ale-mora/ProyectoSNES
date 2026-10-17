@@ -230,13 +230,15 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   `gfx4snes -T` y la tabla `t_metasprite` (`dx`, `dy`, `dtile`, atributos);
   motor de sprites dinámicos del SDK (`oamInitDynamicSprite`,
   `oamMetaDrawDyn32`, `oamrefresh`, `oamInitDynamicSpriteEndFrame`,
-  `oamVramQueueUpdate`); espejo horizontal construido en RAM; presupuesto de
-  ROM por cuadro (2 KB) y por sección (15 cuadros).
+  `oamVramQueueUpdate`); espejo horizontal construido en RAM (hasta 4 piezas:
+  `gfx4snes -T` omite las transparentes y la tabla termina en `metasprite_end`);
+  presupuesto de ROM por cuadro (2 KB) y por sección (15 cuadros).
 - **Archivos:** `README.md`, `rom/` (mini-ROM con un metasprite de 64×64 de
   dos animaciones, con espejo), `ejercicio_09.md` (añadir una animación y
   medir en el Sprite Viewer las 4 piezas).
-- **Código del juego:** `src/juego/tarou_sprite.c`, `data.asm`
-  (`.rodata_tarou_*`), `Makefile` (regla patrón de Tarou), el ejemplo del SDK
+- **Código del juego:** `src/juego/metasprite.c` (+ `tests/prueba_metasprite.c`),
+  `src/juego/tarou_sprite.c`, `data.asm` (`.rodata_tarou_*`), `Makefile`
+  (regla patrón de Tarou), el ejemplo del SDK
   `snes-examples/graphics/Sprites/DynamicEngineMetaSprite`.
 - **Prerrequisitos:** 08. **Práctica:** mini-ROM + sobre el juego real.
 - **Aprobación:** captura con el metasprite en ambas direcciones.

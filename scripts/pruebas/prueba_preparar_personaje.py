@@ -66,7 +66,7 @@ class PruebasPrepararPersonaje(unittest.TestCase):
         """Sin entrada, salen 13 marcadores con los cuadros por defecto."""
         resultado = pp.preparar("tarou", self.entrada, self.salida)
         pngs = sorted(self.salida.glob("tarou_*.png"))
-        self.assertEqual(len(pngs), 13)
+        self.assertEqual(len(pngs), 14)          # 13 animaciones + tarou_reposo_estatico.png
         for png in pngs:
             with Image.open(png) as im:
                 self.assertEqual(im.height, CELDA, png.name)
@@ -77,6 +77,42 @@ class PruebasPrepararPersonaje(unittest.TestCase):
         self.assertEqual(cuadros_del_header(header, "atacar"), 5)
         self.assertEqual(resultado["reposo"], 4)
         self.assertIn("#define TAROU_ANIMACIONES 13", header.read_text(encoding="utf-8"))
+
+    def test_reposo_estatico_siempre_cuatro_cuadros(self):
+        """La tira estática de reposo (intro y título, personajes.c) tiene SIEMPRE
+        4 cuadros, repartidos a lo largo del reposo real para que el bucle no
+        salte: con 6 cuadros toma el 0, 1, 3 y 4; con 2, el 0, 0, 1 y 1."""
+        colores = [(200, 0, 0), (0, 200, 0), (0, 0, 200), (200, 200, 0), (0, 200, 200), (120, 60, 0)]
+
+        def reposo_de(n):
+            im = Image.new("RGBA", (CELDA * n, CELDA), (0, 0, 0, 0))
+            d = ImageDraw.Draw(im)
+            for k in range(n):
+                d.rectangle((k * CELDA + 20, 10, k * CELDA + 43, 59), fill=colores[k] + (255,))
+            return im
+
+        def cuadros_de(png):
+            """Qué cuadro del reposo hay en cada uno de los 4 de la tira estática,
+            por el color MÁS CERCANO (la paleta común se reduce a 15 colores y
+            puede mover un canal unas unidades)."""
+            with Image.open(png) as im:
+                self.assertEqual(im.size, (CELDA * 4, CELDA))
+                rgb = im.convert("RGB")
+                vistos = [rgb.getpixel((k * CELDA + 32, 40)) for k in range(4)]
+            def cercano(c):
+                return min(range(len(colores)), key=lambda j: sum((a - b) ** 2 for a, b in zip(c, colores[j])))
+            return [cercano(c) for c in vistos]
+
+        reposo_de(6).save(self.entrada / "reposo.png")
+        pp.preparar("tarou", self.entrada, self.salida)
+        self.assertEqual(cuadros_de(self.salida / "tarou_reposo_estatico.png"), [0, 1, 3, 4])
+        # El reposo del nivel sigue entero (6 cuadros) y el header no cuenta la estática.
+        self.assertEqual(cuadros_del_header(self.salida / "tarou_anim.h", "reposo"), 6)
+        self.assertIn("#define TAROU_ANIMACIONES 13", (self.salida / "tarou_anim.h").read_text(encoding="utf-8"))
+
+        reposo_de(2).save(self.entrada / "reposo.png")
+        pp.preparar("tarou", self.entrada, self.salida)
+        self.assertEqual(cuadros_de(self.salida / "tarou_reposo_estatico.png"), [0, 0, 1, 1])
 
     def test_tira_png(self):
         """Una tira PNG de 3 cuadros produce una salida de 192x64 y CUADROS 3."""

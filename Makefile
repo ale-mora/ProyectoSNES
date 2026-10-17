@@ -47,8 +47,9 @@ res/fuente/ark_consola.pic: res/fuente/ark_consola.bmp
 	@echo convert font ... $(notdir $<)
 	$(GFXCONV) -s 8 -o 2 -u 16 -p -e 0 -t bmp -i $<
 
-# Sprites de los personajes: tiras de cuadros de 64x64 (-s 64), 16 colores, PNG.
-# gfx4snes empaqueta los bloques en filas de 128 px; ver src/personajes.c.
+# Sprites del pack (Bárbara; el lobo queda para los enemigos de la Etapa 3): tiras
+# de cuadros de 64x64 (-s 64), 16 colores, PNG. gfx4snes empaqueta los bloques en
+# filas de 128 px; ver tile_del_bloque64 en src/pantallas/personajes.c.
 res/personajes/lobo_samurai.pic: res/personajes/lobo_samurai.png
 	@echo convert sprites ... $(notdir $<)
 	$(GFXCONV) -s 64 -o 16 -u 16 -p -i $<
@@ -103,6 +104,9 @@ res/titulo/cielo_grad_data.as: res/titulo/cielo.bmp
 # y tarou_<anim>_meta.inc (tablas t_metasprite que incluye src/juego/tarou_sprite.c).
 TAROU_ANIMS := reposo caminar correr saltar caer agachado agachado_caminar desenvainar envainar atacar echarse dormido despertar
 TAROU_PICS := $(foreach a,$(TAROU_ANIMS),res/personajes/tarou/tarou_$(a).pic)
+# Más la tira ESTÁTICA de reposo (siempre 4 cuadros) que intro y título cargan de
+# una vez en VRAM (src/pantallas/personajes.c); misma conversión que las demás.
+TAROU_PICS += res/personajes/tarou/tarou_reposo_estatico.pic
 res/personajes/tarou/%.pic: res/personajes/tarou/%.png
 	@echo convert metasprite ... $(notdir $<)
 	$(GFXCONV) -s 32 -o 16 -u 16 -p -T -X 64 -Y 64 -P 3 -i $<
@@ -112,6 +116,15 @@ ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/persona
 .PHONY: bitmaps cleanGfxRes
 bitmaps: $(ASSETS)
 data.obj: $(ASSETS)
+
+# Los .c que incluyen archivos GENERADOS (las tablas _meta.inc de gfx4snes -T y
+# tarou_anim.h del pipeline): snes_rules no ve esos #include, así que se declara
+# aquí la dependencia sobre el .obj (igual que data.obj). Sin estas líneas, al
+# regenerar el arte de Tarou el código seguía con las tablas y los cuadros viejos
+# hasta un make clean.
+src/juego/tarou_sprite.obj: $(TAROU_PICS)
+src/pantallas/personajes.obj: res/personajes/tarou/tarou_reposo_estatico.pic
+src/juego/animaciones.obj: res/personajes/tarou/tarou_anim.h
 
 # Borra las salidas de conversión que viven dentro de res/ (cleanGfx solo mira la raíz).
 cleanGfxRes:

@@ -14,8 +14,10 @@
 
     SE CONECTA CON
       Lee:      res/descargas/graficos/pixellab/<nombre>/ (ver su README.md).
-      Escribe:  res/personajes/<nombre>/<nombre>_<animación>.png (13 tiras) y
-                res/personajes/<nombre>/<nombre>_anim.h (#define *_CUADROS).
+      Escribe:  res/personajes/<nombre>/<nombre>_<animación>.png (13 tiras),
+                <nombre>_reposo_estatico.png (SIEMPRE 4 cuadros del reposo, para
+                la carga estática de intro y título en src/pantallas/personajes.c)
+                y res/personajes/<nombre>/<nombre>_anim.h (#define *_CUADROS).
       Lo usan:  el Makefile (gfx4snes -s 32 -T convierte las tiras),
                 src/juego/animaciones.c (incluye <nombre>_anim.h) y
                 scripts/pruebas/prueba_preparar_personaje.py (pruebas).
@@ -28,6 +30,7 @@
     VARIABLES (constantes del módulo)
       CELDA         int    64 px             lado del cuadro
       MAX_CUADROS   int    15                cuadros por animación (30 KB < 32 KB)
+      CUADROS_ESTATICOS int 4                cuadros de la tira estática de reposo (8 KB en VRAM)
       COLORES       int    15                colores opacos (el 16.º es el transparente)
       TRANSPARENTE  tuple  magenta           color que marca el índice 0 al guardar
       ANIMACIONES   list   (nombre, cuadros) las 13 animaciones y sus cuadros por defecto
@@ -47,6 +50,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageSequence
 
 CELDA = 64
 MAX_CUADROS = 15
+CUADROS_ESTATICOS = 4
 COLORES = 15
 TRANSPARENTE = (255, 0, 255)
 
@@ -241,6 +245,18 @@ def preparar(nombre: str, entrada: Path, salida: Path) -> dict:
         indexar(tira, colores).save(salida / f"{nombre}_{animacion}.png", format="PNG")
         resultado[animacion] = len(cuadros)
         print(f"  {nombre}_{animacion}.png  {len(cuadros)} cuadros  ({por_animacion[animacion][1]})")
+    # Tira ESTÁTICA de reposo para intro y título (src/pantallas/personajes.c):
+    # allí los cuadros se cargan de una vez en VRAM (4 x 2 KB) sin motor dinámico,
+    # así que tienen que ser SIEMPRE 4, tenga los que tenga el reposo real. Se
+    # eligen repartidos a lo largo del reposo (el k-ésimo es el (k*N)//4) para que
+    # el bucle no salte: con 6 cuadros, el 0, 1, 3 y 4; con 2, el 0, 0, 1 y 1.
+    reposo = alineados["reposo"]
+    estaticos = [reposo[(k * len(reposo)) // CUADROS_ESTATICOS] for k in range(CUADROS_ESTATICOS)]
+    tira = Image.new("RGBA", (CELDA * CUADROS_ESTATICOS, CELDA), (0, 0, 0, 0))
+    for k, c in enumerate(estaticos):
+        tira.paste(c, (k * CELDA, 0), c)
+    indexar(tira, colores).save(salida / f"{nombre}_reposo_estatico.png", format="PNG")
+    print(f"  {nombre}_reposo_estatico.png  {CUADROS_ESTATICOS} cuadros  (reposo {[(k * len(reposo)) // CUADROS_ESTATICOS for k in range(CUADROS_ESTATICOS)]})")
     escribir_header(salida / f"{nombre}_anim.h", nombre, resultado)
     print(f"  {nombre}_anim.h  paleta: {len(colores)} colores + transparente; {medida}")
     return resultado

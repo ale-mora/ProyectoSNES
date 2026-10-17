@@ -158,6 +158,13 @@ tarou_reposo_til:     .incbin "res/personajes/tarou/tarou_reposo.pic"
 tarou_reposo_til_end:
 tarou_pal:            .incbin "res/personajes/tarou/tarou_reposo.pal"
 .ends
+; Tira ESTÁTICA de reposo: SIEMPRE 4 cuadros (8 KB) elegidos del reposo real por
+; preparar_personaje.py. La cargan de una vez intro y título (src/pantallas/
+; personajes.c), sin motor dinámico; el nivel usa .rodata_tarou_reposo entera.
+.section ".rodata_tarou_reposo_estatico" superfree
+tarou_reposo_estatico_til:     .incbin "res/personajes/tarou/tarou_reposo_estatico.pic"
+tarou_reposo_estatico_til_end:
+.ends
 .section ".rodata_tarou_caminar" superfree
 tarou_caminar_til:    .incbin "res/personajes/tarou/tarou_caminar.pic"
 tarou_caminar_til_end:

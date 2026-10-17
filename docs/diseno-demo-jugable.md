@@ -181,8 +181,11 @@ Reglas transversales:
   `pantalla_X_vblank()`.
 - **Espejo:** la tabla metasprite de cada cuadro viene de `gfx4snes -T`
   mirando a la derecha. Mirando a la izquierda se construye en RAM una copia
-  de 5 entradas con `dx` intercambiado (0 ↔ 32) y el bit `hflip` (0x40) en los
-  atributos. Sin variantes `-L` del conversor (menos incógnitas).
+  con `dx` intercambiado (0 ↔ 32), el bit `hflip` (0x40) en los atributos y el
+  terminador detrás de la última pieza (`juego/metasprite.c`, lógica pura
+  probada en PC). Un cuadro tiene **hasta** 4 piezas: `gfx4snes -T` omite los
+  bloques de 32×32 transparentes. Sin variantes `-L` del conversor (menos
+  incógnitas).
 - **Animaciones (1:1 con los estados):** `reposo`, `caminar`, `correr`,
   `saltar`, `caer`, `agachado`, `agachado_caminar`, `desenvainar`, `envainar`,
   `atacar`, `echarse`, `dormido`, `despertar`. Cada una: cantidad de cuadros
@@ -253,6 +256,7 @@ res/descargas/graficos/pixellab/tarou/      ← el autor descarga aquí (ignorad
 res/personajes/tarou/                       ← versionado (como el resto de res/)
     tarou_reposo.png ... tarou_despertar.png   tiras indexadas, 64×64 por cuadro,
                                                UNA paleta compartida (15 + transparente)
+    tarou_reposo_estatico.png                  SIEMPRE 4 cuadros elegidos del reposo (intro y título)
     tarou_anim.h                               #define TAROU_REPOSO_CUADROS 4 ...
           │  make  (gfx4snes -s 32 -o 16 -u 16 -p -T -X 64 -Y 64 -P 3)
           ▼
@@ -310,10 +314,13 @@ main.c ─ secuencia_actualizar() ─▶ pantalla_nivel1_actualizar()
   con `tcc816` y en `tests/` con `gcc`.
 - **Capa de hardware** (`mando.c`, `tarou_sprite.c`, `hud_debug.c`,
   `pantalla_nivel1.c`): traduce entre la lógica y la PPU/mando.
-- **Intro y título:** `personajes.c` muestra a Tarou (4 cuadros de reposo,
-  carga estática de 8 KB en VRAM 0x0000, dibujado con 4 `oamSet` de 32×32 a
-  partir de la misma tabla metasprite) y a Bárbara (sprite estático de 64×64
-  como hasta ahora, tiles a continuación). Tamaño `OBJ_SIZE32_L64`.
+- **Intro y título:** `personajes.c` muestra a Tarou con la tira
+  `tarou_reposo_estatico` (siempre 4 cuadros, elegidos del reposo real por el
+  pipeline; carga estática de 8 KB en VRAM 0x0000; un `oamSet` de 32×32 por
+  pieza según su tabla metasprite, hasta 4, escondiendo las entradas que
+  sobran) y a Bárbara (sprite estático de 64×64 como hasta ahora, tiles a
+  continuación). Tamaño `OBJ_SIZE32_L64`. Así el reposo del nivel puede tener
+  los cuadros que quiera el arte sin tocar `personajes.c`.
 
 ## 12. Cabecera estándar de cada archivo fuente
 
@@ -378,6 +385,14 @@ agachado · variantes de animación con espada fuera · cámara suavizada.
 - **Metasprite estático en intro y título:** la numeración de bloques de
   `gfx4snes -s 32` (filas de 128 px, bloque `n` → tile `(n/4)*64 + (n%4)*4`)
   se comprueba con el marcador numerado antes de fiarse de la fórmula.
+- **Piezas transparentes:** `gfx4snes -T` omite los bloques de 32×32 vacíos
+  (un Tarou dormido solo ocupa la mitad inferior de la celda): ningún código
+  supone 4 piezas por cuadro; se recorre hasta el terminador
+  (`metasprite_piezas`, `metasprite_espejar`, `tests/prueba_metasprite.c`).
+- **Primer cuadro al entrar en el nivel:** `pantalla_nivel1_iniciar` llama a
+  `oamVramQueueUpdate()` justo después de `oamInitDynamicSpriteEndFrame()`,
+  con la pantalla aún apagada; si no, los 32 frames del fade in muestran las
+  piezas que hubiera en VRAM (las de la tira estática del título).
 - **Nombres de las tablas `_meta.inc`:** se leen del archivo generado antes de
   escribir `tarou_sprite.c`.
 - **`consoleDrawText` con `%d` negativos:** imprime el signo, pero su formateo

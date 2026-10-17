@@ -30,6 +30,7 @@ void pruebas_puntofijo(void);
 void pruebas_camara(void);
 void pruebas_animacion(void);
 void pruebas_tarou(void);
+void pruebas_metasprite(void);
 
 int main(void)
 {
@@ -37,6 +38,7 @@ int main(void)
     pruebas_camara();
     pruebas_animacion();
     pruebas_tarou();
+    pruebas_metasprite();
 
     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
     return pruebas_fallidas != 0;

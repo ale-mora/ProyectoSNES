@@ -5,16 +5,17 @@
       Es la capa de hardware del protagonista: lee la struct Tarou (estado,
       cuadro, dirección, posición) y la convierte en entradas de la OAM y copias
       de tiles a la VRAM. La lógica (tarou.c) no sabe que existe este archivo.
-      Técnica (docs/diseno-demo-jugable.md §7): cada cuadro de 64x64 son cuatro
-      sprites de 32x32 descritos por una tabla metasprite que genera gfx4snes
-      -T; el motor de sprites dinámicos del SDK copia a la VRAM solo el cuadro
-      que se muestra, así los ~55 cuadros viven en la ROM.
+      Técnica (docs/diseno-demo-jugable.md §7): cada cuadro de 64x64 son hasta
+      cuatro sprites de 32x32 descritos por una tabla metasprite que genera
+      gfx4snes -T (omite las piezas transparentes); el motor de sprites
+      dinámicos del SDK copia a la VRAM solo el cuadro que se muestra, así los
+      ~55 cuadros viven en la ROM.
 
     SE CONECTA CON
       Incluye:  <snes.h> (t_metasprite, oambuffer), juego/tarou.h.
-      Lo usan:  pantallas/pantalla_nivel1.c (cargar, dibujar, ocultar) y
-                pantallas/personajes.c (tarou_sprite_tabla para el dibujo
-                estático de intro y título, tarea 5.1).
+      Lo usan:  pantallas/pantalla_nivel1.c (cargar, dibujar, ocultar). El
+                dibujo estático de intro y título (pantallas/personajes.c) tiene
+                su propia tira, tarou_reposo_estatico, y no pasa por aquí.
 
     HARDWARE QUE TOCA
       OAM (entradas 0..3 y el buffer del motor dinámico), VRAM (0x0000..0x1FFF,

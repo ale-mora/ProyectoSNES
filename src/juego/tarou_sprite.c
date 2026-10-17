@@ -3,20 +3,23 @@
 
     PROPÓSITO
       Traducir (estado, cuadro, dirección, posición) a una llamada
-      oamMetaDrawDyn32(): el motor reserva las entradas 0..3 de la OAM, coloca
-      las cuatro piezas de 32x32 según la tabla metasprite y, si el cuadro
-      cambió (oamrefresh = 1), encola la copia de sus tiles a la VRAM, que
-      oamVramQueueUpdate() ejecuta después del VBlank. Mirando a la izquierda se
-      construye en RAM una copia de la tabla con las piezas intercambiadas y el
-      bit de espejo horizontal (no hay tablas espejadas en la ROM).
+      oamMetaDrawDyn32(): el motor reserva una entrada de la OAM por pieza a
+      partir de la 0, coloca las piezas de 32x32 según la tabla metasprite y, si
+      el cuadro cambió (oamrefresh = 1), encola la copia de sus tiles a la VRAM,
+      que oamVramQueueUpdate() ejecuta después del VBlank. Mirando a la izquierda
+      se construye en RAM una copia de la tabla con las piezas intercambiadas y
+      el bit de espejo horizontal (no hay tablas espejadas en la ROM). Un cuadro
+      tiene HASTA cuatro piezas: gfx4snes -T omite las transparentes, y el
+      recorrido para en el terminador (juego/metasprite.c).
 
     SE CONECTA CON
-      Incluye:  juego/tarou_sprite.h, juego/animaciones.h, sistema/puntofijo.h y
-                los 13 tarou_<anim>_meta.inc que genera gfx4snes -T (por la ruta
-                -Ires/personajes/tarou del Makefile). Esos .inc se incluyen SOLO
-                aquí: definen tablas const con nombre global.
+      Incluye:  juego/tarou_sprite.h, juego/animaciones.h, juego/metasprite.h,
+                sistema/puntofijo.h y los 13 tarou_<anim>_meta.inc que genera
+                gfx4snes -T (por la ruta -Ires/personajes/tarou del Makefile).
+                Esos .inc se incluyen SOLO aquí: definen tablas const con nombre
+                global (personajes.c incluye el suyo, tarou_reposo_estatico_meta.inc).
       Lee de la ROM: tarou_<anim>_til (13) y tarou_pal (data.asm).
-      Lo usan:  pantallas/pantalla_nivel1.c, pantallas/personajes.c (tabla).
+      Lo usan:  pantallas/pantalla_nivel1.c.
 
     HARDWARE QUE TOCA
       OAM: oamInitDynamicSprite, oambuffer[0].oamrefresh, oamMetaDrawDyn32,
@@ -24,16 +27,17 @@
       uso), por el motor. CGRAM: dmaCopyCGram a la paleta de sprites 0.
 
     VARIABLES (globales y estáticas de este archivo)
-      espejo[5]         t_metasprite  tabla del cuadro actual mirando a la izquierda (RAM)
+      espejo[5]         t_metasprite  tabla del cuadro actual mirando a la izquierda (RAM):
+                                      hasta 4 piezas + el terminador
       ultimo_estado     u8            estado dibujado en el frame anterior (0xFF = ninguno)
       ultimo_cuadro     u8            cuadro dibujado en el frame anterior
       ultima_direccion  u8            dirección dibujada en el frame anterior
-      i                 u8            índice de bucle
 
     → glosario: Metasprite, Sprite dinámico, OAM, VRAM, DMA / HDMA
 ---------------------------------------------------------------------------------*/
 #include "juego/tarou_sprite.h"
 #include "juego/animaciones.h"
+#include "juego/metasprite.h"
 #include "sistema/puntofijo.h"
 
 /*--- Tablas metasprite generadas (una por animación): tarou_<anim>_metasprites[n] ---*/
@@ -63,14 +67,11 @@ extern char tarou_pal;
 #define PALETA_TAROU 0               /* Paleta de sprites 0 = colores 128..143 de la CGRAM.*/
 #define VRAM_DIN_GRANDES 0x0000      /* Piezas de 32x32 del motor dinámico.              */
 #define VRAM_DIN_PEQUENAS 0x1000     /* Piezas de 16x16 (no se usan).                    */
-#define PIEZAS 4                     /* Un cuadro de 64x64 = 4 piezas de 32x32.          */
-#define ATRIBUTO_HFLIP 0x40          /* Bit h del atributo "vhoopppc": espejo horizontal.*/
 #define SIN_ESTADO 0xFF              /* "Todavía no se dibujó nada".                     */
 
 /*--- Estado ----------------------------------------------------------------------------*/
-static t_metasprite espejo[PIEZAS + 1];     /* 4 piezas + el terminador.                 */
+static t_metasprite espejo[METASPRITE_PIEZAS_MAX + 1];   /* Hasta 4 piezas + terminador. */
 static u8 ultimo_estado, ultimo_cuadro, ultima_direccion;
-static u8 i;
 
 const t_metasprite *tarou_sprite_tabla(u8 estado, u8 cuadro)
 {
@@ -142,22 +143,11 @@ void tarou_sprite_dibujar(const Tarou *t, u16 camara)
     }
 
     /* Mirando a la izquierda: copia de la tabla con las piezas intercambiadas
-       (dx 0 <-> 32) y el bit de espejo. Campo a campo: tcc816 no copia structs. */
+       (dx 0 <-> 32) y el bit de espejo, con el terminador detrás de la última
+       pieza que haya (pueden ser menos de cuatro): juego/metasprite.c. */
     if (t->direccion == DIR_IZQUIERDA)
     {
-        for (i = 0; i < PIEZAS; i++)
-        {
-            espejo[i].dx = (u16)(32 - tabla[i].dx);
-            espejo[i].dy = tabla[i].dy;
-            espejo[i].dtile = tabla[i].dtile;
-            espejo[i].props = (u8)(tabla[i].props | ATRIBUTO_HFLIP);
-            espejo[i].unused = 0;
-        }
-        espejo[PIEZAS].dx = tabla[PIEZAS].dx;        /* El terminador, tal cual.           */
-        espejo[PIEZAS].dy = tabla[PIEZAS].dy;
-        espejo[PIEZAS].dtile = tabla[PIEZAS].dtile;
-        espejo[PIEZAS].props = tabla[PIEZAS].props;
-        espejo[PIEZAS].unused = 0;
+        metasprite_espejar(tabla, espejo);
         tabla = espejo;
     }
 

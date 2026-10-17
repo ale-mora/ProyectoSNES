@@ -4,16 +4,20 @@
     PROPÓSITO
       Cargar en VRAM de una vez (carga ESTÁTICA, sin motor dinámico) los cuadros
       de reposo de los dos personajes, mostrarlos, animarlos y esconderlos.
-      - Tarou usa el mismo arte que el nivel (res/personajes/tarou/tarou_reposo,
-        convertido por gfx4snes -s 32 -T: piezas de 32x32 más una tabla
-        metasprite). Aquí no se usa el motor dinámico: los 4 primeros cuadros
-        (4 x 64 tiles = 8 KB) se copian a VRAM 0x0000 y cada cuadro se dibuja
-        con cuatro oamSet de 32x32 siguiendo su tabla (tarou_sprite_tabla).
+      - Tarou usa la tira res/personajes/tarou/tarou_reposo_estatico.png:
+        SIEMPRE 4 cuadros, elegidos del reposo real por preparar_personaje.py
+        (tenga el reposo del nivel los cuadros que tenga), convertida por
+        gfx4snes -s 32 -T en piezas de 32x32 más una tabla metasprite por
+        cuadro. Los 4 cuadros (4 x 64 tiles = 8 KB) se copian a VRAM 0x0000 y
+        cada cuadro se dibuja con un oamSet de 32x32 por pieza siguiendo su
+        tabla. Un cuadro tiene HASTA 4 piezas (gfx4snes -T omite las
+        transparentes): las entradas de la OAM que sobran se esconden
+        (juego/metasprite.c cuenta las piezas).
       - Bárbara sigue siendo el sprite de 64x64 del pack (res/personajes/
         barbara_samurai, gfx4snes -s 64), con sus tiles a continuación.
       LÍMITE: la OAM direcciona 512 tiles de sprites (16 KB). Tarou 4 cuadros
-      (256 tiles) + Bárbara 4 cuadros (256 tiles) = 512 justos; por eso aquí se
-      usan como mucho 4 cuadros de reposo aunque el arte traiga más.
+      (256 tiles) + Bárbara 4 cuadros (256 tiles) = 512 justos; por eso la tira
+      estática son exactamente 4 cuadros, y el reposo del nivel puede tener más.
 
       Numeración de tiles (verificada el 2026-10-16):
       - gfx4snes -s 32 empaqueta los bloques de 32x32 en filas de 128 px, cuatro
@@ -24,10 +28,12 @@
         tile base de Bárbara (256, detrás de los 8 KB de Tarou).
 
     SE CONECTA CON
-      Incluye:  pantallas/personajes.h, juego/tarou_sprite.h (tarou_sprite_tabla,
-                tarou_sprite_tiles), juego/animaciones.h (ESTADO_PARADO).
-      Lee de la ROM: tarou_reposo_til/_til_end y tarou_pal (vía tarou_sprite.c y
-                data.asm), barbara_samurai_til/_til_end/_pal (data.asm).
+      Incluye:  pantallas/personajes.h, juego/metasprite.h (metasprite_piezas) y
+                tarou_reposo_estatico_meta.inc (lo genera gfx4snes -T; llega por
+                la ruta -Ires/personajes/tarou del Makefile): define las tablas
+                tarou_reposo_estatico_metasprites[4] y se incluye SOLO aquí.
+      Lee de la ROM: tarou_reposo_estatico_til/_til_end y tarou_pal,
+                barbara_samurai_til/_til_end/_pal (data.asm).
       Lo usan:  pantallas/pantalla_intro.c (escena 3), pantallas/pantalla_titulo.c,
                 sistema/main.c (personajes_ocultar al arrancar).
 
@@ -45,16 +51,19 @@
       frames_cuadro         u8   0..FRAMES_POR_CUADRO frames desde el último cambio de cuadro
       visibles              u8   0 / 1                1 = se están mostrando
       tabla                 const t_metasprite*       tabla del cuadro de Tarou en curso
+      piezas                u8   0..4                 cuántas piezas tiene ese cuadro
       i                     u8                        índice de pieza
 
     → glosario: Sprite, OAM, VRAM, Paleta, Metasprite, DMA / HDMA
 ---------------------------------------------------------------------------------*/
 #include "pantallas/personajes.h"
-#include "juego/tarou_sprite.h"
-#include "juego/animaciones.h"
+#include "juego/metasprite.h"
+
+/*--- Tablas metasprite de la tira estática: tarou_reposo_estatico_metasprites[4] --*/
+#include "tarou_reposo_estatico_meta.inc"
 
 /*--- Datos en ROM (pegados por data.asm) ----------------------------------------*/
-extern char tarou_reposo_til, tarou_reposo_til_end;    /* piezas de 32x32 del reposo   */
+extern char tarou_reposo_estatico_til, tarou_reposo_estatico_til_end; /* piezas 32x32 */
 extern char tarou_pal;                                  /* paleta de Tarou (16 colores) */
 extern char barbara_samurai_til, barbara_samurai_til_end; /* tiles de la samurái      */
 extern char barbara_samurai_pal;                        /* paleta de la samurái        */
@@ -62,8 +71,8 @@ extern char barbara_samurai_pal;                        /* paleta de la samurái
 /*--- Constantes -----------------------------------------------------------------*/
 #define OAM_TAROU 0                    /* Entradas 0..3 de la OAM (una por pieza).    */
 #define OAM_BARBARA 4                  /* Entrada 4 → oamSet quiere id*4 = 16.        */
-#define PIEZAS_TAROU 4                 /* 64x64 = 4 piezas de 32x32.                  */
-#define CUADROS_TAROU 4                /* Cuadros de reposo que caben (ver cabecera). */
+#define PIEZAS_TAROU METASPRITE_PIEZAS_MAX /* 64x64 = HASTA 4 piezas de 32x32.        */
+#define CUADROS_TAROU 4                /* La tira estática trae SIEMPRE 4 (cabecera). */
 #define BYTES_POR_CUADRO 2048          /* 64 tiles x 32 bytes.                        */
 #define CUADROS_BARBARA 4              /* Cuadros de reposo (de los 5 del pack).      */
 #define TILE_BASE_BARBARA 256          /* 8 KB de Tarou / 32 bytes por tile.          */
@@ -80,6 +89,7 @@ static u8 cuadro_tarou, cuadro_barbara;                /* Cuadro de animación. 
 static u8 frames_cuadro;                               /* Frames desde el cambio.  */
 static u8 visibles;                                    /* 1 = se están mostrando.  */
 static const t_metasprite *tabla;                      /* Tabla del cuadro actual. */
+static u8 piezas;                                      /* Piezas de ese cuadro.    */
 static u8 i;
 
 /*--- tile_del_bloque32: bloque de 32x32 número n (de la tira de Tarou) → tile -----*/
@@ -94,25 +104,38 @@ static u16 tile_del_bloque64(u8 n)
     return (u16)(TILE_BASE_BARBARA + (n / 2) * 128 + (n % 2) * 8);
 }
 
+/*--- esconder: manda una entrada de la OAM fuera de la pantalla -------------------
+    OJO: OBJ_HIDE por sí solo manda el sprite a y = 240, pero la coordenada
+    vertical de la OAM da la vuelta cada 256 píxeles: un sprite de 64 de alto en
+    y = 240 asoma 48 filas por ARRIBA de la pantalla. Solución: hacerlo pequeño
+    (32x32), ponerlo en y = 224 (justo debajo del borde, sin dar la vuelta) y en
+    x = 256 (bit alto de x = fuera de pantalla por la derecha). Al volver a
+    mostrar, dibujar() repone tamaño y posición. */
+static void esconder(u8 entrada)
+{
+    oamSetEx((u16)entrada * 4, OBJ_SMALL, OBJ_HIDE);
+    oamSetXY((u16)entrada * 4, 256, 224);
+}
+
 /*--- personajes_cargar ------------------------------------------------------------
     1) oamInit: borra la OAM (los 128 sprites quedan escondidos).
     2) oamInitGfxAttr: tiles de sprites desde VRAM 0x0000 y tamaños "pequeño"
        32x32 (las piezas de Tarou) y "grande" 64x64 (Bárbara): OBJ_SIZE32_L64.
-    3) DMA de los 4 primeros cuadros de reposo de Tarou (8 KB) a 0x0000 y de los
-       de Bárbara a continuación; cada paleta a su hueco de la CGRAM. La VRAM se
-       direcciona en palabras de 2 bytes: los bytes se dividen entre 2. */
+    3) DMA de los 4 cuadros de la tira estática de Tarou (8 KB) a 0x0000 y de
+       los de Bárbara a continuación; cada paleta a su hueco de la CGRAM. La
+       VRAM se direcciona en palabras de 2 bytes: los bytes se dividen entre 2. */
 void personajes_cargar(void)
 {
-    u16 tam_tarou = (u16)(&tarou_reposo_til_end - &tarou_reposo_til);           /* bytes */
+    u16 tam_tarou = (u16)(&tarou_reposo_estatico_til_end - &tarou_reposo_estatico_til); /* bytes */
     u16 tam_barbara = (u16)(&barbara_samurai_til_end - &barbara_samurai_til);   /* bytes */
     if (tam_tarou > CUADROS_TAROU * BYTES_POR_CUADRO)
     {
-        tam_tarou = CUADROS_TAROU * BYTES_POR_CUADRO;   /* Con más cuadros, solo 4.   */
+        tam_tarou = CUADROS_TAROU * BYTES_POR_CUADRO;   /* Red de seguridad: solo 8 KB. */
     }
 
     oamInit();
     oamInitGfxAttr(VRAM_SPRITES, OBJ_SIZE32_L64);
-    dmaCopyVram((u8 *)&tarou_reposo_til, VRAM_SPRITES, tam_tarou);
+    dmaCopyVram((u8 *)&tarou_reposo_estatico_til, VRAM_SPRITES, tam_tarou);
     dmaCopyCGram((u8 *)&tarou_pal, 128 + 16 * PALETA_TAROU, 16 * 2);
     dmaCopyVram((u8 *)&barbara_samurai_til, VRAM_SPRITES + tam_tarou / 2, tam_barbara);
     dmaCopyCGram((u8 *)&barbara_samurai_pal, 128 + 16 * PALETA_BARBARA, 16 * 2);
@@ -124,15 +147,21 @@ void personajes_cargar(void)
 static void dibujar(void)
 {
     u16 dx;
-    /* Tarou: cuatro piezas de 32x32 según la tabla metasprite del cuadro (mirando a
-       la derecha). En espejo, cada pieza cambia de lado (dx 0 <-> 32) y se voltea. */
-    tabla = tarou_sprite_tabla(ESTADO_PARADO, cuadro_tarou);
-    for (i = 0; i < PIEZAS_TAROU; i++)
+    /* Tarou: una pieza de 32x32 por entrada de la tabla metasprite del cuadro
+       (mirando a la derecha). En espejo, cada pieza cambia de lado (dx 0 <-> 32)
+       y se voltea. Las entradas de la OAM que este cuadro no usa se esconden. */
+    tabla = tarou_reposo_estatico_metasprites[cuadro_tarou];
+    piezas = metasprite_piezas(tabla);               /* 0..4: para en el terminador.        */
+    for (i = 0; i < piezas; i++)
     {
         dx = tarou_izquierda ? (u16)(32 - tabla[i].dx) : tabla[i].dx;
         oamSet((OAM_TAROU + i) * 4, (u16)(x_tarou + dx), (u16)(y_tarou + tabla[i].dy),
                PRIORIDAD_ALTA, tarou_izquierda, 0, tile_del_bloque32(tabla[i].dtile), PALETA_TAROU);
         oamSetEx((OAM_TAROU + i) * 4, OBJ_SMALL, OBJ_SHOW);   /* 32x32, visible.       */
+    }
+    for (; i < PIEZAS_TAROU; i++)
+    {
+        esconder(OAM_TAROU + i);                     /* Pieza transparente: sin sprite.     */
     }
 
     /* Bárbara: un sprite de 64x64. La samurái del pack mira a la izquierda; sin
@@ -183,18 +212,10 @@ void personajes_animar(void)
 
 void personajes_ocultar(void)
 {
-    /* OJO: OBJ_HIDE por sí solo manda el sprite a y = 240, pero la coordenada
-       vertical de la OAM da la vuelta cada 256 píxeles: un sprite de 64 de alto
-       en y = 240 asoma 48 filas por ARRIBA de la pantalla. Solución: hacerlo
-       pequeño (32x32), ponerlo en y = 224 (justo debajo del borde, sin dar la
-       vuelta) y en x = 256 (bit alto de x = fuera de pantalla por la derecha).
-       Al volver a mostrar, dibujar() repone tamaño y posición. */
     for (i = 0; i < PIEZAS_TAROU; i++)
     {
-        oamSetEx((OAM_TAROU + i) * 4, OBJ_SMALL, OBJ_HIDE);
-        oamSetXY((OAM_TAROU + i) * 4, 256, 224);
+        esconder(OAM_TAROU + i);
     }
-    oamSetEx(OAM_BARBARA * 4, OBJ_SMALL, OBJ_HIDE);
-    oamSetXY(OAM_BARBARA * 4, 256, 224);
+    esconder(OAM_BARBARA);
     visibles = 0;
 }

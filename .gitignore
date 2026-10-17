@@ -18,6 +18,9 @@ scripts/capturas/
 .remember/
 .code-review-graph/
 
+# Cachés de Python (scripts/ y scripts/pruebas/)
+__pycache__/
+
 # Basura de SO
 Thumbs.db
 .DS_Store

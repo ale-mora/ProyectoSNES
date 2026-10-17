@@ -3,7 +3,7 @@
     de la capa de texto, sin pasar por la consola del SDK.
 
     PROPÓSITO
-      Seis filas (docs/diseno-demo-jugable.md §9):
+      Siete filas (docs/diseno-demo-jugable.md §9):
         X 123  VX -16        píxel entero de x y velocidad en punto fijo
         Y 144  VY 0
         EST CAMINANDO        nombre del estado, tal cual está en el código

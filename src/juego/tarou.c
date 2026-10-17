@@ -10,7 +10,7 @@
 
       Orden de cada frame (docs/diseno-demo-jugable.md §5): transiciones de
       estado → aceleración o frenado en x → corte del salto y gravedad en y →
-      integrar → recortar x → aterrizar → (avanzar la animación: tarea 3.7).
+      integrar → recortar x → aterrizar → avanzar la animación.
 
     SE CONECTA CON
       Incluye:  juego/tarou.h, juego/nivel.h (ANCHO_NIVEL, ANCHO_CELDA),

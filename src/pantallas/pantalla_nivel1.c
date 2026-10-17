@@ -13,8 +13,10 @@
       HDMA del título. START vuelve al título con fundido.
       Flujo por frame (docs/diseno-demo-jugable.md §11): mando_leer →
       tarou_actualizar (lógica pura) → camara_para → bgSetScroll de las dos
-      capas → tarou_sprite_dibujar → oamInitDynamicSpriteEndFrame; y, tras el
-      VBlank, oamVramQueueUpdate. El HUD de depuración llega en la tarea 4.4.
+      capas → tarou_sprite_dibujar → oamInitDynamicSpriteEndFrame →
+      hud_debug_dibujar; y, tras el VBlank, oamVramQueueUpdate y
+      hud_debug_vblank. Al entrar (_iniciar), los tiles del primer cuadro se
+      copian a la VRAM en el acto, antes del fade in.
 
     SE CONECTA CON
       Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h,
@@ -104,6 +106,13 @@ void pantalla_nivel1_iniciar(void)
     bgSetScroll(1, camara >> 1, 0);
     tarou_sprite_dibujar(&tarou, camara);            /* Primer cuadro antes del fade in.    */
     oamInitDynamicSpriteEndFrame();
+    oamVramQueueUpdate();                            /* Y sus tiles a la VRAM YA (la pantalla
+                                                        sigue apagada tras el fade out del
+                                                        título). Sin esto, los 32 frames del
+                                                        fade in mostraban las piezas que
+                                                        hubiera en VRAM: el primer
+                                                        oamVramQueueUpdate llegaba en el
+                                                        primer _vblank, después del fundido. */
 
     setModeHdmaColor(HDMA_CHANNEL6, (u8 *)&hdmaGradcieloList);   /* Cielo por línea.  */
     fade_in(FRAMES_FADE);

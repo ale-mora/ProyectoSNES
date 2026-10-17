@@ -108,10 +108,11 @@ Variables y reglas propias, en orden de aparición:
 | `res/titulo/fondo_lejos.pic` (`-e 2`), `fondo_cerca.pic` (`-y`) | capas del título | lejana en paleta 2; cercana de 512 px en páginas de 32×32 |
 | `res/intro/escena_1|2.pic` | imágenes de 256 colores (`-o 256 -u 256`) | Mode 3 |
 | `res/titulo/cielo_grad_data.as` | tabla HDMA (`-n -t bmp`) | el degradado del cielo, una línea por color |
-| `TAROU_ANIMS`, `TAROU_PICS`, regla patrón `res/personajes/tarou/%.pic` | las 13 tiras de Tarou → metasprites (`-s 32 -T -X 64 -Y 64 -P 3`) | un solo patrón para las 13 animaciones |
+| `TAROU_ANIMS`, `TAROU_PICS`, regla patrón `res/personajes/tarou/%.pic` | las 13 tiras de Tarou más `tarou_reposo_estatico` → metasprites (`-s 32 -T -X 64 -Y 64 -P 3`) | un solo patrón para las 14 tiras |
 | `res/nivel1/fondo_lejos.pic` | capa lejana del nivel (`-y -e 2`) | 512 px en páginas, paleta 2 |
 | `ASSETS := ...` | la lista de todas las salidas de gfx4snes | `bitmaps: $(ASSETS)` las fuerza antes de compilar |
 | `data.obj: $(ASSETS)` | `data.asm` se reensambla si cambia cualquier asset | `make` no ve los `.incbin`; sin esta línea los gráficos viejos se quedaban en la ROM |
+| `tarou_sprite.obj: $(TAROU_PICS)`, `personajes.obj: …reposo_estatico.pic`, `animaciones.obj: tarou_anim.h` | los `.c` que incluyen archivos **generados** se recompilan cuando se regeneran | `snes_rules` no ve esos `#include`; sin estas líneas, tras rehacer el arte de Tarou el código seguía con las tablas viejas hasta un `make clean` |
 | `cleanGfxRes` | borra las salidas de gfx4snes dentro de `res/` (el `cleanGfx` del SDK solo mira la raíz) | para que `make clean` deje `res/` como en git |
 | `clean: cleanBuildRes cleanRom cleanGfx cleanGfxRes` | limpieza total | lo ejecuta `run.bat` siempre |
 
@@ -179,7 +180,7 @@ RAM: 154372 bytes (94.22%) free of total 163840.
 src/juego/tarou.c + tests/prueba_tarou.c + ...
    │  gcc -std=c99 -Wall -Wextra -DPRUEBAS_PC -I. -I../src     (tests/Makefile)
    ▼
-tests/pruebas.exe   → "169 pruebas, 0 fallos"
+tests/pruebas.exe   → "191 pruebas, 0 fallos"
 ```
 
 `-DPRUEBAS_PC` hace que `sistema/tipos.h` tome `u8/u16/s16` de `<stdint.h>`

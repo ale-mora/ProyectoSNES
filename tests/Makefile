@@ -19,7 +19,7 @@ CC      = gcc
 CFLAGS  = -std=c99 -Wall -Wextra -DPRUEBAS_PC -I. -I../src
 PRUEBAS = pruebas.c $(wildcard prueba_*.c)
 # Lógica pura del juego: solo los archivos que ya existen (las tareas los van añadiendo).
-PURO    = $(wildcard ../src/juego/nivel.c ../src/juego/camara.c ../src/juego/animaciones.c ../src/juego/tarou.c)
+PURO    = $(wildcard ../src/juego/nivel.c ../src/juego/camara.c ../src/juego/animaciones.c ../src/juego/tarou.c ../src/juego/metasprite.c)
 CABECERAS = $(wildcard *.h ../src/sistema/*.h ../src/juego/*.h)
 
 pruebas.exe: $(PRUEBAS) $(PURO) $(CABECERAS)
