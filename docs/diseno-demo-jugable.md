@@ -153,11 +153,14 @@ Reglas transversales:
   → recortar x a [0, 416] (`ANCHO_NIVEL − ANCHO_CELDA`) → aterrizaje (si
   `y_pix + 64 >= suelo`: `y = suelo − ALTO_CELDA`, `vy = 0`, `en_suelo = 1`)
   → avanzar animación.
-- **Suelo:** `nivel_suelo_en(x_pix)` devuelve hoy la constante `SUELO_Y = 176`,
-  la fila donde empieza la hierba de la capa cercana (antes 208, sobre los
-  arbustos; cambiado el 2026-10-19 al llegar el suelo de Pixellab: 48 px de
-  tierra visibles). La última fila del cuadro es la planta de las patas:
-  `y_celda = suelo − 64`, así que los pies quedan en la fila 175.
+- **Suelo:** `nivel_suelo_en(x_pix)` devuelve hoy la constante `SUELO_Y = 176`
+  (antes 208, sobre los arbustos; cambiado el 2026-10-19 al llegar el suelo de
+  Pixellab). La última fila del cuadro es la planta de las patas:
+  `y_celda = suelo − 64`, así que los pies quedan en la fila 175. La banda de
+  hierba de la capa cercana empieza **4 px más arriba**, en la 172: el arte de
+  Pixellab es una vista lateral un poco elevada (las patas lejanas acaban 3 px
+  más arriba que las cercanas) y, con la hierba justo debajo de los pies, el
+  perro parecía flotar sobre una raya. Hundidos 4 px, pisa el terreno.
 - **Cajas** (coordenadas relativas a la celda de 96×64, medidas sobre el arte
   de Pixellab el 2026-10-19: el perro mide unos 64×58 de pie y 46 de alto
   agachado, centrado en la celda):
@@ -223,12 +226,14 @@ Reglas transversales:
 - **Capa cercana (BG0):** el **suelo**, `res/nivel1/fondo_cerca.png`
   (`nivel1_cerca_*`), 512 px en `SC_64x32`, paleta 1, en `VRAM_FONDO_A` /
   `VRAM_MAPA_A`. Scroll 1:1. La genera `scripts/preparar_suelo.py` a partir
-  del tileset *Sidescroller* de Pixellab (Create Tileset, tiles de 16×16): toma
-  la tira más larga de tiles de borde (hierba sobre tierra) y los tiles de
-  tierra opaca, pone la hierba en la fila `SUELO_Y`, rellena de tierra hasta
-  abajo variando cada celda con volteos (semilla fija) para que no se vean
-  franjas, y deja detrás los arbustos del título subidos como un seto
-  (`--seto`). 13 colores + transparente; unos 243 tiles de 8×8 en VRAM.
+  del tileset *Sidescroller* de Pixellab (Create Tileset, tiles de 16×16, banda
+  de hierba gruesa: unos 8 px más un borde oscuro): toma la tira más larga de
+  tiles de borde (hierba sobre tierra) y los tiles de tierra opaca, pone la
+  primera fila llena de la banda en `SUELO_Y − 4` (`--hundir`, ver §5; las
+  briznas sueltas asoman por encima), rellena de tierra hasta abajo variando
+  cada celda con volteos (semilla fija) para que no se vean franjas, y deja
+  detrás los arbustos del título subidos como un seto (`--seto`). 15 colores +
+  transparente (12 del suelo, 3 del seto); unos 309 tiles de 8×8 en VRAM.
 - **Capa lejana (BG1):** `res/nivel1/fondo_lejos.png`, derivada del título por
   `scripts/preparar_fondo_nivel.py` (borra el logo horneado y duplica en espejo
   hasta 512 px), paleta 2, `SC_64x32` en `VRAM_FONDO_B` / `VRAM_MAPA_B`

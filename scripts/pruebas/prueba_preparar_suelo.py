@@ -30,10 +30,13 @@ PIEDRA = (150, 150, 150, 255)
 OSCURO = (70, 40, 10, 255)
 
 
-def hoja_falsa(ruta: Path, con_borde: bool = True) -> None:
+def hoja_falsa(ruta: Path, con_borde: bool = True, matas: bool = False) -> None:
     """Hoja de 8x4 tiles: BORDE en la fila 3 (columnas 0..3) y TIERRA en la fila 0
     (columnas 6 y 7, con una piedra en la esquina para que los volteos se noten).
-    El resto, transparente o con formas que no son ni borde ni tierra."""
+    El resto, transparente o con formas que no son ni borde ni tierra. Con
+    matas=True, algunas columnas del borde tienen briznas sueltas en las filas 5..7
+    del tile, por encima de la banda llena (como la hoja de Pixellab con hierba
+    gruesa)."""
     im = Image.new("RGBA", (8 * T, 4 * T), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     if con_borde:
@@ -41,6 +44,8 @@ def hoja_falsa(ruta: Path, con_borde: bool = True) -> None:
             x = c * T
             d.rectangle((x, 3 * T + 8, x + T - 1, 3 * T + 9), fill=VERDE)       # hierba: filas 8..9
             d.rectangle((x, 3 * T + 10, x + T - 1, 4 * T - 1), fill=MARRON)     # tierra: filas 10..15
+            if matas:
+                d.rectangle((x + 3, 3 * T + 5, x + 3, 3 * T + 7), fill=VERDE)    # brizna: filas 5..7
     for c in (6, 7):
         x = c * T
         d.rectangle((x, 0, x + T - 1, T - 1), fill=MARRON)
@@ -126,6 +131,28 @@ class PruebasPrepararSuelo(unittest.TestCase):
         a = self.salida.read_bytes()
         ps.preparar(self.hoja, self.salida, suelo_y=176)
         self.assertEqual(a, self.salida.read_bytes())
+
+    def test_matas_sobre_la_banda(self):
+        """Las briznas sueltas que asoman por encima de la hierba no cuentan: lo que
+        cae en la fila del suelo es la primera fila LLENA de la banda."""
+        hoja_falsa(self.hoja, matas=True)
+        ps.preparar(self.hoja, self.salida, suelo_y=176)
+        with Image.open(self.salida) as im:
+            px = im.load()
+            primera_llena = next(y for y in range(224) if all(px[x, y] for x in range(512)))
+            self.assertEqual(primera_llena, 176)
+            self.assertTrue(any(px[x, 173] for x in range(512)))     # las briznas, por encima
+
+    def test_hundir(self):
+        """Con hundir=4 la banda de hierba empieza 4 px por encima de la fila del
+        suelo: los pies del protagonista (que acaban en suelo_y - 1) quedan dentro
+        de la hierba y no posados sobre su borde. Hace falta porque el arte de
+        Pixellab es una vista lateral un poco elevada."""
+        ps.preparar(self.hoja, self.salida, suelo_y=176, hundir=4)
+        with Image.open(self.salida) as im:
+            px = im.load()
+            primera_llena = next(y for y in range(224) if all(px[x, y] for x in range(512)))
+            self.assertEqual(primera_llena, 172)
 
     def test_seto_detras_del_suelo(self):
         """Con --seto, los arbustos asoman por ENCIMA del suelo (subidos para que su

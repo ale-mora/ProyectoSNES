@@ -9,8 +9,11 @@
       16x16 con muchas piezas de plataforma. Para un suelo plano bastan dos
       tipos: el BORDE (filas de arriba vacías, hierba, tierra debajo) y la
       TIERRA (un tile opaco). Este script los encuentra solo, pinta con ellos
-      una franja de suelo de 512 px de ancho cuya hierba empieza exactamente en
-      la fila SUELO_Y del juego, rellena de tierra hasta abajo y varía la
+      una franja de suelo de 512 px de ancho cuya banda de hierba empieza en la
+      fila SUELO_Y del juego menos HUNDIR píxeles (los pies del protagonista
+      quedan DENTRO de la hierba, no posados sobre su borde: el arte de
+      Pixellab es una vista lateral un poco elevada y sus patas lejanas acaban
+      3 px más arriba que las cercanas), rellena de tierra hasta abajo y varía la
       tierra con volteos (gratis en el mapa de la SNES) para que no se vean
       franjas. Opcionalmente pone detrás los arbustos del título subidos, como
       un seto. El resultado es una imagen indexada de 15 colores + transparente
@@ -37,10 +40,12 @@
       ALTO       int   256 px   alto de la imagen (224 visibles + relleno para -y)
       VISIBLE    int   224 px   filas que se ven en pantalla
       SEMILLA    int   2026     semilla fija de la variación (salida reproducible)
+      HUNDIR     int   4 px     cuánto se hunden los pies en la hierba (opción --hundir)
 
     Uso (desde la raíz del repo):
       python scripts/preparar_suelo.py --seto res/titulo/fondo_cerca.png
-      python scripts/preparar_suelo.py RUTA_HOJA.png --suelo 176 --salida res/nivel1/fondo_cerca.png
+      python scripts/preparar_suelo.py RUTA_HOJA.png --suelo 176 --hundir 4 --salida res/nivel1/fondo_cerca.png
+      Sin RUTA_HOJA usa el PNG MÁS RECIENTE de res/descargas/graficos/pixellab/suelo/.
     → glosario: Tile, Tilemap, Paleta, Parallax, Suelo
 ---------------------------------------------------------------------------------
 """
@@ -60,6 +65,7 @@ ANCHO = 512
 ALTO = 256
 VISIBLE = 224
 SEMILLA = 2026
+HUNDIR = 4
 CARPETA = Path("res/descargas/graficos/pixellab/suelo")
 
 
@@ -119,16 +125,22 @@ def reducir(colores: list, n: int) -> list:
 
 # --- 3. Todo junto -------------------------------------------------------------------
 
-def preparar(hoja_ruta: Path, salida: Path, suelo_y: int = 176, seto: Path | None = None) -> None:
-    """Escribe la capa cercana: (seto) + borde con la hierba en la fila suelo_y +
-    tierra variada hasta abajo. No escribe nada si la hoja no tiene bordes o tierra."""
+def preparar(hoja_ruta: Path, salida: Path, suelo_y: int = 176, seto: Path | None = None,
+             hundir: int = 0) -> None:
+    """Escribe la capa cercana: (seto) + borde con la banda de hierba empezando en la
+    fila suelo_y - hundir + tierra variada hasta abajo. No escribe nada si la hoja
+    no tiene bordes o tierra."""
     with Image.open(hoja_ruta) as im:
         hoja = im.convert("RGBA")
     bordes, tierras = clasificar(hoja)
     if not bordes or not tierras:
         sys.exit(f"ERROR: {hoja_ruta} no tiene tiles de borde (hierba sobre tierra) o de tierra "
                  f"opaca de {T}x{T}. ¿Es una exportación Sidescroller? No se escribió nada.")
-    r0 = min(next(y for y, n in enumerate(opacos(t)) if n) for t in bordes)   # primera fila con hierba
+    # Fila del tile donde empieza la BANDA de hierba: la primera fila llena (16 píxeles
+    # opacos) en todos los tiles de la tira. Las briznas sueltas de más arriba no
+    # cuentan: asoman por encima del suelo, como en el arte.
+    r0 = max(next(y for y, n in enumerate(opacos(t)) if n == T) for t in bordes)
+    arriba = suelo_y - hundir                          # fila de pantalla donde empieza la banda
 
     capa = Image.new("RGBA", (ANCHO, ALTO), (0, 0, 0, 0))
     colores_seto = []
@@ -144,11 +156,11 @@ def preparar(hoja_ruta: Path, salida: Path, suelo_y: int = 176, seto: Path | Non
                 arbustos.putalpha(Image.eval(indices, lambda i: 255 if i else 0))
         caja = arbustos.getchannel("A").getbbox()
         if caja:
-            subir = caja[3] - (suelo_y + T)
+            subir = caja[3] - (arriba + T)
             capa.alpha_composite(arbustos.crop((0, subir, arbustos.width, arbustos.height)), (0, 0))
             colores_seto = sorted({p[:3] for p in (arbustos.get_flattened_data() if hasattr(arbustos, "get_flattened_data") else arbustos.getdata()) if p[3] > 0})
 
-    y_borde = suelo_y - r0                             # la fila r0 del tile cae en suelo_y
+    y_borde = arriba - r0                              # la fila r0 del tile cae en "arriba"
     for k in range(ANCHO // T):
         capa.alpha_composite(bordes[k % len(bordes)], (k * T, y_borde))
     azar = random.Random(SEMILLA)
@@ -162,23 +174,25 @@ def preparar(hoja_ruta: Path, salida: Path, suelo_y: int = 176, seto: Path | Non
         y += T
 
     # Paleta: el seto conserva sus colores; el suelo se reduce a lo que quede de 15.
-    suelo = capa.crop((0, suelo_y, ANCHO, VISIBLE))
+    suelo = capa.crop((0, arriba - r0, ANCHO, VISIBLE))   # con las briznas
     datos = suelo.get_flattened_data() if hasattr(suelo, "get_flattened_data") else suelo.getdata()
     colores_suelo = reducir([p[:3] for p in datos if p[3] > 0], pp.COLORES - len(colores_seto))
     colores = colores_seto + [c for c in colores_suelo if c not in colores_seto]
     salida.parent.mkdir(parents=True, exist_ok=True)
     pp.indexar(capa, colores).save(salida, format="PNG")
     print(f"  {salida}  {ANCHO}x{ALTO}; borde de {len(bordes)} tiles, {len(tierras)} de tierra; "
-          f"hierba en la fila {suelo_y}; {len(colores)} colores + transparente"
+          f"banda de hierba desde la fila {arriba} (pies en {suelo_y - 1}, hundidos {hundir}); "
+          f"{len(colores)} colores + transparente"
           + (f" (seto: {len(colores_seto)})" if colores_seto else ""))
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Capa cercana del nivel 1: suelo de Pixellab (+ seto).")
     ap.add_argument("hoja", type=Path, nargs="?", default=None,
-                    help=f"hoja de tiles de Pixellab (por defecto, el primer PNG de {CARPETA})")
+                    help=f"hoja de tiles de Pixellab (por defecto, el PNG más reciente de {CARPETA})")
     ap.add_argument("--salida", type=Path, default=Path("res/nivel1/fondo_cerca.png"))
-    ap.add_argument("--suelo", type=int, default=176, help="fila donde empieza la hierba (SUELO_Y del juego)")
+    ap.add_argument("--suelo", type=int, default=176, help="SUELO_Y del juego: los pies acaban en la fila anterior")
+    ap.add_argument("--hundir", type=int, default=HUNDIR, help="píxeles que los pies se hunden en la hierba")
     ap.add_argument("--seto", type=Path, default=None, help="arbustos a poner detrás (p. ej. res/titulo/fondo_cerca.png)")
     args = ap.parse_args()
     hoja = args.hoja
@@ -186,9 +200,9 @@ def main() -> int:
         pngs = sorted(CARPETA.glob("*.png"))
         if not pngs:
             sys.exit(f"ERROR: no hay ningún PNG en {CARPETA}")
-        hoja = pngs[0]
+        hoja = max(pngs, key=lambda p: p.stat().st_mtime)   # la última exportación
     print(f"[suelo] hoja: {hoja}")
-    preparar(hoja, args.salida, args.suelo, args.seto)
+    preparar(hoja, args.salida, args.suelo, args.seto, args.hundir)
     return 0
 
 
