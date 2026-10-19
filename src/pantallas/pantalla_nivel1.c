@@ -6,8 +6,9 @@
       protagonista, calcula la cámara, escribe el scroll de las dos capas y
       dibuja. Es la única pantalla con _vblank(), porque el sprite dinámico
       copia sus tiles a la VRAM justo después del VBlank.
-      Capas (Mode 1 con BG3 en prioridad alta): fondo 0 = capa CERCANA (los
-      arbustos del título, 512 px, scroll 1:1 con la cámara); fondo 1 = capa
+      Capas (Mode 1 con BG3 en prioridad alta): fondo 0 = capa CERCANA (el
+      suelo de Pixellab con la hierba en la fila SUELO_Y y el seto de arbustos
+      detrás, 512 px, scroll 1:1 con la cámara); fondo 1 = capa
       LEJANA (montañas sin logotipo, 512 px, scroll a la mitad); fondo 2 = HUD
       de depuración (texto de 4 colores, apagado al inicio); cielo = degradado
       HDMA del título. START vuelve al título con fundido.
@@ -22,7 +23,7 @@
       Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h,
                 juego/nivel.h, juego/camara.h, juego/mando.h, juego/tarou.h,
                 juego/tarou_sprite.h.
-      Lee de la ROM: cerca_* (título), nivel1_lejos_* y hdmaGradcieloList (data.asm).
+      Lee de la ROM: nivel1_cerca_*, nivel1_lejos_* y hdmaGradcieloList (data.asm).
       Lo usan:  sistema/secuencia.c (_iniciar, _actualizar y _vblank).
 
     HARDWARE QUE TOCA
@@ -49,7 +50,8 @@
 #include "juego/hud_debug.h"
 #include "sistema/puntofijo.h"
 
-extern char cerca_til, cerca_til_end, cerca_pal, cerca_map, cerca_map_end;
+extern char nivel1_cerca_til, nivel1_cerca_til_end, nivel1_cerca_pal;   /* El suelo.    */
+extern char nivel1_cerca_map, nivel1_cerca_map_end;
 extern char nivel1_lejos_til, nivel1_lejos_til_end, nivel1_lejos_pal;
 extern char nivel1_lejos_map, nivel1_lejos_map_end;
 extern const unsigned char hdmaGradcieloList[];   /* Tabla HDMA del cielo (gfx4snes -n). */
@@ -92,8 +94,8 @@ static void salir(Pantalla siguiente)
 void pantalla_nivel1_iniciar(void)
 {
     setMode(BG_MODE1, BG3_MODE1_PRIORITY_HIGH);      /* Como el título: BG3 por delante.    */
-    fondo16_cargar(0, &cerca_til, &cerca_til_end, &cerca_pal, 1,
-                   &cerca_map, &cerca_map_end, VRAM_FONDO_A, VRAM_MAPA_A, SC_64x32);
+    fondo16_cargar(0, &nivel1_cerca_til, &nivel1_cerca_til_end, &nivel1_cerca_pal, 1,
+                   &nivel1_cerca_map, &nivel1_cerca_map_end, VRAM_FONDO_A, VRAM_MAPA_A, SC_64x32);
     fondo16_cargar(1, &nivel1_lejos_til, &nivel1_lejos_til_end, &nivel1_lejos_pal, 2,
                    &nivel1_lejos_map, &nivel1_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
     fuente_2bpp(2);                                  /* Texto del HUD en el fondo 2...      */

@@ -110,6 +110,7 @@ Variables y reglas propias, en orden de aparición:
 | `res/titulo/cielo_grad_data.as` | tabla HDMA (`-n -t bmp`) | el degradado del cielo, una línea por color |
 | `TAROU_ANIMS`, `TAROU_PICS`, regla patrón `res/personajes/tarou/%.pic` | las 13 tiras de Tarou más `tarou_reposo_estatico` → metasprites (`-s 32 -T -X 96 -Y 64 -P 3`) | un solo patrón para las 14 tiras |
 | `res/nivel1/fondo_lejos.pic` | capa lejana del nivel (`-y -e 2`) | 512 px en páginas, paleta 2 |
+| `res/nivel1/fondo_cerca.pic` | capa cercana del nivel: el suelo (`-y -e 1`) | 512 px en páginas, paleta 1; la imagen la genera `scripts/preparar_suelo.py` |
 | `ASSETS := ...` | la lista de todas las salidas de gfx4snes | `bitmaps: $(ASSETS)` las fuerza antes de compilar |
 | `data.obj: $(ASSETS)` | `data.asm` se reensambla si cambia cualquier asset | `make` no ve los `.incbin`; sin esta línea los gráficos viejos se quedaban en la ROM |
 | `tarou_sprite.obj: $(TAROU_PICS)`, `personajes.obj: …reposo_estatico.pic`, `animaciones.obj: tarou_anim.h` | los `.c` que incluyen archivos **generados** se recompilan cuando se regeneran | `snes_rules` no ve esos `#include`; sin estas líneas, tras rehacer el arte de Tarou el código seguía con las tablas viejas hasta un `make clean` |

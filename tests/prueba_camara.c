@@ -34,9 +34,9 @@ void pruebas_camara(void)
     COMPROBAR(camara_para(416) == 256);           /* Más allá (el tope de Tarou), sigue en 256. */
 
     /* Suelo plano: la misma altura en todo el nivel. */
-    COMPROBAR(nivel_suelo_en(0) == 208);
-    COMPROBAR(nivel_suelo_en(500) == 208);
-    COMPROBAR(SUELO_Y == 208);
+    COMPROBAR(nivel_suelo_en(0) == 176);          /* La hierba del suelo de Pixellab      */
+    COMPROBAR(nivel_suelo_en(500) == 176);        /* empieza en la fila 176 (48 px de     */
+    COMPROBAR(SUELO_Y == 176);                    /* suelo: tres filas de tiles de 16).   */
     COMPROBAR(ANCHO_NIVEL == 512);
     COMPROBAR(ANCHO_PANTALLA == 256);
     COMPROBAR(ANCHO_CELDA == 96);                 /* Celda de 96x64: el perro de Pixellab */

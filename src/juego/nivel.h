@@ -21,7 +21,7 @@
       ANCHO_PANTALLA  256  px   ancho visible de la SNES
       ANCHO_CELDA     96   px   ancho de la celda del sprite del protagonista
       ALTO_CELDA      64   px   alto de la celda (su última fila es la de los pies)
-      SUELO_Y         208  px   fila donde apoyan los pies (a medir sobre el arte)
+      SUELO_Y         176  px   fila donde empieza la hierba del suelo (los pies, en la 175)
 
     → glosario: Nivel, Escenario, Suelo
 ---------------------------------------------------------------------------------*/
@@ -34,7 +34,8 @@
 #define ANCHO_PANTALLA 256   /* Resolución horizontal de la SNES.                       */
 #define ANCHO_CELDA 96       /* Tarou (perro de Pixellab) mide hasta 81 px al correr:   */
 #define ALTO_CELDA 64        /* celda de 96x64 = 3x2 piezas de 32x32 (§7).             */
-#define SUELO_Y 208          /* Altura del suelo plano; "a afinar" en Mesen (§5).       */
+#define SUELO_Y 176          /* Fila de la hierba de res/nivel1/fondo_cerca.png: 48 px  */
+                             /* de suelo (3 filas de tiles de 16) hasta la 223 (§8).   */
 
 /* Altura (fila y) del suelo bajo la coordenada x del mundo. Plano: siempre SUELO_Y. */
 u16 nivel_suelo_en(u16 x_pix);

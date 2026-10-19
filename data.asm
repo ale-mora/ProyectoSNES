@@ -135,6 +135,15 @@ lejos_map_end:
 .ends
 
 ; --- Nivel 1: capa lejana de 512 px (64x32), sin el logotipo del título ----------
+; Capa cercana del nivel 1: el suelo de Pixellab (hierba en la fila 176) con el seto
+; detrás; la genera scripts/preparar_suelo.py. Sustituye en el nivel a cerca_* del título.
+.section ".rodata_nivel1_cerca" superfree
+nivel1_cerca_til:     .incbin "res/nivel1/fondo_cerca.pic"
+nivel1_cerca_til_end:
+nivel1_cerca_pal:     .incbin "res/nivel1/fondo_cerca.pal"
+nivel1_cerca_map:     .incbin "res/nivel1/fondo_cerca.map"
+nivel1_cerca_map_end:
+.ends
 .section ".rodata_nivel1_lejos" superfree
 nivel1_lejos_til:     .incbin "res/nivel1/fondo_lejos.pic"
 nivel1_lejos_til_end:

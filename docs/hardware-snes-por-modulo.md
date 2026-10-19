@@ -64,7 +64,7 @@ Lo fija `sistema/comun.h` y lo respetan todas las pantallas:
 palabras   bytes      qué hay                                   quién lo escribe
 0x0000     0x0000  ┌ tiles de sprites (hasta 512 tiles, 16 KB) ┐  intro/título: Tarou 2 cuadros de 96x64 (6 KB, tiles 0..191) + Bárbara 4 cuadros desde 0x1000 (tile 256)
 0x1000     0x2000  │  (motor dinámico: piezas grandes 32x32   │  nivel: solo el cuadro actual de Tarou, copiado en cada cambio
-0x2000     0x4000  ├ VRAM_FONDO_A: tiles del fondo principal / capa cercana (logos, escena 3, arbustos)
+0x2000     0x4000  ├ VRAM_FONDO_A: tiles del fondo principal / capa cercana (logos, escena 3, arbustos del título, suelo del nivel)
 0x4000     0x8000  ├ VRAM_FONDO_B: tiles de la capa lejana (título y nivel: montañas)
 0x6000     0xC000  ├ VRAM_FUENTE: 96 tiles de la fuente (4bpp o 2bpp según la pantalla)
 0x6800     0xD000  ├ VRAM_MAPA_TEXTO: mapa 32x32 de la capa de texto (consola y HUD)
@@ -83,7 +83,7 @@ celda: tile, paleta, prioridad, volteretas); uno de 64×32, 4 KB.
 | Entradas | Paleta | Quién la usa |
 |---|---|---|
 | 0..15 | fondos 0 | la fuente de la consola (4bpp) o la de 2bpp (colores 0..3) |
-| 16..31 | fondos 1 | logos, escena 3, capa cercana (arbustos) |
+| 16..31 | fondos 1 | logos, escena 3, capa cercana (arbustos del título; suelo y seto del nivel) |
 | 32..47 | fondos 2 | capa lejana del título y del nivel |
 | 112..127 | fondos 7 | el texto en Mode 3 (las escenas de 256 colores dejan libres estas 16) |
 | 0..255 | — | en Mode 3, `fondo256_cargar` sobrescribe las 256 entradas: después hay que recargar las paletas de texto y sprites |
