@@ -100,7 +100,7 @@ una enseña de este proyecto:
 | **Memory Tools** | Ver y editar cualquier memoria: WRAM (las variables; `ANIMACIONES` está en `$7F00E4`, porque tcc816 copia las tablas `const` a RAM), VRAM (tiles y mapas: `VRAM_FUENTE` en `0x6000` palabras, el mapa de texto en `0x6800`...), CGRAM (paletas), OAM (los 128 sprites), ROM. Útil para comprobar que un DMA dejó los datos donde `comun.h` dice. |
 | **Tilemap Viewer** | Dibuja cada capa de fondo tal como la ve la PPU, con el scroll aplicado: para ver el mapa de 64×32 de la capa cercana del nivel, dónde está la costura del espejo, o si el HUD escribe en la fila correcta del mapa de texto. |
 | **Tile Viewer** | Los tiles crudos de la VRAM, por formato (2bpp, 4bpp, 8bpp). Para comprobar la numeración de bloques de gfx4snes (`(n/4)·64 + (n%4)·4`) o que el motor dinámico copió el cuadro correcto en `0x0000`. |
-| **Sprite Viewer** | Las 128 entradas de la OAM con posición, tile, paleta, tamaño y prioridad, y una vista de dónde cae cada una. Para ver las 4 piezas del metasprite de Tarou, un sprite "fantasma" fuera de pantalla, o el bit de espejo. |
+| **Sprite Viewer** | Las 128 entradas de la OAM con posición, tile, paleta, tamaño y prioridad, y una vista de dónde cae cada una. Para ver las 6 piezas del metasprite de Tarou, un sprite "fantasma" fuera de pantalla, o el bit de espejo. |
 | **Palette Viewer** | Las 256 entradas de la CGRAM: fondos 0..127 y sprites 128..255. Para confirmar que `tarou_pal` está en la paleta de sprites 0 y Bárbara en la 1 (el fallo del "lobo azul" del título se vio aquí: el título cargaba otra paleta en la 0). |
 | **Event Viewer** | Qué registro de la PPU se escribió en qué línea y ciclo del frame: muestra los DMA del VBlank, las escrituras de HDMA del cielo y el instante de `bgSetScroll`. |
 | **Profiler** | Cuántos ciclos consume cada función (con las etiquetas del `.sym`). Complementa la fila `LIN` del HUD. |
@@ -137,7 +137,12 @@ mirando la pantalla. Uso desde PowerShell, en la raíz:
 
 Qué hace por dentro, y por qué (cada punto costó una tanda fallida):
 
-1. Lanza `Mesen.exe <rom> --Emulation.EmulationSpeed=100 -donotsavesettings`.
+1. Lanza `Mesen.exe <rom> --Emulation.EmulationSpeed=100
+   --Preferences.AllowBackgroundInput=true -donotsavesettings`. La segunda
+   opción hace que Mesen acepte el mando aunque no sea la ventana activa: el
+   script te devuelve el primer plano y, con tu ajuste (`false`), las teclas
+   del guion se perdían si estabas usando el equipo (2026-10-19). Ninguna de
+   las dos se guarda en tu configuración.
 2. Restaura la ventana si estaba minimizada y la **activa una vez** con el
    truco de `AttachThreadInput` (Windows no cede el primer plano a quien no
    tiene la entrada). Sin esta activación, el foco de teclado dentro de Mesen

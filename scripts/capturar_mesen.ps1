@@ -147,9 +147,14 @@ New-Item -ItemType Directory -Force $Salida | Out-Null
 #   --Emulation.EmulationSpeed=100  fuerza velocidad real (la configuración guardada del
 #                                   autor tenía 75 %, y todo —física, sueño, tiempos— se
 #                                   medía un 25 % más lento sin que la ROM tuviera culpa);
+#   --Preferences.AllowBackgroundInput=true
+#                                   acepta el mando aunque Mesen no sea la ventana activa:
+#                                   el script devuelve el primer plano al autor, y con la
+#                                   opción en false (la del autor) las teclas del guion se
+#                                   perdían si el autor estaba usando el equipo (2026-10-19);
 #   -donotsavesettings              no guarda nada en settings.json al salir (ni la posición
-#                                   de la ventana fuera de pantalla ni la velocidad).
-$proceso = Start-Process -FilePath "E:\ProyectoSNES\tools\mesen\Mesen.exe" -ArgumentList @("`"$Rom`"", "--Emulation.EmulationSpeed=100", "-donotsavesettings") -PassThru
+#                                   de la ventana fuera de pantalla ni estas opciones).
+$proceso = Start-Process -FilePath "E:\ProyectoSNES\tools\mesen\Mesen.exe" -ArgumentList @("`"$Rom`"", "--Emulation.EmulationSpeed=100", "--Preferences.AllowBackgroundInput=true", "-donotsavesettings") -PassThru
 Start-Sleep -Seconds $Espera
 
 # El identificador de la ventana principal puede tardar en existir: lo pedimos hasta tenerlo.
