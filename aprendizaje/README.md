@@ -10,12 +10,12 @@ anclada en el código real de *Tarou: A Dog's Journey*.
 - **La documentación técnica** del juego, que las unidades resumen y citan:
   [`../docs/README.md`](../docs/README.md).
 
-## Qué hay hoy (2026-10-19)
+## Qué hay hoy (2026-10-19, unidad 00 escrita)
 
 | Carpeta | Contenido |
 |---|---|
-| `etapa0/` | Lo primero que se escribió: tres demos y tres ejercicios de C en el PC. Pasará a ser parte de la unidad 00. |
-| `unidad-NN-tema/` | Todavía ninguna. Se crean una por sesión, en el orden de `PLAN.md` §4. |
+| `unidad-00-c-en-el-pc/` | Unidad 00: C en el PC (lógica, funciones, arrays, structs y punteros). Cuatro demos, cuatro ejercicios, sus soluciones y las salidas de referencia. Incluye lo que antes era `etapa0/`. |
+| `unidad-NN-tema/` | Las demás, por escribir. Se crean una por sesión, en el orden de `PLAN.md` §4. |
 
 ## Para el alumno
 

@@ -1,11 +1,31 @@
-#include <stdio.h>
+/*---------------------------------------------------------------------------------
+    ejercicio_03_tipos_arrays.c — Ejercicio 3 de la unidad 00: arrays.
+
+    PROPÓSITO
+      Declarar un array, recorrerlo con un for, acumular un total y usar un if
+      dentro del bucle para contar cuántos elementos cumplen una condición. Es
+      el mismo patrón con el que el juego recorre las piezas de un metasprite
+      (src/juego/metasprite.c) o las letras de un texto.
+
+    SE CONECTA CON
+      Incluye:  <stdio.h> (printf).
+      Lo usan:  nadie: es un programa independiente de PC.
+      Compilar: gcc -std=c99 -Wall -Wextra -o ejercicio_03.exe ejercicio_03_tipos_arrays.c
+
+    HARDWARE QUE TOCA
+      ninguno (se ejecuta en el PC).
+
+    VARIABLES (las que vas a declarar)
+      vidasPerdidas     int[5]  0..3 cada una      vidas perdidas en cada nivel
+      total             int     0..                suma de todas
+      nivelesPerfectos  int     0..5               niveles sin vidas perdidas
+
+    → conceptos (README de la unidad 00): array, índice
+---------------------------------------------------------------------------------*/
+#include <stdio.h>                   /* Trae printf.                                      */
 
 /*
- * EJERCICIO 3: Tipos de datos y arrays
- *
- * Objetivo: declarar un array, recorrerlo con un for, acumular un total,
- * y usar un if adentro del bucle para contar cuantos elementos cumplen
- * una condicion.
+ * EJERCICIO 3: tipos de datos y arrays
  *
  * Datos: vidas perdidas por Tarou en cada uno de los primeros 5 niveles:
  *   Nivel 1: 2 vidas perdidas
@@ -14,7 +34,7 @@
  *   Nivel 4: 0 vidas perdidas
  *   Nivel 5: 3 vidas perdidas
  *
- * Salida esperada:
+ * SALIDA ESPERADA (exacta):
  *   Nivel 1: 2 vidas perdidas
  *   Nivel 2: 0 vidas perdidas
  *   Nivel 3: 1 vidas perdidas
@@ -24,26 +44,25 @@
  *   Niveles perfectos (0 vidas perdidas): 2
  */
 
-int main(void) {
-    // TODO 1: declara un array de 5 enteros llamado "vidasPerdidas" con
-    //         los valores de arriba, en orden: {2, 0, 1, 0, 3}
+int main(void)                       /* El programa empieza aquí.                         */
+{
+    /* TODO 1: declara un array de 5 enteros llamado "vidasPerdidas" con los
+               valores de arriba, en orden: {2, 0, 1, 0, 3} */
 
-    // TODO 2: declara dos variables enteras, inicializadas en 0:
-    //         "total" y "nivelesPerfectos" (para ir acumulando adentro
-    //         del bucle)
+    /* TODO 2: declara dos variables enteras, inicializadas en 0: "total" y
+               "nivelesPerfectos" (para ir acumulando dentro del bucle). */
 
-    // TODO 3: escribi un for que recorra el array de indice 0 a 4 y,
-    //         en cada vuelta:
-    //           - imprima "Nivel %d: %d vidas perdidas" -- OJO: el
-    //             numero de nivel es el INDICE + 1 (los niveles
-    //             empiezan en 1, los indices en 0)
-    //           - sume vidasPerdidas[i] a "total"
-    //           - si vidasPerdidas[i] es igual a 0, sume 1 a
-    //             "nivelesPerfectos"
+    /* TODO 3: escribe un for que recorra el array del índice 0 al 4 y, en
+               cada vuelta:
+                 - imprima "Nivel %d: %d vidas perdidas". OJO: el número de
+                   nivel es el ÍNDICE + 1 (los niveles empiezan en 1, los
+                   índices en 0);
+                 - sume vidasPerdidas[i] a "total";
+                 - si vidasPerdidas[i] es igual a 0, sume 1 a "nivelesPerfectos". */
 
-    // TODO 4: despues de que termine el for, imprimi:
-    //         "Total de vidas perdidas: %d"
-    //         "Niveles perfectos (0 vidas perdidas): %d"
+    /* TODO 4: cuando termine el for, imprime:
+                 "Total de vidas perdidas: %d"
+                 "Niveles perfectos (0 vidas perdidas): %d" */
 
-    return 0;
+    return 0;                        /* Terminó bien.                                     */
 }

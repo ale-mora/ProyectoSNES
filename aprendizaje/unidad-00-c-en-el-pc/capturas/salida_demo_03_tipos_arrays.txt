@@ -1,0 +1,4 @@
+Puntaje del nivel 1 (indice 0): 120
+Puntaje del nivel 3 (indice 2): 90
+Puntaje total: 1325
+Vidas (guardadas en 1 byte): 3

@@ -59,7 +59,7 @@ Tres tipos de práctica:
 
 - **PC (gcc)**: programas de consola en C que aíslan un concepto del lenguaje
   o de la lógica (punto fijo, máquinas de estado, structs). Se compilan con
-  `gcc` y se ejecutan en el PC. Es el formato de `etapa0/`.
+  `gcc` y se ejecutan en el PC. Es el formato de la unidad 00.
 - **Mini-ROM**: un programa de SNES independiente que hace una sola cosa (un
   fondo, un sprite, leer el mando) y se abre en Mesen. Parte de un ejemplo
   del SDK (`tools/pvsneslib/snes-examples/`, ver §6.3).
@@ -83,20 +83,27 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   array (índice desde 0); `struct` (varias variables con nombre en una);
   puntero (una variable que guarda una dirección; `*`, `&`, `->`);
   `#define` y macro; `static`; `extern`; guarda de inclusión.
-- **Archivos:** lo que ya existe en `etapa0/` (`demo_01_logica.c`,
-  `ejercicio_01_logica.c`, `demo_02_funciones.c`, `ejercicio_02_funciones.c`,
-  `demo_03_tipos_arrays.c`, `ejercicio_03_tipos_arrays.c`) se mueve con
-  `git mv` a esta unidad y se añaden `demo_04_structs_punteros.c` y
-  `ejercicio_04_structs_punteros.c` (una `struct Personaje` con posición y
-  velocidad, funciones que la reciben por puntero). `ejercicio_01` y
-  `ejercicio_02` de `etapa0/` ya los resolvió el autor (su código está bajo
-  los TODO): esas versiones pasan a `solucion/` y en la raíz de la unidad
-  quedan versiones con los TODO vacíos; `ejercicio_03` sigue sin resolver y
-  necesita su solución. Los ejemplos de PC usan `int` a propósito: el README
-  explica por qué en la SNES se usan `u8`/`u16`/`s16`.
-- **Código del juego:** `src/juego/tarou.h` (la `struct Tarou` y sus
-  constantes `#define`), `src/juego/tarou.c` (funciones que reciben `Tarou *t`),
-  `src/sistema/tipos.h` (de dónde salen `u8/u16/s16`).
+- **Archivos (escritos, `unidad-00-c-en-el-pc/`):** `demo_01_logica.c`,
+  `demo_02_funciones.c`, `demo_03_tipos_arrays.c` y
+  `ejercicio_03_tipos_arrays.c` vienen de la antigua `etapa0/` (movidos con
+  `git mv`); las versiones de `ejercicio_01` y `ejercicio_02` que resolvió el
+  autor están en `solucion/` (solo cambió el texto de sus `printf`, para que
+  la salida coincida con la del enunciado) y en la raíz hay esqueletos con
+  los TODO vacíos. Nuevos: `demo_04_structs_punteros.c` (puntero a entero,
+  `typedef struct`, paso por valor frente a por puntero, `->`, parámetro de
+  salida y la trampa de los paréntesis en las macros),
+  `ejercicio_04_structs_punteros.c` (una `Personaje` con posición, velocidad
+  y dirección; cuatro funciones que la reciben por puntero, con recorte de
+  velocidad y de borde y una `Caja` de salida) y las soluciones de los
+  ejercicios 03 y 04. Cada ejercicio trae su salida esperada exacta, y
+  `capturas/` guarda la salida de referencia de demos y soluciones. Los
+  ejemplos 01–03 usan `int` a propósito; el README explica por qué el juego
+  usa `u8`/`u16`/`s16`.
+- **Código del juego:** `src/juego/tarou.h` (el `typedef struct { ... } Tarou`,
+  la `Caja` y las constantes `#define`), `src/juego/tarou.c` (funciones que
+  reciben `Tarou *t`; `cambiar_estado` y compañía son `static`),
+  `src/sistema/tipos.h` (de dónde salen `u8/u16/s16`), `src/sistema/secuencia.h`
+  (`extern`).
 - **Prerrequisitos:** ninguno. **Práctica:** PC.
 - **Aprobación:** los cuatro ejercicios compilan con `gcc` y dan la salida
   esperada que indica cada archivo.
@@ -646,6 +653,6 @@ cambió desde este plan, manda el código y se corrige el plan.
 
 | Unidad | Estado |
 |---|---|
-| 00 | parcial: existe `etapa0/` con las partes 01–03 (ejercicios 01 y 02 resueltos por el autor, 03 sin resolver); falta moverlo, separar soluciones, resolver el 03 y añadir structs y punteros |
-| 01–19 | por escribir |
+| 00 | **hecha** (2026-10-19): `unidad-00-c-en-el-pc/`; las 12 fuentes compilan con `gcc -std=c99 -Wall -Wextra` sin avisos y las 4 soluciones dan exactamente su salida esperada (`capturas/`). El autor tiene pendiente resolver el ejercicio 03 (y el 04) por su cuenta |
+| 01–19 | por escribir (siguiente: 01) |
 | 20 | pendiente de que exista `src/niveles/` |

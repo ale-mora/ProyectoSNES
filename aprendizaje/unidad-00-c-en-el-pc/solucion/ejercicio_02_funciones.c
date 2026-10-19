@@ -1,56 +1,48 @@
+/*---------------------------------------------------------------------------------
+    solucion/ejercicio_02_funciones.c — Solución del ejercicio 2 de la unidad 00.
+
+    PROPÓSITO
+      La solución que escribió el autor del proyecto (Etapa 0), con sus notas.
+      Al pasar a la unidad 00 (2026-10-19) solo cambió el texto de los printf
+      para que la salida coincida con la del enunciado. La lógica es la suya.
+
+    SE CONECTA CON
+      Incluye:  <stdio.h> (printf).
+      Lo usan:  nadie: es un programa independiente de PC.
+      Compilar: gcc -std=c99 -Wall -Wextra -o solucion_02.exe solucion/ejercicio_02_funciones.c
+
+    HARDWARE QUE TOCA
+      ninguno (se ejecuta en el PC).
+
+    VARIABLES
+      edad     int    0..10 (años del juego)    parámetro de la función y contador del for
+
+    → conceptos (README de la unidad 00): función, parámetro, void
+---------------------------------------------------------------------------------*/
 #include <stdio.h>
 
-/*
- * EJERCICIO 2: Funciones y modularidad
- *
- * Objetivo: tomar la logica que ya escribiste en el Ejercicio 1 (decidir
- * si Tarou es cachorro/adulto/viejo segun su edad) y convertirla en una
- * FUNCION reutilizable, en vez de tenerla pegada adentro de un bucle en
- * main(). Esta es la idea central de "modularidad": sacar un pedazo de
- * logica que hace una sola cosa clara, ponerle un nombre, y poder
- * llamarlo desde donde haga falta sin repetir el codigo.
- *
- * Reglas (las mismas del Ejercicio 1):
- *   - edad < 3         -> "cachorro"
- *   - edad >= 3 y < 8   -> "adulto"
- *   - edad >= 8         -> "viejo"
- *
- * La salida esperada tiene que ser IDENTICA a la del ejercicio_01_logica.c
- * ya corregido.
- */
-
-// TODO 1: define aca, ANTES de main(), una funcion:
-//
+// TODO 1: la funcion, definida ANTES de main().
 void imprimirEtapaDeVida(int edad)
 {
     if (edad <= 2)
     {
-        printf("Tarou es Cachorro y tiene %d anio. \n", edad);
+        printf("Anio %d: Tarou es cachorro\n", edad);
     }
     else if (edad < 8)
     {
-        printf("Tarou es Adulto y tiene %d anios. \n", edad);
+        printf("Anio %d: Tarou es adulto\n", edad);
     }
     else
     {
-        printf("Tarou es Viejito y tiene %d anios. \n", edad);
+        printf("Anio %d: Tarou es viejo\n", edad);
     }
 };
-
-// que haga EXACTAMENTE lo mismo que ya escribiste en el ejercicio
-// anterior: el if / else if / else con los tres printf, usando el
-// parametro "edad" en vez de la variable que usabas antes.
-// Pista: es "void" porque la funcion no calcula ni devuelve un numero,
-// solo imprime un mensaje (efecto), como "saludarTarou" en el demo.
+// (El ";" después de la "}" de una función sobra: gcc lo acepta, pero el C
+// estándar estricto no, y con -pedantic avisa. En el proyecto no se pone.)
 
 int main(void)
 {
-    // TODO 2: escribi un bucle for que haga que una variable "edad" vaya
-    //         de 0 a 10 (igual que en el ejercicio anterior), pero esta
-    //         vez, en vez de repetir el if/else if/else adentro del
-    //         bucle, simplemente LLAMA a la funcion que definiste en el
-    //         TODO 1, pasandole "edad" como argumento.
-
+    // TODO 2: el for llama a la funcion en vez de repetir el if/else.
     for (int edad = 0; edad <= 10; edad++)
     // Los argumentos de la funcion van entre parentesis, y se separan con comas si hay mas de uno.
     // En este caso solo hay uno: "edad". int al principio de la funcion indica que devuelve un entero,

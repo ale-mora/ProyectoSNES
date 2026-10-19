@@ -95,7 +95,7 @@ input simulado) sin ayuda externa.
 - [x] **Lógica de programación** (variables, condicionales, bucles) — es el
       vocabulario mínimo para leer o escribir cualquier línea de código del
       proyecto, incluido `src/main.c`.
-      _Practicado con `aprendizaje/etapa0/ejercicio_01_logica.c`: bucle
+      _Practicado con `aprendizaje/unidad-00-c-en-el-pc/solucion/ejercicio_01_logica.c`: bucle
       `for`, variable `edad`, `if`/`else if`/`else` con rangos. Depuró en el
       camino dos errores clásicos de C (`=` vs `==`, y un error de borde
       off-by-one en los límites del rango) hasta que la salida coincidió
@@ -104,7 +104,7 @@ input simulado) sin ayuda externa.
 - [x] **Funciones y modularidad** — PVSnesLib se usa llamando a funciones del
       SDK (`consoleInitDefaultText`, `bgSetGfxPtr`, etc.); entender cómo se
       define/llama/retorna una función es imprescindible.
-      _Practicado con `aprendizaje/etapa0/ejercicio_02_funciones.c`:
+      _Practicado con `aprendizaje/unidad-00-c-en-el-pc/solucion/ejercicio_02_funciones.c`:
       refactorizó la lógica del Ejercicio 1 en una función `void` con
       parámetro, llamada desde un `for`; salida idéntica verificada._
       Recursos: mismo curso anterior; "The C Programming Language" (K&R).

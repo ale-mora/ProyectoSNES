@@ -1,3 +1,25 @@
+/*---------------------------------------------------------------------------------
+    solucion/ejercicio_01_logica.c — Solución del ejercicio 1 de la unidad 00.
+
+    PROPÓSITO
+      La solución que escribió el autor del proyecto (Etapa 0, 2026-09-22), con
+      sus notas. Al pasar a la unidad 00 (2026-10-19) solo cambió el texto de
+      los printf, para que la salida coincida exactamente con la del enunciado
+      (antes imprimía "Tarou es Cachorro y tiene 0 anio."). La lógica es la suya.
+
+    SE CONECTA CON
+      Incluye:  <stdio.h> (printf).
+      Lo usan:  nadie: es un programa independiente de PC.
+      Compilar: gcc -std=c99 -Wall -Wextra -o solucion_01.exe solucion/ejercicio_01_logica.c
+
+    HARDWARE QUE TOCA
+      ninguno (se ejecuta en el PC).
+
+    VARIABLES
+      edad     int    0..10 (años del juego)    la etapa de vida depende de ella
+
+    → conceptos (README de la unidad 00): variable, if, for
+---------------------------------------------------------------------------------*/
 #include <stdio.h>
 
 int main(void)
@@ -5,27 +27,12 @@ int main(void)
     /*
      * EJERCICIO 1: Logica de programacion (variables, condicionales, bucles)
      *
-     * Objetivo: usando un bucle for, una variable entera, y condicionales
-     * if / else if / else, simular como cambia la etapa de vida de Tarou
-     * (cachorro -> adulto -> viejo) a medida que pasan los "anios" del juego.
-     *
      * Reglas:
      *   - edad < 3         -> "cachorro"
      *   - edad >= 3 y < 8   -> "adulto"
      *   - edad >= 8         -> "viejo"
      *
-     * Salida esperada (aproximada), una linea por cada anio de 0 a 10:
-     *   Anio 0: Tarou es cachorro
-     *   Anio 1: Tarou es cachorro
-     *   Anio 2: Tarou es cachorro
-     *   Anio 3: Tarou es adulto
-     *   ...
-     *   Anio 8: Tarou es viejo
-     *   ...
-     *   Anio 10: Tarou es viejo
-     *
-     * Completa el codigo donde dice TODO. No hace falta que sea perfecto,
-     * el objetivo es que compile y que el resultado tenga sentido.
+     * SALIDA ESPERADA (exacta): la del enunciado, ejercicio_01_logica.c.
      */
 
     // TODO 1 (resuelto como ejemplo): declaramos una variable entera
@@ -35,28 +42,22 @@ int main(void)
 
     // TODO 2 (resuelto como ejemplo): bucle for que hace que "edad" vaya
     // de 0 a 10 (incluyendo el 10), incrementando de a 1 en cada vuelta.
-    // Nota la diferencia con el demo: aca "edad" ya fue declarada arriba,
-    // asi que en el for solo la inicializamos (edad = 0), no volvemos a
-    // escribir "int" adelante.
     for (edad = 0; edad <= 10; edad++)
     {
-        // TODO 3: ESTA PARTE ES TUYA. Usa if / else if / else para
-        //         imprimir una linea como "Anio 4: Tarou es adulto"
-        //         segun las reglas de arriba. Usa printf con %d para
-        //         el numero de "edad". Mira el demo (demo_01_logica.c)
-        //         si necesitas recordar la sintaxis de printf y de if.
+        // TODO 3: la parte del autor.
         if (edad <= 2)
         // Error: El "=" es de asignación mientras que el "==" es de equivalencia.
+        // (Con enteros, "edad <= 2" es lo mismo que la regla "edad < 3".)
         {
-            printf("Tarou es Cachorro y tiene %d anio. \n", edad);
+            printf("Anio %d: Tarou es cachorro\n", edad);
         }
         else if (edad < 8)
         {
-            printf("Tarou es Adulto y tiene %d anios. \n", edad);
+            printf("Anio %d: Tarou es adulto\n", edad);
         }
         else
         {
-            printf("Tarou es Viejito y tiene %d anios. \n", edad);
+            printf("Anio %d: Tarou es viejo\n", edad);
         }
     };
     return 0;

@@ -196,7 +196,7 @@ salidas (`.pic` tiles, `.pal` paleta, `.map` mapa, `.inc`/`_meta.inc` tablas,
 | `docs/glosario-snes.md` | El glosario único: vocabulario del proyecto, hardware, gráficos, mecánicas, C. |
 | `docs/mapa-de-archivos.md`, `tuberia-de-compilacion.md`, `mesen-y-depuracion.md`, `hardware-snes-por-modulo.md` | Esta serie. |
 | `docs/screenshots/` | Capturas de referencia (secuencia de arranque y `revision-1/`). |
-| `aprendizaje/` | Unidades de estudio. Hoy `etapa0/` (C en PC con gcc): `demo_01_logica.c`, `demo_02_funciones.c`, `demo_03_tipos_arrays.c` y sus `ejercicio_01_logica.c`, `ejercicio_02_funciones.c`, `ejercicio_03_tipos_arrays.c`. El plan completo de unidades está en `aprendizaje/PLAN.md`. |
+| `aprendizaje/` | Unidades de estudio. Entrada: `aprendizaje/README.md`; plan completo: `aprendizaje/PLAN.md`. Hoy existe `unidad-00-c-en-el-pc/` (C en PC con gcc): `README.md`, `demo_01..04_*.c`, `ejercicio_01..04_*.c` (esqueletos con TODO), `solucion/` y `capturas/` (salidas de referencia). |
 | `examples/likemario/` | Copia comentada del ejemplo LikeMario del SDK (motor de mapas, objetos y sprites dinámicos) y su estudio `LikeMario.md`. |
 | `.vscode/tasks.json` | Tareas "Build SNES ROM" (`Ctrl+Shift+B`, solo compila) y "Clean Project", ambas por `bash.exe` de MSYS2 con `PVSNESLIB_HOME`. |
 | `.vscode/c_cpp_properties.json` | IntelliSense: rutas de inclusión (`src`, el SDK), `__snes__`, `tcc816` como compilador. |

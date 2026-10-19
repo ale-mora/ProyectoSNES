@@ -212,9 +212,27 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
 - **`s16`** — entero con signo de 16 bits (−32768 a 32767). Se usa para
   velocidades y posiciones en punto fijo, que pueden ser negativas (hacia la
   izquierda o hacia arriba).
-- **`struct`** — tipo compuesto que agrupa varias variables con nombre en una
-  sola (posición, velocidad, estado...). El protagonista será una `struct`
-  para que todo su estado viaje junto.
+- **`struct`** — tipo compuesto que agrupa varias variables con nombre (sus
+  campos) en una sola (posición, velocidad, estado...). El protagonista es
+  una `struct` (`Tarou`, en `src/juego/tarou.h`) para que todo su estado
+  viaje junto. Un campo se lee con `.` (`tarou.x_fp`) o, a través de un
+  puntero, con `->` (`t->x_fp`).
+- **`typedef`** — da un nombre nuevo a un tipo que ya existe.
+  `typedef struct { ... } Tarou;` permite escribir `Tarou` en vez de
+  `struct ...`, y `typedef uint8_t u8;` (`src/sistema/tipos.h`, en el PC) da
+  el nombre `u8` al entero de 8 bits del C estándar.
+- **Array** — fila de variables del mismo tipo seguidas en memoria, con un
+  nombre y un índice que empieza en 0 (`a[0]` es la primera). C no comprueba
+  que el índice esté dentro: `a[5]` en un array de 5 lee la memoria de al lado.
+- **Puntero** — variable que guarda una dirección de memoria. `&x` es la
+  dirección de `x`; `*p` es lo que hay donde apunta `p`; `p->campo` es un
+  campo de la struct apuntada. Pasar un puntero a una función le permite
+  cambiar el original (`tarou_actualizar(Tarou *t, ...)`); pasar el valor le
+  da una copia.
+- **`const`** — "solo lectura". En un parámetro puntero (`const Tarou *t`)
+  promete que la función no escribe lo apuntado; el compilador lo hace
+  cumplir. En una tabla (`const AnimDef ANIMACIONES[]`), sus valores no
+  cambian.
 - **`#include`** — pega el contenido de otro archivo. `<snes.h>` es la
   librería; `"comun.h"` es nuestro.
 - **`#define`** — constante o macro que el preprocesador reemplaza antes de
@@ -227,8 +245,10 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   el corazón de la **máquina de estados** (`secuencia.c`).
 - **`extern`** — "esta variable/función existe en otro archivo". Así las
   pantallas leen `frames_en_pantalla`, que vive en `secuencia.c`.
-- **`static`** (en variable global) — la variable solo se ve dentro de su
-  archivo `.c`.
+- **`static`** (en una variable global o en una función) — solo se ve dentro
+  de su archivo `.c`. Las piezas internas de `src/juego/tarou.c`
+  (`cambiar_estado`, `acelerar`, `saltar`...) son funciones `static`; solo
+  `tarou_iniciar`, `tarou_actualizar` y las de cajas se ven desde fuera.
 - **`volatile`** — le dice al compilador que una variable puede cambiar "por
   fuera" (es un registro de hardware) y que no guarde su valor en caché: cada
   lectura de `REG_OPVCT` tiene que ir de verdad al chip.
