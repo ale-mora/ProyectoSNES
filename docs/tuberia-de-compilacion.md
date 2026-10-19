@@ -151,6 +151,19 @@ La variable `PVSNESLIB_HOME` tiene que apuntar al SDK **en formato MSYS**
 herramientas sean `.exe` nativos. `tools/setup_env.ps1` lo deja fijo en el
 usuario; `run.bat` lo fija solo para su sesión.
 
+### Ver el ensamblador que genera `tcc816`
+
+En una compilación normal, los `.ps` y `.asm` de cada `.c` son intermedios y
+`make` los borra. Pedido como objetivo explícito, el `.asm` se queda:
+
+```
+make src/juego/camara.asm
+```
+
+Hay que **copiarlo fuera y borrarlo de `src/` enseguida**: `snes_rules`
+compila como fuente todo `src/*/*.asm`, y un `camara.asm` olvidado se
+ensamblaría junto a `camara.c` (símbolos duplicados).
+
 ## 6. Leer el resultado
 
 Al final de `make` (o en el `.log`):
@@ -199,9 +212,10 @@ Antes de `make`, cuando cambia el arte:
 | Script | Cuándo se ejecuta | Salida versionada |
 |---|---|---|
 | `python scripts/componer_escenas.py` | al cambiar logos, escenas, título o el logotipo | `res/<pantalla>/*.png`, `cielo.bmp` |
-| `python scripts/preparar_personaje.py tarou` | al descargar arte nuevo de Pixellab (o para regenerar marcadores) | `res/personajes/tarou/*.png`, `tarou_anim.h` |
+| `python scripts/preparar_personaje.py tarou` | al descargar arte nuevo de Pixellab (la exportación nativa, con `MAPEOS_PIXELLAB`) | `res/personajes/tarou/*.png`, `tarou_anim.h` |
+| `python scripts/preparar_suelo.py --seto res/titulo/fondo_cerca.png` | al exportar un tileset nuevo de Pixellab a `res/descargas/graficos/pixellab/suelo/` (toma el PNG más reciente; `--hundir 4` por defecto) | `res/nivel1/fondo_cerca.png` |
 | `python scripts/preparar_fondo_nivel.py res/titulo/fondo_lejos.png res/nivel1/fondo_lejos.png --borrar 71,22,185,76` | si cambia la capa lejana del título | `res/nivel1/fondo_lejos.png` |
-| `python -m unittest scripts/pruebas/prueba_preparar_personaje.py` (y `..._fondo_nivel.py`) | tras tocar los scripts | — |
+| `python -m unittest scripts/pruebas/prueba_preparar_personaje.py scripts/pruebas/prueba_preparar_fondo_nivel.py scripts/pruebas/prueba_preparar_suelo.py` (24 pruebas) | tras tocar los scripts | — |
 
 Estas salidas sí se versionan (son pequeñas y el resultado del trabajo
 manual); las de `gfx4snes` no (las regenera `make`).

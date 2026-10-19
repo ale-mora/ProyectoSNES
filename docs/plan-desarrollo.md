@@ -368,10 +368,14 @@ el escenario y la cámara lo sigue.
 **Criterio de salida:** el prototipo es jugable de punta a punta con
 mando/teclado emulado, sin crashear, a 60 FPS estables.
 
-**Estado (2026-10-16):** Revisión 1 hecha y verificada en Mesen a 60 FPS
+**Estado (2026-10-19):** Revisión 1 hecha y verificada en Mesen a 60 FPS
 (`docs/diseno-demo-jugable.md`): Tarou adulto camina, corre, salta, se agacha,
-usa la espada y duerme en un nivel plano de 512 px con parallax. Falta la
-colisión con el escenario (tileset + Tiled, ítem pendiente abajo).
+usa la espada y duerme en un nivel plano de 512 px con parallax. Desde el
+2026-10-19 con el **arte real de Pixellab**: el perro en celdas de 96×64 (13
+animaciones; el ataque es una pose fija provisional) y un suelo de tileset
+*Sidescroller* con un seto detrás. Falta la colisión con el escenario
+(tileset + Tiled, ítem pendiente abajo), una animación de ataque, Sleep
+mirando al este y reajustar el ritmo de desenvainar, envainar y despertar.
 
 ### Ítems técnicos a estudiar
 

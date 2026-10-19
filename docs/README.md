@@ -38,6 +38,8 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
 - **`plan-implementacion-revision-1.md`** — El plan de tareas con el que se
   construyó la Revisión 1 (8 fases, pruebas por tarea); sirve de plantilla
   para las revisiones siguientes.
+- **`../aprendizaje/README.md`** — Entrada de la carpeta de aprendizaje: qué
+  hay, cómo se usa y el texto para arrancar la sesión que escribe cada unidad.
 - **`../aprendizaje/PLAN.md`** — El plan de la carpeta de aprendizaje: las
   unidades, de lo simple a lo complejo, para entender todo este código.
 
@@ -50,7 +52,8 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
   sirve de referencia para el motor de mapas, objetos y sprites dinámicos.
 - **`../res/descargas/README.md`** y
   **`../res/descargas/graficos/pixellab/*/README.md`** — Qué material de
-  terceros hace falta, dónde dejarlo y cómo exportar desde Pixellab.
+  terceros hace falta, dónde dejarlo y cómo exportar desde Pixellab (el
+  personaje en `pixellab/tarou/`, el tileset del suelo en `pixellab/suelo/`).
 
 ## Reglas de la casa que todos los documentos asumen
 

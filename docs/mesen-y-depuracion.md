@@ -183,3 +183,7 @@ muestran el menú resaltado (el foco no llegó al visor: repetir).
 | Las teclas del guion abren el menú | foco en la barra de menús | §5, puntos 2 y 3 (y nunca usar Alt: abre el menú) |
 | `wla-65816`: `Label "SECTIONSTART_.bss" was defined more than once` | ruido de la información de depuración (`-d`) | no es un error |
 | `816-tcc: error: ICE 2` | construcción de C que tcc816 no soporta (`?:` de cadenas en argumentos variádicos) | reescribir con `if/else` |
+| Dos de los cuatro cuadros de Bárbara salían con trozos de Tarou | un sprite de 64×64 empezaba en el tile 192 y cruzaba a la segunda tabla de 256 tiles: la PPU da la vuelta dentro de la tabla | Bárbara en el tile 256 (`personajes.c`, bloque «LÍMITE») |
+| El guion pierde teclas a mitad de tanda (el menú File aparece resaltado) | el autor usaba el equipo y el foco de Mesen saltó a su barra de menús | no usar el equipo durante la tanda; `--Preferences.AllowBackgroundInput=true` se fuerza pero su efecto no está demostrado (§5, punto 1) |
+| Tarou parece flotar sobre una raya de hierba | el arte es una vista lateral un poco elevada (patas lejanas 3 px más arriba) y la hierba empezaba justo bajo los pies | `scripts/preparar_suelo.py --hundir 4` (los pies, dentro de la banda) |
+| Un `.asm` generado para estudiar rompe la compilación | `snes_rules` compila como fuente todo `src/*/*.asm`: el `.asm` y su `.c` dan símbolos duplicados | borrar el `.asm` de `src/` tras copiarlo (`aprendizaje/PLAN.md` §6.4) |

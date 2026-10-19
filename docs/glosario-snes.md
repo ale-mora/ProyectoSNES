@@ -94,6 +94,13 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
 - **Tilemap (mapa)** — cuadrícula que dice qué tile va en cada celda de la
   pantalla (32×32 celdas = 256×256 px) y con qué paleta. Cambiar un fondo es
   cargar tiles + tilemap (`bgInitTileSet` + `bgInitMapSet`).
+- **Tileset** — colección de tiles pensada para combinarse (bordes, rellenos,
+  esquinas). El suelo del nivel sale de un tileset *Sidescroller* de Pixellab:
+  tiles de **borde** (hierba sobre tierra, con las filas de arriba vacías) y
+  de **relleno** (tierra opaca), de 16×16. → `scripts/preparar_suelo.py`.
+- **Volteo de tile** — cada celda del tilemap puede mostrar su tile espejado
+  en horizontal o en vertical sin gastar tiles nuevos: así se varía la tierra
+  del suelo para que no se vean franjas.
 - **Paleta** — grupo de colores (16 en Mode 1) que un tile o sprite usa.
   Hay 8 paletas para fondos y 8 para sprites. El **color 0** de cada paleta
   es transparente en sprites y en las capas superiores.
@@ -173,6 +180,14 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
 - **Suelo** — altura `y` del nivel sobre la que se apoyan los pies. En la
   Revisión 1 es plano: `nivel_suelo_en(x)` devuelve una constante. Cuando haya
   desniveles solo cambia el interior de esa función.
+- **Hundir los pies (perspectiva)** — el arte de Pixellab es una vista
+  lateral un poco elevada: las patas del lado lejano acaban más arriba que las
+  cercanas. Si la hierba empieza justo debajo de los pies, el personaje parece
+  flotar sobre una raya; por eso la banda de hierba se dibuja 4 px por encima
+  de `SUELO_Y` (`--hundir 4`) y los pies quedan dentro de ella.
+- **Celda** — el rectángulo fijo en que se dibuja cada cuadro del
+  protagonista: 96×64 px (`ANCHO_CELDA` × `ALTO_CELDA`), su última fila es la
+  de los pies. Era 64×64 hasta que llegó el arte real, más ancho.
 - **Cámara** — cuánto se ha desplazado el nivel respecto a la pantalla. Sigue
   al protagonista y se recorta entre 0 y `ANCHO_NIVEL - ANCHO_PANTALLA`. Se
   aplica escribiendo el scroll de cada capa (`bgSetScroll`).
