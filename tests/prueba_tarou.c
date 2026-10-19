@@ -52,7 +52,7 @@ static void prueba_inicio(void)
     preparar(&t, &m, 100);
     COMPROBAR(t.estado == ESTADO_PARADO);
     COMPROBAR(t.x_fp == PF(100));
-    COMPROBAR(t.y_fp == PF(SUELO - ANCHO_CELDA));       /* 144: los pies en la fila 207.*/
+    COMPROBAR(t.y_fp == PF(SUELO - ALTO_CELDA));        /* 144: los pies en la fila 207.*/
     COMPROBAR(t.vx_fp == 0 && t.vy_fp == 0);
     COMPROBAR(t.espada == ESPADA_ENVAINADA);
     COMPROBAR(t.direccion == DIR_DERECHA);
@@ -134,10 +134,10 @@ static void prueba_borde_izquierdo(void)
 static void prueba_borde_derecho(void)
 {
     Tarou t; Mando m;
-    preparar(&t, &m, 440);
+    preparar(&t, &m, 400);
     m.derecha = 1; m.correr = 1; m.actividad = 1;
     frames(&t, &m, 60);
-    COMPROBAR(t.x_fp == PF(ANCHO_NIVEL - ANCHO_CELDA)); /* 448: el borde.                */
+    COMPROBAR(t.x_fp == PF(ANCHO_NIVEL - ANCHO_CELDA)); /* 416: el borde.                */
     COMPROBAR(t.vx_fp == 0);
 }
 
@@ -293,14 +293,14 @@ static void prueba_agacharse(void)
     Tarou t; Mando m; Caja c;
     preparar(&t, &m, 100);
     tarou_caja_cuerpo(&t, &c);
-    COMPROBAR(c.x == 120 && c.y == 152);                /* De pie: x+20, y+8...           */
-    COMPROBAR(c.ancho == 24 && c.alto == 56);           /* ...24x56.                      */
+    COMPROBAR(c.x == 124 && c.y == 158);                /* De pie: x+24, y+14...          */
+    COMPROBAR(c.ancho == 52 && c.alto == 50);           /* ...52x50 (el perro, sin cola). */
     m.abajo = 1; m.actividad = 1;
     frames(&t, &m, 1);
     COMPROBAR(t.estado == ESTADO_AGACHADO);
     tarou_caja_cuerpo(&t, &c);
-    COMPROBAR(c.y == 144 + 32 && c.alto == 32);         /* Agachado: la mitad de abajo.   */
-    COMPROBAR(c.x == 120 && c.ancho == 24);
+    COMPROBAR(c.y == 144 + 28 && c.alto == 36);         /* Agachado: filas 28..64.        */
+    COMPROBAR(c.x == 124 && c.ancho == 52);
     m.abajo = 0; m.actividad = 0;
     frames(&t, &m, 1);
     COMPROBAR(t.estado == ESTADO_PARADO);               /* Soltar Abajo: se levanta.      */
@@ -399,7 +399,7 @@ static void prueba_atacar(void)
     frames(&t, &m, 1);
     COMPROBAR(t.estado == ESTADO_ATACANDO);
     COMPROBAR(tarou_caja_golpe(&t, &c) == 1);           /* Caja de golpe activa...        */
-    COMPROBAR(c.x == 100 + 44 && c.y == 144 + 24);      /* ...delante, a la derecha...    */
+    COMPROBAR(c.x == 100 + 60 && c.y == 144 + 20);      /* ...delante, a la derecha...    */
     COMPROBAR(c.ancho == 28 && c.alto == 16);           /* ...de 28x16 (§5).              */
     m.atacar_pulsado = 0;
     frames(&t, &m, FRAMES_ATACAR - 1);
@@ -419,8 +419,8 @@ static void prueba_atacar_izquierda(void)
     m.atacar_pulsado = 1; m.actividad = 1;
     frames(&t, &m, 1);
     COMPROBAR(tarou_caja_golpe(&t, &c) == 1);
-    COMPROBAR(c.x == 100 - 8);                          /* Espejo: 64 - 72 = -8.          */
-    COMPROBAR(c.y == 144 + 24 && c.ancho == 28);
+    COMPROBAR(c.x == 100 + 8);                          /* Espejo: 96 - 88 = 8.           */
+    COMPROBAR(c.y == 144 + 20 && c.ancho == 28);
 }
 
 static void prueba_atacar_caminando(void)

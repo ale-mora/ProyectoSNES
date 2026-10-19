@@ -145,20 +145,20 @@ nivel1_lejos_map_end:
 
 ; --- Tarou (Revisión 1): 13 animaciones como piezas de 32x32 para el motor de
 ;     metasprites dinámicos (src/juego/tarou_sprite.c). Una sección por animación:
-;     como máximo 15 cuadros de 2 KB = 30 KB, que caben en un banco. La paleta es
+;     como máximo 10 cuadros de 96x64 (6 piezas = 3 KB) = 30 KB, que caben en un banco. La paleta es
 ;     la misma en todas (preparar_personaje.py); solo se incrusta la de reposo. ----
 ;     Numeración de bloques (verificada el 2026-10-16 en tarou_reposo_meta.inc):
 ;     gfx4snes -T numera los bloques de 32x32 por filas de la imagen de origen
-;     (una tira de N cuadros tiene 2N bloques por fila), así que el cuadro n usa
-;     los bloques 2n, 2n+1 (arriba) y 2N+2n, 2N+2n+1 (abajo). Con 4 cuadros:
-;     cuadro 0 = 0, 1, 8, 9. Mientras ningún .c las referencie, wlalink descarta
+;     (una tira de N cuadros de 96 px tiene 3N bloques por fila), así que el
+;     cuadro n usa los bloques 3n..3n+2 (arriba) y 3N+3n..3N+3n+2 (abajo). Con
+;     2 cuadros: cuadro 0 = 0, 1, 2, 6, 7, 8 (verificado en tarou_*_meta.inc). Mientras ningún .c las referencie, wlalink descarta
 ;     estas secciones (se ve como "discarded" en el .log).
 .section ".rodata_tarou_reposo" superfree
 tarou_reposo_til:     .incbin "res/personajes/tarou/tarou_reposo.pic"
 tarou_reposo_til_end:
 tarou_pal:            .incbin "res/personajes/tarou/tarou_reposo.pal"
 .ends
-; Tira ESTÁTICA de reposo: SIEMPRE 4 cuadros (8 KB) elegidos del reposo real por
+; Tira ESTÁTICA de reposo: SIEMPRE 2 cuadros (6 KB) elegidos del reposo real por
 ; preparar_personaje.py. La cargan de una vez intro y título (src/pantallas/
 ; personajes.c), sin motor dinámico; el nivel usa .rodata_tarou_reposo entera.
 .section ".rodata_tarou_reposo_estatico" superfree

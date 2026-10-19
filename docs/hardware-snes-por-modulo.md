@@ -62,7 +62,7 @@ Lo fija `sistema/comun.h` y lo respetan todas las pantallas:
 
 ```
 palabras   bytes      qué hay                                   quién lo escribe
-0x0000     0x0000  ┌ tiles de sprites (hasta 512 tiles, 16 KB) ┐  intro/título: Tarou 4 cuadros (8 KB) + Bárbara 4 cuadros (8 KB)
+0x0000     0x0000  ┌ tiles de sprites (hasta 512 tiles, 16 KB) ┐  intro/título: Tarou 2 cuadros de 96x64 (6 KB, tiles 0..191) + Bárbara 4 cuadros desde 0x1000 (tile 256)
 0x1000     0x2000  │  (motor dinámico: piezas grandes 32x32   │  nivel: solo el cuadro actual de Tarou, copiado en cada cambio
 0x2000     0x4000  ├ VRAM_FONDO_A: tiles del fondo principal / capa cercana (logos, escena 3, arbustos)
 0x4000     0x8000  ├ VRAM_FONDO_B: tiles de la capa lejana (título y nivel: montañas)
@@ -98,9 +98,9 @@ en título y nivel pinta el HDMA línea a línea.
 
 | Entrada | Quién | Tamaño |
 |---|---|---|
-| 0..3 | Tarou: las 4 piezas de 32×32 del metasprite (intro/título estático; nivel por el motor dinámico) | pequeño (32×32 con `OBJ_SIZE32_L64`; grande de 32 con `OBJ_SIZE16_L32` en el nivel) |
-| 4 | Bárbara (intro y título) | grande, 64×64 |
-| 5..127 | libres (enemigos y objetos en el futuro) | — |
+| 0..5 | Tarou: las hasta 6 piezas de 32×32 del metasprite (celda de 96×64) (intro/título estático; nivel por el motor dinámico) | pequeño (32×32 con `OBJ_SIZE32_L64`; grande de 32 con `OBJ_SIZE16_L32` en el nivel) |
+| 6 | Bárbara (intro y título) | grande, 64×64 |
+| 7..127 | libres (enemigos y objetos en el futuro) | — |
 
 Cada entrada guarda x, y, el tile inicial, la paleta, la prioridad y los
 bits de volteo. Límites: 128 sprites, 32 por línea, 34 "ranuras" de 8 px por

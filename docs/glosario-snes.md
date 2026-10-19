@@ -124,10 +124,12 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   bajo, luego el alto.
 - **Sprite** — imagen móvil independiente del fondo (el personaje). Tamaños
   8×8 a 64×64. Límite: 128 en pantalla, 32 por línea horizontal, y **512 tiles
-  de gráficos** en total (un sprite de 64×64 gasta 64). La coordenada y "da la
-  vuelta" cada 256 px: un sprite de 64 en y = 240 asoma por arriba.
+  de gráficos** en total (un sprite de 64×64 gasta 64), en dos tablas de 256:
+  un sprite grande no puede cruzar de una a otra (al bajar de fila el número
+  de tile da la vuelta dentro de su tabla). La coordenada y "da la vuelta"
+  cada 256 px: un sprite de 64 en y = 240 asoma por arriba.
 - **Metasprite** — sprite grande compuesto por varios sprites de hardware que
-  se mueven como uno solo. Tarou de 64×64 son 4 sprites de 32×32. PVSnesLib
+  se mueven como uno solo. Tarou, en su celda de 96×64, son hasta 6 sprites de 32×32. PVSnesLib
   genera la tabla de piezas con `gfx4snes -T` y lo dibuja con
   `oamMetaDrawDyn32`.
 - **Sprite dinámico** — técnica en la que todos los cuadros de animación viven

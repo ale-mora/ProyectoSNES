@@ -6,9 +6,11 @@ Se ejecutan desde la raíz del repositorio:
 
 Cada prueba crea una carpeta temporal de entrada (lo que el autor descargaría de
 Pixellab) y otra de salida (lo que iría a res/personajes/<nombre>/), llama a
-preparar() y comprueba los archivos resultantes. Los valores (64x64, 15 cuadros
-como máximo, una paleta compartida, pies al borde inferior) son los de
-docs/diseno-demo-jugable.md §7 y §10.
+preparar() y comprueba los archivos resultantes. Los valores (celda de 96x64,
+10 cuadros como máximo, una paleta compartida, pies al borde inferior) son los de
+docs/diseno-demo-jugable.md §7 y §10. Las entradas de los formatos sencillos son
+cuadros cuadrados de 64x64; las de la exportación nativa de Pixellab imitan su
+estructura (<Estado>/animations/<nombre>/<dirección>/frame_NNN.png).
 """
 
 import sys
@@ -22,7 +24,9 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import preparar_personaje as pp  # noqa: E402
 
-CELDA = 64
+CELDA = 64          # lado de los cuadros de ENTRADA de las pruebas (formatos sencillos)
+ANCHO = 96          # celda de SALIDA: 96x64 (3x2 piezas de 32x32)
+ALTO = 64
 
 
 def tira(cuadros: int, caja=(20, 10, 44, 60), color=(200, 40, 40, 255)) -> Image.Image:
@@ -47,9 +51,57 @@ def cuadros_del_header(header: Path, animacion: str, nombre: str = "tarou") -> i
 
 def ultima_fila_opaca(im: Image.Image, cuadro: int = 0) -> int:
     """Fila más baja con un píxel distinto del índice 0 en el cuadro indicado."""
-    im = im.crop((cuadro * CELDA, 0, (cuadro + 1) * CELDA, CELDA))
-    filas = [y for y in range(CELDA) for x in range(CELDA) if im.getpixel((x, y)) != 0]
+    im = im.crop((cuadro * ANCHO, 0, (cuadro + 1) * ANCHO, ALTO))
+    filas = [y for y in range(ALTO) for x in range(ANCHO) if im.getpixel((x, y)) != 0]
     return max(filas) if filas else -1
+
+
+def caja_opaca(im: Image.Image, cuadro: int = 0):
+    """Caja (x0, y0, x1, y1) de los píxeles no transparentes del cuadro indicado."""
+    im = im.crop((cuadro * ANCHO, 0, (cuadro + 1) * ANCHO, ALTO))
+    return im.point(lambda i: 255 if i != 0 else 0).getbbox()
+
+
+# Once colores bien separados: el cuadro k de cada animación falsa se pinta con
+# COLORES_CUADRO[k], así el orden se puede leer en la salida (11 < 15 colores).
+COLORES_CUADRO = [(230, 30, 30), (30, 200, 30), (30, 30, 230), (230, 230, 30), (30, 220, 220),
+                  (220, 30, 220), (250, 140, 20), (120, 60, 0), (250, 250, 250), (90, 90, 90), (150, 0, 90)]
+
+
+def exportar_pixellab(raiz: Path, estado: str, direccion: str, cuadros: int, lienzo=(88, 88), ancho=60, alto=50):
+    """Imita la exportación nativa de Pixellab: un rectángulo de ancho x alto centrado
+    en el lienzo, con los pies 16 px por encima del borde inferior."""
+    carpeta = raiz / estado / "animations" / f"{estado}_anim" / direccion
+    carpeta.mkdir(parents=True)
+    for k in range(cuadros):
+        im = Image.new("RGBA", lienzo, (0, 0, 0, 0))
+        x0 = (lienzo[0] - ancho) // 2
+        y1 = lienzo[1] - 16
+        ImageDraw.Draw(im).rectangle((x0, y1 - alto, x0 + ancho - 1, y1 - 1), fill=COLORES_CUADRO[k] + (255,))
+        im.save(carpeta / f"frame_{k:03d}.png")
+
+
+def rotacion_pixellab(raiz: Path, estado: str, direccion: str, ancho=64, alto=57):
+    """Una pose fija (rotations/<dirección>.png) en un lienzo de 64x64."""
+    carpeta = raiz / estado / "rotations"
+    carpeta.mkdir(parents=True)
+    im = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    ImageDraw.Draw(im).rectangle(((64 - ancho) // 2, 60 - alto, (64 - ancho) // 2 + ancho - 1, 59), fill=COLORES_CUADRO[0] + (255,))
+    im.save(carpeta / f"{direccion}.png")
+
+
+def orden_de(png: Path):
+    """Qué cuadro de la animación de origen hay en cada cuadro de la salida, por el
+    color más cercano del píxel central de su caja opaca."""
+    with Image.open(png) as im:
+        rgb = im.convert("RGB")
+        n = im.width // ANCHO
+        res = []
+        for k in range(n):
+            b = caja_opaca(im, k)
+            c = rgb.getpixel((k * ANCHO + (b[0] + b[2]) // 2, (b[1] + b[3]) // 2))
+            res.append(min(range(len(COLORES_CUADRO)), key=lambda j: sum((a - q) ** 2 for a, q in zip(c, COLORES_CUADRO[j]))))
+        return res
 
 
 class PruebasPrepararPersonaje(unittest.TestCase):
@@ -69,7 +121,8 @@ class PruebasPrepararPersonaje(unittest.TestCase):
         self.assertEqual(len(pngs), 14)          # 13 animaciones + tarou_reposo_estatico.png
         for png in pngs:
             with Image.open(png) as im:
-                self.assertEqual(im.height, CELDA, png.name)
+                self.assertEqual(im.height, ALTO, png.name)
+                self.assertEqual(im.width % ANCHO, 0, png.name)
                 self.assertEqual(im.mode, "P", png.name)
         header = self.salida / "tarou_anim.h"
         self.assertEqual(cuadros_del_header(header, "reposo"), 4)
@@ -78,10 +131,11 @@ class PruebasPrepararPersonaje(unittest.TestCase):
         self.assertEqual(resultado["reposo"], 4)
         self.assertIn("#define TAROU_ANIMACIONES 13", header.read_text(encoding="utf-8"))
 
-    def test_reposo_estatico_siempre_cuatro_cuadros(self):
+    def test_reposo_estatico_siempre_dos_cuadros(self):
         """La tira estática de reposo (intro y título, personajes.c) tiene SIEMPRE
-        4 cuadros, repartidos a lo largo del reposo real para que el bucle no
-        salte: con 6 cuadros toma el 0, 1, 3 y 4; con 2, el 0, 0, 1 y 1."""
+        2 cuadros de 96x64 (más no caben en los 512 tiles de sprites junto a
+        Bárbara), repartidos a lo largo del reposo real: con 6 cuadros toma el 0
+        y el 3; con 2, el 0 y el 1."""
         colores = [(200, 0, 0), (0, 200, 0), (0, 0, 200), (200, 200, 0), (0, 200, 200), (120, 60, 0)]
 
         def reposo_de(n):
@@ -96,30 +150,33 @@ class PruebasPrepararPersonaje(unittest.TestCase):
             por el color MÁS CERCANO (la paleta común se reduce a 15 colores y
             puede mover un canal unas unidades)."""
             with Image.open(png) as im:
-                self.assertEqual(im.size, (CELDA * 4, CELDA))
+                self.assertEqual(im.size, (ANCHO * 2, ALTO))
                 rgb = im.convert("RGB")
-                vistos = [rgb.getpixel((k * CELDA + 32, 40)) for k in range(4)]
+                vistos = [rgb.getpixel((k * ANCHO + 48, 40)) for k in range(2)]
             def cercano(c):
                 return min(range(len(colores)), key=lambda j: sum((a - b) ** 2 for a, b in zip(c, colores[j])))
             return [cercano(c) for c in vistos]
 
         reposo_de(6).save(self.entrada / "reposo.png")
         pp.preparar("tarou", self.entrada, self.salida)
-        self.assertEqual(cuadros_de(self.salida / "tarou_reposo_estatico.png"), [0, 1, 3, 4])
+        self.assertEqual(cuadros_de(self.salida / "tarou_reposo_estatico.png"), [0, 3])
         # El reposo del nivel sigue entero (6 cuadros) y el header no cuenta la estática.
         self.assertEqual(cuadros_del_header(self.salida / "tarou_anim.h", "reposo"), 6)
         self.assertIn("#define TAROU_ANIMACIONES 13", (self.salida / "tarou_anim.h").read_text(encoding="utf-8"))
 
         reposo_de(2).save(self.entrada / "reposo.png")
         pp.preparar("tarou", self.entrada, self.salida)
-        self.assertEqual(cuadros_de(self.salida / "tarou_reposo_estatico.png"), [0, 0, 1, 1])
+        self.assertEqual(cuadros_de(self.salida / "tarou_reposo_estatico.png"), [0, 1])
 
     def test_tira_png(self):
-        """Una tira PNG de 3 cuadros produce una salida de 192x64 y CUADROS 3."""
+        """Una tira PNG de 3 cuadros de 64x64 produce una salida de 288x64 (3 celdas
+        de 96x64, sin escalar: el cuadro se centra) y CUADROS 3."""
         tira(3).save(self.entrada / "reposo.png")
         pp.preparar("tarou", self.entrada, self.salida)
         with Image.open(self.salida / "tarou_reposo.png") as im:
-            self.assertEqual(im.size, (CELDA * 3, CELDA))
+            self.assertEqual(im.size, (ANCHO * 3, ALTO))
+            b = caja_opaca(im)
+            self.assertEqual(b[2] - b[0], 24)       # el rectángulo de 24 px no se escaló
         self.assertEqual(cuadros_del_header(self.salida / "tarou_anim.h", "reposo"), 3)
 
     def test_carpeta_de_cuadros(self):
@@ -163,13 +220,74 @@ class PruebasPrepararPersonaje(unittest.TestCase):
         with Image.open(self.salida / "tarou_reposo.png") as im:
             self.assertEqual(ultima_fila_opaca(im), 63 - 20)
 
-    def test_error_mas_de_15_cuadros(self):
-        """Una tira de 16 cuadros no cabe en un banco: el script falla y no escribe nada."""
-        tira(16).save(self.entrada / "caminar.png")
+    def test_error_mas_de_10_cuadros(self):
+        """Una tira de 11 cuadros (11 x 3 KB = 33 KB) no cabe en un banco de 32 KB:
+        el script falla y no escribe nada."""
+        tira(11).save(self.entrada / "caminar.png")
         with self.assertRaises(SystemExit) as ctx:
             pp.preparar("tarou", self.entrada, self.salida)
         self.assertNotEqual(ctx.exception.code, 0)
         self.assertFalse(self.salida.exists() and any(self.salida.iterdir()))
+
+
+class PruebasPixellabNativo(unittest.TestCase):
+    """La exportación nativa de Pixellab (Characters → Export: una carpeta por estado,
+    8 direcciones, lienzos de 76..104 px) entra por el mapeo de preparar_personaje.py."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.entrada = Path(self.tmp.name) / "Tarou"
+        self.salida = Path(self.tmp.name) / "salida"
+        for estado, n in [("Idle", 9), ("Walk", 8), ("Unsheathe", 9), ("Jump", 9), ("Sneak", 8)]:
+            exportar_pixellab(self.entrada, estado, "east", n)
+        exportar_pixellab(self.entrada, "Run", "east", 8, lienzo=(96, 96), ancho=80, alto=46)
+        exportar_pixellab(self.entrada, "Stand_up", "east", 11, lienzo=(104, 84))
+        exportar_pixellab(self.entrada, "Sleep", "south", 9, lienzo=(76, 76), ancho=56, alto=40)
+        rotacion_pixellab(self.entrada, "Attack_1", "east")
+        self.resultado = pp.preparar("tarou", self.entrada, self.salida)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_cuadros_del_mapeo(self):
+        """Cada animación del juego sale del estado de Pixellab que dice el mapeo."""
+        esperado = {"reposo": 9, "caminar": 8, "correr": 8, "saltar": 3, "caer": 3, "agachado": 1,
+                    "agachado_caminar": 8, "desenvainar": 9, "envainar": 9, "atacar": 1,
+                    "echarse": 6, "dormido": 9, "despertar": 10}
+        self.assertEqual(self.resultado, esperado)
+        for animacion, n in esperado.items():
+            self.assertEqual(cuadros_del_header(self.salida / "tarou_anim.h", animacion), n, animacion)
+
+    def test_orden_de_los_cuadros(self):
+        """Tramos e inversiones: saltar = Jump 2..4, caer = Jump 5..7, envainar =
+        Unsheathe al revés, echarse = Stand_up 0..5 al revés, despertar = Stand_up
+        0..9 (11 no caben en un banco), agachado = el primer cuadro de Sneak."""
+        self.assertEqual(orden_de(self.salida / "tarou_saltar.png"), [2, 3, 4])
+        self.assertEqual(orden_de(self.salida / "tarou_caer.png"), [5, 6, 7])
+        self.assertEqual(orden_de(self.salida / "tarou_envainar.png"), [8, 7, 6, 5, 4, 3, 2, 1, 0])
+        self.assertEqual(orden_de(self.salida / "tarou_echarse.png"), [5, 4, 3, 2, 1, 0])
+        self.assertEqual(orden_de(self.salida / "tarou_despertar.png"), list(range(10)))
+        self.assertEqual(orden_de(self.salida / "tarou_agachado.png"), [0])
+        self.assertEqual(orden_de(self.salida / "tarou_dormido.png"), list(range(9)))   # mira al sur
+
+    def test_sin_escalar_y_anclado(self):
+        """Píxeles nativos: el perro de 80 px de Run sigue midiendo 80 px; cada
+        animación queda centrada en la celda (centro del lienzo -> columna 48) y
+        con los pies en la última fila."""
+        with Image.open(self.salida / "tarou_correr.png") as im:
+            b = caja_opaca(im)
+            self.assertEqual((b[2] - b[0], b[3] - b[1]), (80, 46))
+            self.assertEqual(b[3], ALTO)                   # pies en la fila 63
+            self.assertEqual((b[0] + b[2]) // 2, ANCHO // 2)
+        with Image.open(self.salida / "tarou_despertar.png") as im:    # lienzo de 104x84
+            b = caja_opaca(im)
+            self.assertEqual((b[0] + b[2]) // 2, ANCHO // 2)
+            self.assertEqual(b[3], ALTO)
+        with Image.open(self.salida / "tarou_atacar.png") as im:       # pose fija, lienzo 64x64
+            self.assertEqual(im.size, (ANCHO, ALTO))
+            b = caja_opaca(im)
+            self.assertEqual(b[3], ALTO)
+            self.assertEqual((b[0] + b[2]) // 2, ANCHO // 2)
 
 
 if __name__ == "__main__":

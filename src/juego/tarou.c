@@ -13,7 +13,7 @@
       integrar → recortar x → aterrizar → avanzar la animación.
 
     SE CONECTA CON
-      Incluye:  juego/tarou.h, juego/nivel.h (ANCHO_NIVEL, ANCHO_CELDA),
+      Incluye:  juego/tarou.h, juego/nivel.h (ANCHO_NIVEL, ANCHO_CELDA, ALTO_CELDA),
                 sistema/puntofijo.h.
       Lo usan:  pantallas/pantalla_nivel1.c (un tarou_actualizar por frame),
                 tests/prueba_tarou.c.
@@ -31,7 +31,7 @@
 #include "juego/nivel.h"
 #include "sistema/puntofijo.h"
 
-#define X_MAX_FP PF(ANCHO_NIVEL - ANCHO_CELDA)   /* 7168: la celda no sale del nivel.   */
+#define X_MAX_FP PF(ANCHO_NIVEL - ANCHO_CELDA)   /* 6656 (416 px): la celda no sale.    */
 
 /*--- cambiar_estado: entra en `nuevo` y reinicia la animación ----------------------*/
 static void cambiar_estado(Tarou *t, u8 nuevo)
@@ -45,7 +45,7 @@ static void cambiar_estado(Tarou *t, u8 nuevo)
 void tarou_iniciar(Tarou *t, u16 x_pix, u16 suelo_y)
 {
     t->x_fp = PF(x_pix);
-    t->y_fp = PF(suelo_y - ANCHO_CELDA);      /* La última fila de la celda es la planta. */
+    t->y_fp = PF(suelo_y - ALTO_CELDA);       /* La última fila de la celda es la planta. */
     t->vx_fp = 0;
     t->vy_fp = 0;
     t->espada = ESPADA_ENVAINADA;
@@ -342,7 +342,7 @@ static void aterrizar(Tarou *t, const Mando *m)
 
 void tarou_actualizar(Tarou *t, const Mando *m, u16 suelo_y)
 {
-    s16 suelo_fp = PF(suelo_y - ANCHO_CELDA);   /* y de la celda cuando los pies tocan.   */
+    s16 suelo_fp = PF(suelo_y - ALTO_CELDA);    /* y de la celda cuando los pies tocan.   */
 
     /*--- 1. Transiciones y aceleración según el estado ---------------------------*/
     switch (t->estado)
@@ -417,22 +417,35 @@ void tarou_actualizar(Tarou *t, const Mando *m, u16 suelo_y)
     avanzar_animacion(t);
 }
 
-/*=== Cajas (§5): coordenadas del mundo, relativas a la celda de 64x64 ===============*/
+/*=== Cajas (§5): coordenadas del mundo, relativas a la celda de 96x64 ===============
+    Medidas sobre el arte de Pixellab (perro de unos 64x58 px de pie, centrado en la
+    celda, pies en la fila 64): el cuerpo deja fuera la cola y las orejas; la espada
+    va en la boca, así que el golpe sale por delante del morro. */
+#define CUERPO_X 24                 /* Columnas 24..76: lomo y patas, sin la cola.        */
+#define CUERPO_ANCHO 52
+#define CUERPO_Y 14                 /* De pie: filas 14..64.                              */
+#define CUERPO_ALTO 50
+#define CUERPO_Y_AGACHADO 28        /* Agachado (Sneak, unos 46 px de alto): filas 28..64.*/
+#define CUERPO_ALTO_AGACHADO 36
+#define GOLPE_X 60                  /* Mirando a la derecha: columnas 60..88, del morro   */
+#define GOLPE_ANCHO 28              /* a la punta de la espada y algo más.                */
+#define GOLPE_Y 20                  /* Filas 20..36: la altura de la boca y la espada.    */
+#define GOLPE_ALTO 16
 
 void tarou_caja_cuerpo(const Tarou *t, Caja *c)
 {
     u8 agachado = (u8)(t->estado == ESTADO_AGACHADO || t->estado == ESTADO_AGACHADO_CAMINANDO);
-    c->x = (s16)(PF_ENTERO(t->x_fp) + 20);     /* Columnas 20..44 de la celda.              */
-    c->ancho = 24;
+    c->x = (s16)(PF_ENTERO(t->x_fp) + CUERPO_X);       /* Columnas 24..76 de la celda.      */
+    c->ancho = CUERPO_ANCHO;
     if (agachado)
     {
-        c->y = (s16)(PF_ENTERO(t->y_fp) + 32); /* Agachado: solo la mitad de abajo (32..64).*/
-        c->alto = 32;
+        c->y = (s16)(PF_ENTERO(t->y_fp) + CUERPO_Y_AGACHADO); /* Más bajo y más corto.     */
+        c->alto = CUERPO_ALTO_AGACHADO;
     }
     else
     {
-        c->y = (s16)(PF_ENTERO(t->y_fp) + 8);  /* De pie: filas 8..64.                      */
-        c->alto = 56;
+        c->y = (s16)(PF_ENTERO(t->y_fp) + CUERPO_Y);   /* De pie: filas 14..64.             */
+        c->alto = CUERPO_ALTO;
     }
 }
 
@@ -442,16 +455,18 @@ u8 tarou_caja_golpe(const Tarou *t, Caja *c)
     {
         return 0;                               /* Solo hay golpe mientras ataca.            */
     }
-    c->ancho = 28;
-    c->alto = 16;
-    c->y = (s16)(PF_ENTERO(t->y_fp) + 24);     /* Filas 24..40: la altura de la espada.     */
+    c->ancho = GOLPE_ANCHO;
+    c->alto = GOLPE_ALTO;
+    c->y = (s16)(PF_ENTERO(t->y_fp) + GOLPE_Y); /* Filas 20..36: boca y espada.             */
     if (t->direccion == DIR_DERECHA)
     {
-        c->x = (s16)(PF_ENTERO(t->x_fp) + 44); /* Delante, a la derecha: columnas 44..72.   */
+        c->x = (s16)(PF_ENTERO(t->x_fp) + GOLPE_X);   /* Delante, a la derecha: 60..88.     */
     }
     else
     {
-        c->x = (s16)(PF_ENTERO(t->x_fp) - 8);  /* Espejo: 64 - 72 = -8 → columnas -8..20.   */
+        /* Espejo dentro de la celda: la columna c pasa a 96 - c, así que 60..88 se
+           convierte en 8..36 (96 - 88 = 8). Todo constante: sin cuentas por frame. */
+        c->x = (s16)(PF_ENTERO(t->x_fp) + (ANCHO_CELDA - GOLPE_X - GOLPE_ANCHO));
     }
     return 1;
 }

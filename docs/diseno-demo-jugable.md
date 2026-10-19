@@ -23,6 +23,7 @@ se ajustan tras verlos en Mesen con el HUD de depuración.
 |---|---|---|
 | v1 | 2026-10-14 | Tarou **cachorro** de 32×32 con carga estática de 12 cuadros; solo caminar y cámara. Reemplazada por completo. Sus especificaciones de Pixellab para el cachorro quedan en el historial de git (`3b30b64`). |
 | v2 | 2026-10-16 | Tarou **adulto** de 64×64 como metasprite dinámico; ocho mecánicas; HUD de depuración; reorganización de `src/`; renombrado Tarouh → Tarou; ROM de 512 KB. |
+| v3 | 2026-10-19 | Llega el arte real de Pixellab (un perro cuadrúpedo de hasta 81 px de ancho): celda de **96×64** (6 piezas), sin escalar; mapeo de la exportación nativa a las 13 animaciones; cajas rehechas sobre el arte; intro y título con 2 cuadros de reposo. |
 
 ---
 
@@ -52,7 +53,7 @@ se ajustan tras verlos en Mesen con el HUD de depuración.
 |---|---|---|---|
 | 1 | Protagonista y edad | **Tarou adulto** | Pedido del autor; el arte de Pixellab existe para el adulto |
 | 2 | Mecánicas | caminar, correr, saltar, agacharse y caminar agachado, envainar/desenvainar, ataque básico, dormir y despertar | Lista del autor. Sin colisión por tiles (exige tileset y Tiled: otra sesión) |
-| 3 | Tamaño y técnica del sprite | **64×64 como metasprite dinámico del SDK**: 4 piezas de 32×32, `gfx4snes -s 32 -T -X 64 -Y 64`, `oamMetaDrawDyn32` | Con ~55 cuadros no cabe nada estático (límite 512 tiles = 8 cuadros). Es el motor de LikeMario y sirve para enemigos |
+| 3 | Tamaño y técnica del sprite | **96×64 como metasprite dinámico del SDK** (v3; era 64×64): hasta 6 piezas de 32×32, `gfx4snes -s 32 -T -X 96 -Y 64`, `oamMetaDrawDyn32` | Con ~90 cuadros no cabe nada estático (límite 512 tiles = 5 cuadros). Las animaciones de Pixellab miden hasta 81 px de ancho y reducirlas al 79 % estropeaba el pixel art (decisión del 2026-10-19). Es el motor de LikeMario y sirve para enemigos |
 | 4 | Tamaño de ROM | **16 bancos (512 KB)** | ~115 KB libres no bastan con margen: los cuadros ocupan ~110 KB |
 | 5 | Mando | B salta, Y corre, A ataca, R envaina/desenvaina, Abajo agacha, SELECT HUD, START título; X y L libres | Ver [§3](#3-mando) |
 | 6 | Salto | altura variable, control aéreo, sin doble salto | Expresivo y barato de programar |
@@ -65,9 +66,9 @@ se ajustan tras verlos en Mesen con el HUD de depuración.
 | 13 | Organización de `src/` | subcarpetas por rol: `sistema/`, `pantallas/`, `juego/` y stubs | `snes_rules` compila `src/*/*.c` (verificado) |
 | 14 | «Juego completo» | MVP + **esqueleto de stubs** por subsistema futuro | Los stubs no contienen lógica, solo su contrato previsto |
 | 15 | Nombre | **Tarou** en todo (título, `ROMTITLE`, archivos, variables, documentos) | Pedido del autor |
-| 16 | Arte | personaje de **Pixellab** del autor (64×64, todas las animaciones); mientras no esté descargado, **marcadores numerados** con los mismos nombres | El arte real entra sin tocar código |
+| 16 | Arte | personaje de **Pixellab** del autor: exportación nativa (8 direcciones, lienzos de 76..104 px), usada sin escalar y anclada por centro y pies; `MAPEOS_PIXELLAB` dice de qué estado sale cada animación. Lo que falte, **marcadores numerados** | El arte real entra sin tocar código |
 | 17 | Sprites antiguos | el lobo samurái (`tarouh_lobo`) pasa a `lobo_samurai` y será un **enemigo**; Bárbara conserva su sprite hasta la Revisión 2 | Pedido del autor |
-| 18 | Intro y título | se cambian **ahora** para mostrar al Tarou nuevo (4 cuadros de reposo, carga estática) junto a Bárbara | Pedido del autor |
+| 18 | Intro y título | se cambian **ahora** para mostrar al Tarou nuevo (2 cuadros de reposo de 96×64, carga estática) junto a Bárbara | Pedido del autor |
 | 19 | Lógica pura separada del hardware, con pruebas en PC | `tarou.c`, `camara.c`, `nivel.c` no tocan la PPU y se compilan también con `gcc` | Permite TDD y enseña «la física no sabe de la PPU». Decisión del plan, a revisar |
 | 20 | Escenario | el del diseño v1: nivel 1 de 512 px, suelo plano, dos capas con parallax, cielo HDMA | Sin cambios |
 
@@ -149,20 +150,22 @@ Reglas transversales:
 
 - **Cada frame, en este orden:** leer mando → transiciones de estado →
   aceleración/frenado en x → gravedad en y → integrar (`x += vx`, `y += vy`)
-  → recortar x a [0, 448] → aterrizaje (si `y_pix + 64 >= suelo`: `y = suelo −
-  64`, `vy = 0`, `en_suelo = 1`) → avanzar animación.
+  → recortar x a [0, 416] (`ANCHO_NIVEL − ANCHO_CELDA`) → aterrizaje (si
+  `y_pix + 64 >= suelo`: `y = suelo − ALTO_CELDA`, `vy = 0`, `en_suelo = 1`)
+  → avanzar animación.
 - **Suelo:** `nivel_suelo_en(x_pix)` devuelve hoy la constante `SUELO_Y = 208`
   (a medir sobre el fondo). La última fila del cuadro es la planta de las
   patas: `y_celda = suelo − 64`.
-- **Cajas** (coordenadas relativas a la celda de 64×64, a afinar sobre el
-  arte):
-  - cuerpo de pie: x 20..44, y 8..64; agachado: y 32..64;
-  - golpe (solo en `ATACANDO`): 28×16 px delante del cuerpo, y 24..40, x
-    44..72 mirando a la derecha; en espejo mirando a la izquierda.
+- **Cajas** (coordenadas relativas a la celda de 96×64, medidas sobre el arte
+  de Pixellab el 2026-10-19: el perro mide unos 64×58 de pie y 46 de alto
+  agachado, centrado en la celda):
+  - cuerpo de pie: x 24..76, y 14..64 (sin la cola); agachado: y 28..64;
+  - golpe (solo en `ATACANDO`): 28×16 px, y 20..36 (la boca y la espada), x
+    60..88 mirando a la derecha; en espejo, x 8..36 (`96 − 88 = 8`).
 
 ## 6. Cámara
 
-- `camara = x_pix + 32 − 128`, recortada a 0..`ANCHO_NIVEL − ANCHO_PANTALLA`
+- `camara = x_pix + 48 − 128` (48 = centro de la celda de 96), recortada a 0..`ANCHO_NIVEL − ANCHO_PANTALLA`
   (0..256). Tarou se mueve hasta el centro, la cámara lo sigue y, al final,
   llega al borde. Sin suavizado.
 - `x_pantalla = x_pix − camara` (nunca negativo); `y_pantalla = y_pix` (no hay
@@ -173,7 +176,7 @@ Reglas transversales:
 
 - **Motor:** sprites dinámicos del SDK. `oamInitDynamicSprite(0x0000, 0x1000,
   0, 0, OBJ_SIZE16_L32)`: piezas grandes de 32×32 desde VRAM 0x0000. Tarou usa
-  las entradas 0..3 de la OAM, paleta de sprites 0 (CGRAM 128), prioridad 3.
+  las entradas 0..5 de la OAM, paleta de sprites 0 (CGRAM 128), prioridad 3.
 - **Por frame:** `oamMetaDrawDyn32(0, x_pantalla, y_pantalla, tabla, tiles)`
   en la actualización; `oamInitDynamicSpriteEndFrame()` al final de la
   actualización; `oamVramQueueUpdate()` justo después de `WaitForVBlank()`.
@@ -181,10 +184,10 @@ Reglas transversales:
   `pantalla_X_vblank()`.
 - **Espejo:** la tabla metasprite de cada cuadro viene de `gfx4snes -T`
   mirando a la derecha. Mirando a la izquierda se construye en RAM una copia
-  con `dx` intercambiado (0 ↔ 32), el bit `hflip` (0x40) en los atributos y el
-  terminador detrás de la última pieza (`juego/metasprite.c`, lógica pura
-  probada en PC). Un cuadro tiene **hasta** 4 piezas: `gfx4snes -T` omite los
-  bloques de 32×32 transparentes. Sin variantes `-L` del conversor (menos
+  con `dx → 64 − dx` (0 ↔ 64; la columna del medio se queda), el bit `hflip`
+  (0x40) en los atributos y el terminador detrás de la última pieza
+  (`juego/metasprite.c`, lógica pura probada en PC). Un cuadro tiene **hasta**
+  6 piezas: `gfx4snes -T` omite los bloques de 32×32 transparentes. Sin variantes `-L` del conversor (menos
   incógnitas).
 - **Animaciones (1:1 con los estados):** `reposo`, `caminar`, `correr`,
   `saltar`, `caer`, `agachado`, `agachado_caminar`, `desenvainar`, `envainar`,
@@ -201,13 +204,15 @@ Reglas transversales:
 | agachado | 12 | sí |
 | agachado_caminar | 8 | sí |
 | desenvainar, envainar | 5 | no |
-| atacar | 4 | no |
+| atacar | 20 en total (`DURACION_ATAQUE / cuadros`; hoy 1 cuadro × 20) | no |
 | echarse, despertar | 8 | no |
 | dormido | 20 | sí |
 
-- **Presupuesto:** cada cuadro de 64×64 son 2 KB en ROM; con ~55 cuadros,
-  ~110 KB. Cada animación va en su propia sección de `data.asm` y **no puede
-  pasar de 15 cuadros** (30 KB < 32 KB por banco); el pipeline lo comprueba.
+- **Presupuesto:** cada cuadro de 96×64 son 3 KB en ROM (6 piezas de 512
+  bytes); con los 88 cuadros del arte actual, ~264 KB (quedan ~80 KB libres de
+  los 512). Cada animación va en su propia sección de `data.asm` y **no puede
+  pasar de 10 cuadros** (30 KB < 32 KB por banco); el pipeline lo comprueba.
+  Por eso `despertar` usa 10 de los 11 cuadros de Stand_up.
 
 ## 8. Fondo
 
@@ -250,24 +255,44 @@ la lógica termina en la línea ~60 de 262 (≈ 47 % del tiempo de frame).
 ```
 res/descargas/graficos/pixellab/tarou/      ← el autor descarga aquí (ignorado por git)
     README.md                               ← qué exportar y cómo nombrarlo (versionado)
-    reposo.png | reposo/01.png... | reposo.gif   (una entrada por animación)
+    Idle/animations/<nombre>/east/frame_000.png ...   (exportación nativa: un estado por carpeta)
+    o, a mano: reposo.png | reposo/01.png... | reposo.gif   (una entrada por animación)
           │  python scripts/preparar_personaje.py tarou
           ▼
 res/personajes/tarou/                       ← versionado (como el resto de res/)
-    tarou_reposo.png ... tarou_despertar.png   tiras indexadas, 64×64 por cuadro,
+    tarou_reposo.png ... tarou_despertar.png   tiras indexadas, 96×64 por cuadro,
                                                UNA paleta compartida (15 + transparente)
-    tarou_reposo_estatico.png                  SIEMPRE 4 cuadros elegidos del reposo (intro y título)
+    tarou_reposo_estatico.png                  SIEMPRE 2 cuadros elegidos del reposo (intro y título)
     tarou_anim.h                               #define TAROU_REPOSO_CUADROS 4 ...
-          │  make  (gfx4snes -s 32 -o 16 -u 16 -p -T -X 64 -Y 64 -P 3)
+          │  make  (gfx4snes -s 32 -o 16 -u 16 -p -T -X 96 -Y 64 -P 3)
           ▼
     tarou_reposo.pic / .pal / tarou_reposo_meta.inc   (ignorados; data.asm y tarou_sprite.c los usan)
 ```
 
-- Entrada aceptada por animación: tira horizontal PNG, carpeta con cuadros
-  numerados, o GIF. Si falta una animación, el script genera un **marcador**:
-  cuadros de 64×64 con el nombre y el número del cuadro.
-- Alineación: una sola caja envolvente común a **todas** las animaciones, pies
-  al borde inferior. Así no hay saltos entre animaciones.
+- **Exportación nativa de Pixellab** (Characters → Export, lo que el autor
+  descarga): una carpeta por estado (`Idle`, `Walk`, `Run`, `Jump`, `Sneak`,
+  `Unsheathe`, `Stand_up`, `Sleep`, `Attack_1`...), 8 direcciones y lienzos de
+  76..104 px según el estado. El script la reconoce y usa `MAPEOS_PIXELLAB`
+  (decisión del 2026-10-19):
+
+  | Animación | Sale de | Notas |
+  |---|---|---|
+  | reposo, caminar, correr | Idle, Walk, Run | enteras |
+  | saltar / caer | Jump 2..4 / Jump 5..7 | Jump es un salto hacia delante; el 0..1 (impulso) y el 8 (aterrizaje) no se usan |
+  | agachado / agachado_caminar | Sneak 0 / Sneak entero | no hay pose agachada quieta |
+  | desenvainar / envainar | Unsheathe / Unsheathe al revés | |
+  | atacar | Attack_1 (pose fija) | **provisional** hasta que haya animación de ataque |
+  | echarse / despertar | Stand_up 0..5 al revés / Stand_up 0..9 | 11 cuadros no caben en un banco |
+  | dormido | Sleep, mirando al **sur** | Pixellab solo lo generó en esa dirección |
+
+  Todo lo demás mira al este (la izquierda la pone el espejo del hardware).
+  Cada animación se ancla **sin escalar**: centro del lienzo → columna 48,
+  pies → fila 63.
+- Entrada a mano por animación: tira horizontal PNG de cuadros cuadrados,
+  carpeta con cuadros numerados, o GIF. Si falta una animación, el script
+  genera un **marcador**: celdas de 96×64 con el nombre y el número del cuadro.
+- Alineación (entrada a mano): una sola caja envolvente común a **todas** las
+  animaciones, pies al borde inferior. Así no hay saltos entre animaciones.
 - Paleta: se cuantizan juntos todos los cuadros de todas las animaciones a 15
   colores; el índice 0 es transparente. Los `.pal` que genere gfx4snes deben
   ser idénticos; se carga solo el de `reposo`.
@@ -315,12 +340,13 @@ main.c ─ secuencia_actualizar() ─▶ pantalla_nivel1_actualizar()
 - **Capa de hardware** (`mando.c`, `tarou_sprite.c`, `hud_debug.c`,
   `pantalla_nivel1.c`): traduce entre la lógica y la PPU/mando.
 - **Intro y título:** `personajes.c` muestra a Tarou con la tira
-  `tarou_reposo_estatico` (siempre 4 cuadros, elegidos del reposo real por el
-  pipeline; carga estática de 8 KB en VRAM 0x0000; un `oamSet` de 32×32 por
-  pieza según su tabla metasprite, hasta 4, escondiendo las entradas que
-  sobran) y a Bárbara (sprite estático de 64×64 como hasta ahora, tiles a
-  continuación). Tamaño `OBJ_SIZE32_L64`. Así el reposo del nivel puede tener
-  los cuadros que quiera el arte sin tocar `personajes.c`.
+  `tarou_reposo_estatico` (siempre 2 cuadros de 96×64, elegidos del reposo
+  real por el pipeline; carga estática de 6 KB en VRAM 0x0000, tiles 0..191;
+  un `oamSet` de 32×32 por pieza según su tabla metasprite, hasta 6,
+  escondiendo las entradas que sobran) y a Bárbara (sprite estático de 64×64
+  en la segunda tabla de tiles, 256..511, VRAM 0x1000). Tamaño
+  `OBJ_SIZE32_L64`. Así el reposo del nivel puede tener los cuadros que
+  quiera el arte sin tocar `personajes.c`.
 
 ## 12. Cabecera estándar de cada archivo fuente
 
@@ -386,9 +412,15 @@ agachado · variantes de animación con espada fuera · cámara suavizada.
   `gfx4snes -s 32` (filas de 128 px, bloque `n` → tile `(n/4)*64 + (n%4)*4`)
   se comprueba con el marcador numerado antes de fiarse de la fórmula.
 - **Piezas transparentes:** `gfx4snes -T` omite los bloques de 32×32 vacíos
-  (un Tarou dormido solo ocupa la mitad inferior de la celda): ningún código
-  supone 4 piezas por cuadro; se recorre hasta el terminador
+  (un Tarou dormido solo ocupa la fila de abajo de la celda): ningún código
+  supone 6 piezas por cuadro; se recorre hasta el terminador
   (`metasprite_piezas`, `metasprite_espejar`, `tests/prueba_metasprite.c`).
+- **Sprites grandes y las dos tablas de tiles:** la OAM direcciona 512 tiles
+  en dos tablas de 256, y un sprite NO cruza de una a otra: al bajar de fila
+  la PPU suma 16 al número de tile y da la vuelta dentro de su tabla. Visto en
+  Mesen el 2026-10-19: con Bárbara (64×64) en el tile 192, la mitad de abajo
+  de dos de sus cuadros mostraba tiles de Tarou. Regla: un sprite grande
+  empieza en una tabla y no se sale de ella (Bárbara va en el 256).
 - **Primer cuadro al entrar en el nivel:** `pantalla_nivel1_iniciar` llama a
   `oamVramQueueUpdate()` justo después de `oamInitDynamicSpriteEndFrame()`,
   con la pantalla aún apagada; si no, los 32 frames del fade in muestran las

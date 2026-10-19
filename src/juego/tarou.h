@@ -20,7 +20,7 @@
       ninguno (se compila también en el PC).
 
     VARIABLES (campos de Tarou)
-      x_fp, y_fp       s16  0..7168 / 0..3584, punto fijo 12.4  esquina superior izquierda de la celda, en el mundo
+      x_fp, y_fp       s16  0..6656 / 0..3584, punto fijo 12.4  esquina superior izquierda de la celda (96x64), en el mundo
       vx_fp, vy_fp     s16  -96..96, punto fijo 12.4            velocidad por frame (negativa = izquierda / arriba)
       estado           u8   un valor de Estado                  qué hace ahora (una sola cosa)
       espada           u8   ESPADA_ENVAINADA / ESPADA_FUERA     persiste entre estados
@@ -81,7 +81,7 @@ typedef struct
 } Tarou;
 
 /* Deja a Tarou PARADO, con la espada envainada, mirando a la derecha, con la celda
-   empezando en x_pix y los pies sobre suelo_y (y = suelo_y - 64). */
+   empezando en x_pix y los pies sobre suelo_y (y = suelo_y - ALTO_CELDA). */
 void tarou_iniciar(Tarou *t, u16 x_pix, u16 suelo_y);
 
 /* Un frame completo (§5): transiciones de estado → aceleración/frenado → gravedad →

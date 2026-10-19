@@ -3,7 +3,7 @@
 
     PROPÓSITO
       Ver metasprite.h. Dos bucles que paran en el terminador (dx = 0xFF80) o,
-      como red de seguridad, en la cuarta pieza. Sin <snes.h>: se compila con
+      como red de seguridad, en la sexta pieza. Sin <snes.h>: se compila con
       tcc816 para la ROM y con gcc para tests/.
 
     SE CONECTA CON
@@ -34,7 +34,7 @@ u8 metasprite_espejar(const t_metasprite *tabla, t_metasprite *espejo)
     while (n < METASPRITE_PIEZAS_MAX && tabla[n].dx != METASPRITE_FIN)
     {
         /* Campo a campo: tcc816 no copia structs enteras con "=". */
-        espejo[n].dx = (u16)(METASPRITE_ESPEJO_DX - tabla[n].dx);   /* 0 <-> 32.           */
+        espejo[n].dx = (u16)(METASPRITE_ESPEJO_DX - tabla[n].dx);   /* 0 <-> 64, 32 = 32.  */
         espejo[n].dy = tabla[n].dy;                                 /* Misma fila.         */
         espejo[n].dtile = tabla[n].dtile;                           /* Mismo bloque.       */
         espejo[n].props = (u8)(tabla[n].props | METASPRITE_HFLIP);  /* Volteada.           */

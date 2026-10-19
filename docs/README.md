@@ -44,7 +44,8 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
 ## Material de apoyo
 
 - **`screenshots/`** — Capturas de referencia: la secuencia de arranque
-  (2026-09-24) y `revision-1/` (todas las mecánicas con el HUD, 2026-10-16).
+  (2026-09-24) y `revision-1/` (título y todas las mecánicas con el HUD, con el
+  arte real de Pixellab, 2026-10-19).
 - **`../examples/likemario/LikeMario.md`** — Estudio del ejemplo del SDK que
   sirve de referencia para el motor de mapas, objetos y sprites dinámicos.
 - **`../res/descargas/README.md`** y

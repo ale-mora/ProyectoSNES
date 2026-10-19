@@ -51,7 +51,7 @@ Definiciones:
 
 ```
 res/personajes/tarou/tarou_reposo.png     PNG indexado (≤ 16 colores, índice 0 = transparente)
-   │  gfx4snes -s 32 -o 16 -u 16 -p -T -X 64 -Y 64 -P 3 -i tarou_reposo.png
+   │  gfx4snes -s 32 -o 16 -u 16 -p -T -X 96 -Y 64 -P 3 -i tarou_reposo.png
    ▼
 tarou_reposo.pic          los tiles (bloques de 32x32 empaquetados en filas de 128 px)
 tarou_reposo.pal          la paleta: 16 colores de 15 bits (2 bytes cada uno)
@@ -72,7 +72,7 @@ Opciones de `gfx4snes` que usa el Makefile:
 | `-p` | genera el `.pal` |
 | `-m` | genera el mapa (`.map`) de un fondo; `-e N` pone la paleta N en las entradas del mapa |
 | `-y` | mapa en páginas de 32×32 tiles (formato `SC_64x32`, para scroll); **exige alto múltiplo de 256** |
-| `-T -X 64 -Y 64 -P 3` | tabla metasprite de 64×64 px con prioridad 3 |
+| `-T -X 96 -Y 64 -P 3` | tabla metasprite de 96×64 px (3×2 piezas de 32) con prioridad 3 |
 | `-n` | tabla HDMA con un color por línea (`cielo_grad_data.as`) |
 | `-t bmp` | la entrada es BMP (las fuentes) |
 
@@ -108,7 +108,7 @@ Variables y reglas propias, en orden de aparición:
 | `res/titulo/fondo_lejos.pic` (`-e 2`), `fondo_cerca.pic` (`-y`) | capas del título | lejana en paleta 2; cercana de 512 px en páginas de 32×32 |
 | `res/intro/escena_1|2.pic` | imágenes de 256 colores (`-o 256 -u 256`) | Mode 3 |
 | `res/titulo/cielo_grad_data.as` | tabla HDMA (`-n -t bmp`) | el degradado del cielo, una línea por color |
-| `TAROU_ANIMS`, `TAROU_PICS`, regla patrón `res/personajes/tarou/%.pic` | las 13 tiras de Tarou más `tarou_reposo_estatico` → metasprites (`-s 32 -T -X 64 -Y 64 -P 3`) | un solo patrón para las 14 tiras |
+| `TAROU_ANIMS`, `TAROU_PICS`, regla patrón `res/personajes/tarou/%.pic` | las 13 tiras de Tarou más `tarou_reposo_estatico` → metasprites (`-s 32 -T -X 96 -Y 64 -P 3`) | un solo patrón para las 14 tiras |
 | `res/nivel1/fondo_lejos.pic` | capa lejana del nivel (`-y -e 2`) | 512 px en páginas, paleta 2 |
 | `ASSETS := ...` | la lista de todas las salidas de gfx4snes | `bitmaps: $(ASSETS)` las fuerza antes de compilar |
 | `data.obj: $(ASSETS)` | `data.asm` se reensambla si cambia cualquier asset | `make` no ve los `.incbin`; sin esta línea los gráficos viejos se quedaban en la ROM |
@@ -180,7 +180,7 @@ RAM: 154372 bytes (94.22%) free of total 163840.
 src/juego/tarou.c + tests/prueba_tarou.c + ...
    │  gcc -std=c99 -Wall -Wextra -DPRUEBAS_PC -I. -I../src     (tests/Makefile)
    ▼
-tests/pruebas.exe   → "191 pruebas, 0 fallos"
+tests/pruebas.exe   → "195 pruebas, 0 fallos"
 ```
 
 `-DPRUEBAS_PC` hace que `sistema/tipos.h` tome `u8/u16/s16` de `<stdint.h>`

@@ -9,8 +9,8 @@
       que oamVramQueueUpdate() ejecuta después del VBlank. Mirando a la izquierda
       se construye en RAM una copia de la tabla con las piezas intercambiadas y
       el bit de espejo horizontal (no hay tablas espejadas en la ROM). Un cuadro
-      tiene HASTA cuatro piezas: gfx4snes -T omite las transparentes, y el
-      recorrido para en el terminador (juego/metasprite.c).
+      de 96x64 tiene HASTA seis piezas: gfx4snes -T omite las transparentes, y
+      el recorrido para en el terminador (juego/metasprite.c).
 
     SE CONECTA CON
       Incluye:  juego/tarou_sprite.h, juego/animaciones.h, juego/metasprite.h,
@@ -27,8 +27,8 @@
       uso), por el motor. CGRAM: dmaCopyCGram a la paleta de sprites 0.
 
     VARIABLES (globales y estáticas de este archivo)
-      espejo[5]         t_metasprite  tabla del cuadro actual mirando a la izquierda (RAM):
-                                      hasta 4 piezas + el terminador
+      espejo[7]         t_metasprite  tabla del cuadro actual mirando a la izquierda (RAM):
+                                      hasta 6 piezas + el terminador
       ultimo_estado     u8            estado dibujado en el frame anterior (0xFF = ninguno)
       ultimo_cuadro     u8            cuadro dibujado en el frame anterior
       ultima_direccion  u8            dirección dibujada en el frame anterior
@@ -63,14 +63,14 @@ extern char tarou_echarse_til, tarou_dormido_til, tarou_despertar_til;
 extern char tarou_pal;
 
 /*--- Constantes ------------------------------------------------------------------------*/
-#define OAM_TAROU 0                  /* Primera entrada de la OAM; el metasprite usa 0..3.*/
+#define OAM_TAROU 0                  /* Primera entrada de la OAM; el metasprite usa 0..5.*/
 #define PALETA_TAROU 0               /* Paleta de sprites 0 = colores 128..143 de la CGRAM.*/
 #define VRAM_DIN_GRANDES 0x0000      /* Piezas de 32x32 del motor dinámico.              */
 #define VRAM_DIN_PEQUENAS 0x1000     /* Piezas de 16x16 (no se usan).                    */
 #define SIN_ESTADO 0xFF              /* "Todavía no se dibujó nada".                     */
 
 /*--- Estado ----------------------------------------------------------------------------*/
-static t_metasprite espejo[METASPRITE_PIEZAS_MAX + 1];   /* Hasta 4 piezas + terminador. */
+static t_metasprite espejo[METASPRITE_PIEZAS_MAX + 1];   /* Hasta 6 piezas + terminador. */
 static u8 ultimo_estado, ultimo_cuadro, ultima_direccion;
 
 const t_metasprite *tarou_sprite_tabla(u8 estado, u8 cuadro)
@@ -143,8 +143,9 @@ void tarou_sprite_dibujar(const Tarou *t, u16 camara)
     }
 
     /* Mirando a la izquierda: copia de la tabla con las piezas intercambiadas
-       (dx 0 <-> 32) y el bit de espejo, con el terminador detrás de la última
-       pieza que haya (pueden ser menos de cuatro): juego/metasprite.c. */
+       (dx 0 <-> 64; la columna del medio se queda) y el bit de espejo, con el
+       terminador detrás de la última pieza que haya (pueden ser menos de seis):
+       juego/metasprite.c. */
     if (t->direccion == DIR_IZQUIERDA)
     {
         metasprite_espejar(tabla, espejo);

@@ -6,16 +6,23 @@
     compartida, y genera el header con la cantidad de cuadros de cada una.
 
     PROPÓSITO
-      El arte llega en el formato que dé Pixellab (tira PNG, carpeta de cuadros o
-      GIF); la SNES exige cuadros de 64x64, 15 colores + transparente, una sola
-      paleta para todo el personaje y los pies siempre en la misma fila. Este
-      script hace esa traducción y, si falta una animación, fabrica un marcador
-      numerado para que el juego compile y se pueda probar sin esperar al arte.
+      El arte llega en el formato que dé Pixellab: su exportación NATIVA
+      (Characters → Export: <Estado>/animations/<nombre>/<dirección>/frame_NNN.png,
+      8 direcciones, lienzos de 76..104 px) o, a mano, una tira PNG, una carpeta
+      de cuadros o un GIF por animación. La SNES exige celdas de 96x64 (3x2
+      piezas de 32x32), 15 colores + transparente, una sola paleta para todo el
+      personaje y los pies siempre en la misma fila. Este script hace esa
+      traducción SIN escalar el arte y, si falta una animación, fabrica un
+      marcador numerado para que el juego compile sin esperar al arte.
+      La exportación nativa trae otros nombres y otros cortes que las 13
+      animaciones del juego: el diccionario MAPEOS_PIXELLAB dice de qué estado,
+      dirección y tramo de cuadros sale cada una (y si va al revés).
 
     SE CONECTA CON
-      Lee:      res/descargas/graficos/pixellab/<nombre>/ (ver su README.md).
+      Lee:      res/descargas/graficos/pixellab/<nombre>/ (ver su README.md): la
+                exportación nativa de Pixellab o un archivo por animación.
       Escribe:  res/personajes/<nombre>/<nombre>_<animación>.png (13 tiras),
-                <nombre>_reposo_estatico.png (SIEMPRE 4 cuadros del reposo, para
+                <nombre>_reposo_estatico.png (SIEMPRE 2 cuadros del reposo, para
                 la carga estática de intro y título en src/pantallas/personajes.c)
                 y res/personajes/<nombre>/<nombre>_anim.h (#define *_CUADROS).
       Lo usan:  el Makefile (gfx4snes -s 32 -T convierte las tiras),
@@ -25,15 +32,17 @@
     HARDWARE QUE TOCA
       ninguno; produce datos para la ROM. Las reglas que aplica son del hardware:
       índice 0 = transparente en sprites, 16 colores por paleta, y cada tira en
-      su propia sección de 32 KB (de ahí el máximo de 15 cuadros de 2 KB).
+      su propia sección de 32 KB (de ahí el máximo de 10 cuadros de 3 KB).
 
     VARIABLES (constantes del módulo)
-      CELDA         int    64 px             lado del cuadro
-      MAX_CUADROS   int    15                cuadros por animación (30 KB < 32 KB)
-      CUADROS_ESTATICOS int 4                cuadros de la tira estática de reposo (8 KB en VRAM)
+      CELDA_ANCHO   int    96 px             ancho de la celda (3 piezas de 32)
+      CELDA_ALTO    int    64 px             alto de la celda (2 piezas de 32); la última fila son los pies
+      MAX_CUADROS   int    10                cuadros por animación (10 x 3 KB = 30 KB < 32 KB)
+      CUADROS_ESTATICOS int 2                cuadros de la tira estática de reposo (6 KB en VRAM)
       COLORES       int    15                colores opacos (el 16.º es el transparente)
       TRANSPARENTE  tuple  magenta           color que marca el índice 0 al guardar
       ANIMACIONES   list   (nombre, cuadros) las 13 animaciones y sus cuadros por defecto
+      MAPEOS_PIXELLAB dict personaje -> {animación: (estado, dirección, desde, hasta, al_revés)}
 
     Uso (desde la raíz del repo):
       python scripts/preparar_personaje.py tarou
@@ -48,9 +57,10 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, ImageSequence
 
-CELDA = 64
-MAX_CUADROS = 15
-CUADROS_ESTATICOS = 4
+CELDA_ANCHO = 96
+CELDA_ALTO = 64
+MAX_CUADROS = 10
+CUADROS_ESTATICOS = 2
 COLORES = 15
 TRANSPARENTE = (255, 0, 255)
 
@@ -61,6 +71,31 @@ ANIMACIONES = [
     ("agachado", 2), ("agachado_caminar", 6), ("desenvainar", 4), ("envainar", 4),
     ("atacar", 5), ("echarse", 4), ("dormido", 4), ("despertar", 4),
 ]
+
+# De qué parte de la exportación NATIVA de Pixellab sale cada animación del juego
+# (decisión del 2026-10-19, docs/diseno-demo-jugable.md §10). Cada entrada es
+# (estado de Pixellab, dirección, primer cuadro, cuadro final sin incluir o None
+# = hasta el último, al revés). primer cuadro = None significa una pose FIJA: la
+# imagen <estado>/rotations/<dirección>.png como único cuadro. Todo mira al este
+# (la izquierda la hace el espejo del hardware) salvo dormir: Pixellab solo
+# generó Sleep mirando al sur.
+MAPEOS_PIXELLAB = {
+    "tarou": {
+        "reposo": ("Idle", "east", 0, None, False),
+        "caminar": ("Walk", "east", 0, None, False),
+        "correr": ("Run", "east", 0, None, False),
+        "saltar": ("Jump", "east", 2, 5, False),           # impulso y subida
+        "caer": ("Jump", "east", 5, 8, False),             # bajada (el 8.º es el aterrizaje)
+        "agachado": ("Sneak", "east", 0, 1, False),        # un cuadro de Sneak, quieto
+        "agachado_caminar": ("Sneak", "east", 0, None, False),
+        "desenvainar": ("Unsheathe", "east", 0, None, False),
+        "envainar": ("Unsheathe", "east", 0, None, True),  # el mismo gesto, al revés
+        "atacar": ("Attack_1", "east", None, None, False), # PROVISIONAL: pose fija
+        "echarse": ("Stand_up", "east", 0, 6, True),       # levantarse al revés = tumbarse
+        "dormido": ("Sleep", "south", 0, None, False),
+        "despertar": ("Stand_up", "east", 0, 10, False),   # 11 cuadros no caben: 10
+    },
+}
 
 
 # --- 1. Cargar los cuadros de una animación en el formato que haya -----------------
@@ -73,7 +108,7 @@ def cargar_cuadros(entrada: Path, animacion: str) -> list | None:
     if tira.is_file():
         with Image.open(tira) as im:
             im = im.convert("RGBA")
-            lado = CELDA if im.height == CELDA else im.height      # cuadros cuadrados
+            lado = im.height                                       # cuadros cuadrados
             if im.width % lado != 0:
                 sys.exit(f"ERROR: {tira} mide {im.width}x{im.height}: el ancho no es múltiplo de {lado}")
             return [im.crop((k * lado, 0, (k + 1) * lado, im.height)) for k in range(im.width // lado)]
@@ -91,33 +126,87 @@ def cargar_cuadros(entrada: Path, animacion: str) -> list | None:
     return None
 
 
+# --- 1b. Exportación nativa de Pixellab --------------------------------------------
+
+def es_pixellab_nativo(entrada: Path) -> bool:
+    """La exportación nativa tiene una carpeta por estado con animations/ o rotations/."""
+    return entrada.is_dir() and any((d / "animations").is_dir() or (d / "rotations").is_dir()
+                                   for d in entrada.iterdir() if d.is_dir())
+
+
+def anclar(cuadros: list) -> list:
+    """Coloca cada cuadro de UNA animación en una celda de CELDA_ANCHO x CELDA_ALTO sin
+    escalar: el centro del lienzo de Pixellab va a la columna central de la celda y
+    la fila más baja con píxeles de toda la animación (los pies) a la última fila.
+    Los lienzos miden distinto según el estado (76..104 px), así que se ancla por
+    el centro y los pies, nunca por la esquina."""
+    pies = max(c.getchannel("A").getbbox()[3] for c in cuadros if c.getchannel("A").getbbox())
+    celdas = []
+    for c in cuadros:
+        celda = Image.new("RGBA", (CELDA_ANCHO, CELDA_ALTO), (0, 0, 0, 0))
+        x = (CELDA_ANCHO - c.width) // 2              # centro del lienzo -> centro de la celda
+        y = CELDA_ALTO - pies                         # pies -> última fila
+        celda.paste(c, (x, y), c)                     # lo que quede fuera se recorta
+        b = c.getchannel("A").getbbox()
+        if b and (b[0] + x < 0 or b[2] + x > CELDA_ANCHO or b[1] + y < 0):
+            print(f"AVISO: un cuadro no cabe en {CELDA_ANCHO}x{CELDA_ALTO} y se recorta")
+        celdas.append(celda)
+    return celdas
+
+
+def cargar_pixellab(entrada: Path, regla: tuple) -> list | None:
+    """Cuadros de una animación del juego según su regla de MAPEOS_PIXELLAB, ya
+    anclados en celdas. None si ese estado o dirección no está en la exportación."""
+    estado, direccion, desde, hasta, al_reves = regla
+    if desde is None:                                 # pose fija: rotations/<dirección>.png
+        pose = entrada / estado / "rotations" / f"{direccion}.png"
+        if not pose.is_file():
+            return None
+        with Image.open(pose) as im:
+            return anclar([im.convert("RGBA")])
+    carpetas = sorted((entrada / estado / "animations").glob(f"*/{direccion}"))
+    if not carpetas:
+        return None
+    if len(carpetas) > 1:
+        print(f"AVISO: {estado} tiene {len(carpetas)} animaciones; uso {carpetas[0].parent.name}")
+    archivos = sorted(carpetas[0].glob("*.png"))
+    cuadros = []
+    for f in archivos:
+        with Image.open(f) as im:
+            cuadros.append(im.convert("RGBA"))
+    cuadros = cuadros[desde:hasta]
+    if al_reves:
+        cuadros = cuadros[::-1]
+    return anclar(cuadros) if cuadros else None
+
+
 # --- 2. Marcador numerado para las animaciones que faltan --------------------------
 
 def marcador(animacion: str, k: int, total: int) -> Image.Image:
-    """Cuadro de 64x64 con un marco, el nombre de la animación y 'k/total'."""
-    im = Image.new("RGBA", (CELDA, CELDA), (0, 0, 0, 0))
+    """Celda de 96x64 con un marco, el nombre de la animación y 'k/total'."""
+    im = Image.new("RGBA", (CELDA_ANCHO, CELDA_ALTO), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rectangle((4, 4, CELDA - 5, CELDA - 1), fill=(70, 70, 150, 255), outline=(240, 240, 240, 255), width=2)
+    d.rectangle((20, 4, CELDA_ANCHO - 21, CELDA_ALTO - 1), fill=(70, 70, 150, 255), outline=(240, 240, 240, 255), width=2)
     fuente = ImageFont.load_default(size=9)
     lineas = animacion.split("_") + [f"{k + 1}/{total}"]
     for i, linea in enumerate(lineas):
-        d.text((8, 10 + i * 13), linea, fill=(240, 240, 240, 255), font=fuente)
+        d.text((24, 10 + i * 13), linea, fill=(240, 240, 240, 255), font=fuente)
     return im
 
 
-# --- 3. Normalizar cada cuadro a 64x64 ---------------------------------------------
+# --- 3. Normalizar cada cuadro a la celda de 96x64 ----------------------------------
 
 def a_celda(cuadro: Image.Image) -> Image.Image:
-    """Mete un cuadro en una celda de 64x64: centrado y apoyado abajo si es menor,
-    reducido (con pérdida) si es mayor."""
-    if cuadro.size == (CELDA, CELDA):
+    """Mete un cuadro en una celda de 96x64: centrado y apoyado abajo si cabe,
+    reducido (con pérdida, y avisando) solo si no cabe."""
+    if cuadro.size == (CELDA_ANCHO, CELDA_ALTO):
         return cuadro
-    if cuadro.width > CELDA or cuadro.height > CELDA:
-        factor = CELDA / max(cuadro.width, cuadro.height)
+    if cuadro.width > CELDA_ANCHO or cuadro.height > CELDA_ALTO:
+        factor = min(CELDA_ANCHO / cuadro.width, CELDA_ALTO / cuadro.height)
         cuadro = cuadro.resize((max(1, round(cuadro.width * factor)), max(1, round(cuadro.height * factor))), Image.NEAREST)
-        print(f"AVISO: cuadro mayor que {CELDA}x{CELDA}, reducido a {cuadro.size} (pierde detalle)")
-    celda = Image.new("RGBA", (CELDA, CELDA), (0, 0, 0, 0))
-    celda.paste(cuadro, ((CELDA - cuadro.width) // 2, CELDA - cuadro.height), cuadro)
+        print(f"AVISO: cuadro mayor que {CELDA_ANCHO}x{CELDA_ALTO}, reducido a {cuadro.size} (pierde detalle)")
+    celda = Image.new("RGBA", (CELDA_ANCHO, CELDA_ALTO), (0, 0, 0, 0))
+    celda.paste(cuadro, ((CELDA_ANCHO - cuadro.width) // 2, CELDA_ALTO - cuadro.height), cuadro)
     return celda
 
 
@@ -182,7 +271,7 @@ def escribir_header(ruta: Path, nombre: str, cuadros: dict) -> None:
         "      ninguno.",
         "",
         "    VARIABLES (constantes)",
-        f"      {N}_<ANIMACION>_CUADROS  1..{MAX_CUADROS}  cuadros de 64x64 de esa tira",
+        f"      {N}_<ANIMACION>_CUADROS  1..{MAX_CUADROS}  cuadros de 96x64 de esa tira",
         f"      {N}_ANIMACIONES          {len(cuadros)}      cuántas animaciones hay",
         "---------------------------------------------------------------------------------*/",
         f"#ifndef {N}_ANIM_H",
@@ -201,9 +290,18 @@ def preparar(nombre: str, entrada: Path, salida: Path) -> dict:
     """Prepara las 13 animaciones de `nombre`. Devuelve {animación: cuadros}.
     No escribe nada si alguna animación no cumple el límite de cuadros."""
     por_animacion = {}
+    nativo = es_pixellab_nativo(entrada)
+    mapeo = MAPEOS_PIXELLAB.get(nombre, {})
+    if nativo and not mapeo:
+        sys.exit(f"ERROR: {entrada} es una exportación nativa de Pixellab pero no hay mapeo para '{nombre}' "
+                 f"en MAPEOS_PIXELLAB. No se escribió nada.")
     for animacion, por_defecto in ANIMACIONES:
-        cuadros = cargar_cuadros(entrada, animacion)
-        origen = "arte"
+        if nativo:
+            cuadros = cargar_pixellab(entrada, mapeo[animacion]) if animacion in mapeo else None
+            origen = "pixellab"
+        else:
+            cuadros = cargar_cuadros(entrada, animacion)
+            origen = "arte"
         if cuadros is None:
             cuadros = [marcador(animacion, k, por_defecto) for k in range(por_defecto)]
             origen = "marcador"
@@ -215,19 +313,21 @@ def preparar(nombre: str, entrada: Path, salida: Path) -> dict:
     # Caja envolvente común a TODAS las animaciones con ARTE: así ninguna "salta"
     # respecto a otra (reposo y agachado conservan su altura relativa). Los
     # marcadores no cuentan: ocupan la celda entera y anularían el desplazamiento.
+    # La exportación nativa de Pixellab tampoco: cargar_pixellab ya la ancló por
+    # el centro de su lienzo y los pies, que es el registro que el arte trae.
     arte = [c for cuadros, origen in por_animacion.values() if origen == "arte" for c in cuadros]
     cajas = [c.getbbox() for c in arte if c.getbbox()]
     if cajas:
         L, T = min(b[0] for b in cajas), min(b[1] for b in cajas)
         R, B = max(b[2] for b in cajas), max(b[3] for b in cajas)
-        dx = (CELDA - (R - L)) // 2                   # centrado horizontal
-        dy = CELDA - (B - T)                          # pies en la última fila
+        dx = (CELDA_ANCHO - (R - L)) // 2             # centrado horizontal
+        dy = CELDA_ALTO - (B - T)                     # pies en la última fila
         medida = f"personaje {R - L}x{B - T} px"
     else:
-        L = T = 0; R = B = CELDA; dx = dy = 0         # solo marcadores: nada que alinear
-        medida = "solo marcadores"
+        L = T = 0; R = CELDA_ANCHO; B = CELDA_ALTO; dx = dy = 0   # nada que alinear
+        medida = "exportación nativa de Pixellab (anclada por centro y pies)" if nativo else "solo marcadores"
     def alinear(c):
-        celda = Image.new("RGBA", (CELDA, CELDA), (0, 0, 0, 0))
+        celda = Image.new("RGBA", (CELDA_ANCHO, CELDA_ALTO), (0, 0, 0, 0))
         recorte = c.crop((L, T, R, B))
         celda.paste(recorte, (dx, dy), recorte)
         return celda
@@ -239,22 +339,22 @@ def preparar(nombre: str, entrada: Path, salida: Path) -> dict:
     salida.mkdir(parents=True, exist_ok=True)
     resultado = {}
     for animacion, cuadros in alineados.items():
-        tira = Image.new("RGBA", (CELDA * len(cuadros), CELDA), (0, 0, 0, 0))
+        tira = Image.new("RGBA", (CELDA_ANCHO * len(cuadros), CELDA_ALTO), (0, 0, 0, 0))
         for k, c in enumerate(cuadros):
-            tira.paste(c, (k * CELDA, 0), c)
+            tira.paste(c, (k * CELDA_ANCHO, 0), c)
         indexar(tira, colores).save(salida / f"{nombre}_{animacion}.png", format="PNG")
         resultado[animacion] = len(cuadros)
         print(f"  {nombre}_{animacion}.png  {len(cuadros)} cuadros  ({por_animacion[animacion][1]})")
     # Tira ESTÁTICA de reposo para intro y título (src/pantallas/personajes.c):
-    # allí los cuadros se cargan de una vez en VRAM (4 x 2 KB) sin motor dinámico,
-    # así que tienen que ser SIEMPRE 4, tenga los que tenga el reposo real. Se
-    # eligen repartidos a lo largo del reposo (el k-ésimo es el (k*N)//4) para que
-    # el bucle no salte: con 6 cuadros, el 0, 1, 3 y 4; con 2, el 0, 0, 1 y 1.
+    # allí los cuadros se cargan de una vez en VRAM (2 x 3 KB) sin motor dinámico,
+    # junto a Bárbara, y en 512 tiles de sprites no caben más: SIEMPRE 2, tenga
+    # los que tenga el reposo real. Se eligen repartidos a lo largo del reposo
+    # (el k-ésimo es el (k*N)//2): con 6 cuadros, el 0 y el 3; con 9, el 0 y el 4.
     reposo = alineados["reposo"]
     estaticos = [reposo[(k * len(reposo)) // CUADROS_ESTATICOS] for k in range(CUADROS_ESTATICOS)]
-    tira = Image.new("RGBA", (CELDA * CUADROS_ESTATICOS, CELDA), (0, 0, 0, 0))
+    tira = Image.new("RGBA", (CELDA_ANCHO * CUADROS_ESTATICOS, CELDA_ALTO), (0, 0, 0, 0))
     for k, c in enumerate(estaticos):
-        tira.paste(c, (k * CELDA, 0), c)
+        tira.paste(c, (k * CELDA_ANCHO, 0), c)
     indexar(tira, colores).save(salida / f"{nombre}_reposo_estatico.png", format="PNG")
     print(f"  {nombre}_reposo_estatico.png  {CUADROS_ESTATICOS} cuadros  (reposo {[(k * len(reposo)) // CUADROS_ESTATICOS for k in range(CUADROS_ESTATICOS)]})")
     escribir_header(salida / f"{nombre}_anim.h", nombre, resultado)

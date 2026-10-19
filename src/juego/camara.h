@@ -25,7 +25,7 @@
 #include "sistema/tipos.h"
 
 /* Desplazamiento horizontal de la cámara para un protagonista cuya celda empieza
-   en x_pix: su centro (x + 32) queda en el centro de la pantalla (128), recortado
+   en x_pix: su centro (x + 48) queda en el centro de la pantalla (128), recortado
    a 0..ANCHO_NIVEL - ANCHO_PANTALLA. Devuelve píxeles enteros. */
 u16 camara_para(u16 x_pix);
 

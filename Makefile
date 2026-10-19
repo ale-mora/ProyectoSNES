@@ -98,18 +98,18 @@ res/titulo/cielo_grad_data.as: res/titulo/cielo.bmp
 # ve esa dependencia: declaramos que data.obj depende de ellos para que se
 # reensamble cuando cambie cualquier imagen.
 # Animaciones de Tarou (Revisión 1, docs/diseno-demo-jugable.md §7 y §10): cada
-# tira de cuadros de 64x64 se convierte en piezas de 32x32 (-s 32) con una tabla
-# de metasprite (-T) de 64x64 (-X 64 -Y 64) y prioridad 3 (-P 3). Por cada
+# tira de cuadros de 96x64 se convierte en piezas de 32x32 (-s 32) con una tabla
+# de metasprite (-T) de 96x64 (-X 96 -Y 64: 3x2 piezas) y prioridad 3 (-P 3). Por cada
 # tarou_<anim>.png salen tarou_<anim>.pic (tiles), .pal (paleta, igual en todas)
 # y tarou_<anim>_meta.inc (tablas t_metasprite que incluye src/juego/tarou_sprite.c).
 TAROU_ANIMS := reposo caminar correr saltar caer agachado agachado_caminar desenvainar envainar atacar echarse dormido despertar
 TAROU_PICS := $(foreach a,$(TAROU_ANIMS),res/personajes/tarou/tarou_$(a).pic)
-# Más la tira ESTÁTICA de reposo (siempre 4 cuadros) que intro y título cargan de
+# Más la tira ESTÁTICA de reposo (siempre 2 cuadros) que intro y título cargan de
 # una vez en VRAM (src/pantallas/personajes.c); misma conversión que las demás.
 TAROU_PICS += res/personajes/tarou/tarou_reposo_estatico.pic
 res/personajes/tarou/%.pic: res/personajes/tarou/%.png
 	@echo convert metasprite ... $(notdir $<)
-	$(GFXCONV) -s 32 -o 16 -u 16 -p -T -X 64 -Y 64 -P 3 -i $<
+	$(GFXCONV) -s 32 -o 16 -u 16 -p -T -X 96 -Y 64 -P 3 -i $<
 
 ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic $(TAROU_PICS)
 
