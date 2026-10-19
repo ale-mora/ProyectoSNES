@@ -26,7 +26,7 @@
 #include "tarou_anim.h"
 
 /* Mismo orden que el enum Estado. Columnas: cuadros, frames por cuadro, bucle. */
-#define DURACION_ATAQUE 20          /* Frames que dura el golpe (1/3 s), fijos (§4).        */
+#define DURACION_ATAQUE 20          /* Frames que dura el golpe (1/3 s), aproximados (§4).  */
 
 const AnimDef ANIMACIONES[ESTADO_CANTIDAD] = {
     {TAROU_REPOSO_CUADROS, 12, 1},            /* ESTADO_PARADO              */
@@ -39,9 +39,10 @@ const AnimDef ANIMACIONES[ESTADO_CANTIDAD] = {
     {TAROU_DESENVAINAR_CUADROS, 5, 0},        /* ESTADO_DESENVAINANDO       */
     {TAROU_ENVAINAR_CUADROS, 5, 0},           /* ESTADO_ENVAINANDO          */
     {TAROU_ATACAR_CUADROS, DURACION_ATAQUE / TAROU_ATACAR_CUADROS, 0}, /* ESTADO_ATACANDO: el
-                                                 golpe dura 20 frames tenga los cuadros que tenga
-                                                 (hoy 1: la pose fija Attack_1). La división la hace
-                                                 el compilador: son dos constantes.          */
+                                                 golpe dura unos 20 frames: exacto si los cuadros
+                                                 dividen a 20 (hoy 1, la pose fija Attack_1: 1 x 20);
+                                                 con 3 cuadros, 3 x 6 = 18. La división es entera y
+                                                 la hace el compilador: son dos constantes.  */
     {TAROU_ECHARSE_CUADROS, 8, 0},            /* ESTADO_ECHANDOSE           */
     {TAROU_DORMIDO_CUADROS, 20, 1},           /* ESTADO_DORMIDO             */
     {TAROU_DESPERTAR_CUADROS, 8, 0},          /* ESTADO_DESPERTANDO         */

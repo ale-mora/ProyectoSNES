@@ -148,10 +148,15 @@ New-Item -ItemType Directory -Force $Salida | Out-Null
 #                                   autor tenía 75 %, y todo —física, sueño, tiempos— se
 #                                   medía un 25 % más lento sin que la ROM tuviera culpa);
 #   --Preferences.AllowBackgroundInput=true
-#                                   acepta el mando aunque Mesen no sea la ventana activa:
-#                                   el script devuelve el primer plano al autor, y con la
-#                                   opción en false (la del autor) las teclas del guion se
-#                                   perdían si el autor estaba usando el equipo (2026-10-19);
+#                                   pide a Mesen que acepte el mando aunque no sea la
+#                                   ventana activa (el script devuelve el primer plano al
+#                                   autor). Se añadió el 2026-10-19 porque las teclas del
+#                                   guion se perdían mientras el autor usaba el equipo, pero
+#                                   su efecto NO está demostrado: hubo una tanda buena sin
+#                                   ella y una mala con ella. Lo fiable es no tocar el equipo
+#                                   durante la tanda. Sin comprobar: si con ella Mesen lee
+#                                   también el teclado físico (lo que teclee el autor
+#                                   llegaría al mando emulado durante la tanda);
 #   -donotsavesettings              no guarda nada en settings.json al salir (ni la posición
 #                                   de la ventana fuera de pantalla ni estas opciones).
 $proceso = Start-Process -FilePath "E:\ProyectoSNES\tools\mesen\Mesen.exe" -ArgumentList @("`"$Rom`"", "--Emulation.EmulationSpeed=100", "--Preferences.AllowBackgroundInput=true", "-donotsavesettings") -PassThru

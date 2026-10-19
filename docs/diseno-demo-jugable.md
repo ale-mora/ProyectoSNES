@@ -204,7 +204,7 @@ Reglas transversales:
 | agachado | 12 | sí |
 | agachado_caminar | 8 | sí |
 | desenvainar, envainar | 5 | no |
-| atacar | 20 en total (`DURACION_ATAQUE / cuadros`; hoy 1 cuadro × 20) | no |
+| atacar | `DURACION_ATAQUE / cuadros` (división entera: unos 20 frames en total, exacto si los cuadros dividen a 20; hoy 1 × 20) | no |
 | echarse, despertar | 8 | no |
 | dormido | 20 | sí |
 

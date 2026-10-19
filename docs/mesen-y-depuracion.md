@@ -139,10 +139,14 @@ Qué hace por dentro, y por qué (cada punto costó una tanda fallida):
 
 1. Lanza `Mesen.exe <rom> --Emulation.EmulationSpeed=100
    --Preferences.AllowBackgroundInput=true -donotsavesettings`. La segunda
-   opción hace que Mesen acepte el mando aunque no sea la ventana activa: el
-   script te devuelve el primer plano y, con tu ajuste (`false`), las teclas
-   del guion se perdían si estabas usando el equipo (2026-10-19). Ninguna de
-   las dos se guarda en tu configuración.
+   opción pide a Mesen que acepte el mando aunque no sea la ventana activa.
+   Se añadió el 2026-10-19 porque las teclas del guion se perdían mientras
+   el autor usaba el equipo (el foco de Mesen saltaba a la barra de menús),
+   pero **su efecto no está demostrado**: hubo una tanda buena sin ella y una
+   mala con ella. Lo fiable es **no usar el equipo durante la tanda**. Sin
+   comprobar: si con ella Mesen lee también el teclado físico, lo que teclees
+   en ese momento llegaría al mando emulado. Ninguna de las dos opciones se
+   guarda en tu configuración.
 2. Restaura la ventana si estaba minimizada y la **activa una vez** con el
    truco de `AttachThreadInput` (Windows no cede el primer plano a quien no
    tiene la entrada). Sin esta activación, el foco de teclado dentro de Mesen
