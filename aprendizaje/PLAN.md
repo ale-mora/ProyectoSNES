@@ -509,12 +509,31 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 - **Aprobación:** las 24 pruebas de scripts en verde y las capturas de Mesen
   de cada parte del ejercicio.
 
-### Unidad 20 — Colisión con el escenario (pendiente)
+### Unidad 20 — Colisión con el escenario (código listo, unidad por escribir)
 
-Se escribirá cuando exista `src/niveles/` (mapas de tiles hechos con Tiled y
-colisión por tiles, como LikeMario): Etapa 2/3 de `docs/plan-desarrollo.md`.
-Conceptos previstos: AABB, colisión por tiles, resolución por ejes, cajas
-de `tarou_caja_cuerpo`. Hasta entonces no se crea la carpeta.
+Desde el 2026-10-20 el código existe (`docs/diseno-tutorial-movimiento.md`):
+el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
+
+- **Conceptos:** rejilla de colisión (celdas de 16 px, índice con
+  desplazamientos), AABB, resolución por ejes, plataforma de un solo sentido,
+  punto de control, streaming de columnas (mapa-anillo, DMA con
+  `VMAIN = 0x81`), rejilla doble (*dual grid*), guion de mando, y el coste de
+  las llamadas en tcc816 (por qué existen `colision_columna_solida` y
+  compañía).
+- **Código del juego:** `src/juego/colision.c`, `src/juego/tarou.c`
+  (`mover_x`, `mover_y`, `cabe_de_pie`), `src/juego/partida.c`,
+  `src/juego/fondo_nivel.c`, `src/juego/guion.c`, `scripts/preparar_nivel.py`,
+  `tests/prueba_colision.c`, `tests/prueba_recorrido.c`.
+- **Demo:** en el PC, una rejilla pequeña hecha a mano y un Tarou que cae,
+  aterriza, choca y se agacha bajo un techo, imprimiendo x/y por cuadro (como la
+  traza con la que se ajustó el guion).
+- **Ejercicio:** añadir un obstáculo al nivel en Tiled (por ejemplo un segundo
+  foso), regenerar con `preparar_nivel.py`, ver fallar `prueba_recorrido` y
+  ajustar `guion_tutorial.c` hasta que pase; luego verlo en la ROM de prueba.
+- **Prerrequisitos:** 07, 10, 13, 18. **Práctica:** PC + juego real + Mesen
+  (ROM de prueba, `docs/mesen-y-depuracion.md` §5).
+- **Aprobación:** `tests/pruebas.exe` en verde con el obstáculo nuevo y
+  capturas de la ROM de prueba superándolo.
 
 ## 4. Orden y dependencias
 
@@ -639,8 +658,17 @@ el foco de Mesen salta a su barra de menús y se pierden teclas del guion.
 - La primera cifra de `LIN` en el HUD puede estar en 248..254 (unidad 04).
 - El efecto mosaico de salida de la intro no es un fallo (unidad 12).
 - Un sprite grande no cruza la frontera de los 256 tiles (unidades 08, 16).
-- El suelo dibuja la hierba 4 px por encima de `SUELO_Y` a propósito
-  (unidades 07, 19).
+- Los pies quedan 4 px dentro de la hierba a propósito: desde el tutorial,
+  2 px los pone el arte (la banda empieza 2 px sobre el borde de la celda) y
+  2 px el dibujo (`HUNDIR_PIES` en `tarou_sprite.c`); la física usa el borde
+  exacto (unidades 07, 19, 20).
+- `PF_ENTERO` es solo para valores ≥ 0: una y negativa (un salto por encima de
+  la pantalla) da un número enorme. Comparar en punto fijo (unidades 01, 20).
+- Indexar un array de structs de tamaño no potencia de 2 (`guion[i]`, 5 bytes)
+  hace que tcc816 llame a `tcc__mul` en cada acceso; recorrer con un puntero
+  (unidades 13, 14, 20).
+- Las tablas de Tiled en JSON para `tmx2snes`: sin espacio tras los dos puntos
+  (unidad 20).
 
 ### 6.7 Orden de trabajo recomendado
 
@@ -655,4 +683,4 @@ cambió desde este plan, manda el código y se corrige el plan.
 |---|---|
 | 00 | **hecha** (2026-10-19): `unidad-00-c-en-el-pc/`; las 12 fuentes compilan con `gcc -std=c99 -Wall -Wextra` sin avisos y las 4 soluciones dan exactamente su salida esperada (`capturas/`). El autor tiene pendiente resolver el ejercicio 03 (y el 04) por su cuenta |
 | 01–19 | por escribir (siguiente: 01) |
-| 20 | pendiente de que exista `src/niveles/` |
+| 20 | por escribir: el código existe desde el 2026-10-20 (el tutorial) |

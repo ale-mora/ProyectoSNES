@@ -1,8 +1,9 @@
 # Diseño — Nivel 1 como tutorial de movimiento
 
 **Proyecto:** _Tarou: A Dog's Journey_ · **Etapa del plan:** 2 (Prototipo) ·
-**Revisión:** 2 · **Fecha de esta versión:** 2026-10-20 · **Estado:** diseño
-acordado en sesión de preguntas; fase 1 (prueba del motor de mapas) hecha.
+**Revisión:** 2 · **Fecha de esta versión:** 2026-10-20 · **Estado:** hecho y
+verificado: el tutorial se juega de principio a fin en Mesen (§8). Arte
+provisional en las zarzas, los carteles y el tronco.
 
 El nivel 1 deja de ser un suelo plano de 512 px y pasa a ser un **tutorial**:
 un recorrido de 8 pantallas (2048 px) en el que cada obstáculo enseña una
@@ -18,6 +19,7 @@ cuyas mecánicas no cambian: aquí se añade el **escenario con colisión**.
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v1.2 | 2026-10-20 | Fases 2–8 hechas: colisión, reaparición, tronco en el fondo (columnas de parche), salida a `PANTALLA_PROXIMAMENTE`, guion de mando y ROM de prueba que se juega sola; resultados y trampas en §8. |
 | v1.1 | 2026-10-20 | No se usa el motor de mapas del SDK: en Tiled se pinta la **lógica** y un script la viste con el arte; el fondo se dibuja por columnas con código propio (C5, §3, §4). Celdas de 16 px; túnel y muro de 48 px, foso de 96. |
 | v1 | 2026-10-20 | Diseño acordado y resultado de la prueba del motor de mapas (§5). |
 
@@ -131,24 +133,89 @@ escriba `.tmj` debe usar `json.dump(..., separators=(",", ":"))`.
 
 ## 6. Fases
 
-Un commit por fase, sin push. Detalle en el plan aprobado:
+Un commit por fase, sin push:
 
-1. Prueba del motor de mapas (hecha, §5).
-2. Tiled (lógica) → `preparar_nivel.py` → capa de 2048 px dibujada por columnas (hecha, §4).
-3. Colisión con el escenario (lógica pura, `src/juego/colision.c`, pruebas en el PC).
-4. Fosos, zarzas y reaparición en puntos de control.
-5. Tronco rompible (`src/objetos/`).
-6. Carteles.
-7. Salida y pantalla `PANTALLA_PROXIMAMENTE`.
-8. Documentación (glosario, mapa de archivos, tubería, plan de desarrollo, `CLAUDE.md`, `aprendizaje/PLAN.md`).
+| Fase | Qué | Commit |
+|---|---|---|
+| 1 | Prueba del motor de mapas del SDK (§5) | `f947b88` |
+| 2 | Tiled (lógica) → `preparar_nivel.py` → capa de 2048 px dibujada por columnas (§4) | `8081d68` |
+| 3 | Colisión: paredes, suelos, plataformas, techos, túnel (`src/juego/colision.c`) | `8a32523` |
+| 4–7 | Fosos, zarzas y reaparición; tronco; carteles; salida y `PANTALLA_PROXIMAMENTE`; guion de prueba (`src/juego/partida.c`, `guion.c`) | `3724a01` |
+| 8 | Documentación | el de este documento |
 
-## 7. Verificación
+## 7. Cómo funciona (resumen para quien llega)
 
-- Pruebas en el PC: `colision`, Tarou adaptado y un **recorrido completo**
-  guionizado sobre la rejilla del nivel real que llega a la salida; y pruebas
-  negativas: el foso no se cruza caminando, el muro no se salta con un salto
-  corto, el túnel no se pasa de pie, el tronco bloquea hasta el golpe.
-- Pruebas de los scripts con `unittest`.
-- `make clean` + `make` sin avisos.
-- Mesen con `scripts/capturar_mesen.ps1`, una captura por obstáculo, a 60 FPS.
-- El autor juega el tutorial y retoca el mapa en Tiled.
+- **Física contra el escenario** (`src/juego/tarou.c`): primero x contra las
+  paredes (solo lo sólido; al chocar, retrocede píxel a píxel hasta dejar de
+  tocar), después y: en el suelo, si ninguno de los dos «pies» (columnas 36 y
+  64 de la celda, 28 px entre sí) pisa algo, cae; bajando, aterriza al cruzar
+  el borde de arriba de una celda sólida o de plataforma; subiendo, la cabeza
+  para en lo sólido (las plataformas se atraviesan desde abajo). Agachado bajo
+  un techo, soltar Abajo o pulsar B no levanta a Tarou.
+- **El hundir es solo dibujo**: la física usa el borde exacto de las celdas; el
+  sprite se dibuja 2 px más abajo (`HUNDIR_PIES` en `tarou_sprite.c`) y la
+  banda de hierba del arte empieza 2 px por encima del borde: los pies quedan
+  4 px dentro de la hierba, como antes.
+- **Reglas** (`src/juego/partida.c`): con la celda en y ≥ 192 (caída) o la fila
+  de las patas sobre una zarza → reaparecer (fundido, pantalla apagada, las 64
+  columnas reescritas, fundido); cada cartel es un punto de control; la caja
+  `GOLPE` sobre el tronco lo rompe; el centro de Tarou en `NIVEL1_SALIDA_X` →
+  `PANTALLA_PROXIMAMENTE`, que vuelve al título a los 4 s.
+- **El tronco** es un bloque sólido de 32×96 en la colisión y, en el dibujo,
+  cuatro columnas alternativas que el script pega tras el nivel (x 2048..2079);
+  `fondo_nivel.c` las usa mientras está entero y, al romperlo, reescribe las
+  de debajo (solo las que están a la vista).
+- **Guion de mando** (`src/juego/guion.c`, `guion_tutorial.c`): el recorrido
+  completo como tabla de tramos de botones. `tests/prueba_recorrido.c` lo juega
+  en el PC; la ROM de prueba lo juega en la SNES (§8).
+
+## 8. Verificación y resultados (2026-10-20)
+
+- **PC:** 280 comprobaciones en verde, entre ellas: cada obstáculo exige su
+  movimiento (`tests/prueba_colision.c`: escalón, muro con salto corto y
+  largo, túnel de pie y agachado, foso caminando y corriendo, plataforma), las
+  reglas (`tests/prueba_partida.c`: foso, zarzas, tronco con y sin espada,
+  salida) y el **recorrido completo** con la rejilla real
+  (`tests/prueba_recorrido.c`: llega a la salida en el cuadro 2238 sin
+  reaparecer, rompe el tronco y pasa por los 8 puntos de control).
+- **Scripts:** 35 pruebas `unittest` (11 de `preparar_nivel.py` y
+  `mapa_a_columnas.py`).
+- **ROM de prueba en Mesen** (compilada con `-DGUION_PRUEBA`, ver
+  `docs/mesen-y-depuracion.md` §5): arranca directa en el nivel y el guion la
+  juega sola, sin teclado. Repite el recorrido del PC cuadro por cuadro (mismas
+  x en el HUD), rompe el tronco, sale a «LEVEL 2 / COMING SOON» y vuelve al
+  título. Capturas en `docs/screenshots/tutorial/`.
+- **Rendimiento:** con el HUD de depuración **apagado**, 60 FPS: el recorrido
+  de 2238 cuadros dura ≈ 37,5 s de reloj. Con el HUD **encendido**, F avanza
+  ~84 % de lo que avanza VB (≈ 50 FPS): el HUD cuesta 50–80 líneas y la
+  colisión se comió el margen que antes lo absorbía. La lógica pasó de ~30 a
+  ~90 líneas de pantalla.
+- **No verificado en Mesen:** la reaparición (el guion nunca cae; está probada
+  en el PC) ni el juego con el mando real (el guion de teclas de
+  `capturar_mesen.ps1` perdió las teclas en todas las tandas de esta sesión).
+  El autor debe jugarlo a mano.
+
+### Trampas encontradas
+
+| Síntoma | Causa | Arreglo |
+|---|---|---|
+| `tmx2snes`: «Invalid integer found during parse» | *cute_tiled* no admite espacio tras los dos puntos | `json.dump(..., separators=(",", ":"))` (§5) |
+| El juego a 27 FPS con la colisión nueva | cada `colision_en` son ~150 instrucciones en tcc816 y se llamaba ~17 veces por cuadro | consultas de columna y fila enteras (`colision_columna_solida`, `colision_fila_es`, `colision_apoyan`) |
+| La ROM de prueba, mucho más lenta que la normal | `guion[i]` con structs de 5 bytes: tcc816 llama a `tcc__mul` (i × 5) en cada acceso, 72 veces por cuadro | recorrer la tabla con un puntero (`t++` suma 5) |
+| Tarou «moría» en lo alto de un salto desde la plataforma | la celda subía por encima de la pantalla (y < 0) y `PF_ENTERO`, que es solo para valores ≥ 0, daba un número enorme | comparar en punto fijo: `t->y_fp >= PF(Y_CAIDA)` |
+| Tarou rebotaba 8 px contra el tronco en bucle | al chocar se le pegaba al comienzo de la celda de 16 px, y el tronco empieza en x 1640 | retroceder píxel a píxel hasta dejar de tocar |
+| Tarou empezaba en x 0 y no avanzaba | el objeto «inicio» marcaba su centro en 40: la celda empezaba en −8 | inicio en x 88; prueba `prueba_inicio` |
+
+## 9. Pendiente
+
+- **Arte de Pixellab** para lo que hoy es marcador: el tablero de los
+  carteles, las zarzas, el tronco y algo que marque la salida (la lista, en
+  `res/descargas/graficos/pixellab/suelo/README.md`).
+- **Retocar el nivel en Tiled** (instalarlo: `winget install thorbjorn.Tiled`;
+  abrir `res/nivel1/tutorial.tmj`; capa `logica` en CSV; después
+  `python scripts/preparar_nivel.py`, `make clean` y `make`). Si un retoque rompe
+  el recorrido, `tests/prueba_recorrido.c` falla: hay que ajustar
+  `src/juego/guion_tutorial.c`.
+- **HUD de depuración a 60 FPS** (abaratar su dibujo).
+- Los fosos dejan ver la capa lejana por debajo del suelo (una franja de
+  agua/bosque): queda raro; falta arte de fondo de foso o pintar ahí la tierra.

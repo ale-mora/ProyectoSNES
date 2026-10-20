@@ -145,6 +145,7 @@ importante:
 | PowerShell (lo que usa Claude Code) | `$env:PVSNESLIB_HOME="/e/ProyectoSNES/tools/pvsneslib"; $env:PATH="E:\ProyectoSNES\tools\pvsneslib\devkitsnes\bin;C:\msys64\usr\bin;"+$env:PATH; make` | compila lo que cambió. `make clean` antes si se tocaron cabeceras |
 | CMD / doble clic | `run.bat` | `make clean` + `make` + abre Mesen; se para con `[ERROR]` |
 | VS Code | tarea "Build SNES ROM" (`Ctrl+Shift+B`) o "Clean Project" | las mismas órdenes por `bash.exe` de MSYS2 |
+| PowerShell, **ROM de prueba** | `make clean; $env:CFLAGS="-DGUION_PRUEBA"; make; $env:CFLAGS=$null` (con el entorno de la primera fila) | la ROM arranca directa en el nivel y se juega sola con el guion del recorrido (`src/juego/guion.h`). Sale con el mismo nombre: cópiala aparte y vuelve a hacer `make clean` + `make` para la normal. El `CFLAGS` del entorno funciona porque el `Makefile` y `snes_rules` hacen `CFLAGS +=` |
 
 La variable `PVSNESLIB_HOME` tiene que apuntar al SDK **en formato MSYS**
 (`/e/ProyectoSNES/tools/pvsneslib`), porque `make` es el de MSYS2 aunque las
@@ -213,9 +214,9 @@ Antes de `make`, cuando cambia el arte:
 |---|---|---|
 | `python scripts/componer_escenas.py` | al cambiar logos, escenas, título o el logotipo | `res/<pantalla>/*.png`, `cielo.bmp` |
 | `python scripts/preparar_personaje.py tarou` | al descargar arte nuevo de Pixellab (la exportación nativa, con `MAPEOS_PIXELLAB`) | `res/personajes/tarou/*.png`, `tarou_anim.h` |
-| `python scripts/preparar_suelo.py --seto res/titulo/fondo_cerca.png` | al exportar un tileset nuevo de Pixellab a `res/descargas/graficos/pixellab/suelo/` (toma el PNG más reciente; `--hundir 4` por defecto) | `res/nivel1/fondo_cerca.png` |
+| `python scripts/preparar_nivel.py` | tras retocar `res/nivel1/tutorial.tmj` en Tiled o exportar un tileset nuevo de Pixellab a `res/descargas/graficos/pixellab/suelo/` (toma el PNG más reciente). `--crear` reescribe el `.tmj` inicial: **borra los retoques** | `res/nivel1/fondo_cerca.png`, `colision.bin`, `nivel1_datos.h` (después: `make clean`, la cabecera cambia) |
 | `python scripts/preparar_fondo_nivel.py res/titulo/fondo_lejos.png res/nivel1/fondo_lejos.png --borrar 71,22,185,76` | si cambia la capa lejana del título | `res/nivel1/fondo_lejos.png` |
-| `python -m unittest scripts/pruebas/prueba_preparar_personaje.py scripts/pruebas/prueba_preparar_fondo_nivel.py scripts/pruebas/prueba_preparar_suelo.py` (24 pruebas) | tras tocar los scripts | — |
+| `python -m unittest scripts/pruebas/prueba_preparar_personaje.py scripts/pruebas/prueba_preparar_fondo_nivel.py scripts/pruebas/prueba_preparar_suelo.py scripts/pruebas/prueba_preparar_nivel.py` (35 pruebas) | tras tocar los scripts | — |
 
 Estas salidas sí se versionan (son pequeñas y el resultado del trabajo
 manual); las de `gfx4snes` no (las regenera `make`).

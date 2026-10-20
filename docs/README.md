@@ -27,6 +27,10 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
   Tarou adulto en el nivel 1 con ocho mecánicas, mando, estados, física en
   punto fijo, cámara, metasprites dinámicos, fondos, HUD, pipeline de assets,
   arquitectura, cabecera estándar y verificación. Documento vivo.
+- **`diseno-tutorial-movimiento.md`** — La **Revisión 2**: el nivel 1 como
+  tutorial de movimiento de 8 pantallas (escalones, muro, túnel, foso, zarzas,
+  tronco, salida), dibujado en Tiled y vestido por script, con colisión,
+  reaparición y un guion de mando que lo juega solo. Resultados y trampas.
 - **`diseno-secuencia-arranque.md`** — La especificación de las seis
   pantallas de arranque (logos, dedicatoria, intro, título) con los hallazgos
   técnicos verificados en el SDK (Etapa 1.5).

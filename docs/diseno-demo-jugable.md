@@ -23,6 +23,7 @@ se ajustan tras verlos en Mesen con el HUD de depuración.
 |---|---|---|
 | v1 | 2026-10-14 | Tarou **cachorro** de 32×32 con carga estática de 12 cuadros; solo caminar y cámara. Reemplazada por completo. Sus especificaciones de Pixellab para el cachorro quedan en el historial de git (`3b30b64`). |
 | v2 | 2026-10-16 | Tarou **adulto** de 64×64 como metasprite dinámico; ocho mecánicas; HUD de depuración; reorganización de `src/`; renombrado Tarouh → Tarou; ROM de 512 KB. |
+| v3.2 | 2026-10-20 | El nivel 1 pasa a ser el tutorial de movimiento de 2048 px con colisión: lo especifica `docs/diseno-tutorial-movimiento.md` (Revisión 2). Lo de este documento sobre el nivel plano de 512 px (§5 suelo, §8 capa cercana) queda como historia. |
 | v3.1 | 2026-10-19 | Suelo del nivel desde un tileset *Sidescroller* de Pixellab (`scripts/preparar_suelo.py`) con los arbustos como seto; `SUELO_Y` 208 → 176; la banda de hierba 4 px por encima de los pies (perspectiva del arte). |
 | v3 | 2026-10-19 | Llega el arte real de Pixellab (un perro cuadrúpedo de hasta 81 px de ancho): celda de **96×64** (6 piezas), sin escalar; mapeo de la exportación nativa a las 13 animaciones; cajas rehechas sobre el arte; intro y título con 2 cuadros de reposo. |
 
@@ -416,7 +417,8 @@ No hay suite de tests en la SNES. Tres niveles:
 
 ## 14. Fuera de alcance
 
-Colisión con el escenario, desniveles, tileset y Tiled · enemigos y daño ·
+~~Colisión con el escenario, desniveles, tileset y Tiled~~ (hecho en la
+Revisión 2: `docs/diseno-tutorial-movimiento.md`) · enemigos y daño ·
 ítems · Bárbara jugable y cambio de protagonista (Revisión 2 / Etapa 4) ·
 edades cachorro y vieja · audio · HUD del juego · derrape · ataque aéreo y
 agachado · variantes de animación con espada fuera · cámara suavizada.

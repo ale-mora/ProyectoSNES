@@ -46,3 +46,26 @@ El script toma el PNG **más reciente** de esta carpeta y escribe
 - Fondo **transparente de verdad** (sin semitransparencias): por encima de la
   hierba se ven las montañas y el cielo.
 - La capa cabe en unos 512 tiles de 8×8 (hoy usa ~309).
+
+## Desde el tutorial (2026-10-20): `scripts/preparar_nivel.py`
+
+El nivel 1 ya no lo pinta `preparar_suelo.py` sino `preparar_nivel.py`, que
+usa la MISMA hoja como tileset de **rejilla doble**: cada celda de 16×16 se
+clasifica por cuáles de sus cuatro esquinas tienen tierra (16 combinaciones;
+esta hoja trae todas menos las dos diagonales). Una exportación nueva sirve si
+trae esas combinaciones; el script lo comprueba y avisa.
+
+### Piezas que faltan (hoy son marcadores dibujados por el script)
+
+Pedir a Pixellab con la misma paleta de tierra y hierba, fondo transparente:
+
+1. **Zarza** de 16×16 que se repita en horizontal (mata con espinas, más baja
+   que una celda: unos 12 px), para colocar en fila sobre el suelo.
+2. **Tablero de cartel** en blanco, de madera, unos 64×32 con su poste (las
+   letras las pone el script con la fuente de consola).
+3. **Tronco** de pie de 32×96 (un tocón alto que corta el paso; se rompe con la
+   espada).
+4. **Marca de salida** (una flecha de madera o una puerta) de unos 32×48.
+
+Dejar cada pieza en esta carpeta con un nombre que la diga (`zarza.png`,
+`cartel.png`, `tronco.png`, `salida.png`) y pedir a Claude que las integre.

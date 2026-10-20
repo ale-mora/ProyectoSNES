@@ -195,8 +195,37 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   lejana, a la mitad de la cámara) para dar sensación de profundidad.
 - **Caja de colisión / caja de golpe (hitbox)** — rectángulo que representa el
   cuerpo del protagonista (colisión) o el alcance de la espada (golpe). En la
-  Revisión 1 se calculan y se muestran en el HUD de depuración; todavía no hay
-  nada contra lo que chocar.
+  Revisión 1 se calculaban y se mostraban en el HUD; desde el tutorial
+  (Revisión 2) el cuerpo choca con el escenario y el golpe rompe el tronco.
+- **Colisión por celdas (rejilla de colisión)** — el escenario se describe como
+  una rejilla de celdas de 16×16 px y cada celda dice qué ES: vacío, sólido,
+  plataforma o zarza. La física solo pregunta «¿qué hay en este píxel?» y mira
+  la celda que lo contiene: columna `x >> 4`, fila `y >> 4`, índice
+  `(fila << 7) | columna`. → `src/juego/colision.c`.
+- **AABB** (*axis-aligned bounding box*) — una caja alineada con los ejes. Dos se
+  tocan si cada una empieza antes de que acabe la otra, en x y en y: la prueba
+  de colisión más barata. → `se_tocan` en `src/juego/partida.c`.
+- **Resolución por ejes** — mover primero en x y corregir contra las paredes,
+  después en y contra suelos y techos. Así una esquina nunca atrapa al
+  personaje. → `mover_x` y `mover_y` en `src/juego/tarou.c`.
+- **Plataforma de un solo sentido** — sostiene al caer encima, pero se atraviesa
+  desde abajo y de lado: solo cuenta si los pies CRUZAN su borde de arriba
+  bajando.
+- **Punto de control** — sitio donde se reaparece tras caer o pincharse. En el
+  tutorial, cada cartel; se apunta el último por el que pasó el centro de
+  Tarou. → `src/juego/partida.c`.
+- **Streaming de columnas (mapa-anillo)** — el nivel (2048 px) no cabe en el
+  mapa de la VRAM (512 px), así que el mapa se usa como un anillo: cuando la
+  cámara avanza, se escribe por DMA la columna que va a entrar, encima de una
+  que ya salió. El scroll de la PPU también da la vuelta a los 512 px, así que
+  lo que se ve coincide. → `src/juego/fondo_nivel.c`.
+- **Rejilla doble (*dual grid*)** — tileset en el que cada celda de arte cubre
+  las ESQUINAS de cuatro celdas de lógica y se elige por cuáles de ellas son
+  sólidas (16 combinaciones). Así es el tileset Sidescroller de Pixellab; lo
+  aplica `scripts/preparar_nivel.py`.
+- **Guion de mando** — una tabla de «del cuadro A al B, mantener tal botón» que
+  hace de mando. Sirve para probar el nivel entero en el PC y para que una ROM
+  de prueba se juegue sola. → `src/juego/guion.c`.
 - **HUD de depuración** — texto en la capa BG3 con posición, velocidad, estado,
   espada y cámara. Se alterna con SELECT, arranca apagado y no es parte del
   juego: es una herramienta para verificar y aprender.

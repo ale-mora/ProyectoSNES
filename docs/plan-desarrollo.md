@@ -373,8 +373,11 @@ mando/teclado emulado, sin crashear, a 60 FPS estables.
 usa la espada y duerme en un nivel plano de 512 px con parallax. Desde el
 2026-10-19 con el **arte real de Pixellab**: el perro en celdas de 96×64 (13
 animaciones; el ataque es una pose fija provisional) y un suelo de tileset
-*Sidescroller* con un seto detrás. Falta la colisión con el escenario
-(tileset + Tiled, ítem pendiente abajo), una animación de ataque, Sleep
+*Sidescroller* con un seto detrás. **Desde el 2026-10-20 (Revisión 2) el
+nivel 1 es un tutorial de movimiento** de 2048 px con colisión contra el
+escenario (escalones, muro, túnel, foso, plataformas, zarzas, tronco que se
+rompe con la espada y salida), dibujado en Tiled (`docs/diseno-tutorial-movimiento.md`).
+Falta: el arte de zarzas, carteles y tronco, una animación de ataque, Sleep
 mirando al este y reajustar el ritmo de desenvainar, envainar y despertar.
 
 ### Ítems técnicos a estudiar

@@ -173,10 +173,33 @@ Si una tanda sale mal: comprobar en la salida `Mesen activada: True`; mirar
 si las capturas son diminutas (ventana minimizada: el script la restaura) o
 muestran el menú resaltado (el foco no llegó al visor: repetir).
 
+### La ROM de prueba: verificar sin teclas
+
+El guion de teclas de arriba falla en cuanto Mesen pierde el foco. Para el
+nivel hay algo más fiable: una ROM compilada con `-DGUION_PRUEBA`
+(`docs/tuberia-de-compilacion.md` §5) arranca directa en el nivel y su mando
+sale de `src/juego/guion_tutorial.c`, el mismo guion que juega
+`tests/prueba_recorrido.c` en el PC. No hace falta pulsar nada:
+
+```
+.\scripts\capturar_mesen.ps1 -Rom RUTA\tutorial_guion.sfc -Duracion 46 -Cada 2 -Espera 3 -Guion "1,1.3,Select"
+```
+
+(El `Select` enciende el HUD, si llega; del mando real esa ROM solo escucha
+SELECT y START.) Si la ROM y el PC no hacen lo mismo con el mismo guion, el
+compilador de la SNES hace algo distinto: compara las x del HUD con la traza
+del PC. El 2026-10-20 coincidieron y la ROM llegó a la salida.
+
+**Medir los FPS sin HUD:** el recorrido son 2238 cuadros; a 60 FPS dura
+37,3 s. Capturar con `-Cada 0.5` cerca del final y ver cuándo se oscurece.
+
 ## 6. Fallos conocidos y cómo se vieron
 
 | Síntoma | Causa | Dónde está la solución |
 |---|---|---|
+| Con el HUD encendido F avanza ~84 % de VB en el nivel tutorial | el HUD cuesta 50–80 líneas y la colisión se comió el margen; sin HUD va a 60 FPS | pendiente (abaratar el HUD) |
+| La ROM de prueba iba mucho más lenta que la normal | `guion[i]` con structs de 5 bytes: `tcc__mul` en cada acceso | `guion.c` recorre la tabla con un puntero |
+| Tarou reaparecía en lo alto de un salto | `PF_ENTERO` de una y negativa da un número enorme | comparar en punto fijo (`partida.c`) |
 | El juego va "lento" (salto de 0,8 s tarda 1,5 s) | `EmulationSpeed = 75` en los ajustes de Mesen | §1; el HUD (`F`/`VB`) lo delata |
 | El lobo del título salía azul al volver del nivel | el título cargaba su paleta en la 0 y el nivel otra; hoy intro, título y nivel comparten `tarou_pal` | `personajes.c` |
 | Capturas con la pantalla de inicio de Mesen aunque la ROM corre | capa antigua en `PrintWindow` | §5, punto 4 |
