@@ -76,11 +76,18 @@ res/titulo/fondo_lejos.pic: res/titulo/fondo_lejos.png
 res/titulo/fondo_cerca.pic: res/titulo/fondo_cerca.png
 	$(GFXCONV) -y -s 8 -o 16 -u 16 -e 1 -p -m -i $<
 
-# Capa cercana del nivel 1: el suelo del tileset Sidescroller de Pixellab con el seto
-# de arbustos detrás (scripts/preparar_suelo.py). 512 px de ancho en páginas de 32x32
-# (-y, formato SC_64x32) y paleta 1 (-e 1), como la del título a la que sustituye.
+# Capa cercana del nivel 1 (el tutorial): la lógica dibujada en Tiled vestida con el
+# tileset Sidescroller de Pixellab, el seto y los carteles (scripts/preparar_nivel.py).
+# 2048 px de ancho: SIN -y, así que el mapa sale por filas de 256 tiles; paleta 1 (-e 1).
+# El juego no carga ese mapa de golpe (no cabe en un mapa de 64x32 de la VRAM): copia
+# columnas sueltas según avanza la cámara, y para eso mapa_a_columnas.py lo reordena
+# columna a columna (src/juego/fondo_nivel.c).
 res/nivel1/fondo_cerca.pic: res/nivel1/fondo_cerca.png
-	$(GFXCONV) -y -s 8 -o 16 -u 16 -e 1 -p -m -i $<
+	$(GFXCONV) -s 8 -o 16 -u 16 -e 1 -p -m -i $<
+
+res/nivel1/fondo_cerca.col: res/nivel1/fondo_cerca.pic
+	@echo map to columns ... $(notdir $@)
+	python scripts/mapa_a_columnas.py res/nivel1/fondo_cerca.map $@ --ancho 256
 
 # Capa lejana del nivel 1: la del título sin logotipo y duplicada en espejo hasta
 # 512 px (scripts/preparar_fondo_nivel.py). -y = mapa en páginas de 32x32 (SC_64x32).
@@ -117,7 +124,7 @@ res/personajes/tarou/%.pic: res/personajes/tarou/%.png
 	@echo convert metasprite ... $(notdir $<)
 	$(GFXCONV) -s 32 -o 16 -u 16 -p -T -X 96 -Y 64 -P 3 -i $<
 
-ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic $(TAROU_PICS)
+ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin $(TAROU_PICS)
 
 .PHONY: bitmaps cleanGfxRes
 bitmaps: $(ASSETS)
@@ -135,7 +142,7 @@ src/juego/animaciones.obj: res/personajes/tarou/tarou_anim.h
 # Borra las salidas de conversión que viven dentro de res/ (cleanGfx solo mira la raíz).
 cleanGfxRes:
 	@echo clean res graphics data
-	@find res -type f \( -name "*.pic" -o -name "*.pal" -o -name "*.map" -o -name "*.inc" -o -name "*_data.as" -o -name "*.pc7" -o -name "*.mp7" -o -name "*_grad_data.as" \) -not -path "res/descargas/*" -delete
+	@find res -type f \( -name "*.pic" -o -name "*.pal" -o -name "*.map" -o -name "*.col" -o -name "*.inc" -o -name "*_data.as" -o -name "*.pc7" -o -name "*.mp7" -o -name "*_grad_data.as" \) -not -path "res/descargas/*" -delete
 
 # Regla para limpiar los binarios y recursos
 clean: cleanBuildRes cleanRom cleanGfx cleanGfxRes

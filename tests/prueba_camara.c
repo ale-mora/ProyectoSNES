@@ -29,16 +29,26 @@ void pruebas_camara(void)
     COMPROBAR(camara_para(81) == 1);              /* Un píxel más y empieza a seguirlo.   */
     COMPROBAR(camara_para(200) == 120);           /* 200 + 48 - 128.                      */
 
-    /* En el borde derecho se detiene en ANCHO_NIVEL - ANCHO_PANTALLA = 256. */
-    COMPROBAR(camara_para(336) == 256);           /* 336 + 48 - 128 = 256: el límite.     */
-    COMPROBAR(camara_para(416) == 256);           /* Más allá (el tope de Tarou), sigue en 256. */
+    /* En el borde derecho se detiene en ANCHO_NIVEL - ANCHO_PANTALLA = 1792. */
+    COMPROBAR(camara_para(1872) == 1792);         /* 1872 + 48 - 128 = 1792: el límite.   */
+    COMPROBAR(camara_para(1952) == 1792);         /* Más allá (el tope de Tarou), sigue.  */
 
     /* Suelo plano: la misma altura en todo el nivel. */
     COMPROBAR(nivel_suelo_en(0) == 176);          /* La hierba del suelo de Pixellab      */
     COMPROBAR(nivel_suelo_en(500) == 176);        /* empieza en la fila 176 (48 px de     */
     COMPROBAR(SUELO_Y == 176);                    /* suelo: tres filas de tiles de 16).   */
-    COMPROBAR(ANCHO_NIVEL == 512);
+    COMPROBAR(ANCHO_NIVEL == 2048);               /* El tutorial: 8 pantallas.            */
+    COMPROBAR(COLUMNAS_NIVEL == 256);
     COMPROBAR(ANCHO_PANTALLA == 256);
     COMPROBAR(ANCHO_CELDA == 96);                 /* Celda de 96x64: el perro de Pixellab */
     COMPROBAR(ALTO_CELDA == 64);                  /* mide hasta 81 px de ancho al correr. */
+
+    /* Columnas del nivel → mapa-anillo de 64x32 de la VRAM (fondo_nivel.c). */
+    COMPROBAR(nivel_columna_vram(0) == 0);        /* Primera página, primera columna.     */
+    COMPROBAR(nivel_columna_vram(31) == 31);      /* Última de la primera página.         */
+    COMPROBAR(nivel_columna_vram(32) == 0x400);   /* Segunda página (0x400 palabras más). */
+    COMPROBAR(nivel_columna_vram(63) == 0x41F);
+    COMPROBAR(nivel_columna_vram(64) == 0);       /* El anillo da la vuelta cada 64.      */
+    COMPROBAR(nivel_columna_vram(100) == 0x400 + 4); /* 100 = 64 + 32 + 4.                */
+    COMPROBAR(nivel_columna_vram(255) == 0x41F);  /* La última columna del nivel.         */
 }

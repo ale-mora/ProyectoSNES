@@ -7,23 +7,25 @@
       dibuja. Es la única pantalla con _vblank(), porque el sprite dinámico
       copia sus tiles a la VRAM justo después del VBlank.
       Capas (Mode 1 con BG3 en prioridad alta): fondo 0 = capa CERCANA (el
-      suelo de Pixellab con la hierba en la fila SUELO_Y y el seto de arbustos
-      detrás, 512 px, scroll 1:1 con la cámara); fondo 1 = capa
-      LEJANA (montañas sin logotipo, 512 px, scroll a la mitad); fondo 2 = HUD
+      tutorial de 2048 px dibujado en Tiled y vestido con el arte de Pixellab,
+      con el seto y los carteles; scroll 1:1 con la cámara y dibujado por
+      columnas: juego/fondo_nivel.c); fondo 1 = capa
+      LEJANA (montañas sin logotipo, 512 px que se repiten, scroll a la mitad); fondo 2 = HUD
       de depuración (texto de 4 colores, apagado al inicio); cielo = degradado
       HDMA del título. START vuelve al título con fundido.
       Flujo por frame (docs/diseno-demo-jugable.md §11): mando_leer →
       tarou_actualizar (lógica pura) → camara_para → bgSetScroll de las dos
       capas → tarou_sprite_dibujar → oamInitDynamicSpriteEndFrame →
-      hud_debug_dibujar; y, tras el VBlank, oamVramQueueUpdate y
-      hud_debug_vblank. Al entrar (_iniciar), los tiles del primer cuadro se
+      hud_debug_dibujar; y, tras el VBlank, fondo_nivel_vblank (columnas),
+      oamVramQueueUpdate y hud_debug_vblank. Al entrar (_iniciar), los tiles del primer cuadro se
       copian a la VRAM en el acto, antes del fade in.
 
     SE CONECTA CON
       Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h,
                 juego/nivel.h, juego/camara.h, juego/mando.h, juego/tarou.h,
-                juego/tarou_sprite.h.
-      Lee de la ROM: nivel1_cerca_*, nivel1_lejos_* y hdmaGradcieloList (data.asm).
+                juego/tarou_sprite.h, juego/fondo_nivel.h.
+      Lee de la ROM: nivel1_lejos_* y hdmaGradcieloList (data.asm); la capa
+      cercana la carga juego/fondo_nivel.c.
       Lo usan:  sistema/secuencia.c (_iniciar, _actualizar y _vblank).
 
     HARDWARE QUE TOCA
@@ -33,7 +35,7 @@
       sprites por tarou_sprite.c. Mando: por mando.c.
 
     VARIABLES (globales y estáticas de este archivo)
-      camara  u16    0..ANCHO_NIVEL-ANCHO_PANTALLA (0..256) px  desplazamiento del nivel
+      camara  u16    0..ANCHO_NIVEL-ANCHO_PANTALLA (0..1792) px desplazamiento del nivel
       tarou   Tarou  ver juego/tarou.h                          el protagonista
       mando   Mando  ver juego/mando.h                          intenciones del jugador este frame
 
@@ -48,10 +50,9 @@
 #include "juego/tarou_sprite.h"
 #include "juego/mando.h"
 #include "juego/hud_debug.h"
+#include "juego/fondo_nivel.h"
 #include "sistema/puntofijo.h"
 
-extern char nivel1_cerca_til, nivel1_cerca_til_end, nivel1_cerca_pal;   /* El suelo.    */
-extern char nivel1_cerca_map, nivel1_cerca_map_end;
 extern char nivel1_lejos_til, nivel1_lejos_til_end, nivel1_lejos_pal;
 extern char nivel1_lejos_map, nivel1_lejos_map_end;
 extern const unsigned char hdmaGradcieloList[];   /* Tabla HDMA del cielo (gfx4snes -n). */
@@ -94,8 +95,8 @@ static void salir(Pantalla siguiente)
 void pantalla_nivel1_iniciar(void)
 {
     setMode(BG_MODE1, BG3_MODE1_PRIORITY_HIGH);      /* Como el título: BG3 por delante.    */
-    fondo16_cargar(0, &nivel1_cerca_til, &nivel1_cerca_til_end, &nivel1_cerca_pal, 1,
-                   &nivel1_cerca_map, &nivel1_cerca_map_end, VRAM_FONDO_A, VRAM_MAPA_A, SC_64x32);
+    camara = camara_para(X_INICIAL);                 /* 0: cerca del borde izquierdo.       */
+    fondo_nivel_cargar(camara);                      /* Capa cercana: las columnas a la vista. */
     fondo16_cargar(1, &nivel1_lejos_til, &nivel1_lejos_til_end, &nivel1_lejos_pal, 2,
                    &nivel1_lejos_map, &nivel1_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
     fuente_2bpp(2);                                  /* Texto del HUD en el fondo 2...      */
@@ -103,7 +104,6 @@ void pantalla_nivel1_iniciar(void)
 
     tarou_sprite_cargar();                           /* Motor dinámico + paleta de Tarou.   */
     tarou_iniciar(&tarou, X_INICIAL, nivel_suelo_en(X_INICIAL + ANCHO_CELDA / 2));
-    camara = camara_para(X_INICIAL);                 /* 0: cerca del borde izquierdo.       */
     bgSetScroll(0, camara, 0);
     bgSetScroll(1, camara >> 1, 0);
     tarou_sprite_dibujar(&tarou, camara);            /* Primer cuadro antes del fade in.    */
@@ -156,6 +156,7 @@ void pantalla_nivel1_actualizar(void)
 
 void pantalla_nivel1_vblank(void)
 {
+    fondo_nivel_vblank(camara);                      /* Las columnas que entran por los bordes. */
     oamVramQueueUpdate();                            /* Copia a VRAM los tiles pendientes.  */
     hud_debug_vblank();                              /* Y las filas del HUD, si está activo. */
 }

@@ -29,6 +29,7 @@ Thumbs.db
 res/**/*.pic
 res/**/*.pal
 res/**/*.map
+res/**/*.col
 res/**/*.inc
 res/**/*_data.as
 res/**/*.brr

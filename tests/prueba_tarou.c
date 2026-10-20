@@ -134,10 +134,10 @@ static void prueba_borde_izquierdo(void)
 static void prueba_borde_derecho(void)
 {
     Tarou t; Mando m;
-    preparar(&t, &m, 400);
+    preparar(&t, &m, 1936);
     m.derecha = 1; m.correr = 1; m.actividad = 1;
     frames(&t, &m, 60);
-    COMPROBAR(t.x_fp == PF(ANCHO_NIVEL - ANCHO_CELDA)); /* 416: el borde.                */
+    COMPROBAR(t.x_fp == PF(ANCHO_NIVEL - ANCHO_CELDA)); /* 1952: el borde.               */
     COMPROBAR(t.vx_fp == 0);
 }
 

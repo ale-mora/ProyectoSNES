@@ -30,6 +30,9 @@
 ;     .rodata_titulo_*   cerca_*, lejos_*, hdmaGradcieloList (tabla HDMA)
 ;     .rodata_tarou_*    tarou_<anim>_til/_til_end (13 animaciones) y tarou_pal
 ;     .rodata_nivel1_lejos  nivel1_lejos_til/_til_end/_pal/_map/_map_end (capa lejana del nivel 1)
+;     .rodata_nivel1_cerca  nivel1_cerca_til/_til_end/_pal/_col/_col_end (capa cercana, por columnas)
+;     .rodata_nivel1_banco  nivel1_cerca_col_banco (1 byte: el banco del mapa por columnas)
+;     .rodata_nivel1_colision  nivel1_colision (rejilla de 128x14 bytes)
 ;
 ;   Extensiones que genera gfx4snes: .pic tiles, .pal paleta, .map mapa;
 ;   en Mode 7: .pc7 tiles y .mp7 mapa. Todo se regenera con `make`.
@@ -135,14 +138,29 @@ lejos_map_end:
 .ends
 
 ; --- Nivel 1: capa lejana de 512 px (64x32), sin el logotipo del título ----------
-; Capa cercana del nivel 1: el suelo de Pixellab (hierba en la fila 176) con el seto
-; detrás; la genera scripts/preparar_suelo.py. Sustituye en el nivel a cerca_* del título.
+; Capa cercana del nivel 1 (el tutorial, 2048 px): la genera scripts/preparar_nivel.py
+; desde Tiled. Tiles (~8 KB) + paleta + el mapa COLUMNA A COLUMNA (fondo_cerca.col:
+; 256 columnas x 32 filas x 2 bytes = 16 KB), que src/juego/fondo_nivel.c copia a la
+; VRAM de una en una con DMA. Todo en una sección: ~24 KB, cabe en un banco.
 .section ".rodata_nivel1_cerca" superfree
 nivel1_cerca_til:     .incbin "res/nivel1/fondo_cerca.pic"
 nivel1_cerca_til_end:
 nivel1_cerca_pal:     .incbin "res/nivel1/fondo_cerca.pal"
-nivel1_cerca_map:     .incbin "res/nivel1/fondo_cerca.map"
-nivel1_cerca_map_end:
+nivel1_cerca_col:     .incbin "res/nivel1/fondo_cerca.col"
+nivel1_cerca_col_end:
+.ends
+
+; El BANCO (los 8 bits altos de la dirección de 24 bits) donde quedó el mapa por
+; columnas: el DMA lo necesita aparte ($4304) y desde C no se puede sacar de un
+; puntero. «:etiqueta» es el banco de la etiqueta en WLA-DX.
+.section ".rodata_nivel1_banco" superfree
+nivel1_cerca_col_banco: .db :nivel1_cerca_col
+.ends
+
+; Rejilla de colisión del nivel 1: 128 x 14 celdas de 16 px, 1 byte cada una
+; (0 vacío, 1 sólido, 2 plataforma, 3 zarza), fila a fila. La lee src/juego/colision.c.
+.section ".rodata_nivel1_colision" superfree
+nivel1_colision:      .incbin "res/nivel1/colision.bin"
 .ends
 .section ".rodata_nivel1_lejos" superfree
 nivel1_lejos_til:     .incbin "res/nivel1/fondo_lejos.pic"
