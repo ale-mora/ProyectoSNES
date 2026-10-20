@@ -66,6 +66,12 @@ extern char tarou_pal;
 #define OAM_TAROU 0                  /* Primera entrada de la OAM; el metasprite usa 0..5.*/
 #define PALETA_TAROU 0               /* Paleta de sprites 0 = colores 128..143 de la CGRAM.*/
 #define VRAM_DIN_GRANDES 0x0000      /* Piezas de 32x32 del motor dinámico.              */
+/* El arte de Pixellab es una vista lateral un poco elevada: las patas del lado lejano
+   acaban más arriba que las cercanas. Con los pies justo en el borde del suelo, Tarou
+   parecía flotar; dibujado 2 px más abajo que su posición física, los pies quedan
+   DENTRO de la banda de hierba (que empieza 2 px por encima del borde: 4 px en total).
+   Solo es dibujo: la física y las pruebas usan el borde exacto de las celdas. */
+#define HUNDIR_PIES 2
 #define VRAM_DIN_PEQUENAS 0x1000     /* Piezas de 16x16 (no se usan).                    */
 #define SIN_ESTADO 0xFF              /* "Todavía no se dibujó nada".                     */
 
@@ -130,7 +136,9 @@ void tarou_sprite_dibujar(const Tarou *t, u16 camara)
 {
     const t_metasprite *tabla = tarou_sprite_tabla(t->estado, t->cuadro);
     s16 x = (s16)(PF_ENTERO(t->x_fp) - camara);     /* Pantalla = mundo - cámara.         */
-    s16 y = (s16)PF_ENTERO(t->y_fp);                /* No hay scroll vertical.            */
+    s16 y = (s16)(PF_ENTERO(t->y_fp) + HUNDIR_PIES); /* No hay scroll vertical. Se dibuja
+                                                        2 px más abajo que la física: ver
+                                                        HUNDIR_PIES arriba.                */
 
     /* Si cambió el cuadro (o el estado, o el espejo), hay que volver a copiar los
        tiles a la VRAM: el motor lo hace cuando ve oamrefresh = 1 en la entrada 0. */

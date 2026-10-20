@@ -3,15 +3,15 @@
 
     PROPÓSITO
       Un solo sitio para las constantes del escenario (ancho del nivel, ancho de
-      la pantalla, celda del protagonista), para la función que responde "¿a
-      qué altura está el suelo en esta x?" y para la cuenta que dice en qué
+      la pantalla, celda del protagonista, fila del suelo base) y para la cuenta
+      que dice en qué
       posición del mapa de la VRAM va cada columna del nivel (el nivel mide
       2048 px y el mapa de la VRAM solo 512: se reutiliza como un anillo).
 
     SE CONECTA CON
       Incluye:  sistema/tipos.h.
       Lo usan:  juego/camara.c (ANCHO_NIVEL, ANCHO_PANTALLA), juego/tarou.c
-                (ANCHO_CELDA, el suelo), juego/fondo_nivel.c (nivel_columna_vram),
+                (ANCHO_CELDA), juego/fondo_nivel.c (nivel_columna_vram),
                 pantallas/pantalla_nivel1.c, tests/prueba_camara.c.
 
     HARDWARE QUE TOCA
@@ -23,7 +23,8 @@
       ANCHO_PANTALLA  256  px   ancho visible de la SNES
       ANCHO_CELDA     96   px   ancho de la celda del sprite del protagonista
       ALTO_CELDA      64   px   alto de la celda (su última fila es la de los pies)
-      SUELO_Y         176  px   fila donde empieza la hierba del suelo (los pies, en la 175)
+      SUELO_Y         176  px   borde de arriba del suelo BASE (filas de celdas 11..13); lo
+                                que hay encima lo dice la rejilla de juego/colision.h
 
     → glosario: Nivel, Escenario, Suelo, Streaming de columnas
 ---------------------------------------------------------------------------------*/
@@ -37,11 +38,8 @@
 #define ANCHO_PANTALLA 256   /* Resolución horizontal de la SNES.                       */
 #define ANCHO_CELDA 96       /* Tarou (perro de Pixellab) mide hasta 81 px al correr:   */
 #define ALTO_CELDA 64        /* celda de 96x64 = 3x2 piezas de 32x32 (§7).             */
-#define SUELO_Y 176          /* Fila de la hierba de res/nivel1/fondo_cerca.png: 48 px  */
-                             /* de suelo (3 filas de tiles de 16) hasta la 223 (§8).   */
-
-/* Altura (fila y) del suelo bajo la coordenada x del mundo. Plano: siempre SUELO_Y. */
-u16 nivel_suelo_en(u16 x_pix);
+#define SUELO_Y 176          /* Suelo base: 48 px (3 filas de celdas de 16) hasta la   */
+                             /* 223. Donde empieza Tarou y la referencia de los dibujos. */
 
 /* Columna `col` del nivel (0..255) → desplazamiento, en palabras, de su primera fila
    dentro del mapa de 64x32 de la VRAM. El mapa de 64x32 son DOS páginas de 32x32

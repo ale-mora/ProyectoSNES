@@ -85,11 +85,12 @@ typedef struct
 void tarou_iniciar(Tarou *t, u16 x_pix, u16 suelo_y);
 
 /* Un frame completo (§5): transiciones de estado → aceleración/frenado → gravedad →
-   integrar → recortar x → aterrizar → avanzar la animación. suelo_y es la altura
-   del suelo bajo el centro de Tarou (nivel_suelo_en). */
-void tarou_actualizar(Tarou *t, const Mando *m, u16 suelo_y);
+   mover en x contra las paredes → mover en y (aterrizar, caer por un borde, techo)
+   → avanzar la animación. El escenario lo consulta en juego/colision.h: antes hay
+   que haber elegido la rejilla con colision_usar(). */
+void tarou_actualizar(Tarou *t, const Mando *m);
 
-/* Caja del cuerpo en píxeles del mundo (§5): 24x56 de pie, 24x32 agachado. */
+/* Caja del cuerpo en píxeles del mundo (§5): 52x50 de pie, 52x36 agachado. */
 void tarou_caja_cuerpo(const Tarou *t, Caja *c);
 
 /* Caja de golpe de la espada. Devuelve 1 (y rellena c) solo mientras ataca. */

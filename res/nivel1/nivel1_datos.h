@@ -4,7 +4,7 @@
 
 #define NIVEL1_COLS 128            /* celdas de 16 px de ancho              */
 #define NIVEL1_FILAS 14            /* celdas de 16 px de alto               */
-#define NIVEL1_INICIO_X 40      /* centro de Tarou al empezar (px)       */
+#define NIVEL1_INICIO_X 88      /* centro de Tarou al empezar (px)       */
 #define NIVEL1_TRONCO_X 1640    /* borde izquierdo del tronco (px)       */
 #define NIVEL1_SALIDA_X 1968    /* tocarla termina el nivel (px)         */
 #define NIVEL1_CONTROLES 8        /* puntos de control (uno por cartel)    */

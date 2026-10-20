@@ -23,8 +23,9 @@
     SE CONECTA CON
       Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h,
                 juego/nivel.h, juego/camara.h, juego/mando.h, juego/tarou.h,
-                juego/tarou_sprite.h, juego/fondo_nivel.h.
-      Lee de la ROM: nivel1_lejos_* y hdmaGradcieloList (data.asm); la capa
+                juego/tarou_sprite.h, juego/fondo_nivel.h, juego/colision.h y
+                nivel1_datos.h (generado: inicio, carteles, tronco, salida).
+      Lee de la ROM: nivel1_lejos_*, nivel1_colision y hdmaGradcieloList (data.asm); la capa
       cercana la carga juego/fondo_nivel.c.
       Lo usan:  sistema/secuencia.c (_iniciar, _actualizar y _vblank).
 
@@ -51,13 +52,17 @@
 #include "juego/mando.h"
 #include "juego/hud_debug.h"
 #include "juego/fondo_nivel.h"
+#include "juego/colision.h"
+#include "nivel1_datos.h"            /* Generado por scripts/preparar_nivel.py (objetos). */
 #include "sistema/puntofijo.h"
 
 extern char nivel1_lejos_til, nivel1_lejos_til_end, nivel1_lejos_pal;
 extern char nivel1_lejos_map, nivel1_lejos_map_end;
 extern const unsigned char hdmaGradcieloList[];   /* Tabla HDMA del cielo (gfx4snes -n). */
+extern u8 nivel1_colision;                         /* Rejilla de 128x14 (data.asm).      */
 
-#define X_INICIAL 64               /* Tarou arranca a 64 px del borde izquierdo.          */
+#define X_INICIAL (NIVEL1_INICIO_X - ANCHO_CELDA / 2) /* La celda, centrada en el objeto
+                                        «inicio» del .tmj.                                */
 
 /* Medidor de coste del frame ("barra de raster" en números): leer $2137 congela los
    contadores del haz y $213D devuelve la línea actual (0..261 en NTSC, en dos lecturas:
@@ -103,7 +108,8 @@ void pantalla_nivel1_iniciar(void)
     hud_debug_iniciar();                             /* ...apagado hasta que lo pida SELECT.*/
 
     tarou_sprite_cargar();                           /* Motor dinámico + paleta de Tarou.   */
-    tarou_iniciar(&tarou, X_INICIAL, nivel_suelo_en(X_INICIAL + ANCHO_CELDA / 2));
+    colision_usar(&nivel1_colision);                 /* La física pregunta a esta rejilla.  */
+    tarou_iniciar(&tarou, X_INICIAL, SUELO_Y);       /* De pie sobre el suelo base.         */
     bgSetScroll(0, camara, 0);
     bgSetScroll(1, camara >> 1, 0);
     tarou_sprite_dibujar(&tarou, camara);            /* Primer cuadro antes del fade in.    */
@@ -135,7 +141,7 @@ void pantalla_nivel1_actualizar(void)
     }
 
     /*--- 2. Lógica pura: un frame de física y máquina de estados --------------------*/
-    tarou_actualizar(&tarou, &mando, nivel_suelo_en(PF_ENTERO(tarou.x_fp) + ANCHO_CELDA / 2));
+    tarou_actualizar(&tarou, &mando);                /* Paredes, suelos y techos: colision.c. */
     diag_linea[0] = leer_linea();                    /* Medida: coste de la lógica pura.    */
 
     /*--- 3. Cámara y parallax: la cercana sigue a la cámara; la lejana, a la mitad --*/

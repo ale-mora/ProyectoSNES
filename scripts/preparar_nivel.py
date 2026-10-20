@@ -116,7 +116,7 @@ def trazado_inicial():
     rect(85, 87, 8, 8, PLATAFORMA)                    #    con dos plataformas encima
     rect(89, 91, 8, 8, PLATAFORMA)
     objetos = [
-        {"nombre": "inicio", "x": 40},
+        {"nombre": "inicio", "x": 88},
         {"nombre": "cartel", "x": 104, "texto": "WALK|< >"},
         {"nombre": "cartel", "x": 296, "texto": "JUMP|B"},
         {"nombre": "cartel", "x": 536, "texto": "HOLD B|HIGHER"},
@@ -364,7 +364,7 @@ def escribir_cabecera(ruta: Path, g, objetos) -> None:
         "",
         f"#define NIVEL1_COLS {COLS}            /* celdas de 16 px de ancho              */",
         f"#define NIVEL1_FILAS {FILAS}            /* celdas de 16 px de alto               */",
-        f"#define NIVEL1_INICIO_X {x_de('inicio', 40)}      /* centro de Tarou al empezar (px)       */",
+        f"#define NIVEL1_INICIO_X {x_de('inicio', 88)}      /* centro de Tarou al empezar (px)       */",
         f"#define NIVEL1_TRONCO_X {x_de('tronco', 0)}    /* borde izquierdo del tronco (px)       */",
         f"#define NIVEL1_SALIDA_X {x_de('salida', ANCHO - 64)}    /* tocarla termina el nivel (px)         */",
         f"#define NIVEL1_CONTROLES {len(carteles)}        /* puntos de control (uno por cartel)    */",

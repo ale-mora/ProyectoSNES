@@ -30,7 +30,7 @@ include ${PVSNESLIB_HOME}/devkitsnes/snes_rules
 # CFLAGS al ejecutarse, no al definirse. Decisión 13 de docs/diseno-demo-jugable.md.
 CFLAGS += -Isrc
 # tarou_anim.h (cuántos cuadros tiene cada animación) lo genera el pipeline en res/.
-CFLAGS += -Ires/personajes/tarou
+CFLAGS += -Ires/personajes/tarou -Ires/nivel1
 
 .PHONY: all clean
 
@@ -138,6 +138,7 @@ data.obj: $(ASSETS)
 src/juego/tarou_sprite.obj: $(TAROU_PICS)
 src/pantallas/personajes.obj: res/personajes/tarou/tarou_reposo_estatico.pic
 src/juego/animaciones.obj: res/personajes/tarou/tarou_anim.h
+src/pantallas/pantalla_nivel1.obj: res/nivel1/nivel1_datos.h
 
 # Borra las salidas de conversión que viven dentro de res/ (cleanGfx solo mira la raíz).
 cleanGfxRes:

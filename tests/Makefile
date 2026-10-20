@@ -10,17 +10,18 @@
 #
 #   SE CONECTA CON
 #     Compila: pruebas.c, prueba_*.c y los .c puros de ../src/juego/ que existan.
-#     Incluye: -I. (tarou_anim.h de pruebas, minitest.h) y -I../src (sistema/, juego/).
+#     Incluye: -I. (tarou_anim.h de pruebas, minitest.h), -I../src (sistema/, juego/) y
+#              -I../res/nivel1 (nivel1_datos.h: el nivel REAL, con su rejilla para el PC).
 #
 #   HARDWARE QUE TOCA
 #     ninguno.
 # ---------------------------------------------------------------------------------
 CC      = gcc
-CFLAGS  = -std=c99 -Wall -Wextra -DPRUEBAS_PC -I. -I../src
+CFLAGS  = -std=c99 -Wall -Wextra -DPRUEBAS_PC -I. -I../src -I../res/nivel1
 PRUEBAS = pruebas.c $(wildcard prueba_*.c)
 # Lógica pura del juego: solo los archivos que ya existen (las tareas los van añadiendo).
-PURO    = $(wildcard ../src/juego/nivel.c ../src/juego/camara.c ../src/juego/animaciones.c ../src/juego/tarou.c ../src/juego/metasprite.c)
-CABECERAS = $(wildcard *.h ../src/sistema/*.h ../src/juego/*.h)
+PURO    = $(wildcard ../src/juego/nivel.c ../src/juego/camara.c ../src/juego/animaciones.c ../src/juego/tarou.c ../src/juego/metasprite.c ../src/juego/colision.c)
+CABECERAS = $(wildcard *.h ../src/sistema/*.h ../src/juego/*.h ../res/nivel1/nivel1_datos.h)
 
 pruebas.exe: $(PRUEBAS) $(PURO) $(CABECERAS)
 	$(CC) $(CFLAGS) -o $@ $(PRUEBAS) $(PURO)

@@ -136,7 +136,7 @@ class PruebaArte(unittest.TestCase):
             self.assertEqual((d / "c.bin").read_bytes(), bytes(v for f in g for v in f))
             cab = (d / "c.h").read_text(encoding="utf-8")
             self.assertIn("#define NIVEL1_CONTROLES 8", cab)
-            self.assertIn("#define NIVEL1_INICIO_X 40", cab)
+            self.assertIn("#define NIVEL1_INICIO_X 88", cab)
         self.assertLessEqual(n, pn.LIMITE_TILES)
 
     def test_limite_de_tiles(self):

@@ -25,17 +25,21 @@
 #include "juego/tarou.h"
 #include "juego/mando.h"
 #include "juego/nivel.h"
+#include "juego/colision.h"
 #include "sistema/puntofijo.h"
 
-#define SUELO 208                       /* El suelo plano de la Revisión 1.           */
+#define SUELO 208                       /* Suelo plano: la fila de celdas 13 (208..223). */
 
-/* Avanza `n` frames con el mismo mando (el suelo es plano: siempre SUELO). */
+/* El escenario de estas pruebas: plano, solo la fila de abajo es sólida. */
+static u8 plano[COLUMNAS_COLISION * FILAS_COLISION];
+
+/* Avanza `n` frames con el mismo mando sobre el escenario elegido. */
 static void frames(Tarou *t, const Mando *m, u16 n)
 {
     u16 i;
     for (i = 0; i < n; i++)
     {
-        tarou_actualizar(t, m, SUELO);
+        tarou_actualizar(t, m);
     }
 }
 
@@ -43,6 +47,9 @@ static void frames(Tarou *t, const Mando *m, u16 n)
 static void preparar(Tarou *t, Mando *m, u16 x_pix)
 {
     memset(m, 0, sizeof(*m));
+    memset(plano, COL_VACIO, sizeof(plano));
+    memset(plano + 13 * COLUMNAS_COLISION, COL_SOLIDO, COLUMNAS_COLISION); /* Fila 13. */
+    colision_usar(plano);
     tarou_iniciar(t, x_pix, SUELO);
 }
 
@@ -165,7 +172,7 @@ static void prueba_apogeo_y_altura(void)
     y_minimo = t.y_fp;
     for (i = 0; i < 24; i++)
     {
-        tarou_actualizar(&t, &m, SUELO);
+        tarou_actualizar(&t, &m);
         m.saltar_pulsado = 0;                           /* Solo baja en el primer frame.  */
         if (t.y_fp < y_minimo) y_minimo = t.y_fp;
     }
@@ -188,7 +195,7 @@ static void prueba_salto_corto(void)
     COMPROBAR(t.estado == ESTADO_SALTANDO);
     for (i = 0; i < 17 && t.en_suelo == 0; i++)         /* Aterriza antes del frame 20.   */
     {
-        tarou_actualizar(&t, &m, SUELO);
+        tarou_actualizar(&t, &m);
     }
     COMPROBAR(t.en_suelo == 1);
 }
@@ -204,7 +211,7 @@ static void prueba_velocidad_terminal(void)
     t.estado = ESTADO_CAYENDO;
     for (i = 0; i < 60; i++)
     {
-        tarou_actualizar(&t, &m, SUELO);
+        tarou_actualizar(&t, &m);
         if (t.vy_fp > vy_maxima) vy_maxima = t.vy_fp;
     }
     COMPROBAR(vy_maxima == VEL_TERMINAL);               /* Llega a 96 y no pasa de ahí.   */

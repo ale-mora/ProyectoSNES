@@ -5,7 +5,7 @@
       Fijar con ejemplos la regla de la cámara (docs/diseno-demo-jugable.md §6):
       camara = x_pix + 48 - 128 (48 = mitad de la celda de 96 px), recortada a
       0..ANCHO_NIVEL - ANCHO_PANTALLA.
-      Y la del suelo (§5): en la Revisión 1 es plano, siempre SUELO_Y.
+      Y la cuenta del mapa-anillo de la VRAM (nivel_columna_vram).
 
     SE CONECTA CON
       Incluye:  minitest.h, juego/camara.h, juego/nivel.h.
@@ -33,10 +33,8 @@ void pruebas_camara(void)
     COMPROBAR(camara_para(1872) == 1792);         /* 1872 + 48 - 128 = 1792: el límite.   */
     COMPROBAR(camara_para(1952) == 1792);         /* Más allá (el tope de Tarou), sigue.  */
 
-    /* Suelo plano: la misma altura en todo el nivel. */
-    COMPROBAR(nivel_suelo_en(0) == 176);          /* La hierba del suelo de Pixellab      */
-    COMPROBAR(nivel_suelo_en(500) == 176);        /* empieza en la fila 176 (48 px de     */
-    COMPROBAR(SUELO_Y == 176);                    /* suelo: tres filas de tiles de 16).   */
+    /* Constantes del escenario. */
+    COMPROBAR(SUELO_Y == 176);                    /* Suelo base: tres filas de celdas.    */
     COMPROBAR(ANCHO_NIVEL == 2048);               /* El tutorial: 8 pantallas.            */
     COMPROBAR(COLUMNAS_NIVEL == 256);
     COMPROBAR(ANCHO_PANTALLA == 256);
