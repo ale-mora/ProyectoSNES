@@ -16,7 +16,8 @@
       de 8x8: el número de tile (los 10 bits bajos), la paleta (bits 10-12) y
       las volteretas/prioridad. La fuente de consola tiene 96 tiles para los
       caracteres ASCII 32..127 en orden, así que el tile de una letra es
-      `caracter - 32` y, con la paleta 0, la palabra es ese número tal cual.
+      `caracter - 32`; con la paleta 0 y el bit de prioridad (0x2000, para ir
+      delante de la capa cercana), la palabra es `(caracter - 32) | 0x2000`.
       Este archivo rellena en RAM las 6 filas (6 x 32 palabras = 384 bytes) y
       pantalla_nivel1_vblank() las copia a la VRAM por DMA justo después del
       VBlank. Es muchísimo más barato que consoleDrawText (cuyo formateo de
@@ -56,7 +57,10 @@
 #define FILAS_HUD 7                /* Filas que ocupa el HUD.                            */
 #define FILA_INICIAL 1             /* Primera fila del HUD dentro del mapa de texto.     */
 #define TILE_ESPACIO 0             /* ' ' es el ASCII 32: el tile 0 de la fuente.        */
-#define TILE(c) ((u16)((c) - 32))  /* Tile de un carácter ASCII (paleta 0: nada más).    */
+/* Tile de un carácter ASCII, paleta 0 y el bit de PRIORIDAD (bit 13, 0x2000): en Mode 1
+   con BG3_MODE1_PRIORITY_HIGH, solo los tiles de BG3 con ese bit van delante de todo.
+   Sin él, el techo del túnel del tutorial (capa cercana, arriba del todo) tapaba el texto. */
+#define TILE(c) ((u16)(((c) - 32) | 0x2000))
 
 static u8 visible;                 /* 1 mientras el HUD está encendido.                  */
 static u8 turno;                   /* Fila que toca preparar en este frame (0..5).       */

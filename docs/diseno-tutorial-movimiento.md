@@ -185,13 +185,17 @@ Un commit por fase, sin push:
   juega sola, sin teclado. Repite el recorrido del PC cuadro por cuadro (mismas
   x en el HUD), rompe el tronco, sale a «LEVEL 2 / COMING SOON» y vuelve al
   título. Capturas en `docs/screenshots/tutorial/`.
+- **Reaparición en Mesen:** con una ROM de prueba a la que se quitó el salto
+  del foso, Tarou cae, la pantalla funde a negro y reaparece junto al cartel
+  «HOLD Y» (x ≈ 1000) con el anillo de columnas limpio; volvió a caer y a
+  reaparecer varias veces seguidas sin fallos
+  (`docs/screenshots/tutorial/09-reaparicion.png`).
 - **Rendimiento:** con el HUD de depuración **apagado**, 60 FPS: el recorrido
   de 2238 cuadros dura ≈ 37,5 s de reloj. Con el HUD **encendido**, F avanza
-  ~84 % de lo que avanza VB (≈ 50 FPS): el HUD cuesta 50–80 líneas y la
-  colisión se comió el margen que antes lo absorbía. La lógica pasó de ~30 a
-  ~90 líneas de pantalla.
-- **No verificado en Mesen:** la reaparición (el guion nunca cae; está probada
-  en el PC) ni el juego con el mando real (el guion de teclas de
+  ~82–85 % de lo que avanza VB (≈ 50 FPS), medido también después de la
+  última ronda de optimizaciones: el HUD cuesta 50–80 líneas y la colisión se
+  comió el margen que antes lo absorbía. La lógica pasó de ~30 a ~90 líneas.
+- **No verificado:** el juego con el mando real (el guion de teclas de
   `capturar_mesen.ps1` perdió las teclas en todas las tandas de esta sesión).
   El autor debe jugarlo a mano.
 
@@ -204,6 +208,7 @@ Un commit por fase, sin push:
 | La ROM de prueba, mucho más lenta que la normal | `guion[i]` con structs de 5 bytes: tcc816 llama a `tcc__mul` (i × 5) en cada acceso, 72 veces por cuadro | recorrer la tabla con un puntero (`t++` suma 5) |
 | Tarou «moría» en lo alto de un salto desde la plataforma | la celda subía por encima de la pantalla (y < 0) y `PF_ENTERO`, que es solo para valores ≥ 0, daba un número enorme | comparar en punto fijo: `t->y_fp >= PF(Y_CAIDA)` |
 | Tarou rebotaba 8 px contra el tronco en bucle | al chocar se le pegaba al comienzo de la celda de 16 px, y el tronco empieza en x 1640 | retroceder píxel a píxel hasta dejar de tocar |
+| El texto del HUD quedaba detrás del techo del túnel | los tiles del HUD (BG3) no llevaban el bit de prioridad; antes no había nada arriba en la capa cercana | `TILE(c)` con `0x2000` en `hud_debug.c` |
 | Tarou empezaba en x 0 y no avanzaba | el objeto «inicio» marcaba su centro en 40: la celda empezaba en −8 | inicio en x 88; prueba `prueba_inicio` |
 
 ## 9. Pendiente
@@ -217,5 +222,8 @@ Un commit por fase, sin push:
   el recorrido, `tests/prueba_recorrido.c` falla: hay que ajustar
   `src/juego/guion_tutorial.c`.
 - **HUD de depuración a 60 FPS** (abaratar su dibujo).
+- Una raya horizontal de 1 px, del color del cielo, aparece a veces dentro del
+  techo del túnel y cambia de sitio entre capturas. Sin diagnosticar (¿una
+  pieza de sprite suelta o un píxel transparente de una celda de tierra?).
 - Los fosos dejan ver la capa lejana por debajo del suelo (una franja de
   agua/bosque): queda raro; falta arte de fondo de foso o pintar ahí la tierra.
