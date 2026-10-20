@@ -50,9 +50,11 @@ palabras de 2 bytes como las escribe el código. Términos: `docs/glosario-snes.
 | `pantallas/pantalla_titulo.c`, `pantalla_nivel1.c` | PPU, HDMA | `BGnHOFS/BGnVOFS $210D-$2114` scroll (`bgSetScroll`, dos escrituras de 8 bits); `COLDATA $2132` color de fondo por línea vía **HDMA** canal 6 (`setModeHdmaColor` programa `$43x0-$43x7` y `HDMAEN $420C`; `setModeHdmaReset` lo apaga); `SLHV $2137` / `OPVCT $213D` lectura de la línea del haz (medidor `LIN`) |
 | `pantallas/personajes.c` | OAM, VRAM, CGRAM | `OBSEL $2101` tamaño y base de sprites (`oamInitGfxAttr`), `OAMADD/OAMDATA $2102-$2104` por la copia de la OAM en la NMI (`oamSet`, `oamSetEx`, `oamSetXY` escriben en un buffer en RAM), `dmaCopyVram`, `dmaCopyCGram` |
 | `juego/tarou_sprite.c` | OAM, VRAM, CGRAM, DMA | lo mismo, por el motor de sprites dinámicos: `oamInitDynamicSprite`, `oamMetaDrawDyn32` (buffer), `oamVramQueueUpdate` (DMA de las piezas al VBlank) |
-| `juego/hud_debug.c` | VRAM, PPU | `dmaCopyVram` de 384 bytes al mapa de texto en el VBlank; `TM` (BG2 sí/no) |
-| `juego/mando.c` | mando | `JOY1L/H $4218/$4219`: la autolectura del mando que la consola hace al inicio del VBlank; el SDK la lee en la NMI y `padsCurrent/padsDown` devuelven bits |
-| `juego/tarou.c`, `camara.c`, `nivel.c`, `animaciones.c` | CPU, WRAM | **nada de PPU**: aritmética de 16 bits en WRAM |
+| `juego/hud_debug.c` | VRAM, PPU | `dmaCopyVram` de 384 bytes al mapa de texto en el VBlank; `TM` (BG2 sí/no). Sus tiles llevan el **bit de prioridad** (`0x2000`): con `BG3_MODE1_PRIORITY_HIGH`, solo así BG3 va delante de la capa cercana |
+| `juego/fondo_nivel.c` | VRAM, CGRAM, DMA | la capa cercana del tutorial por columnas, **con los registros a mano**: `VMAIN $2115 = 0x81` (avanzar 32 palabras = bajar una fila del mapa), `VMADD $2116` (dónde empieza la columna), canal 0 de DMA (`$4300 = 0x01` dos registros, `$4301 = 0x18` destino `VMDATA`, `$4302-$4304` origen de 24 bits, `$4305` 64 bytes), `MDMAEN $420B`; deja `VMAIN = 0x80`. No sirve `dmaCopyVram`: fija `VMAIN = 0x80`. Tiles y paleta con `bgInitTileSet` |
+| `pantallas/pantalla_nivel1.c` (reaparecer) | PPU | `setScreenOff()` = **forced blank** (`INIDISP` bit 7): con la pantalla apagada la VRAM se puede escribir en cualquier momento, no solo en el VBlank; así se reescriben de golpe los 4 KB del anillo antes del fundido de entrada |
+| `juego/mando.c` | mando | `JOY1L/H $4218/$4219`: la autolectura del mando que la consola hace al inicio del VBlank; el SDK la lee en la NMI y `padsCurrent/padsDown` devuelven bits. En la ROM de prueba (`-DGUION_PRUEBA`) los botones del juego salen de una tabla (`guion.c`) |
+| `juego/tarou.c`, `camara.c`, `nivel.c`, `animaciones.c`, `metasprite.c`, `colision.c`, `partida.c`, `guion.c` | CPU, WRAM, ROM | **nada de PPU**: aritmética de 16 bits en WRAM; `colision.c` lee la rejilla de colisión directamente de la ROM (`nivel1_colision`) |
 | `data.asm` | ROM | secciones `superfree` que el enlazador reparte por bancos |
 | `audio/` (stub) | SPC700 | en el futuro, `APUIO0-3 $2140-$2143` por `spcBoot/spcLoad/spcPlay/spcProcess` |
 
@@ -68,7 +70,7 @@ palabras   bytes      qué hay                                   quién lo escri
 0x4000     0x8000  ├ VRAM_FONDO_B: tiles de la capa lejana (título y nivel: montañas)
 0x6000     0xC000  ├ VRAM_FUENTE: 96 tiles de la fuente (4bpp o 2bpp según la pantalla)
 0x6800     0xD000  ├ VRAM_MAPA_TEXTO: mapa 32x32 de la capa de texto (consola y HUD)
-0x6C00     0xD800  ├ VRAM_MAPA_A: mapa 64x32 de la capa cercana (512 px, para scroll)
+0x6C00     0xD800  ├ VRAM_MAPA_A: mapa 64x32 de la capa cercana (512 px, para scroll; en el nivel, un ANILLO: el tutorial mide 2048 px y se copia por columnas)
 0x7400     0xE800  ├ VRAM_MAPA_B: mapa del fondo principal (32x32) o de la lejana (64x32, hasta 0x7BFF)
 0x8000     0x10000 └ fin
 Mode 3 (intro): la imagen de 256 colores ocupa 0x0000-0x3FFF (tiles de 64 bytes) y su mapa va en VRAM_MAPA_B.
@@ -108,14 +110,18 @@ línea, y 512 tiles direccionables (por eso Tarou tiene que ser dinámico).
 
 ## 6. Mapa de la ROM (16 bancos de 32 KB)
 
-Del `ProyectoSNES.log` de la Revisión 1: bancos 0..7 llenos, banco 8 al 71 %,
-bancos 9..15 vacíos (238 927 bytes libres de 524 288).
+Del `ProyectoSNES.log` del 2026-10-20 (tutorial, arte real): bancos 0..13
+llenos, banco 14 al 56 %, banco 15 vacío (47 289 bytes libres de 524 288).
+En la Revisión 1, con los marcadores, quedaban 238 927.
 
 - **Banco 0**: la cabecera (`hdr.asm`), los vectores de interrupción y el
   código que el enlazador coloca primero (nuestro `.text` y la librería).
 - **Bancos 1..8**: el resto del código y las secciones `superfree` de
   `data.asm`: cada asset entero en un banco (ninguna sección puede cruzar los
-  32 KB). Las 13 animaciones de Tarou (2 KB por cuadro) son el bloque mayor.
+  32 KB). Las 13 animaciones de Tarou (3 KB por cuadro de 96×64) son el bloque
+  mayor; la capa cercana del tutorial (tiles + mapa por columnas, ~25 KB) va
+  en una sola sección, y su banco se guarda aparte en 1 byte
+  (`nivel1_cerca_col_banco: .db :nivel1_cerca_col`) porque el DMA lo necesita.
 - `wlalink -d` descarta las secciones que nadie referencia: los stubs y el
   lobo samurái no ocupan ROM.
 
@@ -140,12 +146,14 @@ Toda variable global de nuestro código está aquí; por eso la lógica pura usa
 
 ```
 línea 0           la PPU empieza a dibujar la línea 0 (área visible 0..224)
-                  │  nuestra lógica del frame corre aquí (acaba hacia la línea 60: "LIN")
+                  │  nuestra lógica del frame corre aquí (en el tutorial, con colisión y
+                  │  sin HUD, acaba hacia la línea 100-130: "LIN")
                   │  mientras, HDMA escribe COLDATA en cada línea (el cielo)
 línea 225         VBlank: la PPU descansa; la consola autolee el mando ($4218)
                   │  NMI: el SDK copia la OAM (DMA), lee pad_keys, cuenta snes_vblank_count
-                  │  WaitForVBlank() vuelve → secuencia_vblank(): oamVramQueueUpdate (tiles
-                  │  del cuadro de Tarou, 2 KB) y hud_debug_vblank (384 B), ambos por DMA
+                  │  WaitForVBlank() vuelve → secuencia_vblank(): fondo_nivel_vblank (dos
+                  │  columnas del mapa, 128 B), oamVramQueueUpdate (tiles del cuadro de
+                  │  Tarou, 3 KB) y hud_debug_vblank (384 B), todos por DMA
 línea 262 → 0     siguiente frame
 ```
 

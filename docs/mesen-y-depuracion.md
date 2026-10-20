@@ -65,10 +65,10 @@ constantes y para **ver** el punto fijo:
 
 ```
 X 123  VX -16          x en píxeles enteros; vx en punto fijo 12.4 (16 = 1 px/frame)
-Y 144  VY 0            y de la celda (pies = Y + 64 = suelo 208); vy (negativo = sube)
+Y 112  VY 0            y de la celda (pies = Y + 64 = suelo base 176); vy (negativo = sube)
 EST CAMINANDO          estado actual, con el nombre del enum
 ESP FUERA  DIR DER     espada fuera/envainada; dirección derecha/izquierda
-CAM 0  F 1234          cámara (0..256) y frames desde que empezó el nivel
+CAM 0  F 1234          cámara (0..1792 en el tutorial) y frames desde que empezó el nivel
 GOLPE 167 168 28 16    caja de golpe de la espada (x, y, ancho, alto) o "-"
 LIN 252 10 59  VB 3738 línea del haz tras la lógica, tras el sprite y al final
                        del frame; y VBlanks totales desde el arranque
@@ -84,7 +84,10 @@ Cómo usar las dos últimas filas para medir:
   termina cada tramo. El VBlank empieza en la 225; si el último número es
   menor que 225, el frame ha usado `(37 + LIN) / 262` del tiempo. Con todo
   encendido, la lógica acaba hacia la línea 60: un 37 %. Un valor ≥ 225 (o que
-  da la vuelta) significa frame pasado de tiempo.
+  da la vuelta) significa frame pasado de tiempo. En el tutorial la lógica
+  (con colisión) acaba hacia la línea 70-120 y el final del frame, con el
+  HUD encendido, hacia 150-200: **el propio HUD cuesta 50-80 líneas**, y con
+  él encendido el nivel baja a unos 50 FPS (sin él, 60).
 - Las filas se escriben por turnos (una por frame): un dato puede tener hasta
   6 frames de retraso respecto a otro. Para capturar un instante exacto, usa
   el depurador (§4).
@@ -208,5 +211,6 @@ del PC. El 2026-10-20 coincidieron y la ROM llegó a la salida.
 | `816-tcc: error: ICE 2` | construcción de C que tcc816 no soporta (`?:` de cadenas en argumentos variádicos) | reescribir con `if/else` |
 | Dos de los cuatro cuadros de Bárbara salían con trozos de Tarou | un sprite de 64×64 empezaba en el tile 192 y cruzaba a la segunda tabla de 256 tiles: la PPU da la vuelta dentro de la tabla | Bárbara en el tile 256 (`personajes.c`, bloque «LÍMITE») |
 | El guion pierde teclas a mitad de tanda (el menú File aparece resaltado) | el autor usaba el equipo y el foco de Mesen saltó a su barra de menús | no usar el equipo durante la tanda; `--Preferences.AllowBackgroundInput=true` se fuerza pero su efecto no está demostrado (§5, punto 1) |
-| Tarou parece flotar sobre una raya de hierba | el arte es una vista lateral un poco elevada (patas lejanas 3 px más arriba) y la hierba empezaba justo bajo los pies | `scripts/preparar_suelo.py --hundir 4` (los pies, dentro de la banda) |
+| Tarou parece flotar sobre una raya de hierba | el arte es una vista lateral un poco elevada (patas lejanas 3 px más arriba) y la hierba empezaba justo bajo los pies | entonces `scripts/preparar_suelo.py --hundir 4`; desde el tutorial, la banda empieza 2 px sobre el borde de la celda y el sprite se dibuja 2 px más abajo (`HUNDIR_PIES`) |
+| El texto del HUD queda detrás del techo del túnel | los tiles de BG3 sin bit de prioridad van detrás de BG0 aunque el modo sea `BG3_MODE1_PRIORITY_HIGH` | `TILE(c)` con `0x2000` en `hud_debug.c` |
 | Un `.asm` generado para estudiar rompe la compilación | `snes_rules` compila como fuente todo `src/*/*.asm`: el `.asm` y su `.c` dan símbolos duplicados | borrar el `.asm` de `src/` tras copiarlo (`aprendizaje/PLAN.md` §6.4) |

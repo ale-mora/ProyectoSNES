@@ -10,13 +10,18 @@ sesiones posteriores, una por sesión**, siguiendo el formato de §2 y el
 procedimiento de §6. El punto de entrada para esas sesiones es
 `aprendizaje/README.md`.
 
-**Estado del juego que enseñan (2026-10-19, rama `demo-secuencia-arranque`):**
-la Revisión 1 está completa con el arte real. Tarou es un perro de Pixellab en
-celdas de 96×64 (metasprite dinámico de hasta 6 piezas) con 13 animaciones;
-el nivel 1 tiene un suelo de Pixellab (tileset *Sidescroller*) con un seto
-detrás, montañas en parallax y cielo por HDMA; pruebas: 195 en PC y 24 de
-scripts. Lo que todavía no existe: colisión con el escenario, enemigos,
-audio y Bárbara jugable.
+**Estado del juego que enseñan (2026-10-20, rama `demo-secuencia-arranque`):**
+Revisión 2. Tarou es un perro de Pixellab en celdas de 96×64 (metasprite
+dinámico de hasta 6 piezas) con 13 animaciones. El nivel 1 es un **tutorial
+de movimiento** de 2048 px (`docs/diseno-tutorial-movimiento.md`): escalones,
+muro, túnel, foso, plataformas sobre zarzas, un tronco que se rompe con la
+espada y la salida a «LEVEL 2 / COMING SOON»; colisión contra una rejilla de
+celdas de 16 px, reaparición en puntos de control, la capa cercana dibujada en
+Tiled (la lógica) y vestida por script con el tileset de Pixellab, copiada a
+la VRAM por columnas; montañas en parallax y cielo por HDMA. Pruebas: 280 en
+PC (entre ellas el recorrido completo del nivel) y 35 de scripts; una ROM de
+prueba (`-DGUION_PRUEBA`) se juega sola en Mesen. Lo que todavía no existe:
+enemigos, audio, Bárbara jugable y el arte final de zarzas, carteles y tronco.
 
 Alcance: mecánicas, C, ensamblador (65816 y SPC700) y la **integración
 técnica** del arte (de la exportación de Pixellab a la ROM). Dibujar el arte,
@@ -166,13 +171,16 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   con la receta de §6.4, copiarlo a la unidad y anotar, línea a línea, qué
   instrucción corresponde a cada sentencia de C).
 - **Código del juego:** `Makefile`, `src/juego/camara.c` y su `.asm`
-  generado (74 líneas: carga del parámetro desde la pila, `adc #48`,
-  `sbc #128`, recorte con `bvc`/`bmi` y `rts`), `ProyectoSNES.log`.
+  generado (82 líneas, verificado el 2026-10-20: carga del parámetro desde la
+  pila, `adc.w #48`, `sbc.w #128`, recorte por abajo con `bvc`/`bmi`, recorte
+  por arriba comparando con `#1792` (`ANCHO_NIVEL − ANCHO_PANTALLA`) y `rtl`:
+  las funciones de tcc816 son «largas», se llaman con `jsl`/`jsr.l`),
+  `ProyectoSNES.log`.
 - **Prerrequisitos:** 00. **Práctica:** mini-ROM + lectura.
 - **Aprobación:** la mini-ROM compila y muestra el texto en Mesen; las
   anotaciones del `.asm` identifican la carga del parámetro, la suma de la
-  media celda (48), la resta de la media pantalla (128), el recorte y el
-  retorno.
+  media celda (48), la resta de la media pantalla (128), los dos recortes
+  (0 y 1792) y el retorno.
 
 ### Unidad 04 — El frame, el VBlank y el bucle principal
 
@@ -180,33 +188,44 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   sincronizadas con la pantalla.
 - **Conceptos:** frame; línea del haz; VBlank; interrupción y NMI;
   `WaitForVBlank()`; contar tiempo en frames (`SEGUNDOS(n)`); qué solo se
-  puede hacer en el VBlank (escribir VRAM, OAM, CGRAM) y qué pasa si la
-  lógica se pasa de tiempo (se pierde un VBlank: 30 FPS).
+  puede hacer en el VBlank (escribir VRAM, OAM, CGRAM) y la excepción del
+  **forced blank** (con la pantalla apagada, `setScreenOff`, la VRAM se escribe
+  cuando se quiera: así reaparece Tarou); qué pasa si la lógica se pasa de
+  tiempo (se pierde un VBlank); medir la velocidad real con un recorrido
+  conocido (2238 cuadros = 37,3 s a 60 FPS).
 - **Archivos:** `README.md`, `rom/` (mini-ROM con un contador de frames en
   pantalla y un «segundero» calculado con `SEGUNDOS`), `ejercicio_04.md`
   (hacer que el contador parpadee cada medio segundo).
 - **Código del juego:** `src/sistema/main.c` (el bucle), `src/sistema/secuencia.c`
-  (`secuencia_vblank`), `src/sistema/pantallas.h` (duraciones), la fila
-  `LIN`/`VB` del HUD y `docs/hardware-snes-por-modulo.md` §8.
+  (`secuencia_vblank`), `src/sistema/pantallas.h` (duraciones),
+  `src/pantallas/pantalla_nivel1.c` (`pantalla_nivel1_vblank`: columnas,
+  sprite y HUD por DMA; `reaparecer`: fundido, `setScreenOff`, reescritura,
+  fundido), la fila `LIN`/`VB` del HUD y `docs/hardware-snes-por-modulo.md` §8.
 - **Prerrequisitos:** 03. **Práctica:** mini-ROM + sobre el juego real
   (medir con el HUD cuánto frame usa el nivel).
 - **Aprobación:** captura de Mesen con el contador y una nota con el valor
-  de `LIN` medido en el nivel y su porcentaje de frame. Ojo al leer `LIN`:
-  la primera cifra puede ser 248..254 (la lógica empieza dentro del VBlank) y
-  la tercera, de la vuelta siguiente, es la que mide el final del trabajo.
+  de `LIN` medido en el nivel y su porcentaje de frame, con el HUD encendido y
+  la explicación de por qué entonces `F` avanza menos que `VB` (el HUD cuesta
+  50–80 líneas: el tutorial baja a ~50 FPS con él y va a 60 sin él). Ojo al
+  leer `LIN`: la lógica empieza dentro del VBlank, así que las cifras pueden
+  estar en 225..261 o haber dado ya la vuelta (70–120 en el tutorial).
 
 ### Unidad 05 — El mando
 
 - **Objetivo:** leer los botones y separar «mantenido» de «recién pulsado».
 - **Conceptos:** bits y máscaras (`&`, `|`, `<<`); `padsCurrent` y
   `padsDown`; autolectura del joypad en el VBlank; la `struct Mando` como
-  traducción a intenciones; prioridad entre botones pulsados a la vez.
+  traducción a intenciones; prioridad entre botones pulsados a la vez; un
+  **guion de mando** (botones leídos de una tabla de tiempo): como la lógica
+  solo ve la `struct Mando`, se puede jugar sin manos, en el PC o en la ROM.
 - **Archivos:** `README.md`, `rom/` (mini-ROM que muestra en pantalla qué
   botones están pulsados y cuáles acaban de bajar; base:
   `tools/pvsneslib/snes-examples/input/`), `ejercicio_05.md` (añadir un
   contador de «cuántas veces se pulsó B»).
-- **Código del juego:** `src/juego/mando.c/.h`, `docs/diseno-demo-jugable.md`
-  §3 y §4 («Prioridad el mismo frame»), el mapeo de teclado de Mesen en
+- **Código del juego:** `src/juego/mando.c/.h` (y su rama `GUION_PRUEBA`),
+  `src/juego/guion.c/.h` (mantenidos y recién pulsados desde una tabla),
+  `src/juego/guion_tutorial.c`, `docs/diseno-demo-jugable.md` §3 y §4
+  («Prioridad el mismo frame»), el mapeo de teclado de Mesen en
   `docs/mesen-y-depuracion.md` §2.
 - **Prerrequisitos:** 04. **Práctica:** mini-ROM.
 - **Aprobación:** captura con los botones reflejados y el contador de B.
@@ -218,18 +237,23 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   bytes; paleta y color de 15 bits; tilemap (palabra por celda: tile,
   paleta, prioridad, **volteo horizontal y vertical**); modos de vídeo
   (Mode 1, Mode 3); `gfx4snes` y sus opciones; PNG indexado; índice 0
-  transparente; DMA; deduplicación de tiles (por qué el suelo de 512×256
-  solo ocupa unos 309 tiles).
+  transparente; DMA; deduplicación de tiles, volteos incluidos (por qué los
+  2080×256 px de la capa cercana del tutorial caben en unos 250 tiles: el arte
+  se pega alineado a la rejilla de 8×8 y las letras de los carteles ocupan un
+  tile cada una, así que se comparten).
 - **Archivos:** `README.md`, `rom/` (mini-ROM que carga un fondo de 16
   colores con `bgInitTileSet` + `bgInitMapSet`), `ejercicio_06.md` (cambiar
   un color de la paleta en tiempo de ejecución y cambiar un tile del mapa).
 - **Código del juego:** `src/sistema/comun.c` (`fondo16_cargar`,
   `fondo256_cargar`, `fuente_2bpp`), `src/sistema/comun.h` (el reparto de la
   VRAM), `Makefile` (reglas `gfx4snes`), `data.asm`, `src/juego/hud_debug.c`
-  (escribir un tilemap a mano), `res/nivel1/fondo_cerca.png` (la capa del
-  suelo: tierra variada con volteos de tile, que en el tilemap son gratis).
+  (escribir un tilemap a mano; el **bit de prioridad** `0x2000` que pone el
+  texto delante de la capa cercana), `res/nivel1/fondo_cerca.png` (la capa del
+  tutorial: tierra variada con volteos de tile, que en el tilemap son gratis),
+  `src/juego/fondo_nivel.c` (`fondo_nivel_cargar`: tiles y paleta con el SDK).
 - **Prerrequisitos:** 03, 04. **Práctica:** mini-ROM + sobre el juego real
-  (mirar los tiles y el mapa del suelo del nivel en el Tilemap Viewer de Mesen).
+  (mirar los tiles y el mapa de la capa cercana en el Tilemap Viewer de Mesen
+  y ver cómo cambian las columnas al avanzar).
 - **Aprobación:** captura de la mini-ROM con el fondo, el color cambiado y el
   tile cambiado.
 
@@ -238,18 +262,23 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 - **Objetivo:** mover el mundo escribiendo registros de scroll, con una
   cámara que sigue al protagonista y se detiene en los bordes.
 - **Conceptos:** registro de scroll (`bgSetScroll`, doble escritura de 8
-  bits); mapas de 64×32 en páginas (`-y`); bucle sin costura (original +
-  espejo); cámara como desplazamiento (`camara = x + 48 − 128`, 48 = media
-  celda de 96); recorte (clamp) en `s16`; parallax (capa lejana a la mitad);
-  el suelo como capa cercana (`SUELO_Y = 176`); el truco de HDMA para el cielo.
+  bits); mapas de 64×32 en páginas (`-y`) y por qué el scroll da la vuelta a
+  los 512 px; bucle sin costura (original + espejo: la capa lejana de 512 px se
+  repite a lo largo de los 2048 del nivel); cámara como desplazamiento
+  (`camara = x + 48 − 128`, 48 = media celda de 96); recorte (clamp) en `s16`
+  (0..1792); parallax (capa lejana a la mitad); un nivel más ancho que el mapa
+  de la VRAM: el **mapa-anillo** (la columna `c` va a la posición
+  `((c & 32) << 5) | (c & 31)`; la copia por DMA se estudia en la unidad 20);
+  el truco de HDMA para el cielo.
 - **Archivos:** `README.md`, `rom/` (mini-ROM con dos capas que se desplazan
   a distinta velocidad con la cruceta), `ejercicio_07.md` (añadir una tercera
   capa o cambiar la relación de parallax).
 - **Código del juego:** `src/juego/camara.c` + `tests/prueba_camara.c`,
-  `src/juego/nivel.h` (`ANCHO_NIVEL`, `ANCHO_CELDA`, `SUELO_Y`),
-  `src/pantallas/pantalla_nivel1.c` (paso 3), `src/pantallas/pantalla_titulo.c`,
-  `scripts/preparar_fondo_nivel.py` (por qué 512 px y 256 de alto),
-  `scripts/preparar_suelo.py` (la capa cercana del nivel).
+  `src/juego/nivel.h/.c` (`ANCHO_NIVEL` 2048, `ANCHO_CELDA`, `SUELO_Y`,
+  `nivel_columna_vram`), `src/pantallas/pantalla_nivel1.c` (paso 3),
+  `src/pantallas/pantalla_titulo.c`, `scripts/preparar_fondo_nivel.py` (por
+  qué 512 px y 256 de alto), `src/juego/fondo_nivel.c` (qué columnas se
+  escriben en cada VBlank).
 - **Prerrequisitos:** 06. **Práctica:** mini-ROM + PC (`prueba_camara.c`).
 - **Aprobación:** captura con las capas desplazadas y una prueba nueva en
   `prueba_camara.c` para un ancho de nivel distinto.
@@ -297,7 +326,8 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   `ejercicio_09.md` (añadir una animación y medir en el Sprite Viewer las
   6 piezas).
 - **Código del juego:** `src/juego/metasprite.c` (+ `tests/prueba_metasprite.c`),
-  `src/juego/tarou_sprite.c`, `data.asm` (`.rodata_tarou_*`), `Makefile`
+  `src/juego/tarou_sprite.c` (con `HUNDIR_PIES`: el dibujo va 2 px por debajo
+  de la física), `data.asm` (`.rodata_tarou_*`), `Makefile`
   (regla patrón de Tarou, `-X 96 -Y 64`), `src/pantallas/pantalla_nivel1.c`
   (`oamVramQueueUpdate` en `_iniciar`).
 - **Prerrequisitos:** 08. **Práctica:** mini-ROM + sobre el juego real.
@@ -317,13 +347,18 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   cambiar `GRAVEDAD` y `VEL_SALTO`, actualizar las pruebas y medir la altura
   en Mesen con el HUD).
 - **Código del juego:** `src/juego/tarou.c` (`saltar`, `actualizar_aire`,
-  `aterrizar`, pasos 2–4 de `tarou_actualizar`, `tarou_caja_cuerpo`,
-  `tarou_caja_golpe`), `tests/prueba_tarou.c` (salto y cajas),
-  `docs/diseno-demo-jugable.md` §5.
+  `aterrizar`, el paso 2 de `tarou_actualizar` (gravedad y corte) y la parte de
+  «integrar» de `mover_x`/`mover_y`; los choques se ven en la unidad 20,
+  `tarou_caja_cuerpo`, `tarou_caja_golpe`), `tests/prueba_tarou.c` (salto y
+  cajas, sobre un escenario plano: la fila 13 de una rejilla hecha en la
+  prueba, `colision_usar`), `docs/diseno-demo-jugable.md` §5.
 - **Prerrequisitos:** 01, 02, 05. **Práctica:** PC + sobre el juego real.
 - **Aprobación:** `tests/pruebas.exe` en verde con las constantes nuevas y
   una captura del HUD con la nueva altura máxima (`Y` mínima). Misma trampa
-  que en la unidad 02 con `tests/tarou_anim.h`.
+  que en la unidad 02 con `tests/tarou_anim.h`. Y otra: cambiar el salto puede
+  hacer imposible el muro de 48 px o el foso del tutorial; las pruebas de
+  `tests/prueba_colision.c` y `prueba_recorrido.c` lo dirán (es parte del
+  ejercicio explicar por qué).
 
 ### Unidad 11 — Animación por estados
 
@@ -352,13 +387,16 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 - **Objetivo:** cambiar un registro de la PPU en cada línea sin gastar CPU.
 - **Conceptos:** HDMA (tabla de valores por línea); canales; `COLDATA`;
   mosaico; brillo y fundidos (`setFadeEffectEx` y su cuenta de frames por
-  paso); por qué los fundidos bloquean.
+  paso); por qué los fundidos bloquean; brillo 0 frente a pantalla apagada
+  (forced blank, `setScreenOff`).
 - **Archivos:** `README.md`, `rom/` (mini-ROM con un degradado de cielo por
   HDMA y un fundido), `ejercicio_12.md` (otra tabla: cielo de atardecer).
 - **Código del juego:** `src/pantallas/pantalla_titulo.c` (HDMA canal 6),
   `res/titulo/cielo.bmp` + regla `-n`, `src/pantallas/pantalla_intro.c`
   (mosaico: la salida de la intro con `setMosaicEffect` que parece un fallo
-  y no lo es), `src/sistema/comun.c` (`fade_in`, `fade_out`).
+  y no lo es), `src/sistema/comun.c` (`fade_in`, `fade_out`),
+  `src/pantallas/pantalla_nivel1.c` (`reaparecer`: fundido, pantalla apagada,
+  fundido).
 - **Prerrequisitos:** 06. **Práctica:** mini-ROM.
 - **Aprobación:** captura con el degradado nuevo.
 
@@ -367,15 +405,21 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 - **Objetivo:** saber dónde vive cada byte y leer el `.log` y el `.sym`.
 - **Conceptos:** mapa de memoria del 65816 (bancos `$7E/$7F`, LoROM);
   sección `superfree`; `.incbin`; etiqueta; por qué una sección no puede
-  cruzar 32 KB (y por eso 10 cuadros de 96×64 por animación); dónde pone
-  tcc816 las tablas `const` (WRAM); DMA frente a copia por CPU; el reparto
-  de VRAM de `comun.h`.
+  cruzar 32 KB (y por eso 10 cuadros de 96×64 por animación); dirección de
+  24 bits = banco + 16 bits, y cómo darle a C el banco de una etiqueta
+  (`.db :etiqueta` en `data.asm`); dónde pone tcc816 las tablas `const`
+  (WRAM); leer datos directamente de la ROM con un puntero (la rejilla de
+  colisión); DMA frente a copia por CPU; el reparto de VRAM de `comun.h`.
 - **Archivos:** `README.md` (resumen de `docs/hardware-snes-por-modulo.md`
   con ejercicios), `ejercicio_13.md` (localizar en Memory Tools de Mesen la
   `struct Tarou` usando el `.sym` y verla cambiar al caminar; calcular cuántos
-  cuadros de 96×64 más caben en la ROM: hoy quedan unos 66 KB libres).
-- **Código del juego:** `data.asm`, `src/sistema/comun.h`, `ProyectoSNES.log`,
-  `ProyectoSNES.sym`.
+  cuadros de 96×64 más caben en la ROM: hoy quedan 47 289 bytes, casi todos
+  en los bancos 14 y 15; localizar en el `.sym` `nivel1_colision` y
+  `nivel1_cerca_col` y explicar por qué hace falta `nivel1_cerca_col_banco`).
+- **Código del juego:** `data.asm` (`.rodata_nivel1_cerca`, `.rodata_nivel1_banco`,
+  `.rodata_nivel1_colision`), `src/sistema/comun.h`, `src/juego/fondo_nivel.c`
+  (`REG_A1T0LH` y `REG_A1B0`: la dirección y el banco del DMA),
+  `ProyectoSNES.log`, `ProyectoSNES.sym`.
 - **Prerrequisitos:** 03, 06, 08. **Práctica:** sobre el juego real.
 - **Aprobación:** captura de Memory Tools con `tarou` y la cuenta de ROM libre.
 
@@ -391,10 +435,15 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   tipo del operando decide si se usa; `data.asm` y `hdr.asm` como
   ensamblador puro.
 - **Archivos:** `README.md`, `ejercicio_14.md` (con la receta de §6.4:
-  anotar `camara.asm` y `nivel.asm`; en `src/pantallas/personajes.asm`,
-  comparar `tile_del_bloque64` (parámetro `u8`: dos llamadas `jsr.l
-  tcc__div`) con `tile_del_bloque32` (parámetro `u16`: ninguna) y explicar la
-  diferencia).
+  anotar `camara.asm` y `nivel.asm` (en `nivel_columna_vram`, el `<< 5` sale
+  como un bucle de 5 `asl` con `ldy #5`/`dey`/`bne`); en
+  `src/pantallas/personajes.asm`, comparar `tile_del_bloque64` (parámetro
+  `u8`: dos llamadas `jsr.l tcc__div`) con `tile_del_bloque32` (parámetro
+  `u16`: ninguna) y explicar la diferencia; y reescribir a propósito
+  `mantenidos` de `src/juego/guion.c` con `guion[i]`, generar su `.asm`,
+  contar los `jsr.l tcc__mul` (structs de 5 bytes: `i × 5` en cada acceso),
+  explicar por qué la versión con puntero no tiene ninguno y deshacer el
+  cambio).
 - **Código del juego:** los `.asm` generados, `data.asm`, `hdr.asm`, las
   rutinas del SDK que se ven en el depurador (`WaitForVBlank`, el manejador
   de NMI).
@@ -412,7 +461,9 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 - **Archivos:** `README.md`, `rom/` (mini-ROM con `src/relleno.asm`: una
   rutina que rellena una zona de VRAM con un tile, llamada desde C),
   `ejercicio_15.md` (reescribir `poner_numero` del HUD en ensamblador y
-  comparar ciclos).
+  comparar ciclos; ampliación: `colision_en` de `src/juego/colision.c`, la
+  consulta más repetida de la física, manteniendo la versión C para el PC y
+  comprobando con la ROM de prueba que el recorrido sigue igual).
 - **Código del juego:** `src/juego/hud_debug.c` (lo que se reescribe),
   `data.asm` (ensamblador que ya existe en el proyecto).
 - **Prerrequisitos:** 14. **Práctica:** mini-ROM + sobre el juego real.
@@ -427,17 +478,20 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   tiles, sprites y paletas; Event Viewer; capturas automáticas con guion y
   sus límites.
 - **Archivos:** `README.md` (resumen de `docs/mesen-y-depuracion.md` con
-  ejercicios), `ejercicio_16.md` (tres casos reales del proyecto: un sprite
-  corrompido por cruzar la tabla de tiles (Bárbara en el tile 192), un
+  ejercicios), `ejercicio_16.md` (cuatro casos reales del proyecto: un sprite
+  corrompido por cruzar la tabla de tiles (Bárbara en el tile 192); un
   personaje que parece flotar sobre el suelo (perspectiva: el remedio fue
-  hundir los pies 4 px, `--hundir`), y una tecla del guion que no llega
-  (el foco de Mesen salta a la barra de menús si se usa el equipo durante
-  la tanda; la opción `AllowBackgroundInput` tiene un efecto no demostrado):
-  encontrar la causa con la herramienta adecuada).
-- **Código del juego:** `scripts/capturar_mesen.ps1`, el HUD de depuración,
+  hundir los pies 4 px, hoy 2 del arte y 2 de `HUNDIR_PIES`); el texto del
+  HUD tapado por el techo del túnel (bit de prioridad de BG3, visible en el
+  Tilemap Viewer); y una tecla del guion que no llega (el foco de Mesen salta
+  a la barra de menús si se usa el equipo durante la tanda; la salida fiable
+  es la ROM de prueba con guion): encontrar la causa con la herramienta
+  adecuada).
+- **Código del juego:** `scripts/capturar_mesen.ps1`, la ROM de prueba
+  (`-DGUION_PRUEBA`, `src/juego/guion.c`), el HUD de depuración,
   `docs/mesen-y-depuracion.md` §5 y §6 (fallos conocidos).
 - **Prerrequisitos:** 05, 08, 13. **Práctica:** sobre el juego real.
-- **Aprobación:** los tres casos resueltos con la captura que lo demuestra.
+- **Aprobación:** los cuatro casos resueltos con la captura que lo demuestra.
 
 ### Unidad 17 — SPC700 y audio
 
@@ -463,20 +517,23 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 
 - **Objetivo:** modificar el pipeline de assets con seguridad.
 - **Conceptos:** PNG indexado y paleta; cuantización (median cut, sin
-  tramado); `gfx4snes` (opciones `-s -o -u -e -m -y -T -X -Y -P -n`); por qué
-  `data.obj` depende de `ASSETS` y los `.obj` que incluyen archivos generados
-  dependen de ellos; reglas de patrón de `make`; pruebas `unittest` de los
-  scripts y TDD (prueba en rojo antes que el código).
+  tramado); `gfx4snes` (opciones `-s -o -u -e -m -y -T -X -Y -P -n`; sin `-y`,
+  el mapa sale por filas); un paso de Python dentro del `Makefile`
+  (`mapa_a_columnas.py`); por qué `data.obj` depende de `ASSETS` y los `.obj`
+  que incluyen archivos generados dependen de ellos (`nivel1_datos.h`); reglas
+  de patrón de `make`; `CFLAGS` desde el entorno (`-DGUION_PRUEBA`); pruebas
+  `unittest` de los scripts y TDD (prueba en rojo antes que el código).
 - **Archivos:** `README.md`, `ejercicio_18.md` (añadir una animación nueva a
   Tarou de principio a fin: entrada en `MAPEOS_PIXELLAB` (o una tira PNG) →
   `preparar_personaje.py` → `TAROU_ANIMS` del Makefile → `data.asm` →
   `animaciones.c` → `tarou_sprite.c` → verla en Mesen).
 - **Código del juego:** `scripts/preparar_personaje.py`,
-  `scripts/preparar_suelo.py`, `scripts/preparar_fondo_nivel.py` y sus
-  pruebas en `scripts/pruebas/`, `Makefile`, `data.asm`,
-  `docs/tuberia-de-compilacion.md` §3 y §8.
+  `scripts/preparar_nivel.py`, `scripts/mapa_a_columnas.py`,
+  `scripts/preparar_fondo_nivel.py` (y `preparar_suelo.py`, sustituido pero
+  conservado) con sus pruebas en `scripts/pruebas/`, `Makefile`, `data.asm`,
+  `docs/tuberia-de-compilacion.md` §3, §5 y §8.
 - **Prerrequisitos:** 09, 11, 13. **Práctica:** sobre el juego real.
-- **Aprobación:** la animación nueva se ve en Mesen y las pruebas de los
+- **Aprobación:** la animación nueva se ve en Mesen y las 35 pruebas de los
   scripts siguen en verde.
 
 ### Unidad 19 — Del arte al juego: Pixellab, celdas, paletas y perspectiva
@@ -490,24 +547,33 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   escala el pixel art (vecino más cercano con factor no entero = píxeles
   desiguales); la decisión de celda 96×64 y sus costes (6 piezas, 3 KB por
   cuadro, 10 cuadros por banco, 2 cuadros en la carga estática); una paleta
-  de 15 colores compartida; tileset *Sidescroller* (tiles de borde y de
-  relleno, formatos de exportación); variar un relleno con volteos;
-  componer capas con paleta compartida (el seto); **perspectiva**: el arte
-  es una vista lateral un poco elevada y por eso los pies se hunden 4 px en
-  la banda de hierba.
+  de 15 colores compartida; tileset *Sidescroller* de **rejilla doble** (cada
+  celda de arte se clasifica por cuáles de sus 4 esquinas tienen tierra: 16
+  combinaciones; las diagonales faltan y se sustituyen); vestir una rejilla de
+  lógica con él, desplazado media celda para que todo caiga en la rejilla de
+  8×8; variar un relleno con volteos; el presupuesto de tiles (el script se
+  niega a pasar de 460); componer capas con paleta compartida (el seto, los
+  carteles con la fuente de consola); **perspectiva**: el arte es una vista
+  lateral un poco elevada y por eso los pies se hunden 4 px en la banda de
+  hierba (2 px del arte y 2 de `HUNDIR_PIES`).
 - **Archivos:** `README.md`, `ejercicio_19.md` (tres partes sobre el juego
-  real: cambiar `--hundir` a 0 y a 8 y comparar capturas; regenerar el suelo
-  sin `--seto`; añadir al mapeo una animación nueva de Pixellab, por ejemplo
-  el ataque cuando exista, y verla en Mesen).
+  real: cambiar `HUNDIR_PIES` a 0 y a 4 y comparar capturas; integrar una de
+  las piezas que faltan (la zarza, el cartel o el tronco de la lista de
+  `res/descargas/graficos/pixellab/suelo/README.md`) en lugar de su marcador en
+  `preparar_nivel.py`, vigilando colores y tiles; añadir al mapeo una animación
+  nueva de Pixellab, por ejemplo el ataque cuando exista, y verla en Mesen).
 - **Código del juego:** `scripts/preparar_personaje.py` (`MAPEOS_PIXELLAB`,
-  `anclar`, `cargar_pixellab`, `paleta_comun`), `scripts/preparar_suelo.py`
-  (`clasificar`, `preparar`), `res/descargas/graficos/pixellab/tarou/README.md`
+  `anclar`, `cargar_pixellab`, `paleta_comun`), `scripts/preparar_nivel.py`
+  (`piezas_por_esquinas`, `vestir`, `poner_seto`, `poner_cartel`,
+  `tiles_distintos`), `scripts/preparar_suelo.py` (`clasificar`: la versión
+  anterior, de suelo plano), `res/descargas/graficos/pixellab/tarou/README.md`
   y `res/descargas/graficos/pixellab/suelo/README.md`,
-  `docs/diseno-demo-jugable.md` §2 (decisiones 3 y 16), §5, §7, §8 y §10.
+  `docs/diseno-demo-jugable.md` §2 (decisiones 3 y 16), §7 y §10,
+  `docs/diseno-tutorial-movimiento.md` §3 y §7.
 - **Prerrequisitos:** 06, 09, 18. **Práctica:** sobre el juego real + PC
   (pruebas `unittest`).
-- **Aprobación:** las 24 pruebas de scripts en verde y las capturas de Mesen
-  de cada parte del ejercicio.
+- **Aprobación:** las 35 pruebas de scripts en verde, `tests/pruebas.exe` en
+  verde y las capturas de Mesen de cada parte del ejercicio.
 
 ### Unidad 20 — Colisión con el escenario (código listo, unidad por escribir)
 
@@ -520,16 +586,25 @@ el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
   `VMAIN = 0x81`), rejilla doble (*dual grid*), guion de mando, y el coste de
   las llamadas en tcc816 (por qué existen `colision_columna_solida` y
   compañía).
-- **Código del juego:** `src/juego/colision.c`, `src/juego/tarou.c`
-  (`mover_x`, `mover_y`, `cabe_de_pie`), `src/juego/partida.c`,
-  `src/juego/fondo_nivel.c`, `src/juego/guion.c`, `scripts/preparar_nivel.py`,
-  `tests/prueba_colision.c`, `tests/prueba_recorrido.c`.
+- **Código del juego:** `src/juego/colision.c` (la rejilla, el bloque y las
+  consultas de columna y fila), `src/juego/tarou.c` (`mover_x` con el
+  retroceso píxel a píxel, `mover_y` con los dos pies, `cabe_de_pie`),
+  `src/juego/partida.c` (caída, zarzas, puntos de control, tronco, salida),
+  `src/juego/fondo_nivel.c` (el anillo y el parche del tronco),
+  `src/juego/guion.c` y `guion_tutorial.c`, `src/pantallas/pantalla_nivel1.c`
+  (`reaparecer`), `src/pantallas/pantalla_proximamente.c`,
+  `scripts/preparar_nivel.py`, `res/nivel1/tutorial.tmj`,
+  `tests/prueba_colision.c`, `tests/prueba_partida.c`,
+  `tests/prueba_recorrido.c`, `docs/diseno-tutorial-movimiento.md` (sobre todo
+  §7 y la tabla de trampas de §8).
 - **Demo:** en el PC, una rejilla pequeña hecha a mano y un Tarou que cae,
   aterriza, choca y se agacha bajo un techo, imprimiendo x/y por cuadro (como la
   traza con la que se ajustó el guion).
-- **Ejercicio:** añadir un obstáculo al nivel en Tiled (por ejemplo un segundo
-  foso), regenerar con `preparar_nivel.py`, ver fallar `prueba_recorrido` y
-  ajustar `guion_tutorial.c` hasta que pase; luego verlo en la ROM de prueba.
+- **Ejercicio:** añadir un obstáculo al nivel en Tiled (instalarlo con
+  `winget install thorbjorn.Tiled`; por ejemplo un segundo foso), regenerar con
+  `preparar_nivel.py` (¡sin `--crear`!), `make clean` + `make`, ver fallar
+  `prueba_recorrido` y ajustar `guion_tutorial.c` con una traza de x/y por
+  cuadro hasta que pase; luego verlo en la ROM de prueba.
 - **Prerrequisitos:** 07, 10, 13, 18. **Práctica:** PC + juego real + Mesen
   (ROM de prueba, `docs/mesen-y-depuracion.md` §5).
 - **Aprobación:** `tests/pruebas.exe` en verde con el obstáculo nuevo y
@@ -550,7 +625,7 @@ el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
                    │  │              └──► 17 SPC700                              │
                    │  └──────────────────────────────────────────────────────────┘
                    └──► 16 Mesen
-(20 colisión: pendiente, después de 07 y 10)
+(20 colisión: código listo; después de 07, 10, 13 y 18)
 ```
 
 ## 5. Cobertura de los ítems técnicos del plan de desarrollo
@@ -567,7 +642,8 @@ el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
 | Etapa 2: lectura de input (joypad) | 05 |
 | Etapa 2: aritmética de punto fijo | 01 |
 | Etapa 2: física de plataformas 2D | 10 |
-| Etapa 2: detección y resolución de colisiones (AABB, tiles) | **20, pendiente** (cuando exista `src/niveles/`) |
+| Etapa 2: detección y resolución de colisiones (AABB, tiles) | 20 (el código existe desde el tutorial, 2026-10-20) |
+| Etapa 2/3: un nivel de principio a fin (inicio → meta), editor de mapas (Tiled) | 20 |
 | Etapa 2: máquinas de estado para el personaje | 02, 11 |
 | Etapa 2: scroll de cámara y registros de BG | 07 |
 | Etapa 2: debugging con el debugger de Mesen | 16 |
@@ -603,8 +679,10 @@ Una unidad está hecha cuando:
 - **Cada línea de código lleva su comentario en español**; documentación en
   español; el **texto que sale en pantalla, en inglés**.
 - En el código para la SNES: sin `int`, `long`, `float`, `bool`; sin
-  divisiones en código por frame; sin `?:` con cadenas como argumentos
-  variádicos (error interno de tcc816).
+  divisiones en código por frame; sin `a[i]` sobre arrays de structs de
+  tamaño no potencia de 2 en bucles por frame (`tcc__mul`: recorrer con
+  puntero); sin `?:` con cadenas como argumentos variádicos (error interno de
+  tcc816); `PF_ENTERO` solo con valores ≥ 0.
 - Los ejemplos de PC compilan con `gcc -std=c99 -Wall -Wextra` sin avisos.
 - No se toca nada de `tools/` (SDK y Mesen de terceros).
 
@@ -642,20 +720,36 @@ borrarlo de `src/` enseguida**: `snes_rules` compila como fuente todo
 
 ```
 $env:PATH="C:\msys64\usr\bin;"+$env:PATH; make -C tests; .\tests\pruebas.exe
-python -m unittest scripts/pruebas/prueba_preparar_personaje.py scripts/pruebas/prueba_preparar_fondo_nivel.py scripts/pruebas/prueba_preparar_suelo.py
+python -m unittest scripts/pruebas/prueba_preparar_personaje.py scripts/pruebas/prueba_preparar_fondo_nivel.py scripts/pruebas/prueba_preparar_suelo.py scripts/pruebas/prueba_preparar_nivel.py
 .\scripts\capturar_mesen.ps1 -Duracion 70 -Cada 1 -Espera 4 -Guion "55,55.3,Start;57,57.3,Select;58,61,Right"
 ```
 
-Valores de referencia hoy: **195** pruebas de PC y **24** de scripts en
-verde; el título aparece hacia el segundo 50 de la captura. Para capturas de
-Mesen fiables, **no usar el equipo durante la tanda**: con el equipo en uso
-el foco de Mesen salta a su barra de menús y se pierden teclas del guion.
+ROM de prueba que se juega sola (lo fiable para verificar el nivel: no
+necesita teclas; sale con el mismo nombre, así que se copia aparte y se
+vuelve a compilar la normal):
+
+```
+make clean; $env:CFLAGS="-DGUION_PRUEBA"; make; $env:CFLAGS=$null
+.\scripts\capturar_mesen.ps1 -Rom RUTA\tutorial_guion.sfc -Duracion 46 -Cada 2 -Espera 3 -Guion "1,1.3,Select"
+```
+
+Valores de referencia hoy: **280** pruebas de PC y **35** de scripts en
+verde; el título aparece hacia el segundo 50 de la captura; en la ROM de
+prueba el nivel termina a los ~37,5 s. Para capturas con el guion de teclas,
+**no usar el equipo durante la tanda**: con el equipo en uso el foco de Mesen
+salta a su barra de menús y se pierden teclas (en la sesión del 2026-10-20 se
+perdieron en todas las tandas).
 
 ### 6.6 Trampas conocidas que una unidad no debe enseñar mal
 
 - `tests/tarou_anim.h` es una copia fija con los cuadros de los marcadores;
   el arte real tiene otros (unidades 02, 10, 11).
-- La primera cifra de `LIN` en el HUD puede estar en 248..254 (unidad 04).
+- Las cifras de `LIN` pueden estar en 225..261 (la lógica empieza dentro del
+  VBlank) o haber dado la vuelta; y el HUD encendido baja el tutorial a ~50
+  FPS: no es la lógica del juego, es el HUD (unidades 04, 16).
+- `tests/prueba_colision.c`, `prueba_partida.c` y `prueba_recorrido.c` usan la
+  rejilla REAL del nivel (`res/nivel1/nivel1_datos.h`): retocar el nivel en
+  Tiled las rompe a propósito (unidades 10, 20).
 - El efecto mosaico de salida de la intro no es un fallo (unidad 12).
 - Un sprite grande no cruza la frontera de los 256 tiles (unidades 08, 16).
 - Los pies quedan 4 px dentro de la hierba a propósito: desde el tutorial,
@@ -672,7 +766,7 @@ el foco de Mesen salta a su barra de menús y se pierden teclas del guion.
 
 ### 6.7 Orden de trabajo recomendado
 
-Una unidad por sesión, en el orden 00 → 19 (respetando §4). Las unidades
+Una unidad por sesión, en el orden 00 → 20 (respetando §4). Las unidades
 00, 01 y 02 son de PC y cortas: pueden ir de dos en dos. Antes de escribir
 una unidad, releer los archivos de «Código del juego» que cita: si algo
 cambió desde este plan, manda el código y se corrige el plan.
@@ -682,5 +776,5 @@ cambió desde este plan, manda el código y se corrige el plan.
 | Unidad | Estado |
 |---|---|
 | 00 | **hecha** (2026-10-19): `unidad-00-c-en-el-pc/`; las 12 fuentes compilan con `gcc -std=c99 -Wall -Wextra` sin avisos y las 4 soluciones dan exactamente su salida esperada (`capturas/`). El autor tiene pendiente resolver el ejercicio 03 (y el 04) por su cuenta |
-| 01–19 | por escribir (siguiente: 01) |
-| 20 | por escribir: el código existe desde el 2026-10-20 (el tutorial) |
+| 01–19 | por escribir (siguiente: 01). Fichas revisadas el 2026-10-20 contra el código del tutorial |
+| 20 | por escribir: el código existe desde el 2026-10-20 (el tutorial); ficha en §3 |

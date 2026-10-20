@@ -18,7 +18,7 @@ ProyectoSNES/
 ├── src/            el código C del juego (y nada más): lo compila tcc816
 │   ├── sistema/    arranque, máquina de estados de pantallas, utilidades, tipos
 │   ├── pantallas/  una pantalla por archivo: logos, intro, título, nivel 1
-│   ├── juego/      la lógica del nivel: protagonista, mando, cámara, HUD
+│   ├── juego/      la lógica del nivel: protagonista, colisión, reglas, mando, cámara, fondo por columnas, HUD
 │   ├── enemigos/ objetos/ hud/ audio/ niveles/   stubs de subsistemas futuros
 ├── data.asm        lo que va "pegado" en la ROM: tiles, paletas, mapas, tablas HDMA
 ├── res/            assets preparados (PNG indexados, BMP) que convierte gfx4snes
@@ -48,7 +48,13 @@ main.c ──────────► sistema/secuencia.h ──► sistema/p
                                                                ├─► sistema/puntofijo.h
 pantalla_nivel1.c ──► juego/nivel.h, juego/camara.h,           ├─► juego/mando.h
                       juego/tarou.h, juego/tarou_sprite.h,     └─► juego/animaciones.h
-                      juego/mando.h, juego/hud_debug.h
+                      juego/mando.h, juego/hud_debug.h,
+                      juego/fondo_nivel.h, juego/colision.h, juego/partida.h,
+                      nivel1_datos.h   (generado en res/nivel1/ por preparar_nivel.py)
+juego/tarou.c, juego/partida.c ──► juego/colision.h ──► sistema/tipos.h
+juego/partida.c ──► juego/tarou.h, juego/nivel.h
+juego/fondo_nivel.c ──► juego/nivel.h, sistema/comun.h
+juego/mando.c ──► juego/guion_tutorial.h ──► juego/guion.h ──► juego/mando.h   (solo con -DGUION_PRUEBA)
 juego/animaciones.c ──► tarou_anim.h   (generado en res/personajes/tarou/; en tests/, una copia fija)
 juego/tarou_sprite.c ──► tarou_<anim>_meta.inc (13, generados por gfx4snes -T)
 juego/tarou_sprite.c, pantallas/personajes.c ──► juego/metasprite.h ──► sistema/tipos.h   (lógica pura: contar piezas y espejar)
@@ -57,9 +63,10 @@ tests/*.c ──► tests/minitest.h ──► sistema/tipos.h   (+ los .h de ju
 ```
 
 Regla de capas: **la lógica pura** (`tarou.c`, `camara.c`, `nivel.c`,
-`animaciones.c`, `metasprite.c`) incluye solo `sistema/tipos.h` y cabeceras de `juego/`; nunca
+`animaciones.c`, `metasprite.c`, `colision.c`, `partida.c`, `guion.c`,
+`guion_tutorial.c`) incluye solo `sistema/tipos.h` y cabeceras de `juego/`; nunca
 `<snes.h>`. Así se compila también en el PC. **La capa de hardware**
-(`mando.c`, `tarou_sprite.c`, `hud_debug.c`, las pantallas, `comun.c`) sí
+(`mando.c`, `tarou_sprite.c`, `fondo_nivel.c`, `hud_debug.c`, las pantallas, `comun.c`) sí
 incluye `<snes.h>` y es la única que toca la PPU, la OAM y el mando.
 
 ## 2. Raíz del repositorio
@@ -110,7 +117,7 @@ Todas siguen el mismo patrón: `_iniciar()` carga gráficos y hace el fade in;
 
 | Archivo | Qué hace | Incluye / Lo usan | Hardware |
 |---|---|---|---|
-| `tarou.h` / `tarou.c` | **Lógica pura** del protagonista: `struct Tarou` (posición y velocidad en 12.4, estado, espada, dirección, animación, contador de sueño), las constantes de §5 de la spec, `tarou_iniciar`, `tarou_actualizar` (transiciones → aceleración → gravedad → integrar → recortar → aterrizar → animación), `tarou_caja_cuerpo`, `tarou_caja_golpe`. 13 estados con la prioridad R > A > B > Abajo > cruceta. | `tipos.h`, `puntofijo.h`, `mando.h`, `animaciones.h`, `nivel.h`. Lo usan `pantalla_nivel1.c`, `tarou_sprite.c`, `hud_debug.c`, `tests/prueba_tarou.c`. | **ninguno** (se prueba en PC) |
+| `tarou.h` / `tarou.c` | **Lógica pura** del protagonista: `struct Tarou` (posición y velocidad en 12.4, estado, espada, dirección, animación, contador de sueño), las constantes de §5 de la spec, `tarou_iniciar`, `tarou_actualizar(t, m)` (transiciones → aceleración → gravedad → `mover_x` contra las paredes → `mover_y`: suelo con dos pies, plataformas de un solo sentido, techo, caer por un borde → animación), `cabe_de_pie` (no se levanta bajo un techo), `tarou_caja_cuerpo`, `tarou_caja_golpe`. 13 estados con la prioridad R > A > B > Abajo > cruceta. | `tipos.h`, `puntofijo.h`, `mando.h`, `animaciones.h`, `nivel.h`, `colision.h`. Lo usan `pantalla_nivel1.c`, `tarou_sprite.c`, `hud_debug.c`, `tests/prueba_tarou.c`. | **ninguno** (se prueba en PC) |
 | `animaciones.h` / `.c` | `enum Estado` (13), `AnimDef` y las tablas `ANIMACIONES` (cuadros de `tarou_anim.h`, frames por cuadro, bucle) y `NOMBRES_ESTADO` (texto para el HUD). | `tipos.h`, `tarou_anim.h`. Lo usan `tarou.c`, `tarou_sprite.c`, `hud_debug.c`, tests. | ninguno |
 | `metasprite.h` / `.c` | **Lógica pura** de las tablas metasprite de `gfx4snes -T`: `metasprite_piezas` (cuenta hasta el terminador `0xFF80`, máximo 6, la celda de 96×64; el conversor **omite** los bloques transparentes, así que un cuadro puede tener menos de 6) y `metasprite_espejar` (copia mirando a la izquierda: `dx → 64 − dx`, bit `hflip`, terminador detrás de la última pieza). En el PC define la misma `t_metasprite` que `<snes.h>`. | `tipos.h`. Lo usan `tarou_sprite.c`, `pantallas/personajes.c`, `tests/prueba_metasprite.c`. | **ninguno** (se prueba en PC) |
 | `mando.h` / `mando.c` | `struct Mando` con intenciones (izquierda, saltar_pulsado, actividad...). `mando_leer` traduce `padsCurrent/padsDown` según §3: Y corre, B salta, A ataca, R espada, SELECT HUD, START sale. Solo `mando.c` ve bits del pad. Con `-DGUION_PRUEBA` los botones del juego salen del guion del recorrido (`mando_iniciar` pone su reloj a cero). | `<snes.h>`. Lo usa `pantalla_nivel1.c`; la struct la leen `tarou.c` y los tests. | Mando: registros de autolectura `$4218/$4219` leídos por la NMI del SDK |

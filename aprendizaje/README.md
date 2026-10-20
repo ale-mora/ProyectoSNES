@@ -10,7 +10,12 @@ anclada en el código real de *Tarou: A Dog's Journey*.
 - **La documentación técnica** del juego, que las unidades resumen y citan:
   [`../docs/README.md`](../docs/README.md).
 
-## Qué hay hoy (2026-10-19, unidad 00 escrita)
+## Qué hay hoy (2026-10-20, unidad 00 escrita)
+
+El juego que enseñan las unidades es el de la **Revisión 2**: el nivel 1 es
+un tutorial de movimiento de 2048 px con colisión contra el escenario,
+dibujado en Tiled y verificado con un guion que lo juega solo
+(`docs/diseno-tutorial-movimiento.md`). `PLAN.md` está al día con ese código.
 
 | Carpeta | Contenido |
 |---|---|

@@ -91,7 +91,7 @@ export ROMSIZE  := 09                # byte de tamaño de la cabecera: 09 = 512 
 export ROMBANKS := 16                # cuántas secciones de 32 KB reparte el enlazador
 include ${PVSNESLIB_HOME}/devkitsnes/snes_rules   # las reglas genéricas del SDK (ver §4)
 CFLAGS += -Isrc                      # #include "sistema/comun.h" desde cualquier .c
-CFLAGS += -Ires/personajes/tarou     # tarou_anim.h generado por el pipeline
+CFLAGS += -Ires/personajes/tarou -Ires/nivel1   # tarou_anim.h y nivel1_datos.h, generados
 
 all: buildWithSummary                # lo que hace `make` a secas (resumen + exit 1 si hubo errores)
 buildActual: bitmaps $(OBJS) $(ROMNAME).sfc   # primero convertir gráficos, luego compilar y enlazar
@@ -110,11 +110,12 @@ Variables y reglas propias, en orden de aparición:
 | `res/titulo/cielo_grad_data.as` | tabla HDMA (`-n -t bmp`) | el degradado del cielo, una línea por color |
 | `TAROU_ANIMS`, `TAROU_PICS`, regla patrón `res/personajes/tarou/%.pic` | las 13 tiras de Tarou más `tarou_reposo_estatico` → metasprites (`-s 32 -T -X 96 -Y 64 -P 3`) | un solo patrón para las 14 tiras |
 | `res/nivel1/fondo_lejos.pic` | capa lejana del nivel (`-y -e 2`) | 512 px en páginas, paleta 2 |
-| `res/nivel1/fondo_cerca.pic` | capa cercana del nivel: el suelo (`-y -e 1`) | 512 px en páginas, paleta 1; la imagen la genera `scripts/preparar_suelo.py` |
+| `res/nivel1/fondo_cerca.pic` | capa cercana del tutorial (`-e 1 -m`, **sin** `-y`) | 2080 px (el nivel y las 4 columnas del tronco), paleta 1; el mapa sale por filas de 260 tiles. La imagen la genera `scripts/preparar_nivel.py` |
+| `res/nivel1/fondo_cerca.col` | `python scripts/mapa_a_columnas.py ... --ancho 260` | el mismo mapa columna a columna, para copiar una columna con un solo DMA (`fondo_nivel.c`) |
 | `ASSETS := ...` | la lista de todas las salidas de gfx4snes | `bitmaps: $(ASSETS)` las fuerza antes de compilar |
 | `data.obj: $(ASSETS)` | `data.asm` se reensambla si cambia cualquier asset | `make` no ve los `.incbin`; sin esta línea los gráficos viejos se quedaban en la ROM |
-| `tarou_sprite.obj: $(TAROU_PICS)`, `personajes.obj: …reposo_estatico.pic`, `animaciones.obj: tarou_anim.h` | los `.c` que incluyen archivos **generados** se recompilan cuando se regeneran | `snes_rules` no ve esos `#include`; sin estas líneas, tras rehacer el arte de Tarou el código seguía con las tablas viejas hasta un `make clean` |
-| `cleanGfxRes` | borra las salidas de gfx4snes dentro de `res/` (el `cleanGfx` del SDK solo mira la raíz) | para que `make clean` deje `res/` como en git |
+| `tarou_sprite.obj: $(TAROU_PICS)`, `personajes.obj: …reposo_estatico.pic`, `animaciones.obj: tarou_anim.h`, `pantalla_nivel1.obj: nivel1_datos.h` | los `.c` que incluyen archivos **generados** se recompilan cuando se regeneran | `snes_rules` no ve esos `#include`; sin estas líneas, tras rehacer el arte de Tarou el código seguía con las tablas viejas hasta un `make clean` |
+| `cleanGfxRes` | borra las salidas de gfx4snes dentro de `res/` (también los `.col`; el `cleanGfx` del SDK solo mira la raíz) | para que `make clean` deje `res/` como en git |
 | `clean: cleanBuildRes cleanRom cleanGfx cleanGfxRes` | limpieza total | lo ejecuta `run.bat` siempre |
 
 ## 4. `snes_rules`: lo que el SDK hace por nosotros
@@ -193,15 +194,20 @@ RAM: 154372 bytes (94.22%) free of total 163840.
 
 ```
 src/juego/tarou.c + tests/prueba_tarou.c + ...
-   │  gcc -std=c99 -Wall -Wextra -DPRUEBAS_PC -I. -I../src     (tests/Makefile)
+   │  gcc -std=c99 -Wall -Wextra -DPRUEBAS_PC -I. -I../src -I../res/nivel1   (tests/Makefile)
    ▼
-tests/pruebas.exe   → "195 pruebas, 0 fallos"
+tests/pruebas.exe   → "280 pruebas, 0 fallos"
 ```
 
 `-DPRUEBAS_PC` hace que `sistema/tipos.h` tome `u8/u16/s16` de `<stdint.h>`
 en vez de `<snes.h>`, y `-I.` hace que `animaciones.c` encuentre la copia fija
-`tests/tarou_anim.h`. La lógica pura compila con gcc **y** con tcc816: si una
-construcción no funciona en uno de los dos, no vale.
+`tests/tarou_anim.h`; `-I../res/nivel1` da `nivel1_datos.h`, que con
+`PRUEBAS_PC` trae la rejilla de colisión del nivel REAL (las pruebas de
+colisión, reglas y recorrido completo juegan sobre ella). La lógica pura
+compila con gcc **y** con tcc816: si una construcción no funciona en uno de
+los dos, no vale. Y que compile no basta: lo que en gcc es barato puede ser
+carísimo en tcc816 (cada llamada a función, `a[i]` con structs de 5 bytes →
+`tcc__mul`); la ROM de prueba con guion (§5) lo destapa.
 
 Uso desde PowerShell: `$env:PATH="C:\msys64\usr\bin;"+$env:PATH; make -C tests; .\tests\pruebas.exe`
 (`gcc` es el de WinLibs/MinGW que ya está en el PATH del usuario).

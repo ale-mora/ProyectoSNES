@@ -155,7 +155,13 @@ Reglas transversales:
   → recortar x a [0, 416] (`ANCHO_NIVEL − ANCHO_CELDA`) → aterrizaje (si
   `y_pix + 64 >= suelo`: `y = suelo − ALTO_CELDA`, `vy = 0`, `en_suelo = 1`)
   → avanzar animación.
-- **Suelo:** `nivel_suelo_en(x_pix)` devuelve hoy la constante `SUELO_Y = 176`
+> **Revisión 2 (2026-10-20):** el paso «aterrizaje» y la función
+> `nivel_suelo_en` ya no existen: `tarou_actualizar(t, m)` mueve primero en x
+> contra las paredes y después en y contra suelos, plataformas y techos,
+> preguntando a la rejilla de `src/juego/colision.c`. El hundir de 4 px se
+> reparte en 2 del arte y 2 del dibujo (`HUNDIR_PIES`). Ver `docs/diseno-tutorial-movimiento.md` §7.
+
+- **Suelo:** `nivel_suelo_en(x_pix)` devolvía la constante `SUELO_Y = 176`
   (antes 208, sobre los arbustos; cambiado el 2026-10-19 al llegar el suelo de
   Pixellab). La última fila del cuadro es la planta de las patas:
   `y_celda = suelo − 64`, así que los pies quedan en la fila 175. La banda de
@@ -173,8 +179,9 @@ Reglas transversales:
 ## 6. Cámara
 
 - `camara = x_pix + 48 − 128` (48 = centro de la celda de 96), recortada a 0..`ANCHO_NIVEL − ANCHO_PANTALLA`
-  (0..256). Tarou se mueve hasta el centro, la cámara lo sigue y, al final,
-  llega al borde. Sin suavizado.
+  (0..256; desde la Revisión 2, con el nivel de 2048 px, 0..1792). Tarou se
+  mueve hasta el centro, la cámara lo sigue y, al final, llega al borde. Sin
+  suavizado.
 - `x_pantalla = x_pix − camara` (nunca negativo); `y_pantalla = y_pix` (no hay
   scroll vertical).
 - Capa cercana: scroll = `camara`. Capa lejana: scroll = `camara >> 1`.
@@ -225,6 +232,11 @@ Reglas transversales:
 
 - **Modo:** Mode 1 con `BG3_MODE1_PRIORITY_HIGH`. BG0 cercana, BG1 lejana, BG2
   texto del HUD (fuente 2bpp del título), apagado salvo con el HUD.
+> **Revisión 2 (2026-10-20):** la capa cercana es ahora el tutorial de
+> 2048 px: la genera `scripts/preparar_nivel.py` desde Tiled y se dibuja por
+> columnas en el mapa de 64×32, usado como anillo (`src/juego/fondo_nivel.c`).
+> La descripción de abajo es la del suelo plano de 512 px. Ver `docs/diseno-tutorial-movimiento.md` §3 y §4.
+
 - **Capa cercana (BG0):** el **suelo**, `res/nivel1/fondo_cerca.png`
   (`nivel1_cerca_*`), 512 px en `SC_64x32`, paleta 1, en `VRAM_FONDO_A` /
   `VRAM_MAPA_A`. Scroll 1:1. La genera `scripts/preparar_suelo.py` a partir
@@ -332,7 +344,10 @@ src/
 tests/              pruebas en PC con gcc: minitest.h · pruebas.c · prueba_*.c · Makefile
 ```
 
-Flujo del nivel, por frame:
+Flujo del nivel, por frame (el de la Revisión 1; el actual añade
+`partida_actualizar` tras `tarou_actualizar` y `fondo_nivel_vblank` en el
+VBlank, y `tarou_actualizar` ya no recibe el suelo: ver
+`docs/mapa-de-archivos.md` §4 y `docs/diseno-tutorial-movimiento.md` §7):
 
 ```
 main.c ─ secuencia_actualizar() ─▶ pantalla_nivel1_actualizar()

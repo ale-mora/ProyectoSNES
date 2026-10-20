@@ -16,7 +16,7 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   Revisión 1: Tarou adulto camina, corre, salta, se agacha, usa la espada y
   duerme en el nivel 1. Revisión 2: Bárbara.
 - **Nivel** — zona jugable con principio y fin (`nivel.c`, `PANTALLA_NIVEL1`).
-  El nivel 1 mide 512 px de ancho.
+  El nivel 1 (el tutorial de movimiento) mide 2048 px de ancho: 8 pantallas.
 - **Escenario** — lo que se ve y se pisa dentro de un nivel: las capas de fondo
   y la geometría del suelo. Es una parte del nivel, no un sinónimo.
 - **Pantalla** — un estado de la máquina de estados de `secuencia.c`
@@ -97,7 +97,8 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
 - **Tileset** — colección de tiles pensada para combinarse (bordes, rellenos,
   esquinas). El suelo del nivel sale de un tileset *Sidescroller* de Pixellab:
   tiles de **borde** (hierba sobre tierra, con las filas de arriba vacías) y
-  de **relleno** (tierra opaca), de 16×16. → `scripts/preparar_suelo.py`.
+  de **relleno** (tierra opaca), de 16×16. Es de **rejilla doble** (ver
+  «Mecánicas»): lo aplica `scripts/preparar_nivel.py`.
 - **Volteo de tile** — cada celda del tilemap puede mostrar su tile espejado
   en horizontal o en vertical sin gastar tiles nuevos: así se varía la tierra
   del suelo para que no se vean franjas.
@@ -177,9 +178,12 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
 - **Salto de altura variable** — al pulsar B se asigna una velocidad vertical
   hacia arriba; si se suelta B mientras todavía sube, esa velocidad se
   recorta y el salto queda más corto. Mantener B da el salto completo.
-- **Suelo** — altura `y` del nivel sobre la que se apoyan los pies. En la
-  Revisión 1 es plano: `nivel_suelo_en(x)` devuelve una constante. Cuando haya
-  desniveles solo cambia el interior de esa función.
+- **Suelo** — dónde se apoya el protagonista. En la Revisión 1 era plano
+  (`nivel_suelo_en(x)` devolvía una constante); desde el tutorial lo dice la
+  rejilla de colisión: cualquier celda sólida o plataforma bajo uno de los dos
+  «pies» de Tarou (columnas 36 y 64 de su celda). `SUELO_Y = 176` queda como
+  el borde del suelo base. → `src/juego/colision.c`, `mover_y` en
+  `src/juego/tarou.c`.
 - **Hundir los pies (perspectiva)** — el arte de Pixellab es una vista
   lateral un poco elevada: las patas del lado lejano acaban más arriba que las
   cercanas. Si la hierba empieza justo debajo de los pies, el personaje parece
