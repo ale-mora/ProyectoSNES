@@ -35,7 +35,7 @@ cuyas mecánicas no cambian: aquí se añade el **escenario con colisión**.
 | 4 | Fallar | Fosos y algo que hace daño, con reaparición. |
 | 5 | Arte | Se reutiliza el tileset *Sidescroller* del suelo; se pide a Pixellab solo lo que falte. |
 | 6 | Longitud | Unos 2048 px (8 pantallas), con el fondo dibujándose por columnas. |
-| 7 | Editor | Tiled (lo instala el autor: `winget install thorbjorn.Tiled`). |
+| 7 | Editor | Tiled (lo instala el autor: `winget install Tiled.Tiled`). |
 
 **De Claude** (el autor puede corregirlas):
 
@@ -216,7 +216,7 @@ Un commit por fase, sin push:
 - **Arte de Pixellab** para lo que hoy es marcador: el tablero de los
   carteles, las zarzas, el tronco y algo que marque la salida (la lista, en
   `res/descargas/graficos/pixellab/suelo/README.md`).
-- **Retocar el nivel en Tiled** (instalarlo: `winget install thorbjorn.Tiled`;
+- **Retocar el nivel en Tiled** (instalarlo: `winget install Tiled.Tiled`;
   abrir `res/nivel1/tutorial.tmj`; capa `logica` en CSV; después
   `python scripts/preparar_nivel.py`, `make clean` y `make`). Si un retoque rompe
   el recorrido, `tests/prueba_recorrido.c` falla: hay que ajustar

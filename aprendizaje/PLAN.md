@@ -601,7 +601,7 @@ el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
   aterriza, choca y se agacha bajo un techo, imprimiendo x/y por cuadro (como la
   traza con la que se ajustó el guion).
 - **Ejercicio:** añadir un obstáculo al nivel en Tiled (instalarlo con
-  `winget install thorbjorn.Tiled`; por ejemplo un segundo foso), regenerar con
+  `winget install Tiled.Tiled`; por ejemplo un segundo foso), regenerar con
   `preparar_nivel.py` (¡sin `--crear`!), `make clean` + `make`, ver fallar
   `prueba_recorrido` y ajustar `guion_tutorial.c` con una traza de x/y por
   cuadro hasta que pase; luego verlo en la ROM de prueba.
