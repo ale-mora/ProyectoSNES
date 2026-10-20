@@ -89,9 +89,30 @@ static void prueba_celdas(void)
     COMPROBAR(colision_en(100, 224) == COL_VACIO);   /* Debajo de la pantalla: vacío.       */
     COMPROBAR(colision_en(100, (u16)-5) == COL_VACIO);  /* Encima: vacío.                   */
     COMPROBAR(colision_apoya(48, 32) == 1);
+    /* Consultas de una columna y de una fila enteras. */
+    COMPROBAR(colision_columna_solida(50, 0, 31) == 0);    /* Encima de la celda: nada.    */
+    COMPROBAR(colision_columna_solida(50, 0, 32) == 1);    /* Toca su primera fila.        */
+    COMPROBAR(colision_columna_solida(50, 47, 200) == 1);
+    COMPROBAR(colision_columna_solida(50, 48, 200) == 0);  /* Ya por debajo.               */
+    COMPROBAR(colision_columna_solida(50, -40, 40) == 1);  /* Desde encima de la pantalla. */
+    COMPROBAR(colision_columna_solida(2100, 0, 10) == 1);  /* Fuera del nivel: pared.      */
+    COMPROBAR(colision_fila_es(0, 47, 40, COL_SOLIDO) == 0);
+    COMPROBAR(colision_fila_es(0, 48, 40, COL_SOLIDO) == 1);
+    COMPROBAR(colision_fila_es(60, 300, 40, COL_SOLIDO) == 1);
+    COMPROBAR(colision_fila_es(64, 300, 40, COL_SOLIDO) == 0);
+    COMPROBAR(colision_fila_es(0, 300, -3, COL_SOLIDO) == 0); /* Encima de la pantalla.    */
+    COMPROBAR(colision_fila_es(0, 300, 40, COL_ZARZA) == 0);
+    colision_bloque(100, 20, 32, 40);                /* Un bloque: x 100..131, y 20..59.    */
+    COMPROBAR(colision_columna_solida(110, 0, 19) == 0);
+    COMPROBAR(colision_columna_solida(110, 0, 20) == 1);
+    COMPROBAR(colision_columna_solida(132, 0, 100) == 0);
+    COMPROBAR(colision_en(131, 59) == COL_SOLIDO);
+    colision_bloque(0, 0, 0, 0);
+    COMPROBAR(colision_en(131, 59) == COL_VACIO);
     pequena[(2 << 7) | 3] = COL_PLATAFORMA;
     COMPROBAR(colision_solido(48, 32) == 0);         /* La plataforma no es pared...        */
     COMPROBAR(colision_apoya(48, 32) == 1);          /* ...pero sostiene.                   */
+    COMPROBAR(colision_columna_solida(50, 0, 100) == 0);
 }
 
 static void prueba_nivel_real(void)

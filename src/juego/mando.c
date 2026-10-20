@@ -24,14 +24,36 @@
 ---------------------------------------------------------------------------------*/
 #include <snes.h>
 #include "juego/mando.h"
+#ifdef GUION_PRUEBA
+#include "juego/guion_tutorial.h"
+#endif
 
 static u16 mantenidos;             /* padsCurrent(0): lo que está pulsado ahora.          */
 static u16 pulsados;               /* padsDown(0): lo que acaba de bajar en este frame.   */
+#ifdef GUION_PRUEBA
+static u16 cuadro_guion;           /* Cuadros desde que empezó el nivel (ROM de prueba).  */
+#endif
+
+void mando_iniciar(void)
+{
+#ifdef GUION_PRUEBA
+    cuadro_guion = 0;              /* El guion empieza a contar con el nivel.              */
+#endif
+}
 
 void mando_leer(Mando *m)
 {
     mantenidos = padsCurrent(0);
     pulsados = padsDown(0);
+#ifdef GUION_PRUEBA
+    /* ROM de prueba: los botones del juego salen del guion del recorrido; del mando
+       real solo cuentan SELECT (HUD) y START (salir). Ver juego/guion.h. */
+    guion_mando(GUION_TUTORIAL, GUION_TUTORIAL_TRAMOS, cuadro_guion, m);
+    cuadro_guion++;
+    m->hud_pulsado = (u8)((pulsados & KEY_SELECT) != 0);
+    m->salir_pulsado = (u8)((pulsados & KEY_START) != 0);
+    return;
+#endif
 
     /* Mantenidos: dirección, agacharse, correr y el B que alarga el salto. */
     m->izquierda = (u8)((mantenidos & KEY_LEFT) != 0);

@@ -25,6 +25,10 @@
       $420B MDMAEN  bit 0 = arrancar el canal 0. La CPU espera a que acabe.
       No usa el canal 6: es el del cielo (HDMA, pantalla_nivel1.c).
 
+    VARIABLES (estáticas)
+      parche_col     u16  primera columna del nivel con parche (el tronco)
+      parche_fuente  u16  de qué columna del mapa se toman (0 = sin parche)
+      reescribir     u8   1 = el parche se quitó: volver a copiar sus columnas
     VARIABLES (constantes)
       BYTES_COLUMNA     64   32 filas x 2 bytes (una columna del mapa en la ROM)
       COLUMNAS_ANILLO   64   columnas del mapa de la VRAM (64x32)
@@ -44,19 +48,42 @@ extern u8 nivel1_cerca_col_banco;    /* El banco de la ROM donde está nivel1_ce
 #define COLUMNAS_ANILLO 64           /* El mapa de la VRAM: 64 columnas (512 px).          */
 #define ANTES 15                     /* Al rellenar: 15 a la izquierda, 49 a la derecha.  */
 
+static u16 parche_col;               /* Primera columna del nivel que se sustituye.        */
+static u16 parche_fuente;            /* Columna del mapa de donde salen (0 = ninguna).     */
+static u8 reescribir;                /* 1 = quitaron el parche: copiar otra vez esas columnas. */
+
+void fondo_nivel_parche(u16 col, u16 fuente)
+{
+    parche_col = col;
+    parche_fuente = fuente;
+    reescribir = 0;
+}
+
+void fondo_nivel_quitar_parche(void)
+{
+    parche_fuente = 0;                               /* Desde ahora, las columnas de siempre. */
+    reescribir = 1;                                  /* Y hay que redibujarlas.             */
+}
+
 /*--- copiar_columna: la columna `col` del nivel a su sitio del anillo ------------
     Con col fuera del nivel no hace nada (los bordes del nivel). */
 static void copiar_columna(u16 col)
 {
+    u16 fuente;
     if (col >= COLUMNAS_NIVEL)                       /* También "negativos": u16 da la vuelta. */
     {
         return;
+    }
+    fuente = col;                                    /* Lo normal: la misma columna.        */
+    if (parche_fuente != 0 && (u16)(col - parche_col) < PARCHE_COLUMNAS)
+    {
+        fuente = parche_fuente + (col - parche_col); /* Dentro del parche: la versión con tronco. */
     }
     REG_VMAIN = 0x81;                                /* Tras cada palabra, +32: baja una fila. */
     REG_VMADDLH = VRAM_MAPA_A + nivel_columna_vram(col); /* Primera fila de la columna.   */
     REG_DMAP0 = 0x01;                                /* Modo 1: bytes a $2118, $2119, ...      */
     REG_BBAD0 = 0x18;                                /* Destino: $2118 (dato de la VRAM).      */
-    REG_A1T0LH = (u16)&nivel1_cerca_col + (col << 6); /* Origen: col * 64 bytes más allá.   */
+    REG_A1T0LH = (u16)&nivel1_cerca_col + (fuente << 6); /* Origen: fuente * 64 bytes más allá. */
     REG_A1B0 = nivel1_cerca_col_banco;               /* ...en el banco del mapa.               */
     REG_DAS0LH = BYTES_COLUMNA;                      /* 64 bytes = 32 entradas.                */
     REG_MDMAEN = 0x01;                               /* ¡Ya! (la CPU se para hasta que acabe). */
@@ -98,8 +125,22 @@ void fondo_nivel_cargar(u16 camara)
 void fondo_nivel_vblank(u16 camara)
 {
     u16 col;
+    u8 i;
     col = camara >> 3;                               /* Columna del borde izquierdo.        */
     copiar_columna(col + 33);                        /* La siguiente a la última visible.   */
     copiar_columna(col - 1);                         /* La anterior a la primera (si col es
                                                         0, da 65535 y no se copia).         */
+    if (reescribir)                                  /* El tronco se rompió: sus columnas,  */
+    {                                                /* las de debajo, si están en el anillo. */
+        reescribir = 0;
+        for (i = 0; i < PARCHE_COLUMNAS; i++)
+        {
+            /* Solo las que están a la vista (de col - 1 a col + 33): una columna lejana
+               caería en el sitio del anillo de otra que SÍ se ve y la estropearía. */
+            if ((u16)(parche_col + i + 1 - col) <= 34)
+            {
+                copiar_columna(parche_col + i);
+            }
+        }
+    }
 }

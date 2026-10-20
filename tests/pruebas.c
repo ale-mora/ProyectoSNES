@@ -32,6 +32,8 @@ void pruebas_animacion(void);
 void pruebas_tarou(void);
 void pruebas_metasprite(void);
 void pruebas_colision(void);
+void pruebas_partida(void);
+void pruebas_recorrido(void);
 
 int main(void)
 {
@@ -41,6 +43,8 @@ int main(void)
     pruebas_tarou();
     pruebas_metasprite();
     pruebas_colision();
+    pruebas_partida();
+    pruebas_recorrido();
 
     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
     return pruebas_fallidas != 0;

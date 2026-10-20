@@ -131,11 +131,13 @@ class PruebaArte(unittest.TestCase):
             hoja_doble(d / "h.png")
             n = pn.preparar(d / "n.tmj", d / "h.png", d / "c.png", d / "c.bin", d / "c.h")
             im = Image.open(d / "c.png")
-            self.assertEqual((im.size, im.mode), ((2048, 256), "P"))
+            self.assertEqual((im.size, im.mode), ((2080, 256), "P"))      # nivel + parche
             self.assertLessEqual(max(im.tobytes()), 15)       # 15 colores + transparente
             self.assertEqual((d / "c.bin").read_bytes(), bytes(v for f in g for v in f))
             cab = (d / "c.h").read_text(encoding="utf-8")
             self.assertIn("#define NIVEL1_CONTROLES 8", cab)
+            self.assertIn("#define NIVEL1_TRONCO_COL 205", cab)              # 1640 / 8
+            self.assertIn("#define NIVEL1_PARCHE_COL 256", cab)
             self.assertIn("#define NIVEL1_INICIO_X 88", cab)
         self.assertLessEqual(n, pn.LIMITE_TILES)
 

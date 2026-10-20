@@ -52,6 +52,7 @@ void secuencia_cambiar(Pantalla nueva)
         case PANTALLA_INTRO:        pantalla_intro_iniciar();        break;
         case PANTALLA_TITULO:       pantalla_titulo_iniciar();       break;
         case PANTALLA_NIVEL1:       pantalla_nivel1_iniciar();       break;
+        case PANTALLA_PROXIMAMENTE: pantalla_proximamente_iniciar(); break;
         default:                    break;   /* Valor desconocido: no hacemos nada (defensa). */
     }
 }
@@ -80,6 +81,7 @@ void secuencia_actualizar(void)
         case PANTALLA_INTRO:        pantalla_intro_actualizar();        break;
         case PANTALLA_TITULO:       pantalla_titulo_actualizar();       break;
         case PANTALLA_NIVEL1:       pantalla_nivel1_actualizar();       break;
+        case PANTALLA_PROXIMAMENTE: pantalla_proximamente_actualizar(); break;
         default:                    break;
     }
 

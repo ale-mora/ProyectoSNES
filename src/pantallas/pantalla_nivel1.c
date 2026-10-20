@@ -53,6 +53,7 @@
 #include "juego/hud_debug.h"
 #include "juego/fondo_nivel.h"
 #include "juego/colision.h"
+#include "juego/partida.h"
 #include "nivel1_datos.h"            /* Generado por scripts/preparar_nivel.py (objetos). */
 #include "sistema/puntofijo.h"
 
@@ -77,6 +78,8 @@ u16 diag_linea[3];                 /* Línea del haz tras: lógica, sprite, fin 
 static u16 camara;                 /* Desplazamiento horizontal del nivel en pantalla.    */
 static Tarou tarou;                /* El protagonista (lógica pura, juego/tarou.h).       */
 static Mando mando;                /* Lo que el jugador quiere hacer este frame.          */
+static Partida partida;            /* Reglas: puntos de control, tronco, salida.          */
+static const u16 controles[] = NIVEL1_CONTROLES_X;  /* x de los carteles (generado).    */
 
 /*--- leer_linea: línea del haz en este instante (ver REG_SLHV arriba) -------------*/
 static u16 leer_linea(void)
@@ -97,18 +100,41 @@ static void salir(Pantalla siguiente)
     secuencia_cambiar(siguiente);
 }
 
+/*--- reaparecer: fundido a negro, Tarou al último punto de control, fundido ------
+    Con la pantalla a oscuras se puede reescribir el anillo entero (la cámara salta). */
+static void reaparecer(void)
+{
+    fade_out(FRAMES_FADE);
+    setScreenOff();                                  /* "Forced blank": la VRAM se puede
+                                                        escribir en cualquier momento, no
+                                                        solo en el VBlank (son 4 KB).      */
+    tarou_iniciar(&tarou, partida.reaparicion - ANCHO_CELDA / 2, SUELO_Y); /* En el cartel. */
+    camara = camara_para(PF_ENTERO(tarou.x_fp));
+    fondo_nivel_rellenar(camara);                    /* Las columnas de la nueva cámara.    */
+    bgSetScroll(0, camara, 0);
+    bgSetScroll(1, camara >> 1, 0);
+    tarou_sprite_dibujar(&tarou, camara);
+    oamInitDynamicSpriteEndFrame();
+    oamVramQueueUpdate();                            /* Su primer cuadro, ya en la VRAM.    */
+    fade_in(FRAMES_FADE);
+}
+
 void pantalla_nivel1_iniciar(void)
 {
     setMode(BG_MODE1, BG3_MODE1_PRIORITY_HIGH);      /* Como el título: BG3 por delante.    */
     camara = camara_para(X_INICIAL);                 /* 0: cerca del borde izquierdo.       */
+    fondo_nivel_parche(NIVEL1_TRONCO_COL, NIVEL1_PARCHE_COL); /* El tronco, entero.       */
     fondo_nivel_cargar(camara);                      /* Capa cercana: las columnas a la vista. */
     fondo16_cargar(1, &nivel1_lejos_til, &nivel1_lejos_til_end, &nivel1_lejos_pal, 2,
                    &nivel1_lejos_map, &nivel1_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
     fuente_2bpp(2);                                  /* Texto del HUD en el fondo 2...      */
     hud_debug_iniciar();                             /* ...apagado hasta que lo pida SELECT.*/
+    mando_iniciar();                                 /* (Solo hace algo en la ROM de prueba.) */
 
     tarou_sprite_cargar();                           /* Motor dinámico + paleta de Tarou.   */
     colision_usar(&nivel1_colision);                 /* La física pregunta a esta rejilla.  */
+    partida_iniciar(&partida, NIVEL1_INICIO_X, controles, NIVEL1_CONTROLES,
+                    NIVEL1_TRONCO_X, NIVEL1_SALIDA_X); /* Y el tronco, sólido.              */
     tarou_iniciar(&tarou, X_INICIAL, SUELO_Y);       /* De pie sobre el suelo base.         */
     bgSetScroll(0, camara, 0);
     bgSetScroll(1, camara >> 1, 0);
@@ -142,6 +168,20 @@ void pantalla_nivel1_actualizar(void)
 
     /*--- 2. Lógica pura: un frame de física y máquina de estados --------------------*/
     tarou_actualizar(&tarou, &mando);                /* Paredes, suelos y techos: colision.c. */
+    switch (partida_actualizar(&partida, &tarou))    /* Las reglas del tutorial.            */
+    {
+        case PARTIDA_REAPARECER:                     /* Foso o zarza: al último cartel.     */
+            reaparecer();
+            return;
+        case PARTIDA_TRONCO_ROTO:                    /* La espada rompió el tronco: sus     */
+            fondo_nivel_quitar_parche();             /* columnas vuelven a ser las de debajo. */
+            break;
+        case PARTIDA_SALIDA:                         /* Fin del tutorial: al nivel 2.       */
+            salir(PANTALLA_PROXIMAMENTE);
+            return;
+        default:
+            break;
+    }
     diag_linea[0] = leer_linea();                    /* Medida: coste de la lógica pura.    */
 
     /*--- 3. Cámara y parallax: la cercana sigue a la cámara; la lejana, a la mitad --*/

@@ -40,8 +40,21 @@ void fondo_nivel_cargar(u16 camara);
 void fondo_nivel_rellenar(u16 camara);
 
 /* Escribe las dos columnas de los bordes: la que entra por la derecha y la que
-   entra por la izquierda. Llamar en cada VBlank (pantalla_nivel1_vblank). No guarda
-   estado: con la cámara a 2 px por cuadro como mucho, nunca se salta una columna. */
+   entra por la izquierda. Llamar en cada VBlank (pantalla_nivel1_vblank). Con la
+   cámara a 2 px por cuadro como mucho, nunca se salta una columna. Si se acaba de
+   quitar el parche, reescribe además sus columnas (las que estén a la vista). */
 void fondo_nivel_vblank(u16 camara);
+
+/* PARCHE: las PARCHE_COLUMNAS columnas del nivel desde `col` se toman de otro sitio
+   del mapa de la ROM, desde la columna `fuente` (el tronco: el mapa no se puede
+   cambiar, así que el script dibuja aparte las columnas CON el tronco). Llamar antes
+   de fondo_nivel_cargar. */
+void fondo_nivel_parche(u16 col, u16 fuente);
+
+/* Quita el parche (el tronco se rompió): sus columnas vuelven a ser las del nivel
+   y se reescriben en el siguiente fondo_nivel_vblank. */
+void fondo_nivel_quitar_parche(void);
+
+#define PARCHE_COLUMNAS 4      /* El tronco: 32 px = 4 columnas de tiles.                */
 
 #endif /* FONDO_NIVEL_H */

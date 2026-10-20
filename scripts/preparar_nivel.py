@@ -21,6 +21,11 @@
            carteles (tablero + letras de la fuente de consola).
         4. Escribe la rejilla de colisión (1 byte por celda) y una cabecera C
            con los objetos, que usan el juego y las pruebas del PC.
+        5. El TRONCO no va en la capa: el mapa vive en la ROM y no se puede
+           cambiar. Se dibujan aparte sus 4 columnas de tiles CON el tronco y se
+           pegan a la derecha del nivel (x 2048..2079, el «parche»). Mientras el
+           tronco está entero, el juego copia esas columnas en su sitio; al
+           romperlo, vuelve a copiar las de debajo (src/juego/fondo_nivel.c).
       Con --crear escribe además el .tmj INICIAL (el recorrido del tutorial,
       docs/diseno-tutorial-movimiento.md §2) y el tileset de lógica para Tiled.
 
@@ -28,7 +33,7 @@
       Lee:      res/nivel1/tutorial.tmj (Tiled), el PNG más reciente de
                 res/descargas/graficos/pixellab/suelo/, res/titulo/fondo_cerca.png
                 (el seto) y res/fuente/ark_consola.bmp (letras de los carteles).
-      Escribe:  res/nivel1/fondo_cerca.png (2048x256 indexada, capa cercana),
+      Escribe:  res/nivel1/fondo_cerca.png (2080x256 indexada: el nivel y el parche),
                 res/nivel1/colision.bin (128x14 bytes), res/nivel1/nivel1_datos.h,
                 y con --crear: res/nivel1/tutorial.tmj y res/nivel1/logica.png.
       Usa:      scripts/preparar_personaje.py (indexar) y
@@ -47,7 +52,9 @@
     VARIABLES (constantes del módulo)
       CELDA         int  16 px    lado de una celda de lógica y de arte
       COLS, FILAS   int  128, 14  celdas del nivel (2048x224 px)
-      ANCHO, ALTO   int  2048, 256  imagen de salida (224 visibles + relleno)
+      ANCHO, ALTO   int  2048, 256  el nivel (224 visibles + relleno)
+      PARCHE        int  32 px    columnas del tronco pegadas a la derecha (2080 en total)
+      TRONCO_ANCHO, TRONCO_ALTO  int  32, 96 px   (como src/juego/partida.h)
       VACIO, SOLIDO, PLATAFORMA, ZARZA  int 0..3  valores de la rejilla
       PERIODO_SETO  int  256 px   el seto se repite con este periodo (tiles)
       LIMITE_TILES  int  460      tope de tiles distintos (512 menos margen)
@@ -76,6 +83,9 @@ ANCHO, ALTO = COLS * CELDA, 256
 VISIBLE = FILAS * CELDA
 VACIO, SOLIDO, PLATAFORMA, ZARZA = 0, 1, 2, 3
 PERIODO_SETO = 256
+PARCHE = 32
+TRONCO_ANCHO, TRONCO_ALTO = 32, 96
+SUELO_BASE = 176
 LIMITE_TILES = 460
 SEMILLA = 2026
 
@@ -301,6 +311,19 @@ def poner_zarzas(capa: Image.Image, g, oscuro, claro) -> None:
                 capa.alpha_composite(t, (c * CELDA, f * CELDA))
 
 
+def dibujar_tronco(capa: Image.Image, x: int, colores) -> None:
+    """Marcador de tronco (hasta que llegue el arte): 32x96 de pie sobre el suelo base,
+    corteza con vetas y el corte de arriba con anillos."""
+    oscuro, medio, claro = colores
+    y0 = SUELO_BASE - TRONCO_ALTO
+    d = ImageDraw.Draw(capa)
+    d.rectangle([x + 2, y0 + 4, x + TRONCO_ANCHO - 3, SUELO_BASE + 3], fill=medio + (255,), outline=oscuro + (255,))
+    for vx in (8, 15, 22):                             # vetas de la corteza
+        d.line([x + vx, y0 + 10, x + vx, SUELO_BASE - 2], fill=oscuro + (255,))
+    d.ellipse([x + 2, y0, x + TRONCO_ANCHO - 3, y0 + 9], fill=claro + (255,), outline=oscuro + (255,))
+    d.ellipse([x + 10, y0 + 3, x + TRONCO_ANCHO - 11, y0 + 6], outline=medio + (255,))
+
+
 def suelo_bajo(g, col: int) -> int:
     """Fila de píxel donde empieza lo sólido bajo la columna (o el borde de abajo)."""
     for f in range(FILAS):
@@ -366,6 +389,8 @@ def escribir_cabecera(ruta: Path, g, objetos) -> None:
         f"#define NIVEL1_FILAS {FILAS}            /* celdas de 16 px de alto               */",
         f"#define NIVEL1_INICIO_X {x_de('inicio', 88)}      /* centro de Tarou al empezar (px)       */",
         f"#define NIVEL1_TRONCO_X {x_de('tronco', 0)}    /* borde izquierdo del tronco (px)       */",
+        f"#define NIVEL1_TRONCO_COL {x_de('tronco', 0) // 8}    /* su primera columna de tiles de 8 px  */",
+        f"#define NIVEL1_PARCHE_COL {ANCHO // 8}    /* columnas del tronco, tras el nivel    */",
         f"#define NIVEL1_SALIDA_X {x_de('salida', ANCHO - 64)}    /* tocarla termina el nivel (px)         */",
         f"#define NIVEL1_CONTROLES {len(carteles)}        /* puntos de control (uno por cartel)    */",
         "",
@@ -406,7 +431,17 @@ def preparar(tmj: Path, hoja: Path, salida_png: Path = SALIDA_PNG, salida_bin: P
     for o in objetos:
         if o["nombre"] == "cartel":
             poner_cartel(capa, g, o["x"], o.get("texto", ""), fuente, (oscuro, fondo_cartel, claro))
-    final = pp.indexar(capa, colores)
+    # El parche: las 4 columnas del tronco, dibujado sobre una copia, a la derecha.
+    tronco = next((o["x"] for o in objetos if o["nombre"] == "tronco"), None)
+    entera = Image.new("RGBA", (ANCHO + PARCHE, ALTO), (0, 0, 0, 0))
+    entera.alpha_composite(capa, (0, 0))
+    if tronco is not None:
+        if tronco % 8 or not 0 <= tronco <= ANCHO - TRONCO_ANCHO:
+            sys.exit(f"ERROR: el tronco (x {tronco}) debe estar en una x múltiplo de 8 dentro del nivel.")
+        con_tronco = capa.crop((tronco, 0, tronco + TRONCO_ANCHO, ALTO))
+        dibujar_tronco(con_tronco, 0, (oscuro, fondo_cartel, claro))
+        entera.alpha_composite(con_tronco, (ANCHO, 0))
+    final = pp.indexar(entera, colores)
     n = tiles_distintos(final)
     if n > limite:
         sys.exit(f"ERROR: la capa cercana tendría {n} tiles distintos (máximo {limite}). "
@@ -415,7 +450,7 @@ def preparar(tmj: Path, hoja: Path, salida_png: Path = SALIDA_PNG, salida_bin: P
     final.save(salida_png, format="PNG")
     salida_bin.write_bytes(bytes(v for fila in g for v in fila))
     escribir_cabecera(salida_h, g, objetos)
-    print(f"  {salida_png}  {ANCHO}x{ALTO}; {n} tiles distintos; {len(colores)} colores; "
+    print(f"  {salida_png}  {ANCHO + PARCHE}x{ALTO}; {n} tiles distintos; {len(colores)} colores; "
           f"{sum(1 for o in objetos if o['nombre'] == 'cartel')} carteles")
     print(f"  {salida_bin}  {COLS}x{FILAS} celdas;  {salida_h}")
     return n

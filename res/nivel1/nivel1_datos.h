@@ -6,6 +6,8 @@
 #define NIVEL1_FILAS 14            /* celdas de 16 px de alto               */
 #define NIVEL1_INICIO_X 88      /* centro de Tarou al empezar (px)       */
 #define NIVEL1_TRONCO_X 1640    /* borde izquierdo del tronco (px)       */
+#define NIVEL1_TRONCO_COL 205    /* su primera columna de tiles de 8 px  */
+#define NIVEL1_PARCHE_COL 256    /* columnas del tronco, tras el nivel    */
 #define NIVEL1_SALIDA_X 1968    /* tocarla termina el nivel (px)         */
 #define NIVEL1_CONTROLES 8        /* puntos de control (uno por cartel)    */
 

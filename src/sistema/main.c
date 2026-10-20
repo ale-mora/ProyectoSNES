@@ -47,7 +47,12 @@ int main(void)
 
     /*--- 2. Arranque de la secuencia ----------------------------------------------
         Entra en la primera pantalla (Nintendo): dibuja su contenido y hace fade in. */
+#ifdef GUION_PRUEBA
+    secuencia_iniciar(PANTALLA_NIVEL1);  /* ROM de prueba (make con -DGUION_PRUEBA): directo
+                                            al nivel, que se juega solo (juego/guion.h).  */
+#else
     secuencia_iniciar(PANTALLA_NINTENDO);
+#endif
 
     /*--- 3. Bucle principal -------------------------------------------------------
         while (1) = "para siempre": una consola no termina su programa. En cada

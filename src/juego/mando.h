@@ -48,4 +48,8 @@ typedef struct
 /* Rellena `m` leyendo el mando 1 de la SNES. Solo existe en la ROM (juego/mando.c). */
 void mando_leer(Mando *m);
 
+/* Al entrar en el nivel. En el juego normal no hace nada; en la ROM de prueba
+   (compilada con -DGUION_PRUEBA) pone a cero el reloj del guion del recorrido. */
+void mando_iniciar(void);
+
 #endif /* MANDO_H */

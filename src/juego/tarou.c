@@ -229,22 +229,13 @@ static void manejar_pie(Tarou *t, const Mando *m)
     tutorial (48 px de alto) de pie no cabe (50 px) y agachado sí (36 px). */
 static u8 cabe_de_pie(const Tarou *t)
 {
-    s16 x = PF_ENTERO(t->x_fp);
-    s16 arriba = (s16)(PF_ENTERO(t->y_fp) + CUERPO_Y);        /* Cabeza de pie.            */
-    s16 abajo = (s16)(PF_ENTERO(t->y_fp) + CUERPO_Y_AGACHADO - 1); /* Cabeza agachado, -1. */
-    u8 i;
-    s16 y;
-    for (i = 0; i < 2; i++)                     /* Dos filas: la de arriba y la de abajo.  */
-    {
-        y = i ? abajo : arriba;
-        if (colision_solido((u16)(x + CUERPO_X), (u16)y)
-            || colision_solido((u16)(x + CUERPO_X + CUERPO_ANCHO / 2), (u16)y)
-            || colision_solido((u16)(x + CUERPO_X + CUERPO_ANCHO - 1), (u16)y))
-        {
-            return 0;                           /* Hay techo: no cabe.                      */
-        }
-    }
-    return 1;
+    s16 x = (s16)(PF_ENTERO(t->x_fp) + CUERPO_X);            /* Borde izquierdo del cuerpo. */
+    s16 y = (s16)(PF_ENTERO(t->y_fp) + CUERPO_Y);            /* Cabeza de pie.            */
+    /* Dos filas (la de la cabeza de pie y la de justo encima de la cabeza agachado),
+       de punta a punta del cuerpo: si en alguna hay algo sólido, no cabe. */
+    return (u8)(!colision_fila_es(x, (s16)(x + CUERPO_ANCHO - 1), y, COL_SOLIDO)
+                && !colision_fila_es(x, (s16)(x + CUERPO_ANCHO - 1),
+                                     (s16)(y + CUERPO_Y_AGACHADO - CUERPO_Y - 1), COL_SOLIDO));
 }
 
 /*--- agachado: AGACHADO y AGACHADO_CAMINANDO ---------------------------------------
@@ -395,23 +386,10 @@ static void aterrizar(Tarou *t, const Mando *m)
 }
 
 /*--- borde_choca: ¿toca algo sólido la columna x del cuerpo, de `arriba` a `pies`? ---
-    Mira un punto cada 16 px (una celda) y el último píxel antes de los pies: así no
-    se escapa ninguna celda, por fina que sea la pared. */
+    Una sola consulta a la colisión para toda la columna (juego/colision.c). */
 static u8 borde_choca(u16 x, s16 arriba, s16 pies)
 {
-    s16 y;
-    if (arriba < 0)
-    {
-        arriba = 0;                             /* Por encima de la pantalla no hay nada.   */
-    }
-    for (y = arriba; y < pies; y += CELDA_COLISION)
-    {
-        if (colision_solido(x, (u16)y))
-        {
-            return 1;
-        }
-    }
-    return (u8)(pies > 0 && colision_solido(x, (u16)(pies - 1)));   /* Justo sobre los pies. */
+    return colision_columna_solida(x, arriba, (s16)(pies - 1));
 }
 
 /*--- arriba_cuerpo: fila de la cabeza (depende de si va agachado) -------------------*/
@@ -426,13 +404,14 @@ static s16 arriba_cuerpo(const Tarou *t)
 
 /*--- mover_x: integrar x y pararse contra las paredes --------------------------------
     Solo cuenta lo SÓLIDO (las plataformas y las zarzas se atraviesan de lado). Si el
-    borde delantero del cuerpo entra en una celda sólida, se le pega por fuera:
-    (borde & 0xFFF0) es el comienzo de esa celda (borrar los 4 bits bajos = redondear
-    hacia abajo a múltiplo de 16). */
+    borde delantero del cuerpo entra en algo sólido, Tarou retrocede píxel a píxel
+    hasta dejar de tocarlo: así queda pegado a cualquier pared, empiece donde empiece
+    (las celdas van de 16 en 16, pero el tronco, un bloque, puede estar en cualquier x).
+    Como mucho avanza 2 px por frame, así que el bucle da una o dos vueltas. */
 static void mover_x(Tarou *t)
 {
-    s16 x, pies, arriba;
-    u16 borde;
+    s16 x, pies, arriba, paso;
+    u8 vueltas;
     t->x_fp += t->vx_fp;
     if (t->x_fp < 0)
     {
@@ -444,34 +423,38 @@ static void mover_x(Tarou *t)
         t->x_fp = X_MAX_FP;                     /* Borde derecho.                            */
         t->vx_fp = 0;
     }
+    if (t->vx_fp == 0)
+    {
+        return;                                 /* Quieto en x: no puede entrar en nada.    */
+    }
     x = PF_ENTERO(t->x_fp);
     arriba = arriba_cuerpo(t);
     pies = (s16)(PF_ENTERO(t->y_fp) + ALTO_CELDA);   /* La fila justo bajo las patas.      */
     if (t->vx_fp > 0)
     {
-        borde = (u16)(x + CUERPO_X + CUERPO_ANCHO - 1);  /* Hacia la derecha: el borde derecho. */
-        if (borde_choca(borde, arriba, pies))
-        {
-            t->x_fp = PF((s16)(borde & 0xFFF0) - CUERPO_X - CUERPO_ANCHO); /* Pegado a la pared. */
-            t->vx_fp = 0;
-        }
+        paso = CUERPO_X + CUERPO_ANCHO - 1;     /* Hacia la derecha: mira el borde derecho, */
     }
-    else if (t->vx_fp < 0)
+    else
     {
-        borde = (u16)(x + CUERPO_X);            /* Hacia la izquierda: el borde izquierdo.  */
-        if (borde_choca(borde, arriba, pies))
-        {
-            t->x_fp = PF((s16)(borde & 0xFFF0) + CELDA_COLISION - CUERPO_X); /* Tras la pared. */
-            t->vx_fp = 0;
-        }
+        paso = CUERPO_X;                        /* hacia la izquierda, el izquierdo.        */
+    }
+    vueltas = 0;
+    while (vueltas < CELDA_COLISION && borde_choca((u16)(x + paso), arriba, pies))
+    {
+        x = (s16)(t->vx_fp > 0 ? x - 1 : x + 1);   /* Un píxel hacia atrás.                */
+        vueltas++;
+    }
+    if (vueltas != 0)                           /* Había pared: pegado a ella (sin fracción). */
+    {
+        t->x_fp = PF(x);
+        t->vx_fp = 0;
     }
 }
 
 /*--- apoyado: ¿pisa algo alguno de los dos pies en la fila y? ------------------------*/
 static u8 apoyado(s16 x, s16 y)
 {
-    return (u8)(colision_apoya((u16)(x + PIE_ATRAS), (u16)y)
-                || colision_apoya((u16)(x + PIE_DELANTE), (u16)y));
+    return colision_apoyan((u16)(x + PIE_ATRAS), (u16)(x + PIE_DELANTE), y);
 }
 
 /*--- mover_y: integrar y; aterrizar, caer por un borde o darse con el techo ----------*/
@@ -510,10 +493,8 @@ static void mover_y(Tarou *t, const Mando *m)
     else                                        /* Subiendo: ¿la cabeza entra en algo sólido? */
     {
         arriba = (s16)(PF_ENTERO(t->y_fp) + CUERPO_Y);
-        if (arriba >= 0
-            && (colision_solido((u16)(x + CUERPO_X), (u16)arriba)
-                || colision_solido((u16)(x + CUERPO_X + CUERPO_ANCHO / 2), (u16)arriba)
-                || colision_solido((u16)(x + CUERPO_X + CUERPO_ANCHO - 1), (u16)arriba)))
+        if (colision_fila_es((s16)(x + CUERPO_X), (s16)(x + CUERPO_X + CUERPO_ANCHO - 1), arriba,
+                             COL_SOLIDO))       /* (Por encima de la pantalla da 0.)        */
         {
             /* Pegado bajo el techo; vy = 0 y el apogeo (paso 2) lo pasa a CAYENDO. */
             t->y_fp = PF((s16)(arriba & ~15) + CELDA_COLISION - CUERPO_Y);

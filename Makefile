@@ -78,7 +78,8 @@ res/titulo/fondo_cerca.pic: res/titulo/fondo_cerca.png
 
 # Capa cercana del nivel 1 (el tutorial): la lógica dibujada en Tiled vestida con el
 # tileset Sidescroller de Pixellab, el seto y los carteles (scripts/preparar_nivel.py).
-# 2048 px de ancho: SIN -y, así que el mapa sale por filas de 256 tiles; paleta 1 (-e 1).
+# 2048 px más 32 del «parche» del tronco (2080): SIN -y, así que el mapa sale por filas
+# de 260 tiles; paleta 1 (-e 1).
 # El juego no carga ese mapa de golpe (no cabe en un mapa de 64x32 de la VRAM): copia
 # columnas sueltas según avanza la cámara, y para eso mapa_a_columnas.py lo reordena
 # columna a columna (src/juego/fondo_nivel.c).
@@ -87,7 +88,7 @@ res/nivel1/fondo_cerca.pic: res/nivel1/fondo_cerca.png
 
 res/nivel1/fondo_cerca.col: res/nivel1/fondo_cerca.pic
 	@echo map to columns ... $(notdir $@)
-	python scripts/mapa_a_columnas.py res/nivel1/fondo_cerca.map $@ --ancho 256
+	python scripts/mapa_a_columnas.py res/nivel1/fondo_cerca.map $@ --ancho 260
 
 # Capa lejana del nivel 1: la del título sin logotipo y duplicada en espejo hasta
 # 512 px (scripts/preparar_fondo_nivel.py). -y = mapa en páginas de 32x32 (SC_64x32).

@@ -25,6 +25,7 @@
       COLUMNAS_COLISION 128 celdas de ancho (2048 px)
       FILAS_COLISION  14    celdas de alto (224 px: la pantalla entera)
       COL_VACIO 0, COL_SOLIDO 1, COL_PLATAFORMA 2, COL_ZARZA 3   lo que hay en una celda
+      (y en colision.c: rejilla y el bloque, un rectángulo sólido aparte)
 
     → glosario: Colisión, AABB, Plataforma de un solo sentido, Metatile
 ---------------------------------------------------------------------------------*/
@@ -57,5 +58,27 @@ u8 colision_solido(u16 x, u16 y);
 
 /* 1 si un pie en (x, y) se apoya: sólido o plataforma. */
 u8 colision_apoya(u16 x, u16 y);
+
+/* Un BLOQUE: un rectángulo sólido que no está en la rejilla y que puede desaparecer
+   (el tronco del tutorial, hasta que la espada lo rompe). Con ancho 0, no hay. */
+void colision_bloque(u16 x, u16 y, u16 ancho, u16 alto);
+
+/* CONSULTAS RÁPIDAS. En la SNES cada llamada a una función cuesta mucho (tcc816
+   prepara la pila, copia los argumentos...): preguntar celda a celda con
+   colision_en costaba media pantalla de tiempo por frame. Estas recorren varias
+   celdas de una vez, con el índice calculado una sola vez. */
+
+/* 1 si alguna celda de la COLUMNA de x, entre las filas de píxel y0 y y1 (incluidas),
+   es sólida, o si el bloque toca ese tramo. Para las paredes. */
+u8 colision_columna_solida(u16 x, s16 y0, s16 y1);
+
+/* 1 si alguna celda de la FILA de y, entre las columnas de píxel x0 y x1 (incluidas),
+   es del tipo `tipo` (COL_ZARZA para el daño en juego/partida.c; COL_SOLIDO para
+   techos en juego/tarou.c). No mira el bloque. */
+u8 colision_fila_es(s16 x0, s16 x1, s16 y, u8 tipo);
+
+/* 1 si la celda de (xa, y) o la de (xb, y) sostienen (sólido o plataforma): los dos
+   pies de Tarou en una sola llamada. No mira el bloque (al tronco no se sube). */
+u8 colision_apoyan(u16 xa, u16 xb, s16 y);
 
 #endif /* COLISION_H */

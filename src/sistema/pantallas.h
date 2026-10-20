@@ -31,7 +31,7 @@
 /*--- Identificador de cada pantalla ---------------------------------------------
     Un enum es una lista de nombres a los que C asigna 0, 1, 2... en orden.
     El orden aquí ES el orden de la secuencia (convención de época).
-    CANTIDAD_PANTALLAS queda al final y vale 7: cuántas pantallas hay.
+    CANTIDAD_PANTALLAS queda al final y vale 8: cuántas pantallas hay.
     → glosario: enum, Máquina de estados */
 typedef enum
 {
@@ -41,7 +41,8 @@ typedef enum
     PANTALLA_DEDICATORIA,      /* (4) mensaje personal, máquina de escribir                  */
     PANTALLA_INTRO,            /* (5) tres escenas con texto                                 */
     PANTALLA_TITULO,           /* (6) título con PRESS START, attract a los 15 s             */
-    PANTALLA_NIVEL1,           /* (7) el nivel 1: Tarou juega; Start vuelve al título        */
+    PANTALLA_NIVEL1,           /* (7) el nivel 1 (el tutorial); Start vuelve al título       */
+    PANTALLA_PROXIMAMENTE,     /* (8) "LEVEL 2 / COMING SOON" al salir del nivel 1           */
     CANTIDAD_PANTALLAS         /* no es una pantalla: cuenta cuántas hay arriba              */
 } Pantalla;                    /* "Pantalla" pasa a ser un tipo de dato, como u8 o u16.      */
 
@@ -59,6 +60,7 @@ typedef enum
 #define DURACION_DEDICATORIA  SEGUNDOS(7)   /* mensaje personal                         */
 #define DURACION_ESCENA_INTRO SEGUNDOS(8)   /* cada una de las 3 escenas                */
 #define ATTRACT_SIN_INPUT     SEGUNDOS(15)  /* título → intro si nadie toca nada        */
+#define DURACION_PROXIMAMENTE SEGUNDOS(4)   /* "COMING SOON" tras el nivel 1            */
 #define FRAMES_PARPADEO       30            /* PRESS START: 0,5 s visible, 0,5 s oculto */
 /* OJO: setFadeEffectEx recibe frames POR CADA PASO de brillo, y hay 16 pasos
    (0..15). Duración real = valor * 16 frames: 2 → 32 frames (~0,5 s),
@@ -104,5 +106,8 @@ void pantalla_titulo_actualizar(void);
 void pantalla_nivel1_iniciar(void);
 void pantalla_nivel1_actualizar(void);
 void pantalla_nivel1_vblank(void);
+
+void pantalla_proximamente_iniciar(void);
+void pantalla_proximamente_actualizar(void);
 
 #endif /* PANTALLAS_H — cierra la guarda de inclusión abierta arriba. */
