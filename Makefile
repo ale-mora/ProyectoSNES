@@ -12,14 +12,24 @@ export ROMTITLE := TAROU DEMO
 # export AUDIOFILES := res/musica/jingle_publisher.it res/musica/titulo.it
 # export SOUNDBANK  := res/musica/soundbank
 
-# --- Tamaño de la ROM: 16 bancos de 32 KB = 512 KB ---------------------------
-# Decisión del 2026-10-16 (docs/diseno-demo-jugable.md §2, decisión 4): los ~55
-# cuadros de 64x64 de Tarou ocupan ~110 KB y con 8 bancos (256 KB) quedaban
-# solo ~115 KB libres. ROMSIZE es el byte de tamaño de la cabecera de la SNES
-# (08 = 256 KB, 09 = 512 KB) y ROMBANKS cuántas secciones de 32 KB reparte el
-# enlazador. Deben ir ANTES del include de snes_rules.
-export ROMSIZE  := 09
-export ROMBANKS := 16
+# --- Tamaño de la ROM: 128 bancos de 32 KB = 4 MB (32 Mbit), LoROM + FastROM --
+# Decisión del 2026-10-21: el máximo de los mapas estándar de la SNES y el mayor
+# que sabe generar la cabecera de PVSnesLib (los cartuchos comerciales de 6 MB
+# usaban ExHiROM, que el SDK no admite). Antes: 16 bancos (512 KB) y solo ~45 KB
+# libres. ROMSIZE es el byte de tamaño de la cabecera (08 = 256 KB, 09 = 512 KB,
+# 0A = 1 MB, 0B = 2 MB, 0C = 4 MB: 2^n KB) y ROMBANKS cuántas secciones de 32 KB
+# reparte el enlazador.
+#
+# Por qué FastROM: en LoROM los bancos de la ROM se ven en $00-$7D y $80-$FF,
+# pero $7E y $7F son la WRAM. Con SlowROM el enlazador numera los bancos desde
+# $00, así que los bancos 126 y 127 caerían ENCIMA de la WRAM. Con FastROM los
+# numera desde $80 (.BASE $80 en hdr.asm): los 128 caben en $80-$FF. Y de
+# regalo, el código que corre en $80-$FF va a 3,58 MHz en vez de 2,68 MHz
+# (snes_rules compila con -F y enlaza la librería LoROM_FastROM).
+# Las tres variables deben ir ANTES del include de snes_rules.
+export ROMSIZE  := 0C
+export ROMBANKS := 128
+export FASTROM  := 1
 
 # Incluir reglas estándar de compilación de PVSnesLib
 include ${PVSNESLIB_HOME}/devkitsnes/snes_rules

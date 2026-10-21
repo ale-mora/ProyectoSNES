@@ -51,11 +51,19 @@
 .index 16
 .16bit
 
+; OJO con .BASE: con FastROM, hdr.asm deja .BASE $80 (los bancos de la ROM se ven en
+; $80-$FF) y WLA-DX se lo suma TAMBIÉN al banco de una RAMSECTION: "BANK $7E" acabaría
+; en $FE, que es ROM. tcc816 hace lo mismo que aquí: .BASE $00 antes de la RAM y
+; vuelta a $80 antes del código. (Fallo del 2026-10-21: el nivel en negro con FastROM.)
+.BASE $00
 .RAMSECTION ".dma_lista_ram" BANK $7E SLOT 2
 dma_lista_n:      db          ; cuántas copias hay
 dma_lista_libre:  db          ; relleno: la lista empieza en dirección par
 dma_lista_items:  dsb 256     ; 32 copias de 8 bytes
 .ENDS
+.ifdef FASTROM
+.BASE $80                     ; el código, en los bancos rápidos ($80-$FF)
+.endif
 
 .SECTION ".dma_ejecutar_text" SUPERFREE
 
