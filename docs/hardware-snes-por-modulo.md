@@ -49,9 +49,9 @@ palabras de 2 bytes como las escribe el código. Términos: `docs/glosario-snes.
 | `pantallas/pantalla_intro.c` | PPU | además, `MOSAIC $2106` (`setMosaicEffect`, `REG_MOSAIC = 0`) y Mode 3 (`BGMODE`) |
 | `pantallas/pantalla_titulo.c`, `pantalla_nivel1.c` | PPU, HDMA | `BGnHOFS/BGnVOFS $210D-$2114` scroll (`bgSetScroll`, dos escrituras de 8 bits); `COLDATA $2132` color de fondo por línea vía **HDMA** canal 6 (`setModeHdmaColor` programa `$43x0-$43x7` y `HDMAEN $420C`; `setModeHdmaReset` lo apaga); `SLHV $2137` / `OPVCT $213D` lectura de la línea del haz (medidor `LIN`) |
 | `pantallas/personajes.c` | OAM, VRAM, CGRAM | `OBSEL $2101` tamaño y base de sprites (`oamInitGfxAttr`), `OAMADD/OAMDATA $2102-$2104` por la copia de la OAM en la NMI (`oamSet`, `oamSetEx`, `oamSetXY` escriben en un buffer en RAM), `dmaCopyVram`, `dmaCopyCGram` |
-| `juego/tarou_sprite.c` | OAM, VRAM, CGRAM, DMA | lo mismo, por el motor de sprites dinámicos: `oamInitDynamicSprite`, `oamMetaDrawDyn32` (buffer), `oamVramQueueUpdate` (DMA de las piezas al VBlank) |
-| `juego/hud_debug.c` | VRAM, PPU | `dmaCopyVram` de 384 bytes al mapa de texto en el VBlank; `TM` (BG2 sí/no). Sus tiles llevan el **bit de prioridad** (`0x2000`): con `BG3_MODE1_PRIORITY_HIGH`, solo así BG3 va delante de la capa cercana |
-| `juego/fondo_nivel.c` | VRAM, CGRAM, DMA | la capa cercana del tutorial por columnas, **con los registros a mano**: `VMAIN $2115 = 0x81` (avanzar 32 palabras = bajar una fila del mapa), `VMADD $2116` (dónde empieza la columna), canal 0 de DMA (`$4300 = 0x01` dos registros, `$4301 = 0x18` destino `VMDATA`, `$4302-$4304` origen de 24 bits, `$4305` 64 bytes), `MDMAEN $420B`; deja `VMAIN = 0x80`. No sirve `dmaCopyVram`: fija `VMAIN = 0x80`. Tiles y paleta con `bgInitTileSet` |
+| `juego/tarou_sprite.c` | OAM, VRAM, CGRAM | `oamInitGfxAttr` (`OBSEL`: tiles desde 0x0000, tamaños 16/32), `oamSet`/`oamSetEx`/`oamSetXY` (el buffer de la OAM, una pieza de 32×32 por entrada), `dmaCopyCGram` (paleta 0). Los tiles del cuadro van por la lista de DMA, a una de las dos celdas de la VRAM (tiles 0..127 o 128..255), medio cuadro por VBlank |
+| `juego/dma_ejecutar.asm` | VRAM, DMA | **la única escritura a la VRAM del nivel en marcha**, con los registros a mano: por cada entrada de la lista, `VMAIN $2115` (`0x80` tiles, `0x81` columnas: avanzar 32 palabras = bajar una fila del mapa), `VMADD $2116`, canal 0 (`$4300 = 0x01` dos registros, `$4301 = 0x18` destino `VMDATA`, `$4302-$4304` origen de 24 bits, `$4305` bytes), `MDMAEN $420B`; deja `VMAIN = 0x80`. ~60 ciclos por entrada: en C eran 100-200 |
+| `juego/dma_lista.c`, `juego/fondo_nivel.c`, `juego/hud_debug.c` | ninguno (preparan) | durante el frame apuntan en la lista qué copiar: `fondo_nivel.c` las columnas que entran (solo si la cámara cambió de columna) con su banco (`nivel1_cerca_col_banco`); `hud_debug.c` la fila que preparó (64 bytes desde el banco $7E). El HUD además enciende y apaga BG2 (`TM`); sus tiles llevan el **bit de prioridad** (`0x2000`): con `BG3_MODE1_PRIORITY_HIGH`, solo así BG3 va delante de la capa cercana. Tiles y paleta de la capa cercana, con `bgInitTileSet` al cargar |
 | `pantallas/pantalla_nivel1.c` (reaparecer) | PPU | `setScreenOff()` = **forced blank** (`INIDISP` bit 7): con la pantalla apagada la VRAM se puede escribir en cualquier momento, no solo en el VBlank; así se reescriben de golpe los 4 KB del anillo antes del fundido de entrada |
 | `juego/mando.c` | mando | `JOY1L/H $4218/$4219`: la autolectura del mando que la consola hace al inicio del VBlank; el SDK la lee en la NMI y `padsCurrent/padsDown` devuelven bits. En la ROM de prueba (`-DGUION_PRUEBA`) los botones del juego salen de una tabla (`guion.c`) |
 | `juego/tarou.c`, `camara.c`, `nivel.c`, `animaciones.c`, `metasprite.c`, `colision.c`, `partida.c`, `guion.c` | CPU, WRAM, ROM | **nada de PPU**: aritmética de 16 bits en WRAM; `colision.c` lee la rejilla de colisión directamente de la ROM (`nivel1_colision`) |
@@ -65,7 +65,7 @@ Lo fija `sistema/comun.h` y lo respetan todas las pantallas:
 ```
 palabras   bytes      qué hay                                   quién lo escribe
 0x0000     0x0000  ┌ tiles de sprites (hasta 512 tiles, 16 KB) ┐  intro/título: Tarou 2 cuadros de 96x64 (6 KB, tiles 0..191) + Bárbara 4 cuadros desde 0x1000 (tile 256)
-0x1000     0x2000  │  (motor dinámico: piezas grandes 32x32   │  nivel: solo el cuadro actual de Tarou, copiado en cada cambio
+0x1000     0x2000  │                                           │  nivel: dos celdas de 3x2 bloques (tiles 0..127 y 128..255): la que se muestra y la que recibe el cuadro siguiente
 0x2000     0x4000  ├ VRAM_FONDO_A: tiles del fondo principal / capa cercana (logos, escena 3, arbustos del título, suelo del nivel)
 0x4000     0x8000  ├ VRAM_FONDO_B: tiles de la capa lejana (título y nivel: montañas)
 0x6000     0xC000  ├ VRAM_FUENTE: 96 tiles de la fuente (4bpp o 2bpp según la pantalla)
@@ -151,9 +151,10 @@ línea 0           la PPU empieza a dibujar la línea 0 (área visible 0..224)
                   │  mientras, HDMA escribe COLDATA en cada línea (el cielo)
 línea 225         VBlank: la PPU descansa; la consola autolee el mando ($4218)
                   │  NMI: el SDK copia la OAM (DMA), lee pad_keys, cuenta snes_vblank_count
-                  │  WaitForVBlank() vuelve → secuencia_vblank(): fondo_nivel_vblank (dos
-                  │  columnas del mapa, 128 B), oamVramQueueUpdate (tiles del cuadro de
-                  │  Tarou, 3 KB) y hud_debug_vblank (384 B), todos por DMA
+                  │  WaitForVBlank() vuelve → secuencia_vblank(): dma_lista_ejecutar: de un
+                  │  tirón, medio cuadro de Tarou (≤ 1,5 KB), las dos columnas del mapa
+                  │  (128 B) y una fila del HUD (64 B). Acaba hacia la línea 23 del
+                  │  VBlank (la 248); el límite es la 37 (la 0 del frame siguiente)
 línea 262 → 0     siguiente frame
 ```
 

@@ -314,22 +314,31 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   cuadros cuyo cuadro actual se copia a la VRAM en cada cambio.
 - **Conceptos:** metasprite (varias piezas que se mueven como una);
   `gfx4snes -T` y la tabla `t_metasprite` (`dx`, `dy`, `dtile`, atributos);
-  motor de sprites dinámicos del SDK (`oamInitDynamicSprite`,
-  `oamMetaDrawDyn32`, `oamrefresh`, `oamInitDynamicSpriteEndFrame`,
-  `oamVramQueueUpdate`); espejo horizontal construido en RAM (`dx → 64 − dx`;
-  hasta 6 piezas: `gfx4snes -T` omite las transparentes y la tabla termina en
-  `metasprite_end`); presupuesto de ROM por cuadro (3 KB) y por sección
-  (10 cuadros); por qué el primer cuadro se copia a VRAM antes del fundido.
+  sprites dinámicos: el motor del SDK (`oamInitDynamicSprite`,
+  `oamMetaDrawDyn32`, `oamVramQueueUpdate`, el de la mini-ROM) frente al
+  propio del juego (una entrada de la OAM por pieza con `oamSet`, el plan de
+  copias de `metasprite_copias` y la lista de DMA); el **presupuesto del
+  VBlank** (3 KB de tiles son 18 líneas de DMA de las 37) y el **doble búfer**
+  (dos celdas en la VRAM, medio cuadro por VBlank, el dibujo un frame por
+  detrás); espejo horizontal pieza a pieza (`dx → 64 − dx` y `hflip`, mismo
+  bloque; hasta 6 piezas: `gfx4snes -T` omite las transparentes y la tabla
+  termina en `metasprite_end`); cómo guarda la tira los bloques (de 4 en 4 por
+  fila de 128 px, como la hoja de sprites de la VRAM); presupuesto de ROM por
+  cuadro (3 KB) y por sección (10 cuadros); por qué el primer cuadro se copia
+  a VRAM antes del fundido.
 - **Archivos:** `README.md`, `rom/` (mini-ROM con un metasprite de 96×64 de
   dos animaciones, con espejo; base:
   `tools/pvsneslib/snes-examples/graphics/Sprites/DynamicEngineMetaSprite`),
   `ejercicio_09.md` (añadir una animación y medir en el Sprite Viewer las
   6 piezas).
-- **Código del juego:** `src/juego/metasprite.c` (+ `tests/prueba_metasprite.c`),
-  `src/juego/tarou_sprite.c` (con `HUNDIR_PIES`: el dibujo va 2 px por debajo
-  de la física), `data.asm` (`.rodata_tarou_*`), `Makefile`
-  (regla patrón de Tarou, `-X 96 -Y 64`), `src/pantallas/pantalla_nivel1.c`
-  (`oamVramQueueUpdate` en `_iniciar`).
+- **Código del juego:** `src/juego/metasprite.c` (+ `tests/prueba_metasprite.c`,
+  con `metasprite_copias`), `src/juego/tarou_sprite.c` (las dos celdas,
+  `apuntar_copias`, `HUNDIR_PIES`: el dibujo va 2 px por debajo de la física),
+  `src/juego/dma_lista.h`, `data.asm` (`.rodata_tarou_*`, `tarou_til_bancos`),
+  `Makefile` (regla patrón de Tarou, `-X 96 -Y 64`),
+  `src/pantallas/pantalla_nivel1.c` (el bucle `tarou_sprite_al_dia` en
+  `_iniciar`), `docs/diseno-tutorial-movimiento.md` §7 y §8 (el fallo de Tarou
+  a trozos y sus números).
 - **Prerrequisitos:** 08. **Práctica:** mini-ROM + sobre el juego real.
 - **Aprobación:** captura con el metasprite en ambas direcciones.
 
@@ -459,13 +468,18 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   `REP #$20` / `SEP #$20`; bucles con `DEX`/`BNE`; escribir un registro de la
   PPU a mano (`STA $2100`); medir ciclos con el profiler de Mesen.
 - **Archivos:** `README.md`, `rom/` (mini-ROM con `src/relleno.asm`: una
-  rutina que rellena una zona de VRAM con un tile, llamada desde C),
+  rutina que rellena una zona de VRAM con un tile, llamada desde C; OJO: el
+  `.asm` no puede llamarse como ningún `.c` de la ROM, `make` lo sobrescribiría),
   `ejercicio_15.md` (reescribir `poner_numero` del HUD en ensamblador y
   comparar ciclos; ampliación: `colision_en` de `src/juego/colision.c`, la
   consulta más repetida de la física, manteniendo la versión C para el PC y
   comprobando con la ROM de prueba que el recorrido sigue igual).
-- **Código del juego:** `src/juego/hud_debug.c` (lo que se reescribe),
-  `data.asm` (ensamblador que ya existe en el proyecto).
+- **Código del juego:** `src/juego/dma_ejecutar.asm` (**la rutina en
+  ensamblador del juego**: lee una lista en la WRAM y dispara un DMA por
+  entrada; `php`/`rep`/`sep`, `lda.l`/`sta.l`, `_bucle` local, `rtl`; su
+  cabecera explica la convención de llamada), `src/juego/dma_lista.h` (cómo la
+  ve C: `extern` de variables definidas en el `.asm`), `src/juego/hud_debug.c`
+  (lo que se reescribe), `data.asm`.
 - **Prerrequisitos:** 14. **Práctica:** mini-ROM + sobre el juego real.
 - **Aprobación:** la mini-ROM muestra el relleno; la versión en ensamblador
   da los mismos dígitos que la de C y menos ciclos en el profiler.
@@ -489,7 +503,10 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   adecuada).
 - **Código del juego:** `scripts/capturar_mesen.ps1`, la ROM de prueba
   (`-DGUION_PRUEBA`, `src/juego/guion.c`), el HUD de depuración,
-  `docs/mesen-y-depuracion.md` §5 y §6 (fallos conocidos).
+  `docs/mesen-y-depuracion.md` §5 y §6 (fallos conocidos). Quinto caso, el
+  mejor: Tarou a trozos al jugar (2026-10-20): se encontró MIDIENDO (líneas
+  del VBlank al entrar y salir de `_vblank`), no mirando; está contado en
+  `docs/diseno-tutorial-movimiento.md` §8.
 - **Prerrequisitos:** 05, 08, 13. **Práctica:** sobre el juego real.
 - **Aprobación:** los cuatro casos resueltos con la captura que lo demuestra.
 
@@ -583,9 +600,9 @@ el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
 - **Conceptos:** rejilla de colisión (celdas de 16 px, índice con
   desplazamientos), AABB, resolución por ejes, plataforma de un solo sentido,
   punto de control, streaming de columnas (mapa-anillo, DMA con
-  `VMAIN = 0x81`), rejilla doble (*dual grid*), guion de mando, y el coste de
-  las llamadas en tcc816 (por qué existen `colision_columna_solida` y
-  compañía).
+  `VMAIN = 0x81`, apuntado en la lista de DMA solo cuando la cámara cambia de
+  columna), rejilla doble (*dual grid*), guion de mando, y el coste de las
+  llamadas en tcc816 (por qué existen `colision_columna_solida` y compañía).
 - **Código del juego:** `src/juego/colision.c` (la rejilla, el bloque y las
   consultas de columna y fila), `src/juego/tarou.c` (`mover_x` con el
   retroceso píxel a píxel, `mover_y` con los dos pies, `cabe_de_pie`),
@@ -758,9 +775,15 @@ perdieron en todas las tandas).
   exacto (unidades 07, 19, 20).
 - `PF_ENTERO` es solo para valores ≥ 0: una y negativa (un salto por encima de
   la pantalla) da un número enorme. Comparar en punto fijo (unidades 01, 20).
-- Indexar un array de structs de tamaño no potencia de 2 (`guion[i]`, 5 bytes)
-  hace que tcc816 llame a `tcc__mul` en cada acceso; recorrer con un puntero
-  (unidades 13, 14, 20).
+- Indexar un array de structs de tamaño no potencia de 2 (`guion[i]`, 5 bytes;
+  `copias[i]`, 6 bytes) hace que tcc816 llame a `tcc__mul` en cada acceso:
+  recorrer con un puntero o rellenar la struct a 8 bytes (unidades 09, 13, 14,
+  20). Y `<< n` dentro de un bucle caliente es un bucle de n vueltas: sumar en
+  vez de desplazar.
+- Lo que se escribe en la VRAM después de la línea 37 del VBlank se pierde sin
+  aviso: el HUD lo mide (`V a b`) y Tarou a trozos fue eso (unidades 04, 09, 16).
+- Un `.asm` propio no puede llamarse como un `.c`: `make` lo sobrescribe con
+  el intermedio del compilador (unidades 03, 15).
 - Las tablas de Tiled en JSON para `tmx2snes`: sin espacio tras los dos puntos
   (unidad 20).
 

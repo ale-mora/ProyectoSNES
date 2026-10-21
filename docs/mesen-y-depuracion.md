@@ -70,8 +70,11 @@ EST CAMINANDO          estado actual, con el nombre del enum
 ESP FUERA  DIR DER     espada fuera/envainada; dirección derecha/izquierda
 CAM 0  F 1234          cámara (0..1792 en el tutorial) y frames desde que empezó el nivel
 GOLPE 167 168 28 16    caja de golpe de la espada (x, y, ancho, alto) o "-"
-LIN 252 10 59  VB 3738 línea del haz tras la lógica, tras el sprite y al final
-                       del frame; y VBlanks totales desde el arranque
+LIN 65 120 170 V5 8 VB 3738  línea del haz tras la lógica, tras el sprite (y las
+                       columnas) y al final del frame; V: líneas del VBlank al
+                       entrar y al salir de _vblank, contadas desde su inicio (el
+                       límite es 37: más allá, la VRAM descarta lo que se escribe);
+                       y VBlanks totales desde el arranque
 ```
 
 Cómo usar las dos últimas filas para medir:
@@ -88,6 +91,12 @@ Cómo usar las dos últimas filas para medir:
   (con colisión) acaba hacia la línea 70-120 y el final del frame, con el
   HUD encendido, hacia 150-200: **el propio HUD cuesta 50-80 líneas**, y con
   él encendido el nivel baja a unos 50 FPS (sin él, 60).
+- **Coste del VBlank**: `V a b`. `a` es donde empieza nuestro `_vblank` (5: el
+  SDK copia la OAM y lee el mando) y `b` donde acaba. Si `b` pasa de 37, los
+  últimos DMA se hacen con la PPU dibujando y la VRAM los descarta: sprites a
+  trozos o columnas que no aparecen. Hoy: `V5 8` en frames normales y `V5 19..23`
+  cuando sube medio cuadro de Tarou. Así se encontró el fallo de Tarou a trozos
+  (2026-10-20: `V5 46`).
 - Las filas se escriben por turnos (una por frame): un dato puede tener hasta
   6 frames de retraso respecto a otro. Para capturar un instante exacto, usa
   el depurador (§4).
@@ -212,5 +221,6 @@ del PC. El 2026-10-20 coincidieron y la ROM llegó a la salida.
 | Dos de los cuatro cuadros de Bárbara salían con trozos de Tarou | un sprite de 64×64 empezaba en el tile 192 y cruzaba a la segunda tabla de 256 tiles: la PPU da la vuelta dentro de la tabla | Bárbara en el tile 256 (`personajes.c`, bloque «LÍMITE») |
 | El guion pierde teclas a mitad de tanda (el menú File aparece resaltado) | el autor usaba el equipo y el foco de Mesen saltó a su barra de menús | no usar el equipo durante la tanda; `--Preferences.AllowBackgroundInput=true` se fuerza pero su efecto no está demostrado (§5, punto 1) |
 | Tarou parece flotar sobre una raya de hierba | el arte es una vista lateral un poco elevada (patas lejanas 3 px más arriba) y la hierba empezaba justo bajo los pies | entonces `scripts/preparar_suelo.py --hundir 4`; desde el tutorial, la banda empieza 2 px sobre el borde de la celda y el sprite se dibuja 2 px más abajo (`HUNDIR_PIES`) |
+| Tarou a trozos: piezas que faltan, trozos de otro cuadro, parpadeo | la subida de sus 3 KB de tiles (32 líneas con el motor del SDK) más las columnas (9) se salían del VBlank (37); la VRAM descartaba los últimos bytes | lista de DMA en ensamblador, doble búfer en VRAM, HUD por filas (`docs/diseno-tutorial-movimiento.md` §7); vigilar la columna `V` |
 | El texto del HUD queda detrás del techo del túnel | los tiles de BG3 sin bit de prioridad van detrás de BG0 aunque el modo sea `BG3_MODE1_PRIORITY_HIGH` | `TILE(c)` con `0x2000` en `hud_debug.c` |
 | Un `.asm` generado para estudiar rompe la compilación | `snes_rules` compila como fuente todo `src/*/*.asm`: el `.asm` y su `.c` dan símbolos duplicados | borrar el `.asm` de `src/` tras copiarlo (`aprendizaje/PLAN.md` §6.4) |

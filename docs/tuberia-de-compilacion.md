@@ -166,6 +166,11 @@ Hay que **copiarlo fuera y borrarlo de `src/` enseguida**: `snes_rules`
 compila como fuente todo `src/*/*.asm`, y un `camara.asm` olvidado se
 ensamblaría junto a `camara.c` (símbolos duplicados).
 
+La otra cara de esa regla: un `.asm` **escrito a mano** no puede llamarse como
+un `.c` del proyecto. `dma_lista.c` se compila pasando por un `dma_lista.asm`
+intermedio, y un `dma_lista.asm` nuestro quedó **sobrescrito** por el
+compilador (2026-10-21). Por eso la rutina se llama `dma_ejecutar.asm`.
+
 ## 6. Leer el resultado
 
 Al final de `make` (o en el `.log`):

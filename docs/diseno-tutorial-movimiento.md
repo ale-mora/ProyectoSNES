@@ -19,6 +19,7 @@ cuyas mecánicas no cambian: aquí se añade el **escenario con colisión**.
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v1.3 | 2026-10-21 | **Tarou a trozos** (fallo visto por el autor al jugar): la subida de los 3 KB del cuadro se salía del VBlank. Lista de copias por DMA en ensamblador, doble búfer en VRAM (medio cuadro por VBlank), HUD por filas; el VBlank pasa de acabar en la línea 46 a la 23 de 37 (§7, §8). El autor retocó el nivel en Tiled (inicio en x 56, hueco de 32 px entre plataformas, zarzas en el fondo del foso) y el guion se reajustó (fin en el cuadro 2270). |
 | v1.2 | 2026-10-20 | Fases 2–8 hechas: colisión, reaparición, tronco en el fondo (columnas de parche), salida a `PANTALLA_PROXIMAMENTE`, guion de mando y ROM de prueba que se juega sola; resultados y trampas en §8. |
 | v1.1 | 2026-10-20 | No se usa el motor de mapas del SDK: en Tiled se pinta la **lógica** y un script la viste con el arte; el fondo se dibuja por columnas con código propio (C5, §3, §4). Celdas de 16 px; túnel y muro de 48 px, foso de 96. |
 | v1 | 2026-10-20 | Diseño acordado y resultado de la prueba del motor de mapas (§5). |
@@ -168,6 +169,23 @@ Un commit por fase, sin push:
 - **Guion de mando** (`src/juego/guion.c`, `guion_tutorial.c`): el recorrido
   completo como tabla de tramos de botones. `tests/prueba_recorrido.c` lo juega
   en el PC; la ROM de prueba lo juega en la SNES (§8).
+- **El VBlank, con presupuesto** (v1.3). Son 37 líneas y el SDK gasta 5 (OAM
+  y mando). Todo lo que va a la VRAM se **apunta durante el frame** en una
+  lista (`src/juego/dma_lista.h`: origen, destino, bytes, banco, VMAIN) y en
+  el VBlank una rutina en ensamblador (`src/juego/dma_ejecutar.asm`) dispara
+  un DMA por entrada, unos 60 ciclos cada uno. Apuntan: `tarou_sprite.c` (los
+  tiles del cuadro), `fondo_nivel.c` (las columnas que entran, solo cuando la
+  cámara cambia de columna) y `hud_debug.c` (la fila que preparó, 64 bytes).
+- **Los tiles de Tarou, en dos VBlanks** (v1.3). Un cuadro son 3 KB (6 bloques
+  de 32×32) y 3 KB de DMA son 18 líneas solo de datos: no caben con lo demás.
+  La VRAM tiene dos celdas (tiles 0..127 y 128..255); el cuadro nuevo se
+  escribe en la que no se muestra, a 1,5 KB por VBlank como mucho, y cuando
+  está entero la OAM pasa a enseñarlo: el dibujo del cuadro va un frame por
+  detrás de la lógica (la posición no), imperceptible. El plan de copias (qué
+  trozos de la tira, a qué tiles) lo hace `metasprite_copias()` en lógica pura
+  probada en el PC: la tira de `gfx4snes -s 32` guarda los bloques de 4 en 4
+  por fila de 128 px, igual de ancha que la hoja de sprites de la VRAM, así
+  que bloques seguidos de una misma fila se copian de un tirón.
 
 ## 8. Verificación y resultados (2026-10-20)
 
@@ -184,7 +202,16 @@ Un commit por fase, sin push:
   `docs/mesen-y-depuracion.md` §5): arranca directa en el nivel y el guion la
   juega sola, sin teclado. Repite el recorrido del PC cuadro por cuadro (mismas
   x en el HUD), rompe el tronco, sale a «LEVEL 2 / COMING SOON» y vuelve al
-  título. Capturas en `docs/screenshots/tutorial/`.
+  título. Capturas en `docs/screenshots/tutorial/` (las del 2026-10-21, con el
+  nivel retocado por el autor y Tarou entero).
+- **Coste del VBlank** (v1.3, columna `V` del HUD: línea al entrar y al salir
+  de `_vblank`, contadas desde el inicio del VBlank; el límite es 37): frames
+  normales `V5 8`; frames con medio cuadro de Tarou `V5 19..23`. Antes del
+  arreglo: `V5 46` (columnas 9 líneas + tiles 32 por el motor del SDK), y con
+  el HUD `V5 14 46`: las últimas 9 líneas se escribían con la PPU dibujando y
+  la VRAM las descartaba. La corrección se midió con la ROM de prueba y se
+  comprobó a tamaño real en caminar, correr, saltar, agacharse, el tronco y la
+  salida.
 - **Reaparición en Mesen:** con una ROM de prueba a la que se quitó el salto
   del foso, Tarou cae, la pantalla funde a negro y reaparece junto al cartel
   «HOLD Y» (x ≈ 1000) con el anillo de columnas limpio; volvió a caer y a
@@ -209,6 +236,9 @@ Un commit por fase, sin push:
 | Tarou «moría» en lo alto de un salto desde la plataforma | la celda subía por encima de la pantalla (y < 0) y `PF_ENTERO`, que es solo para valores ≥ 0, daba un número enorme | comparar en punto fijo: `t->y_fp >= PF(Y_CAIDA)` |
 | Tarou rebotaba 8 px contra el tronco en bucle | al chocar se le pegaba al comienzo de la celda de 16 px, y el tronco empieza en x 1640 | retroceder píxel a píxel hasta dejar de tocar |
 | El texto del HUD quedaba detrás del techo del túnel | los tiles del HUD (BG3) no llevaban el bit de prioridad; antes no había nada arriba en la capa cercana | `TILE(c)` con `0x2000` en `hud_debug.c` |
+| **Tarou a trozos** al jugar (piezas que faltan, trozos de otro cuadro, parpadeo) | el VBlank se salía: tiles del cuadro (32 líneas con `oamVramQueueUpdate`) + columnas (9) + 5 del SDK = 46 de 37; los bytes que llegaban con la PPU dibujando se perdían. En la Revisión 1 ya estaba al límite (37) y nadie lo midió | lista de DMA en ensamblador + doble búfer + HUD por filas (§7); la columna `V` del HUD lo vigila |
+| Un `.asm` propio con el mismo nombre que un `.c` (`dma_lista.asm` y `dma_lista.c`) desaparecía | `snes_rules` compila `dma_lista.c` pasando por un `dma_lista.asm` intermedio que lo sobrescribe | nombres distintos: `dma_ejecutar.asm` |
+| El frame en que se planificaba un cuadro costaba 130 líneas | `CopiaBloque` medía 6 bytes: `copias[i]` llamaba a `tcc__mul` en cada acceso (otra vez la trampa de `guion[i]`); y `<< n` dentro del bucle (tcc816 hace cada desplazamiento con un bucle) | struct de 8 bytes (relleno) y sumas acumuladas |
 | Tarou empezaba en x 0 y no avanzaba | el objeto «inicio» marcaba su centro en 40: la celda empezaba en −8 | inicio en x 88; prueba `prueba_inicio` |
 
 ## 9. Pendiente
@@ -221,7 +251,15 @@ Un commit por fase, sin push:
   `python scripts/preparar_nivel.py`, `make clean` y `make`). Si un retoque rompe
   el recorrido, `tests/prueba_recorrido.c` falla: hay que ajustar
   `src/juego/guion_tutorial.c`.
-- **HUD de depuración a 60 FPS** (abaratar su dibujo).
+- **HUD de depuración a 60 FPS** (abaratar su dibujo: la fila que prepara
+  cada frame cuesta ~75 líneas por `poner_numero`; con el HUD encendido, los
+  frames en que se planifica un cuadro se pasan de los 262 y se pierde uno).
+- **El título al volver del nivel** (con START o tras «COMING SOON») muestra
+  a Tarou con piezas del nivel, descolocadas; Bárbara sale bien. Pasaba ya
+  antes del arreglo de v1.3 (comprobado el 2026-10-21 con la ROM anterior) y
+  no pasa al llegar desde la intro. Sin diagnosticar: `personajes_cargar`
+  recarga los tiles y la OAM, así que algo del estado del nivel (OBSEL, la
+  tabla alta de la OAM...) sobrevive. Siguiente paso: Sprite Viewer de Mesen.
 - Una raya horizontal de 1 px, del color del cielo, aparece a veces dentro del
   techo del túnel y cambia de sitio entre capturas. Sin diagnosticar (¿una
   pieza de sprite suelta o un píxel transparente de una celda de tierra?).

@@ -137,13 +137,26 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   de tile da la vuelta dentro de su tabla). La coordenada y "da la vuelta"
   cada 256 px: un sprite de 64 en y = 240 asoma por arriba.
 - **Metasprite** — sprite grande compuesto por varios sprites de hardware que
-  se mueven como uno solo. Tarou, en su celda de 96×64, son hasta 6 sprites de 32×32. PVSnesLib
-  genera la tabla de piezas con `gfx4snes -T` y lo dibuja con
-  `oamMetaDrawDyn32`.
+  se mueven como uno solo. Tarou, en su celda de 96×64, son hasta 6 sprites de
+  32×32. PVSnesLib genera la tabla de piezas con `gfx4snes -T`; el juego pone
+  una entrada de la OAM por pieza (`src/juego/tarou_sprite.c`).
 - **Sprite dinámico** — técnica en la que todos los cuadros de animación viven
-  en la ROM y, en cada VBlank, solo se copia a VRAM el cuadro que se va a
-  mostrar. Así el límite de 512 tiles deja de importar. PVSnesLib:
-  `oamInitDynamicSprite`, `oamVramQueueUpdate`, `oamInitDynamicSpriteEndFrame`.
+  en la ROM y solo se copia a la VRAM el cuadro que se va a mostrar. Así el
+  límite de 512 tiles deja de importar. El juego usó el motor de PVSnesLib
+  (`oamInitDynamicSprite`, `oamVramQueueUpdate`) hasta el 2026-10-21; su copia
+  de 3 KB costaba 32 líneas del VBlank y se cambió por una propia.
+- **Doble búfer (de tiles)** — dos sitios en la VRAM para el mismo sprite:
+  mientras uno se muestra, el otro recibe el cuadro siguiente, repartido en
+  varios VBlanks; cuando está entero, la OAM cambia de sitio. El dibujo va un
+  frame por detrás de la lógica. → `src/juego/tarou_sprite.c`.
+- **Presupuesto del VBlank** — las 37 líneas (unos 2,3 ms) en que se puede
+  escribir la VRAM. El DMA copia unos 170 bytes por línea; el SDK gasta 5
+  líneas (OAM y mando). Lo que no cabe se pierde sin aviso. El HUD lo mide en
+  su columna `V`. → `src/juego/dma_lista.h`, `docs/mesen-y-depuracion.md` §3.
+- **Lista de DMA** — las copias a la VRAM se apuntan durante el frame (origen,
+  destino, bytes, banco, modo de avance) y una rutina en ensamblador las
+  dispara de un tirón en el VBlank, porque prepararlas en C con tcc816 cuesta
+  más que el DMA mismo. → `src/juego/dma_ejecutar.asm`.
 - **Fade (fundido) / brillo** — la PPU tiene un control de brillo de 0 (negro)
   a 15 (normal). `setBrightness(n)` lo fija; `setFadeEffectEx(FADE_IN, f)` lo
   anima en `f` pasos. **Ojo:** estas funciones bloquean el programa mientras
