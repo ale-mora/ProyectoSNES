@@ -7,7 +7,7 @@
       la siguiente y aquí se hace el cambio. Hay tres momentos por pantalla:
       _iniciar (una vez, al entrar), _actualizar (cada frame, antes del VBlank) y
       _vblank (cada frame, justo después del VBlank; solo para las pantallas que
-      copian datos a la VRAM, como el nivel).
+      escriben en la PPU cada frame: el logo Nintendo y el nivel).
 
     SE CONECTA CON
       Incluye:  sistema/secuencia.h (su propia interfaz y, a través de ella,
@@ -93,12 +93,14 @@ void secuencia_actualizar(void)
 /*--- secuencia_vblank -----------------------------------------------------------
     Tercer momento de cada pantalla: main.c la llama justo después de
     WaitForVBlank(), cuando la PPU ha terminado de dibujar y la VRAM se puede
-    escribir sin romper la imagen. Solo el nivel 1 lo necesita: su _vblank copia
-    a la VRAM los tiles del sprite dinámico (oamVramQueueUpdate). */
+    escribir sin romper la imagen. Lo necesitan dos pantallas: el logo Nintendo
+    (lleva a la PPU los valores de su escena: brillo, mosaico, destello) y el
+    nivel 1 (ejecuta su lista de copias a la VRAM: dma_lista_ejecutar). */
 void secuencia_vblank(void)
 {
     switch (pantalla_actual)
     {
+        case PANTALLA_NINTENDO:     pantalla_nintendo_vblank();     break;
         case PANTALLA_NIVEL1:       pantalla_nivel1_vblank();       break;
         default:                    break;   /* Las demás pantallas no necesitan _vblank. */
     }

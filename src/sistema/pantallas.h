@@ -83,8 +83,11 @@ typedef enum
                           activa (cuenta tiempo, lee el mando, decide cuándo
                           pasar a la siguiente).
     "void" = no devuelve nada; "(void)" = no recibe parámetros. → glosario: void */
+/* El logo Nintendo tiene _vblank: lleva a la PPU los valores de su escena
+   (src/escena/, ver secuencia_vblank en secuencia.c). */
 void pantalla_nintendo_iniciar(void);
 void pantalla_nintendo_actualizar(void);
+void pantalla_nintendo_vblank(void);
 
 void pantalla_publisher_iniciar(void);
 void pantalla_publisher_actualizar(void);
@@ -101,8 +104,8 @@ void pantalla_intro_actualizar(void);
 void pantalla_titulo_iniciar(void);
 void pantalla_titulo_actualizar(void);
 
-/* El nivel 1 es la única pantalla con _vblank: copia a VRAM los tiles del sprite
-   dinámico justo después del VBlank (ver secuencia_vblank en secuencia.c). */
+/* El nivel 1 también tiene _vblank: ejecuta la lista de copias a la VRAM (tiles
+   de Tarou, columnas del fondo, HUD) justo después del VBlank. */
 void pantalla_nivel1_iniciar(void);
 void pantalla_nivel1_actualizar(void);
 void pantalla_nivel1_vblank(void);

@@ -21,7 +21,9 @@ CFLAGS  = -std=c99 -Wall -Wextra -DPRUEBAS_PC -I. -I../src -I../res/nivel1
 PRUEBAS = pruebas.c $(wildcard prueba_*.c)
 # Lógica pura del juego: solo los archivos que ya existen (las tareas los van añadiendo).
 PURO    = $(wildcard ../src/juego/nivel.c ../src/juego/camara.c ../src/juego/animaciones.c ../src/juego/tarou.c ../src/juego/metasprite.c ../src/juego/colision.c ../src/juego/partida.c ../src/juego/guion.c ../src/juego/guion_tutorial.c)
-CABECERAS = $(wildcard *.h ../src/sistema/*.h ../src/juego/*.h ../res/nivel1/nivel1_datos.h)
+# El motor de escenas (src/escena/): el secuenciador y las tablas; efectos.c toca la PPU y no entra.
+PURO   += ../src/escena/escena.c ../src/escena/escena_nintendo.c
+CABECERAS = $(wildcard *.h ../src/sistema/*.h ../src/juego/*.h ../src/escena/*.h ../res/nivel1/nivel1_datos.h)
 
 pruebas.exe: $(PRUEBAS) $(PURO) $(CABECERAS)
 	$(CC) $(CFLAGS) -o $@ $(PRUEBAS) $(PURO)
