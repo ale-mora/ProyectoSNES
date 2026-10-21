@@ -17,7 +17,8 @@
                 frames_en_pantalla.
 
     HARDWARE QUE TOCA
-      ninguno: es lógica pura; el hardware lo tocan las pantallas.
+      Solo INIDISP (setScreenOff) al cambiar de pantalla, para que cada
+      _iniciar cargue con la pantalla apagada; el resto lo tocan las pantallas.
 
     VARIABLES (globales y estáticas de este archivo)
       pantalla_actual     Pantalla  0..CANTIDAD_PANTALLAS-1  estado activo de la máquina
@@ -39,6 +40,14 @@ void secuencia_cambiar(Pantalla nueva)
 {
     pantalla_actual = nueva;   /* Guardamos cuál es la pantalla activa a partir de ahora.  */
     frames_en_pantalla = 0;    /* El tiempo de la nueva pantalla empieza a contar de cero. */
+
+    /* Pantalla APAGADA (forced blank) antes de que _iniciar cargue nada. fade_out
+       termina con brillo 0 pero con la pantalla ENCENDIDA (escribe 0 en INIDISP,
+       no $80): la PPU sigue dibujando negro y lo que se copie a la VRAM fuera del
+       VBlank se pierde. Así se perdían los tiles de Tarou al volver del nivel al
+       título (se veían los del nivel, que seguían en la VRAM). Cada _iniciar
+       vuelve a encender con fade_in o setBrightness. → glosario: Forced blank */
+    setScreenOff();
 
     /* switch: mira el valor de pantalla_actual y salta al "case" que coincide.
        Cada case llama a la función de inicio correspondiente y "break" sale
