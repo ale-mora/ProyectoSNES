@@ -59,8 +59,55 @@ static void ensuciar(void)
     }
 }
 
+/*--- El plan de copias de un cuadro (metasprite_copias) -------------------------------*/
+static const t_metasprite CORRER0[] = {               /* Cuadro 0 de una tira de 8:     */
+    {0, 0, 0, PROPS, 0}, {32, 0, 1, PROPS, 0}, {64, 0, 2, PROPS, 0},     /* bloques 0..2  */
+    {0, 32, 24, PROPS, 0}, {32, 32, 25, PROPS, 0}, {64, 32, 26, PROPS, 0}, /* y 24..26.   */
+    {METASPRITE_FIN, 0, 0, 0, 0}};
+static const t_metasprite CORRER1[] = {               /* Cuadro 1: bloques 3..5 y 27..29 */
+    {0, 0, 3, PROPS, 0}, {32, 0, 4, PROPS, 0}, {64, 0, 5, PROPS, 0},     /* (3 y 27 van  */
+    {0, 32, 27, PROPS, 0}, {32, 32, 28, PROPS, 0}, {64, 32, 29, PROPS, 0}, /* solos).     */
+    {METASPRITE_FIN, 0, 0, 0, 0}};
+static CopiaBloque copias[METASPRITE_COPIAS_MAX];
+
+static void prueba_copias(void)
+{
+    u8 n, i;
+    /* Cuadro 0: dos tramos de 3 bloques seguidos: 8 copias de 384 bytes. */
+    n = metasprite_copias(CORRER0, 0x8000, 0x0000, copias);
+    COMPROBAR(n == 8);
+    COMPROBAR(copias[0].origen == 0x8000 && copias[0].vram == 0 && copias[0].bytes == 384);
+    COMPROBAR(copias[1].origen == 0x8000 + 512 && copias[1].vram == 256);  /* Fila de tiles 1.   */
+    COMPROBAR(copias[3].origen == 0x8000 + 1536 && copias[3].vram == 768);
+    COMPROBAR(copias[4].origen == 0x8000 + 6 * 2048);      /* Bloque 24: fila 6 de la tira.   */
+    COMPROBAR(copias[4].vram == 64 * 16 && copias[4].bytes == 384); /* Fila 1 de la celda.     */
+    COMPROBAR(copias[7].origen == 0x8000 + 6 * 2048 + 3 * 512 && copias[7].vram == 64 * 16 + 768);
+    /* Cuadro 1: el bloque 3 cierra una fila de la tira y el 27 también: 16 copias. */
+    n = metasprite_copias(CORRER1, 0x8000, 0x0000, copias);
+    COMPROBAR(n == 16);
+    COMPROBAR(copias[0].origen == 0x8000 + 3 * 128 && copias[0].bytes == 128);  /* Bloque 3 solo. */
+    COMPROBAR(copias[0].vram == 0);
+    COMPROBAR(copias[4].origen == 0x8000 + 2048 && copias[4].bytes == 256);     /* Bloques 4 y 5. */
+    COMPROBAR(copias[4].vram == 4 * 16);                      /* Columna 1 de la celda.         */
+    COMPROBAR(copias[8].origen == 0x8000 + 6 * 2048 + 3 * 128 && copias[8].bytes == 128); /* 27. */
+    COMPROBAR(copias[8].vram == 64 * 16);
+    COMPROBAR(copias[12].origen == 0x8000 + 7 * 2048 && copias[12].bytes == 256);  /* 28 y 29.   */
+    COMPROBAR(copias[12].vram == 64 * 16 + 4 * 16);
+    /* Solo la fila de abajo (TRES: bloques 6, 7, 8: 6 y 7 juntos, 8 en la fila siguiente). */
+    n = metasprite_copias(TRES, 0, 0x0400, copias);
+    COMPROBAR(n == 8);
+    COMPROBAR(copias[0].origen == 2048 + 2 * 128 && copias[0].bytes == 256 && copias[0].vram == 0x0400 + 64 * 16);
+    COMPROBAR(copias[4].origen == 2 * 2048 && copias[4].bytes == 128 && copias[4].vram == 0x0400 + 64 * 16 + 8 * 16);
+    COMPROBAR(metasprite_copias(CERO, 0, 0, copias) == 0);
+    for (i = 0; i < 8; i++)                          /* Un cuadro entero nunca pasa de 3 KB.*/
+    {
+        COMPROBAR(copias[i].bytes <= 384);
+    }
+}
+
 void pruebas_metasprite(void)
 {
+    prueba_copias();
     u8 n;
 
     /* El terminador del SDK, visto como u16, y la geometría de la celda de 96x64. */

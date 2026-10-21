@@ -48,3 +48,43 @@ u8 metasprite_espejar(const t_metasprite *tabla, t_metasprite *espejo)
     espejo[n].unused = 0;
     return n;
 }
+
+u8 metasprite_copias(const t_metasprite *tabla, u16 base_rom, u16 base_vram, CopiaBloque *salida)
+{
+    u8 n = metasprite_piezas(tabla);                 /* Cuántas piezas hay (0..6).          */
+    u8 i = 0, copias = 0, largo, t;
+    u16 bloque, fila, col, origen, vram, bytes;
+    while (i < n)
+    {
+        fila = (u16)(tabla[i].dy >> 5);              /* Fila de la celda: 0 arriba, 1 abajo.*/
+        col = (u16)(tabla[i].dx >> 5);               /* Columna de la celda: 0, 1 o 2.      */
+        bloque = tabla[i].dtile;                     /* Bloque en la tira.                  */
+        largo = 1;                                   /* Piezas del tramo.                   */
+        /* Alargar el tramo mientras la pieza siguiente esté pegada a la derecha en la
+           celda, sea el bloque siguiente y siga en la misma fila de 4 de la tira. */
+        while ((u8)(i + largo) < n
+               && (u16)(tabla[i + largo].dy >> 5) == fila
+               && (u16)(tabla[i + largo].dx >> 5) == (u16)(col + largo)
+               && tabla[i + largo].dtile == (u16)(bloque + largo)
+               && ((bloque & 3) + largo) < 4)
+        {
+            largo++;
+        }
+        /* Bloque n: fila de la tira n >> 2 (2048 bytes cada una), columna n & 3 (128). */
+        origen = (u16)(base_rom + ((bloque >> 2) << 11) + ((bloque & 3) << 7));
+        vram = (u16)(base_vram + (((fila << 6) | (col << 2)) << 4)); /* Tile x 16 palabras. */
+        bytes = (u16)((u16)largo << 7);              /* 128 bytes por bloque del tramo.     */
+        for (t = 0; t < 4; t++)                      /* Las 4 filas de tiles del bloque:    */
+        {                                            /* sumas, no desplazamientos (tcc816   */
+            salida[copias].origen = origen;          /* hace cada << con un bucle).         */
+            salida[copias].vram = vram;
+            salida[copias].bytes = bytes;
+            salida[copias].libre = 0;
+            copias++;
+            origen = (u16)(origen + 512);            /* La fila de tiles siguiente de la tira. */
+            vram = (u16)(vram + 256);                /* 16 tiles más abajo en la VRAM.      */
+        }
+        i = (u8)(i + largo);
+    }
+    return copias;
+}

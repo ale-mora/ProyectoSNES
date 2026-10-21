@@ -4,8 +4,10 @@
     PROPÓSITO
       Orquesta un frame del nivel: lee el mando, actualiza la lógica pura del
       protagonista, calcula la cámara, escribe el scroll de las dos capas y
-      dibuja. Es la única pantalla con _vblank(), porque el sprite dinámico
-      copia sus tiles a la VRAM justo después del VBlank.
+      dibuja. Es la única pantalla con _vblank(): ahí se disparan, de un
+      tirón, las copias a la VRAM que el frame dejó apuntadas en la lista de
+      DMA (juego/dma_lista.h): los tiles del cuadro de Tarou, las columnas del
+      fondo y las filas del HUD.
       Capas (Mode 1 con BG3 en prioridad alta): fondo 0 = capa CERCANA (el
       tutorial de 2048 px dibujado en Tiled y vestido con el arte de Pixellab,
       con el seto y los carteles; scroll 1:1 con la cámara y dibujado por
@@ -13,27 +15,34 @@
       LEJANA (montañas sin logotipo, 512 px que se repiten, scroll a la mitad); fondo 2 = HUD
       de depuración (texto de 4 colores, apagado al inicio); cielo = degradado
       HDMA del título. START vuelve al título con fundido.
-      Flujo por frame (docs/diseno-demo-jugable.md §11): mando_leer →
-      tarou_actualizar (lógica pura) → camara_para → bgSetScroll de las dos
-      capas → tarou_sprite_dibujar → oamInitDynamicSpriteEndFrame →
-      hud_debug_dibujar; y, tras el VBlank, fondo_nivel_vblank (columnas),
-      oamVramQueueUpdate y hud_debug_vblank. Al entrar (_iniciar), los tiles del primer cuadro se
-      copian a la VRAM en el acto, antes del fade in.
+      Flujo por frame (docs/diseno-demo-jugable.md §11): dma_lista_vaciar →
+      mando_leer → tarou_actualizar (lógica pura) → partida_actualizar →
+      camara_para → bgSetScroll de las dos capas → tarou_sprite_dibujar (OAM y,
+      si cambió el cuadro, sus copias a la lista) → fondo_nivel_actualizar (las
+      columnas, a la lista) → hud_debug_dibujar (su fila, a la lista); y, tras
+      el VBlank, dma_lista_ejecutar. Al entrar (_iniciar) y al
+      reaparecer, con la pantalla apagada, la lista se dispara en el acto.
+      Se mide cuántas líneas del VBlank usa todo eso (diag_vblank, fila LIN
+      del HUD): el VBlank tiene 37 y el SDK gasta 5 antes de llegar aquí.
 
     SE CONECTA CON
       Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h,
                 juego/nivel.h, juego/camara.h, juego/mando.h, juego/tarou.h,
-                juego/tarou_sprite.h, juego/fondo_nivel.h, juego/colision.h y
-                nivel1_datos.h (generado: inicio, carteles, tronco, salida).
+                juego/tarou_sprite.h, juego/fondo_nivel.h, juego/colision.h,
+                juego/partida.h, juego/dma_lista.h y nivel1_datos.h (generado:
+                inicio, carteles, tronco, salida).
       Lee de la ROM: nivel1_lejos_*, nivel1_colision y hdmaGradcieloList (data.asm); la capa
       cercana la carga juego/fondo_nivel.c.
       Lo usan:  sistema/secuencia.c (_iniciar, _actualizar y _vblank).
 
     HARDWARE QUE TOCA
-      PPU: modo (setMode), fondos por comun.c (VRAM, CGRAM), scroll de los
-      fondos 0 y 1 (bgSetScroll), BG2 apagado (bgSetDisable). HDMA: canal 6 con
-      un color por línea (setModeHdmaColor / setModeHdmaReset). OAM y VRAM de
-      sprites por tarou_sprite.c. Mando: por mando.c.
+      PPU: modo (setMode), fondos por comun.c y fondo_nivel.c (VRAM, CGRAM),
+      scroll de los fondos 0 y 1 (bgSetScroll), BG2 apagado (bgSetDisable),
+      pantalla apagada al reaparecer (setScreenOff: con "forced blank" la VRAM
+      se escribe cuando se quiera). HDMA: canal 6 con un color por línea
+      (setModeHdmaColor / setModeHdmaReset). DMA: la lista (dma_ejecutar.asm) en
+      el VBlank. OAM por tarou_sprite.c. Mando: por mando.c. Contadores del
+      haz ($2137/$213D) para los medidores LIN y V del HUD.
 
     VARIABLES (globales y estáticas de este archivo)
       camara  u16    0..ANCHO_NIVEL-ANCHO_PANTALLA (0..1792) px desplazamiento del nivel
@@ -52,6 +61,7 @@
 #include "juego/mando.h"
 #include "juego/hud_debug.h"
 #include "juego/fondo_nivel.h"
+#include "juego/dma_lista.h"
 #include "juego/colision.h"
 #include "juego/partida.h"
 #include "nivel1_datos.h"            /* Generado por scripts/preparar_nivel.py (objetos). */
@@ -73,6 +83,11 @@ extern u8 nivel1_colision;                         /* Rejilla de 128x14 (data.as
 #define REG_SLHV (*(volatile u8 *)0x2137)
 #define REG_OPVCT (*(volatile u8 *)0x213D)
 u16 diag_linea[3];                 /* Línea del haz tras: lógica, sprite, fin del frame.  */
+u16 diag_vblank[2];                /* Líneas desde el INICIO del VBlank (225): al entrar
+                                      en _vblank y al salir. El VBlank acaba en la 37 (la
+                                      línea 0 del frame siguiente aún no se dibuja);
+                                      pasar de ahí es escribir la VRAM con la PPU
+                                      dibujando: los bytes se pierden.                  */
 
 /*--- Estado propio de esta pantalla -------------------------------------------*/
 static u16 camara;                 /* Desplazamiento horizontal del nivel en pantalla.    */
@@ -89,6 +104,18 @@ static u16 leer_linea(void)
     bajo = REG_OPVCT;                                /* Primera lectura: bits 0..7.         */
     alto = (u8)(REG_OPVCT & 1);                      /* Segunda: bit 8.                     */
     return (u16)(((u16)alto << 8) | bajo);
+}
+
+/*--- desde_vblank: una línea del haz, contada desde el inicio del VBlank -------------
+    El VBlank va de la línea 225 a la 261 y sigue en la 0 del frame siguiente (la PPU
+    empieza a dibujar en la 1). Así, 225 → 0, 261 → 36, 0 → 37, 9 → 46. */
+static u16 desde_vblank(u16 linea)
+{
+    if (linea >= 225)
+    {
+        return (u16)(linea - 225);
+    }
+    return (u16)(linea + 37);
 }
 
 /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
@@ -113,9 +140,13 @@ static void reaparecer(void)
     fondo_nivel_rellenar(camara);                    /* Las columnas de la nueva cámara.    */
     bgSetScroll(0, camara, 0);
     bgSetScroll(1, camara >> 1, 0);
-    tarou_sprite_dibujar(&tarou, camara);
-    oamInitDynamicSpriteEndFrame();
-    oamVramQueueUpdate();                            /* Su primer cuadro, ya en la VRAM.    */
+    tarou_sprite_refrescar();                        /* Sus tiles, otra vez a la VRAM ya   */
+    do                                               /* (pantalla apagada): media celda por */
+    {                                                /* vuelta hasta que esté entero.       */
+        dma_lista_vaciar();
+        tarou_sprite_dibujar(&tarou, camara);
+        dma_lista_ejecutar();
+    } while (!tarou_sprite_al_dia(&tarou));
     fade_in(FRAMES_FADE);
 }
 
@@ -131,22 +162,20 @@ void pantalla_nivel1_iniciar(void)
     hud_debug_iniciar();                             /* ...apagado hasta que lo pida SELECT.*/
     mando_iniciar();                                 /* (Solo hace algo en la ROM de prueba.) */
 
-    tarou_sprite_cargar();                           /* Motor dinámico + paleta de Tarou.   */
+    tarou_sprite_cargar();                           /* OAM lista + paleta de Tarou.        */
     colision_usar(&nivel1_colision);                 /* La física pregunta a esta rejilla.  */
     partida_iniciar(&partida, NIVEL1_INICIO_X, controles, NIVEL1_CONTROLES,
                     NIVEL1_TRONCO_X, NIVEL1_SALIDA_X); /* Y el tronco, sólido.              */
     tarou_iniciar(&tarou, X_INICIAL, SUELO_Y);       /* De pie sobre el suelo base.         */
     bgSetScroll(0, camara, 0);
     bgSetScroll(1, camara >> 1, 0);
-    tarou_sprite_dibujar(&tarou, camara);            /* Primer cuadro antes del fade in.    */
-    oamInitDynamicSpriteEndFrame();
-    oamVramQueueUpdate();                            /* Y sus tiles a la VRAM YA (la pantalla
-                                                        sigue apagada tras el fade out del
-                                                        título). Sin esto, los 32 frames del
-                                                        fade in mostraban las piezas que
-                                                        hubiera en VRAM: el primer
-                                                        oamVramQueueUpdate llegaba en el
-                                                        primer _vblank, después del fundido. */
+    do                                               /* Primer cuadro antes del fade in, y  */
+    {                                                /* sus tiles a la VRAM YA (la pantalla */
+        dma_lista_vaciar();                          /* sigue apagada tras el fade out del  */
+        tarou_sprite_dibujar(&tarou, camara);        /* título): media celda por vuelta.    */
+        dma_lista_ejecutar();                        /* Sin esto, los 32 frames del fade in */
+    } while (!tarou_sprite_al_dia(&tarou));          /* mostraban lo que hubiera en VRAM.   */
+    diag_vblank[0] = diag_vblank[1] = 0;
 
     setModeHdmaColor(HDMA_CHANNEL6, (u8 *)&hdmaGradcieloList);   /* Cielo por línea.  */
     fade_in(FRAMES_FADE);
@@ -154,6 +183,9 @@ void pantalla_nivel1_iniciar(void)
 
 void pantalla_nivel1_actualizar(void)
 {
+    /*--- 0. La lista de copias a la VRAM de este frame empieza vacía ----------------*/
+    dma_lista_vaciar();
+
     /*--- 1. Mando: de bits del pad a intenciones con nombre -------------------------*/
     mando_leer(&mando);
     if (mando.salir_pulsado)                         /* START: volver al título.            */
@@ -189,11 +221,12 @@ void pantalla_nivel1_actualizar(void)
     bgSetScroll(0, camara, 0);
     bgSetScroll(1, camara >> 1, 0);
 
-    /*--- 4. Tarou: entradas de la OAM del cuadro actual y cierre del frame del
-           motor dinámico (prepara la cola de copias a VRAM para _vblank) ----------*/
+    /*--- 4. Tarou: entradas de la OAM del cuadro actual y, si cambió el cuadro, sus
+           copias de tiles a la lista (primero: son lo más importante del VBlank);
+           después las columnas del fondo que entran por los bordes ---------------*/
     tarou_sprite_dibujar(&tarou, camara);
-    diag_linea[1] = leer_linea();                    /* Medida: + dibujo del metasprite.    */
-    oamInitDynamicSpriteEndFrame();
+    fondo_nivel_actualizar(camara);
+    diag_linea[1] = leer_linea();                    /* Medida: + dibujo y lista de DMA.    */
 
     /*--- 5. HUD de depuración (solo escribe si está encendido) ----------------------*/
     hud_debug_dibujar(&tarou, camara);
@@ -202,7 +235,8 @@ void pantalla_nivel1_actualizar(void)
 
 void pantalla_nivel1_vblank(void)
 {
-    fondo_nivel_vblank(camara);                      /* Las columnas que entran por los bordes. */
-    oamVramQueueUpdate();                            /* Copia a VRAM los tiles pendientes.  */
-    hud_debug_vblank();                              /* Y las filas del HUD, si está activo. */
+    diag_vblank[0] = desde_vblank(leer_linea());     /* Medida: dónde empieza (unos 5).     */
+    dma_lista_ejecutar();                            /* Tiles de Tarou, columnas y HUD, de
+                                                        un tirón.                           */
+    diag_vblank[1] = desde_vblank(leer_linea());     /* Medida: dónde acaba (< 37 o se pierde). */
 }

@@ -9,8 +9,10 @@
         EST CAMINANDO        nombre del estado, tal cual está en el código
         ESP FUERA  DIR DER
         CAM 0  F 1234        cámara y frames desde que empezó el nivel (velocidad real)
-        LIN 80 95 110  VB 1234  línea del haz tras la lógica, tras el sprite y al final
-                             del frame (>= 225 = frame pasado de tiempo), y VBlanks totales
+        LIN 80 95 110 V 5 20 VB 1234  línea del haz tras la lógica, tras el sprite y al
+                             final del frame (>= 225 = frame pasado de tiempo); V: líneas
+                             del VBlank al entrar en _vblank y al salir (pasar de 37 es
+                             escribir la VRAM con la PPU dibujando); y VBlanks totales
         GOLPE 167 168 28 16  caja de golpe en píxeles del mundo, o "-"
       CÓMO: un tilemap es una cuadrícula de palabras de 16 bits, una por celda
       de 8x8: el número de tile (los 10 bits bajos), la paleta (bits 10-12) y
@@ -18,9 +20,12 @@
       caracteres ASCII 32..127 en orden, así que el tile de una letra es
       `caracter - 32`; con la paleta 0 y el bit de prioridad (0x2000, para ir
       delante de la capa cercana), la palabra es `(caracter - 32) | 0x2000`.
-      Este archivo rellena en RAM las 6 filas (6 x 32 palabras = 384 bytes) y
-      pantalla_nivel1_vblank() las copia a la VRAM por DMA justo después del
-      VBlank. Es muchísimo más barato que consoleDrawText (cuyo formateo de
+      Este archivo rellena en RAM las 7 filas (7 x 32 palabras = 448 bytes), una
+      por frame, y apunta la que acaba de preparar (64 bytes) en la lista de DMA
+      que pantalla_nivel1_vblank() dispara (juego/dma_lista.h); al encenderse,
+      las apunta todas. Copiar las 384 bytes enteras con dmaCopyVram en cada
+      VBlank costaba 5 líneas de las 37 (la sobrecarga del SDK, sobre todo).
+      Es muchísimo más barato que consoleDrawText (cuyo formateo de
       %d hacía correr el juego a un 60 %: perdía VBlanks) y enseña cómo
       funciona el texto de verdad en la SNES. Es la única pantalla con texto
       que no está en inglés: muestra los nombres del código.
@@ -52,6 +57,7 @@
 #include "sistema/comun.h"
 #include "sistema/puntofijo.h"
 #include "sistema/secuencia.h"      /* frames_en_pantalla: para medir la velocidad real. */
+#include "juego/dma_lista.h"
 
 #define ANCHO_TEXTO 32             /* Celdas por fila de la capa de texto.               */
 #define FILAS_HUD 7                /* Filas que ocupa el HUD.                            */
@@ -62,13 +68,25 @@
    Sin él, el techo del túnel del tutorial (capa cercana, arriba del todo) tapaba el texto. */
 #define TILE(c) ((u16)(((c) - 32) | 0x2000))
 
+#define BANCO_WRAM 0x7E            /* Las variables de los .c viven en el banco $7E.     */
 static u8 visible;                 /* 1 mientras el HUD está encendido.                  */
+static u8 enviar_todo;             /* 1 = acaba de encenderse: apuntar las 7 filas.      */
 static u8 turno;                   /* Fila que toca preparar en este frame (0..5).       */
 static u16 mapa[FILAS_HUD * ANCHO_TEXTO];  /* Las 6 filas del HUD, seguidas, como palabras de tilemap. */
 static u16 *celda;                 /* Puntero a la fila en curso: evita multiplicar en cada acceso. */
 static Caja golpe;                 /* Caja de golpe del frame actual.                    */
 static u8 i, n;
 extern u16 diag_linea[3];          /* Líneas del haz medidas en pantalla_nivel1.c.        */
+extern u16 diag_vblank[2];         /* Líneas del VBlank al entrar y al salir de _vblank.  */
+
+/*--- apuntar_fila: la fila `fila` del HUD, a la lista de DMA (64 bytes) ------------*/
+static void apuntar_fila(u8 fila)
+{
+    /* fila * 32 como desplazamiento (<< 5): tcc816 no multiplica por hardware. */
+    dma_lista_anadir((u16)(mapa + ((u16)fila << 5)),
+                     (u16)(VRAM_MAPA_TEXTO + ((u16)(FILA_INICIAL + fila) << 5)),
+                     ANCHO_TEXTO * 2, BANCO_WRAM, DMA_VMAIN_TILES);
+}
 
 /*--- limpiar_fila: toda la fila a espacios -------------------------------------------*/
 static void limpiar_fila(u8 fila)
@@ -161,6 +179,7 @@ void hud_debug_alternar(void)
     else
     {
         visible = 1;
+        enviar_todo = 1;                             /* Las 7 filas de golpe en este frame. */
         bgSetEnable(2);
     }
 }
@@ -232,7 +251,11 @@ void hud_debug_dibujar(const Tarou *t, u16 camara)
             c = poner_numero(6, c, (s16)diag_linea[1]);
             c = poner_texto(6, c, " ");
             c = poner_numero(6, c, (s16)diag_linea[2]);
-            c = poner_texto(6, c, "  VB ");
+            c = poner_texto(6, c, " V");               /* Coste del VBlank: entrada y salida. */
+            c = poner_numero(6, c, (s16)diag_vblank[0]);
+            c = poner_texto(6, c, " ");
+            c = poner_numero(6, c, (s16)diag_vblank[1]);
+            c = poner_texto(6, c, " VB ");
             poner_numero(6, c, (s16)(snes_vblank_count & 0x7FFF));
             break;
         default:
@@ -254,19 +277,21 @@ void hud_debug_dibujar(const Tarou *t, u16 camara)
             }
             break;
     }
+    if (enviar_todo)                             /* Recién encendido: todas las filas.  */
+    {
+        enviar_todo = 0;
+        for (n = 0; n < FILAS_HUD; n++)
+        {
+            apuntar_fila(n);
+        }
+    }
+    else
+    {
+        apuntar_fila(turno);                         /* Solo la fila de este frame: 64 B.   */
+    }
     turno++;
     if (turno >= FILAS_HUD)
     {
         turno = 0;
-    }
-}
-
-void hud_debug_vblank(void)
-{
-    if (visible)
-    {
-        /* 6 filas x 32 palabras = 384 bytes, a partir de la fila FILA_INICIAL del mapa.
-           La dirección de VRAM va en palabras; el tamaño, en bytes. */
-        dmaCopyVram((u8 *)mapa, VRAM_MAPA_TEXTO + FILA_INICIAL * ANCHO_TEXTO, sizeof(mapa));
     }
 }

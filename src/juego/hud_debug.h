@@ -16,8 +16,9 @@
 
     HARDWARE QUE TOCA
       PPU: encendido y apagado del fondo 2 (bgSetEnable / bgSetDisable). VRAM:
-      seis filas del mapa de texto, escritas por DMA en cada VBlank (no se usa
-      consoleDrawText: su formateo era tan caro que el juego perdía VBlanks).
+      la fila del mapa de texto que se preparó en el frame, apuntada en la
+      lista de DMA del VBlank (no se usa consoleDrawText: su formateo era tan
+      caro que el juego perdía VBlanks).
 
     VARIABLES: ninguna (ver hud_debug.c).
     → glosario: HUD de depuración, Consola de texto, Punto fijo
@@ -36,8 +37,5 @@ void hud_debug_alternar(void);
 /* Prepara en RAM las seis filas de §9 si el HUD está encendido. Una vez por frame. */
 void hud_debug_dibujar(const Tarou *t, u16 camara);
 
-/* Copia esas filas a la VRAM por DMA. Llamar justo después de WaitForVBlank()
-   (desde pantalla_nivel1_vblank), que es cuando se puede escribir en la VRAM. */
-void hud_debug_vblank(void);
 
 #endif /* HUD_DEBUG_H */

@@ -61,4 +61,30 @@ u8 metasprite_piezas(const t_metasprite *tabla);
    cuántas piezas copió. */
 u8 metasprite_espejar(const t_metasprite *tabla, t_metasprite *espejo);
 
+/*--- Subir un cuadro a la VRAM: el plan de copias -----------------------------------
+    La tira (.pic de gfx4snes -s 32) guarda los bloques de 32x32 de 4 en 4 por fila
+    de 128 px: el bloque n está en la fila n/4, columna n%4; cada fila de bloques
+    son 4 filas de tiles de 512 bytes (16 tiles). En la VRAM los sprites tienen la
+    misma anchura de 16 tiles, así que una fila de tiles de un bloque (128 bytes)
+    se copia de un tirón, y la de varios bloques seguidos en la misma fila de la
+    tira, también. El cuadro vivo va en la VRAM como una celda de 3x2 bloques:
+    el bloque de la columna c y la fila f de la celda ocupa el tile f*64 + c*4. */
+#define METASPRITE_COPIAS_MAX 16    /* 2 filas de celda x 2 tramos x 4 filas de tiles.      */
+#define METASPRITE_BYTES_FILA_BLOQUE 128   /* Una fila de tiles de un bloque: 4 tiles x 32 B. */
+
+typedef struct
+{
+    u16 origen;      /* Desplazamiento desde el comienzo de la tira (bytes).             */
+    u16 vram;        /* Dirección de VRAM, en palabras.                                   */
+    u16 bytes;       /* Cuántos bytes seguidos.                                           */
+    u16 libre;       /* Relleno: con 8 bytes, copias[i] es un desplazamiento (i << 3);   */
+} CopiaBloque;       /* con 6, tcc816 multiplicaba con tcc__mul en cada acceso.          */
+
+/* Rellena `salida` con las copias que suben las piezas de `tabla` (mirando a la
+   derecha) a la celda de la VRAM que empieza en `base_vram` (en palabras), tomando
+   los bloques desde `base_rom` (dirección de la tira dentro de su banco). Las
+   piezas seguidas de una misma fila de la celda con bloques seguidos en una misma
+   fila de la tira van en un solo tramo. Devuelve cuántas copias hay (0..16). */
+u8 metasprite_copias(const t_metasprite *tabla, u16 base_rom, u16 base_vram, CopiaBloque *salida);
+
 #endif /* METASPRITE_H */

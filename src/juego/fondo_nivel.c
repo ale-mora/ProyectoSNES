@@ -2,55 +2,58 @@
     fondo_nivel.c — La capa cercana del nivel 1 dibujada por columnas (ver .h).
 
     PROPÓSITO
-      Copiar a la VRAM, con DMA, las columnas del mapa del nivel que la cámara
-      va a mostrar. El mapa vive en la ROM ordenado COLUMNA A COLUMNA
-      (scripts/mapa_a_columnas.py): las 32 entradas de una columna son 64
-      bytes seguidos, justo lo que un DMA sabe copiar. En la VRAM, en cambio,
-      una columna son 32 entradas separadas 32 palabras (una fila del mapa):
-      para eso el registro VMAIN tiene el modo "avanzar 32 tras cada palabra".
+      Decidir, durante el frame, qué columnas del mapa del nivel hay que copiar
+      a la VRAM, y apuntarlas en la lista de DMA. El mapa vive en la ROM
+      ordenado COLUMNA A COLUMNA (scripts/mapa_a_columnas.py): las 32 entradas
+      de una columna son 64 bytes seguidos, justo lo que un DMA sabe copiar.
+      En la VRAM, en cambio, una columna son 32 entradas separadas 32 palabras
+      (una fila del mapa): para eso la copia va con VMAIN en modo "avanzar 32
+      tras cada palabra" (DMA_VMAIN_COLUMNA). Hasta el 2026-10-20 este archivo
+      disparaba los DMA él mismo en el VBlank: preparar dos copias en C costaba
+      9 líneas de las 37, y junto a los tiles de Tarou se salía del VBlank.
 
     SE CONECTA CON
-      Incluye:  juego/fondo_nivel.h, juego/nivel.h, sistema/comun.h.
+      Incluye:  juego/fondo_nivel.h, juego/nivel.h, juego/dma_lista.h,
+                sistema/comun.h.
       Datos:    nivel1_cerca_til/_til_end/_pal, nivel1_cerca_col y
                 nivel1_cerca_col_banco (data.asm, .rodata_nivel1_cerca/_banco).
       Lo usa:   pantallas/pantalla_nivel1.c.
 
     HARDWARE QUE TOCA
-      $2115 VMAIN   0x81 = avanzar 32 palabras tras escribir el byte alto
-                    (bajar una fila); se deja en 0x80 (avanzar 1), que es lo que
-                    esperan las funciones del SDK.
-      $2116 VMADD   dirección de la VRAM donde empieza la columna.
-      $4300..$4305  canal 0 de DMA: modo 1 (dos registros, $2118 y $2119),
-                    origen de 24 bits (dirección + banco) y 64 bytes.
-      $420B MDMAEN  bit 0 = arrancar el canal 0. La CPU espera a que acabe.
-      No usa el canal 6: es el del cielo (HDMA, pantalla_nivel1.c).
+      VRAM y CGRAM por el SDK (bgInitTileSet, bgSetMapPtr) al cargar. Las
+      columnas las copia dma_ejecutar.asm; aquí solo se calcula de dónde a dónde.
 
     VARIABLES (estáticas)
       parche_col     u16  primera columna del nivel con parche (el tronco)
       parche_fuente  u16  de qué columna del mapa se toman (0 = sin parche)
       reescribir     u8   1 = el parche se quitó: volver a copiar sus columnas
+      ultima_col     u16  columna del borde izquierdo en el último frame (0xFFFF = ninguna)
     VARIABLES (constantes)
       BYTES_COLUMNA     64   32 filas x 2 bytes (una columna del mapa en la ROM)
       COLUMNAS_ANILLO   64   columnas del mapa de la VRAM (64x32)
       ANTES             15   columnas que se rellenan a la izquierda de la cámara
-    → glosario: Streaming de columnas, DMA, VRAM, Tilemap
+    → glosario: Streaming de columnas, DMA / HDMA, VRAM, Tilemap
 ---------------------------------------------------------------------------------*/
 #include <snes.h>
 #include "juego/fondo_nivel.h"
 #include "juego/nivel.h"
+#include "juego/dma_lista.h"
 #include "sistema/comun.h"
 
 extern char nivel1_cerca_til, nivel1_cerca_til_end, nivel1_cerca_pal; /* data.asm       */
-extern char nivel1_cerca_col;        /* 256 columnas x 64 bytes, columna a columna.        */
+extern char nivel1_cerca_col;        /* 260 columnas x 64 bytes, columna a columna.        */
 extern u8 nivel1_cerca_col_banco;    /* El banco de la ROM donde está nivel1_cerca_col.    */
 
 #define BYTES_COLUMNA 64             /* 32 filas x 2 bytes por entrada del mapa.          */
 #define COLUMNAS_ANILLO 64           /* El mapa de la VRAM: 64 columnas (512 px).          */
 #define ANTES 15                     /* Al rellenar: 15 a la izquierda, 49 a la derecha.  */
+#define NINGUNA 0xFFFF               /* ultima_col: todavía no se ha apuntado ninguna.     */
 
 static u16 parche_col;               /* Primera columna del nivel que se sustituye.        */
 static u16 parche_fuente;            /* Columna del mapa de donde salen (0 = ninguna).     */
 static u8 reescribir;                /* 1 = quitaron el parche: copiar otra vez esas columnas. */
+static u16 ultima_col;               /* Columna del borde izquierdo en el frame anterior.  */
+static u16 i;
 
 void fondo_nivel_parche(u16 col, u16 fuente)
 {
@@ -65,34 +68,30 @@ void fondo_nivel_quitar_parche(void)
     reescribir = 1;                                  /* Y hay que redibujarlas.             */
 }
 
-/*--- copiar_columna: la columna `col` del nivel a su sitio del anillo ------------
-    Con col fuera del nivel no hace nada (los bordes del nivel). */
-static void copiar_columna(u16 col)
+/*--- apuntar_columna: la columna `col` del nivel, a su sitio del anillo ------------
+    Con col fuera del nivel no hace nada (los bordes del nivel; también los
+    "negativos", que en u16 dan la vuelta). Origen: la columna `fuente` del mapa por
+    columnas (col << 6 = col x 64 bytes), en el banco que dice data.asm. */
+static void apuntar_columna(u16 col)
 {
     u16 fuente;
-    if (col >= COLUMNAS_NIVEL)                       /* También "negativos": u16 da la vuelta. */
+    if (col >= COLUMNAS_NIVEL)
     {
         return;
     }
     fuente = col;                                    /* Lo normal: la misma columna.        */
     if (parche_fuente != 0 && (u16)(col - parche_col) < PARCHE_COLUMNAS)
     {
-        fuente = parche_fuente + (col - parche_col); /* Dentro del parche: la versión con tronco. */
+        fuente = (u16)(parche_fuente + (col - parche_col)); /* Dentro del parche: con tronco. */
     }
-    REG_VMAIN = 0x81;                                /* Tras cada palabra, +32: baja una fila. */
-    REG_VMADDLH = VRAM_MAPA_A + nivel_columna_vram(col); /* Primera fila de la columna.   */
-    REG_DMAP0 = 0x01;                                /* Modo 1: bytes a $2118, $2119, ...      */
-    REG_BBAD0 = 0x18;                                /* Destino: $2118 (dato de la VRAM).      */
-    REG_A1T0LH = (u16)&nivel1_cerca_col + (fuente << 6); /* Origen: fuente * 64 bytes más allá. */
-    REG_A1B0 = nivel1_cerca_col_banco;               /* ...en el banco del mapa.               */
-    REG_DAS0LH = BYTES_COLUMNA;                      /* 64 bytes = 32 entradas.                */
-    REG_MDMAEN = 0x01;                               /* ¡Ya! (la CPU se para hasta que acabe). */
-    REG_VMAIN = 0x80;                                /* Lo normal: avanzar 1 palabra.          */
+    dma_lista_anadir((u16)((u16)&nivel1_cerca_col + (fuente << 6)),
+                     (u16)(VRAM_MAPA_A + nivel_columna_vram(col)),
+                     BYTES_COLUMNA, nivel1_cerca_col_banco, DMA_VMAIN_COLUMNA);
 }
 
 void fondo_nivel_rellenar(u16 camara)
 {
-    u16 primera, i;
+    u16 primera;
     primera = camara >> 3;                           /* Columna del borde izquierdo.        */
     if (primera > ANTES)                             /* Un poco de margen a la izquierda... */
     {
@@ -106,10 +105,14 @@ void fondo_nivel_rellenar(u16 camara)
     {
         primera = COLUMNAS_NIVEL - COLUMNAS_ANILLO;
     }
-    for (i = 0; i < COLUMNAS_ANILLO; i++)            /* Las 64 columnas del anillo.         */
-    {
-        copiar_columna(primera + i);
+    for (i = 0; i < COLUMNAS_ANILLO; i++)            /* Las 64 columnas del anillo, de una  */
+    {                                                /* en una (la pantalla está apagada:   */
+        dma_lista_vaciar();                          /* no hay prisa y la lista es corta).  */
+        apuntar_columna(primera + i);
+        dma_lista_ejecutar();
     }
+    dma_lista_vaciar();                              /* La lista queda vacía.               */
+    ultima_col = NINGUNA;                            /* El próximo frame apunta sus bordes. */
 }
 
 void fondo_nivel_cargar(u16 camara)
@@ -122,14 +125,16 @@ void fondo_nivel_cargar(u16 camara)
     bgSetEnable(0);
 }
 
-void fondo_nivel_vblank(u16 camara)
+void fondo_nivel_actualizar(u16 camara)
 {
     u16 col;
-    u8 i;
     col = camara >> 3;                               /* Columna del borde izquierdo.        */
-    copiar_columna(col + 33);                        /* La siguiente a la última visible.   */
-    copiar_columna(col - 1);                         /* La anterior a la primera (si col es
-                                                        0, da 65535 y no se copia).         */
+    if (col != ultima_col)                           /* Entró en una columna nueva:         */
+    {
+        apuntar_columna(col + 33);                   /* la siguiente a la última visible... */
+        apuntar_columna(col - 1);                    /* ...y la anterior a la primera.      */
+        ultima_col = col;
+    }
     if (reescribir)                                  /* El tronco se rompió: sus columnas,  */
     {                                                /* las de debajo, si están en el anillo. */
         reescribir = 0;
@@ -139,7 +144,7 @@ void fondo_nivel_vblank(u16 camara)
                caería en el sitio del anillo de otra que SÍ se ve y la estropearía. */
             if ((u16)(parche_col + i + 1 - col) <= 34)
             {
-                copiar_columna(parche_col + i);
+                apuntar_columna(parche_col + i);
             }
         }
     }

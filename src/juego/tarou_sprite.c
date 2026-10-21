@@ -1,43 +1,58 @@
 /*---------------------------------------------------------------------------------
-    tarou_sprite.c — Dibujo de Tarou con el motor de sprites dinámicos del SDK.
+    tarou_sprite.c — Dibujo de Tarou en el nivel (ver tarou_sprite.h).
 
     PROPÓSITO
-      Traducir (estado, cuadro, dirección, posición) a una llamada
-      oamMetaDrawDyn32(): el motor reserva una entrada de la OAM por pieza a
-      partir de la 0, coloca las piezas de 32x32 según la tabla metasprite y, si
-      el cuadro cambió (oamrefresh = 1), encola la copia de sus tiles a la VRAM,
-      que oamVramQueueUpdate() ejecuta después del VBlank. Mirando a la izquierda
-      se construye en RAM una copia de la tabla con las piezas intercambiadas y
-      el bit de espejo horizontal (no hay tablas espejadas en la ROM). Un cuadro
-      de 96x64 tiene HASTA seis piezas: gfx4snes -T omite las transparentes, y
-      el recorrido para en el terminador (juego/metasprite.c).
+      Cada frame: una entrada de la OAM por pieza de la tabla metasprite del
+      cuadro que se MUESTRA (hasta 6, de 32x32), colocadas con sus dx/dy;
+      mirando a la izquierda, cada pieza cambia de lado (dx pasa a 64 - dx) y
+      se voltea, y sigue mostrando su mismo bloque. Las entradas que el cuadro
+      no usa se esconden.
+
+      Cuando la lógica cambia de cuadro, sus 3 KB de bloques tienen que subir a
+      la VRAM, y 3 KB de DMA son 24-30 líneas de las 37 del VBlank: demasiado
+      para compartirlo con el fondo y el HUD. Por eso la VRAM tiene DOS celdas
+      ("búferes": tiles 0..127 y 128..255) y la subida se reparte en dos
+      VBlanks de 1,5 KB como mucho: mientras la OAM enseña el cuadro viejo
+      desde un búfer, el nuevo se escribe en el otro; cuando está entero, la
+      OAM pasa a enseñarlo. El sprite va un frame por detrás de la lógica (la
+      posición no: solo el dibujo del cuadro), que no se nota. El plan de
+      copias lo hace metasprite_copias() (lógica pura); aquí se apuntan por
+      partes en la lista de DMA (dma_lista.h) que dma_ejecutar.asm dispara en
+      el VBlank.
 
     SE CONECTA CON
       Incluye:  juego/tarou_sprite.h, juego/animaciones.h, juego/metasprite.h,
+                juego/dma_lista.h, sistema/comun.h (VRAM_SPRITES),
                 sistema/puntofijo.h y los 13 tarou_<anim>_meta.inc que genera
                 gfx4snes -T (por la ruta -Ires/personajes/tarou del Makefile).
                 Esos .inc se incluyen SOLO aquí: definen tablas const con nombre
                 global (personajes.c incluye el suyo, tarou_reposo_estatico_meta.inc).
-      Lee de la ROM: tarou_<anim>_til (13) y tarou_pal (data.asm).
+      Lee de la ROM: tarou_<anim>_til (13), tarou_pal y tarou_til_bancos (data.asm).
       Lo usan:  pantallas/pantalla_nivel1.c.
 
     HARDWARE QUE TOCA
-      OAM: oamInitDynamicSprite, oambuffer[0].oamrefresh, oamMetaDrawDyn32,
-      oamClear. VRAM: 0x0000 (piezas grandes de 32x32) y 0x1000 (pequeñas, sin
-      uso), por el motor. CGRAM: dmaCopyCGram a la paleta de sprites 0.
+      OAM: oamInitGfxAttr, oamSet, oamSetEx, oamSetXY, oamClear (todo va al
+      buffer que la NMI del SDK copia a la OAM en cada VBlank). VRAM: tiles
+      0..255 desde VRAM_SPRITES (dos celdas de 3x2 bloques), por la lista de
+      DMA. CGRAM: dmaCopyCGram a la paleta de sprites 0.
 
-    VARIABLES (globales y estáticas de este archivo)
-      espejo[7]         t_metasprite  tabla del cuadro actual mirando a la izquierda (RAM):
-                                      hasta 6 piezas + el terminador
-      ultimo_estado     u8            estado dibujado en el frame anterior (0xFF = ninguno)
-      ultimo_cuadro     u8            cuadro dibujado en el frame anterior
-      ultima_direccion  u8            dirección dibujada en el frame anterior
-
-    → glosario: Metasprite, Sprite dinámico, OAM, VRAM, DMA / HDMA
+    VARIABLES (estáticas de este archivo)
+      mostrado_estado, mostrado_cuadro  u8  el cuadro que enseña la OAM (0xFF = ninguno)
+      bufer_mostrado   u8               0 o 1: en qué celda de la VRAM está ese cuadro
+      copias           CopiaBloque[16]  el plan de copias del cuadro que se está subiendo
+      n_copias         u8               cuántas son (0 = no hay subida en marcha)
+      copiadas         u8               cuántas ya se apuntaron en la lista
+      subiendo_estado, subiendo_cuadro  u8  qué cuadro se está subiendo
+      banco_subiendo   u8               el banco de la ROM de su tira
+    VARIABLES (constantes)
+      BYTES_POR_VBLANK 1536  tope de bytes de Tarou por VBlank (media celda: unas 9 líneas)
+    → glosario: Metasprite, OAM, VRAM, DMA / HDMA, VBlank
 ---------------------------------------------------------------------------------*/
 #include "juego/tarou_sprite.h"
 #include "juego/animaciones.h"
 #include "juego/metasprite.h"
+#include "juego/dma_lista.h"
+#include "sistema/comun.h"
 #include "sistema/puntofijo.h"
 
 /*--- Tablas metasprite generadas (una por animación): tarou_<anim>_metasprites[n] ---*/
@@ -55,29 +70,35 @@
 #include "tarou_dormido_meta.inc"
 #include "tarou_despertar_meta.inc"
 
-/*--- Tiles y paleta en ROM (data.asm) ------------------------------------------------*/
+/*--- Tiles, paleta y bancos en ROM (data.asm) -------------------------------------------*/
 extern char tarou_reposo_til, tarou_caminar_til, tarou_correr_til, tarou_saltar_til;
 extern char tarou_caer_til, tarou_agachado_til, tarou_agachado_caminar_til;
 extern char tarou_desenvainar_til, tarou_envainar_til, tarou_atacar_til;
 extern char tarou_echarse_til, tarou_dormido_til, tarou_despertar_til;
 extern char tarou_pal;
+extern u8 tarou_til_bancos[];        /* El banco de cada tira, en el orden del enum Estado. */
 
 /*--- Constantes ------------------------------------------------------------------------*/
-#define OAM_TAROU 0                  /* Primera entrada de la OAM; el metasprite usa 0..5.*/
+#define OAM_TAROU 0                  /* Primera entrada de la OAM; las piezas usan 0..5.  */
 #define PALETA_TAROU 0               /* Paleta de sprites 0 = colores 128..143 de la CGRAM.*/
-#define VRAM_DIN_GRANDES 0x0000      /* Piezas de 32x32 del motor dinámico.              */
+#define PRIORIDAD_TAROU 3            /* Por delante de todos los fondos.                  */
+#define TILES_POR_BUFER 128          /* Una celda de 3x2 bloques: 8 filas de 16 tiles.    */
+#define VRAM_BUFER(b) ((u16)(VRAM_SPRITES + ((u16)(b) << 11)))  /* 128 tiles x 16 palabras. */
+#define BYTES_POR_VBLANK 1536        /* Media celda por VBlank: unas 9 líneas de DMA.     */
 /* El arte de Pixellab es una vista lateral un poco elevada: las patas del lado lejano
    acaban más arriba que las cercanas. Con los pies justo en el borde del suelo, Tarou
    parecía flotar; dibujado 2 px más abajo que su posición física, los pies quedan
    DENTRO de la banda de hierba (que empieza 2 px por encima del borde: 4 px en total).
    Solo es dibujo: la física y las pruebas usan el borde exacto de las celdas. */
 #define HUNDIR_PIES 2
-#define VRAM_DIN_PEQUENAS 0x1000     /* Piezas de 16x16 (no se usan).                    */
-#define SIN_ESTADO 0xFF              /* "Todavía no se dibujó nada".                     */
+#define SIN_ESTADO 0xFF              /* "Todavía no hay ningún cuadro en la OAM".         */
 
 /*--- Estado ----------------------------------------------------------------------------*/
-static t_metasprite espejo[METASPRITE_PIEZAS_MAX + 1];   /* Hasta 6 piezas + terminador. */
-static u8 ultimo_estado, ultimo_cuadro, ultima_direccion;
+static u8 mostrado_estado, mostrado_cuadro, bufer_mostrado;
+static CopiaBloque copias[METASPRITE_COPIAS_MAX];   /* El plan de copias del cuadro en subida. */
+static u8 n_copias, copiadas, subiendo_estado, subiendo_cuadro, banco_subiendo;
+static u8 i, n;
+static u16 bytes;
 
 const t_metasprite *tarou_sprite_tabla(u8 estado, u8 cuadro)
 {
@@ -121,46 +142,119 @@ u8 *tarou_sprite_tiles(u8 estado)
     }
 }
 
+/*--- esconder: una entrada de la OAM fuera de la pantalla ---------------------------
+    OBJ_HIDE pone el bit 8 de x (x = 256, fuera por la derecha); además y = 224,
+    porque con y = 240 (el truco clásico) un sprite grande aún asoma por arriba. */
+static void esconder(u8 entrada)
+{
+    oamSetEx((u16)entrada * 4, OBJ_LARGE, OBJ_HIDE);
+    oamSetXY((u16)entrada * 4, 256, 224);
+}
+
 void tarou_sprite_cargar(void)
 {
-    /* Motor dinámico: piezas "grandes" de 32x32 desde 0x0000, "pequeñas" de 16x16
-       desde 0x1000 (OBJ_SIZE16_L32). Las entradas de la OAM empiezan en la 0. */
-    oamInitDynamicSprite(VRAM_DIN_GRANDES, VRAM_DIN_PEQUENAS, 0, 0, OBJ_SIZE16_L32);
+    /* Tiles de sprites desde VRAM_SPRITES; tamaños "pequeño" 16x16 y "grande" 32x32:
+       todas las piezas de Tarou son grandes. */
+    oamInitGfxAttr(VRAM_SPRITES, OBJ_SIZE16_L32);
     dmaCopyCGram((u8 *)&tarou_pal, 128 + 16 * PALETA_TAROU, 16 * 2);   /* Paleta 0.    */
-    ultimo_estado = SIN_ESTADO;                      /* El primer dibujo copia los tiles.   */
-    ultimo_cuadro = 0;
-    ultima_direccion = DIR_DERECHA;
+    mostrado_estado = SIN_ESTADO;                    /* Nada en la OAM todavía...          */
+    mostrado_cuadro = 0;
+    bufer_mostrado = 1;                              /* ...el primer cuadro irá al búfer 0. */
+    n_copias = 0;                                    /* Ninguna subida en marcha.           */
+    copiadas = 0;
+    for (i = 0; i < METASPRITE_PIEZAS_MAX; i++)
+    {
+        esconder((u8)(OAM_TAROU + i));               /* Nada en pantalla hasta dibujar.     */
+    }
+}
+
+void tarou_sprite_refrescar(void)
+{
+    mostrado_estado = SIN_ESTADO;                    /* El próximo dibujo vuelve a subirlo. */
+    n_copias = 0;                                    /* Olvida cualquier subida a medias.   */
+}
+
+u8 tarou_sprite_al_dia(const Tarou *t)
+{
+    return (u8)(n_copias == 0 && t->estado == mostrado_estado && t->cuadro == mostrado_cuadro);
+}
+
+/*--- apuntar_copias: hasta BYTES_POR_VBLANK de la subida en marcha, a la lista -------
+    Devuelve 1 si con esto la subida queda completa. */
+static u8 apuntar_copias(void)
+{
+    bytes = 0;
+    while (copiadas < n_copias)
+    {
+        if (bytes != 0 && (u16)(bytes + copias[copiadas].bytes) > BYTES_POR_VBLANK)
+        {
+            return 0;                                /* Lo que queda, al VBlank siguiente.  */
+        }
+        bytes = (u16)(bytes + copias[copiadas].bytes);
+        dma_lista_anadir(copias[copiadas].origen, copias[copiadas].vram, copias[copiadas].bytes,
+                         banco_subiendo, DMA_VMAIN_TILES);
+        copiadas++;
+    }
+    return 1;                                        /* Todo apuntado: entero tras el VBlank. */
 }
 
 void tarou_sprite_dibujar(const Tarou *t, u16 camara)
 {
-    const t_metasprite *tabla = tarou_sprite_tabla(t->estado, t->cuadro);
-    s16 x = (s16)(PF_ENTERO(t->x_fp) - camara);     /* Pantalla = mundo - cámara.         */
-    s16 y = (s16)(PF_ENTERO(t->y_fp) + HUNDIR_PIES); /* No hay scroll vertical. Se dibuja
+    const t_metasprite *tabla;
+    u16 x = (u16)(PF_ENTERO(t->x_fp) - camara);     /* Pantalla = mundo - cámara.         */
+    u16 y = (u16)(PF_ENTERO(t->y_fp) + HUNDIR_PIES); /* No hay scroll vertical. Se dibuja
                                                         2 px más abajo que la física: ver
                                                         HUNDIR_PIES arriba.                */
+    u16 dx, tile, base;
+    u8 izquierda = (u8)(t->direccion == DIR_IZQUIERDA);
 
-    /* Si cambió el cuadro (o el estado, o el espejo), hay que volver a copiar los
-       tiles a la VRAM: el motor lo hace cuando ve oamrefresh = 1 en la entrada 0. */
-    if (t->estado != ultimo_estado || t->cuadro != ultimo_cuadro || t->direccion != ultima_direccion)
+    /*--- 1. La subida de tiles: seguir la que hay en marcha o empezar una nueva. Cada
+           frame apunta como mucho media celda (BYTES_POR_VBLANK); cuando la subida
+           queda completa, la OAM pasa a enseñar ese cuadro desde el otro búfer. ----*/
+    if (n_copias == 0 && (t->estado != mostrado_estado || t->cuadro != mostrado_cuadro))
     {
-        oambuffer[OAM_TAROU].oamrefresh = 1;
-        ultimo_estado = t->estado;
-        ultimo_cuadro = t->cuadro;
-        ultima_direccion = t->direccion;
+        /* Cuadro nuevo: su plan de copias, hacia el búfer que NO se muestra. El origen
+           es la dirección de la tira dentro de su banco (los 16 bits bajos del puntero)
+           y el banco viene de la tabla de data.asm. */
+        subiendo_estado = t->estado;
+        subiendo_cuadro = t->cuadro;
+        banco_subiendo = tarou_til_bancos[t->estado];
+        n_copias = metasprite_copias(tarou_sprite_tabla(t->estado, t->cuadro),
+                                     (u16)tarou_sprite_tiles(t->estado),
+                                     VRAM_BUFER(bufer_mostrado ^ 1), copias);
+        copiadas = 0;
+    }
+    if (n_copias != 0 && apuntar_copias())
+    {
+        mostrado_estado = subiendo_estado;           /* Tras este VBlank estará entero:     */
+        mostrado_cuadro = subiendo_cuadro;           /* la OAM ya puede apuntar a él.       */
+        bufer_mostrado ^= 1;
+        n_copias = 0;
+    }
+    if (mostrado_estado == SIN_ESTADO)
+    {
+        return;                                      /* Aún no hay cuadro entero: escondido. */
     }
 
-    /* Mirando a la izquierda: copia de la tabla con las piezas intercambiadas
-       (dx 0 <-> 64; la columna del medio se queda) y el bit de espejo, con el
-       terminador detrás de la última pieza que haya (pueden ser menos de seis):
-       juego/metasprite.c. */
-    if (t->direccion == DIR_IZQUIERDA)
+    /*--- 2. La OAM: una pieza por entrada de la tabla del cuadro MOSTRADO, en la
+           posición de este frame. En espejo, cada pieza cambia de lado (dx 0 <-> 64,
+           la del medio se queda), se voltea y muestra su MISMO bloque; el tile es
+           fijo dentro de la celda: fila * 64 + columna * 4, más el búfer. ----------*/
+    tabla = tarou_sprite_tabla(mostrado_estado, mostrado_cuadro);
+    base = bufer_mostrado ? TILES_POR_BUFER : 0;
+    n = metasprite_piezas(tabla);                    /* 0..6: para en el terminador.        */
+    for (i = 0; i < n; i++)
     {
-        metasprite_espejar(tabla, espejo);
-        tabla = espejo;
+        dx = izquierda ? (u16)(METASPRITE_ESPEJO_DX - tabla[i].dx) : tabla[i].dx;
+        tile = (u16)(base + (((tabla[i].dy >> 5) << 6) | ((tabla[i].dx >> 5) << 2)));
+        oamSet((u16)(OAM_TAROU + i) * 4, (u16)(x + dx), (u16)(y + tabla[i].dy),
+               PRIORIDAD_TAROU, izquierda, 0, tile, PALETA_TAROU);
+        oamSetEx((u16)(OAM_TAROU + i) * 4, OBJ_LARGE, OBJ_SHOW);   /* 32x32, visible.   */
     }
-
-    oamMetaDrawDyn32(OAM_TAROU, x, y, (u8 *)tabla, tarou_sprite_tiles(t->estado));
+    for (; i < METASPRITE_PIEZAS_MAX; i++)
+    {
+        esconder((u8)(OAM_TAROU + i));               /* Pieza transparente: sin sprite.     */
+    }
 }
 
 void tarou_sprite_ocultar(void)

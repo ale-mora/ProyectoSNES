@@ -240,3 +240,14 @@ tarou_dormido_til_end:
 tarou_despertar_til:  .incbin "res/personajes/tarou/tarou_despertar.pic"
 tarou_despertar_til_end:
 .ends
+
+; El BANCO de la ROM de cada tira, en el orden del enum Estado
+; (src/juego/animaciones.h): el DMA que sube un cuadro a la VRAM lo necesita aparte
+; (src/juego/tarou_sprite.c). «:etiqueta» es el banco de la etiqueta en WLA-DX.
+.section ".rodata_tarou_bancos" superfree
+tarou_til_bancos: .db :tarou_reposo_til, :tarou_caminar_til, :tarou_correr_til
+                  .db :tarou_saltar_til, :tarou_caer_til, :tarou_agachado_til
+                  .db :tarou_agachado_caminar_til, :tarou_desenvainar_til, :tarou_envainar_til
+                  .db :tarou_atacar_til, :tarou_echarse_til, :tarou_dormido_til
+                  .db :tarou_despertar_til
+.ends
