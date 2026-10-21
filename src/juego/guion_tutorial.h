@@ -17,8 +17,8 @@
 
     VARIABLES
       GUION_TUTORIAL         TramoGuion[]  los tramos (en guion_tutorial.c)
-      GUION_TUTORIAL_TRAMOS  12            cuántos son
-      GUION_TUTORIAL_FIN     2238          cuadro en que llega a la salida (PC)
+      GUION_TUTORIAL_TRAMOS  13            cuántos son
+      GUION_TUTORIAL_FIN     2270          cuadro en que llega a la salida (PC)
 
     → glosario: Mando, Frame
 ---------------------------------------------------------------------------------*/
@@ -27,8 +27,8 @@
 
 #include "juego/guion.h"
 
-#define GUION_TUTORIAL_TRAMOS 12
-#define GUION_TUTORIAL_FIN 2238
+#define GUION_TUTORIAL_TRAMOS 13
+#define GUION_TUTORIAL_FIN 2270
 
 extern const TramoGuion GUION_TUTORIAL[GUION_TUTORIAL_TRAMOS];
 
