@@ -1,0 +1,16 @@
+diff --git a/src/pantallas/pantalla_nivel1.c b/src/pantallas/pantalla_nivel1.c
+index 62ad091..7761402 100644
+--- a/src/pantallas/pantalla_nivel1.c
++++ b/src/pantallas/pantalla_nivel1.c
+@@ -160,6 +160,11 @@ void pantalla_nivel1_iniciar(void)
+                    &nivel1_lejos_map, &nivel1_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
+     fuente_2bpp(2);                                  /* Texto del HUD en el fondo 2...      */
+     hud_debug_iniciar();                             /* ...apagado hasta que lo pida SELECT.*/
++#ifdef GUION_PRUEBA
++    hud_debug_alternar();                            /* ROM de prueba: el HUD, encendido
++                                                        desde el principio (unidad 04: así
++                                                        se mide LIN y V sin tocar teclas). */
++#endif
+     mando_iniciar();                                 /* (Solo hace algo en la ROM de prueba.) */
+ 
+     tarou_sprite_cargar();                           /* OAM lista + paleta de Tarou.        */

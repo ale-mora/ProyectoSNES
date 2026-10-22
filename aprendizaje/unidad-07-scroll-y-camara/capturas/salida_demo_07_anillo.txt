@@ -1,0 +1,14 @@
+1. x = 10: en s16, 10 + 48 - 128 = -70; en u16 = 65466 (por eso camara_para usa s16)
+2.    x  camara  cerca(&511)  lejos=cam/2(&511)  col | columnas que entran (anillo)
+      0      0      0             0  (  0)         0 |  der  33 -> +0x401   izq    -1 -> fuera
+     80      0      0             0  (  0)         0 |  der  33 -> +0x401   izq    -1 -> fuera
+     81      1      1             0  (  0)         0 |  der  33 -> +0x401   izq    -1 -> fuera
+    200    120    120            60  ( 60)        15 |  der  48 -> +0x410   izq  14 -> +0x00E
+    432    352    352           176  (176)        44 |  der  77 -> +0x00D   izq  43 -> +0x40B
+    433    353    353           176  (176)        44 |  der  77 -> +0x00D   izq  43 -> +0x40B
+    944    864    352           432  (432)       108 |  der 141 -> +0x00D   izq 107 -> +0x40B
+   1500   1420    396           710  (198)       177 |  der 210 -> +0x012   izq 176 -> +0x410
+   1872   1792    256           896  (384)       224 |  der  256+ -> fuera   izq 223 -> +0x01F
+   1952   1792    256           896  (384)       224 |  der  256+ -> fuera   izq 223 -> +0x01F
+3. Columnas que comparten sitio en el anillo: 4 68 132 196 -> todas en +0x004
+   Pagina 2 (columnas 32..63): la 40 va a +0x408 = 0x400 + 8

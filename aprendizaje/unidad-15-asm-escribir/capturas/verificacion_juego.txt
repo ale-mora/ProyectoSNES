@@ -1,0 +1,32 @@
+# Unidad 15 — verificación de la solución sobre el juego (clon E:\ProyectoSNES_trabajo\u14, 2026-10-22)
+# Cambios aplicados: andamio_hud_debug.c.patch, solucion/colision.c.patch,
+#                    solucion/hud_numero.asm -> src/juego/hud_numero.asm,
+#                    solucion/colision_rapida.asm -> src/juego/colision_rapida.asm
+# (git apply --check de los dos parches sobre el clon limpio: OK)
+
+## Pruebas de PC (usan la colision_apoyan en C: #ifdef PRUEBAS_PC)
+> $env:PATH="C:\msys64\usr\bin;"+$env:PATH; make -C tests; .\tests\pruebas.exe
+367 pruebas, 0 fallos
+
+## ROM de prueba con guion, numero en C (referencia para el profiler): make clean; CFLAGS=-DGUION_PRUEBA; make
+No warnings or errors found.          -> roms\u15_guion_hud_c.sfc (+ .sym)
+
+## ROM de prueba con guion, numero en asm: make clean; CFLAGS="-DGUION_PRUEBA -DHUD_NUMERO_ASM"; make
+## (con colision_apoyan en asm, que no depende de ninguna macro)
+No warnings or errors found.          -> roms\u15_guion_asm_completo.sfc (+ .sym)
+.sym:  007e26de colision_rejilla   008ed038 colision_apoyan   008ecde5 hud_numero
+       008e9416 tccs_src/juego/hud_debug.asm_numero (la de C sigue: es la referencia)
+       008e9208 tccs_src/juego/hud_debug.asm_comprobar_numero
+
+## ROM normal (sin macros) con los cambios: make clean; make
+No warnings or errors found.          (ROM no guardada; de ella salen los bytes de ../unidad-14-asm-leer/capturas/rutinas_libreria.txt)
+
+## El esqueleto ejercicio_15_hud_numero.asm (TODO vacíos) también ensambla y enlaza:
+No warnings or errors found.
+
+## comprobar_hud_numero.py (simulador del PC, en la carpeta de la unidad) sobre solucion/hud_numero.asm: ver
+## salida_comprobar_hud_numero.txt (65536 valores, 0 fallos).
+
+## PENDIENTE (tanda de Mesen): fila "CAM ... F ...  ASM 14/14" del HUD en
+## u15_guion_asm_completo.sfc; el recorrido completo igual que en u15_guion_hud_c.sfc
+## (colision_apoyan en asm solo se prueba ahí); ciclos en el profiler.

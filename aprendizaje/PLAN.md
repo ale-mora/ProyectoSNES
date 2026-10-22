@@ -2,15 +2,17 @@
 
 **Para quién:** un programador junior que va a heredar este proyecto y tiene
 que entender todo el código desplegado, de lo más simple a lo más complejo,
-con el foco en programar juegos de Super Nintendo en C y ensamblador.
+con el foco en programar juegos de Super Nintendo **en C con PVSnesLib**
+(las unidades 14 y 15 enseñan además a leer y escribir ensamblador 65816).
 **Qué es:** el plan de las unidades de estudio. Cada unidad enseña un
 concepto, lo ancla en un archivo real del juego y se aprueba con una
-práctica. **Este documento es la especificación; las unidades se escriben en
-sesiones posteriores, una por sesión**, siguiendo el formato de §2 y el
-procedimiento de §6. El punto de entrada para esas sesiones es
-`aprendizaje/README.md`.
+práctica. Este documento es la especificación; desde el 2026-10-22 **las 21
+unidades están escritas** (§7) y este plan sirve para revisarlas o
+reescribirlas siguiendo el formato de §2 y el procedimiento de §6. Las
+funciones de la librería que usa el curso están indexadas en
+[`pvsneslib.md`](pvsneslib.md).
 
-**Estado del juego que enseñan (2026-10-20, rama `demo-secuencia-arranque`):**
+**Estado del juego que enseñan (2026-10-22, rama `demo-secuencia-arranque`):**
 Revisión 2. Tarou es un perro de Pixellab en celdas de 96×64 (metasprite
 dinámico de hasta 6 piezas) con 13 animaciones. El nivel 1 es un **tutorial
 de movimiento** de 2048 px (`docs/diseno-tutorial-movimiento.md`): escalones,
@@ -18,12 +20,15 @@ muro, túnel, foso, plataformas sobre zarzas, un tronco que se rompe con la
 espada y la salida a «LEVEL 2 / COMING SOON»; colisión contra una rejilla de
 celdas de 16 px, reaparición en puntos de control, la capa cercana dibujada en
 Tiled (la lógica) y vestida por script con el tileset de Pixellab, copiada a
-la VRAM por columnas; montañas en parallax y cielo por HDMA. Pruebas: 280 en
-PC (entre ellas el recorrido completo del nivel) y 35 de scripts; una ROM de
-prueba (`-DGUION_PRUEBA`) se juega sola en Mesen. Lo que todavía no existe:
-enemigos, audio, Bárbara jugable y el arte final de zarzas, carteles y tronco.
+la VRAM por columnas; montañas en parallax y cielo por HDMA; el logo de
+Nintendo animado por el motor de escenas (`src/escena/`); ROM de 4 MB LoROM
+FastROM. Pruebas: 367 en PC (entre ellas el recorrido completo del nivel) y
+35 de scripts; una ROM de prueba (`-DGUION_PRUEBA`) se juega sola en Mesen.
+Lo que todavía no existe: enemigos, audio, Bárbara jugable y el arte final de
+zarzas, carteles y tronco.
 
-Alcance: mecánicas, C, ensamblador (65816 y SPC700) y la **integración
+Alcance: mecánicas, C con PVSnesLib, ensamblador 65816 (unidades 14 y 15),
+audio desde C (unidad 17, sin ensamblador del SPC700) y la **integración
 técnica** del arte (de la exportación de Pixellab a la ROM). Dibujar el arte,
 diseñar niveles, componer música y escribir el guion quedan fuera.
 
@@ -79,10 +84,26 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 
 ## 3. Las unidades
 
-### Unidad 00 — C en el PC: lógica, funciones, arrays, structs y punteros
+### Unidad 00 — C en el PC: lógica, funciones, arrays, structs, punteros, bits, preprocesador, varios archivos y `enum`
 
 - **Objetivo:** leer y escribir C de 16 bits sin miedo: variables, tipos,
-  `if`/`for`/`while`, funciones, arrays, `struct`, punteros y `#define`.
+  `if`/`for`/`while`, funciones, arrays, `struct`, punteros, operadores de
+  bits, preprocesador, programas de varios archivos y `enum`/`switch`/`const`.
+- **Ampliación del 2026-10-22 (partes 5–8):** binario, hexadecimal,
+  operadores `& | ^ ~ << >>` y máscaras (los bits del mando y de la OAM);
+  preprocesador (`#define` con parámetros, `#ifdef`, `-D`, `gcc -E`, guardas);
+  varios archivos (`.h`/`.c`, prototipo, declaración frente a definición,
+  `extern`, las tres formas de `static`, compilar frente a enlazar); `enum`,
+  `switch` (y el fall-through) y tablas `const`. Las partes 3–4 pasan a usar
+  `u8`/`u16` con los `typedef` de `src/sistema/tipos.h`; las 01–02 conservan
+  `int` a propósito (son las soluciones del autor). Archivos nuevos:
+  `demo_05_bits.c`, `demo_06_preprocesador.c` (+ `demo_06_caja.h`,
+  `demo_06_expandir.c`), `demo_07/`, `demo_08_enum_switch_const.c`, sus
+  ejercicios (`ejercicio_07/` es una carpeta) y soluciones, y en `capturas/`
+  cuatro errores reales (guarda, enlace, `static`, `const`). Los esqueletos
+  03 y 04 siguen sin resolver: el autor los tiene pendientes. La aprobación
+  pasa a ser de **ocho** ejercicios. Lo que sigue es la ficha original de las
+  partes 1–4.
 - **Conceptos:** variable; tipo (y por qué `u8`/`u16`/`s16` en vez de
   `int`); expresión y sentencia; función (parámetros, valor devuelto, `void`);
   array (índice desde 0); `struct` (varias variables con nombre en una);
@@ -116,12 +137,14 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 ### Unidad 01 — Enteros de 16 bits y punto fijo
 
 - **Objetivo:** hacer aritmética con decimales en una CPU que no los tiene.
-- **Conceptos:** bit, byte, binario y hexadecimal; desbordamiento (qué pasa
-  en 255 + 1 con `u8`); signo (`s16`: complemento a dos); desplazamientos
-  `<<` y `>>`; **punto fijo** (reservar bits para la fracción; formatos 8.8 y
+- **Conceptos:** (bits, binario, hex y desplazamientos: repaso de la unidad
+  00, parte 5) desbordamiento (qué pasa en 255 + 1 con `u8`); signo (`s16`:
+  complemento a dos; `>>` de un `s16` es aritmético en tcc816, medido);
+  **punto fijo** (reservar bits para la fracción; formatos 8.8 y
   12.4); por qué las posiciones no son negativas en este proyecto; el coste
   de `/` y `%` en el 65816.
-- **Archivos:** `README.md`, `demo_01_puntofijo.c` (mueve un valor con
+- **Archivos:** `README.md`, `demo_01_enteros.c` (desbordamiento y signo),
+  `demo_01_puntofijo.c` (mueve un valor con
   velocidad 1,5 px/frame y lo imprime frame a frame), `ejercicio_01_gravedad.c`
   (simular un salto con gravedad en 12.4 e imprimir la altura máxima).
 - **Código del juego:** `src/sistema/puntofijo.h`, `tests/prueba_puntofijo.c`,
@@ -134,8 +157,8 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 ### Unidad 02 — Máquinas de estado
 
 - **Objetivo:** modelar «qué está haciendo» algo con una variable y un `switch`.
-- **Conceptos:** estado; transición; `enum` (nombres con valor entero);
-  `switch`/`case`/`break`; máquina de estados finita; el patrón
+- **Conceptos:** estado; transición; `enum` y `switch`/`case`/`break`
+  (repaso: se enseñan en la unidad 00, parte 8); máquina de estados finita; el patrón
   `_iniciar` / `_actualizar`; por qué una sola cosa a la vez (y cuándo una
   variable aparte, como `espada`, es mejor que duplicar estados).
 - **Archivos:** `README.md`, `demo_02_semaforo.c` (un semáforo con `enum` y
@@ -145,7 +168,7 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   `src/juego/animaciones.h` (`enum Estado`), `src/juego/tarou.c`
   (`manejar_pie`, `manejar_agachado`, `manejar_espada`, `manejar_sueno`),
   `docs/diseno-demo-jugable.md` §4 (la tabla de transiciones).
-- **Prerrequisitos:** 00. **Práctica:** PC + sobre el juego real (añadir una
+- **Prerrequisitos:** 00, 01. **Práctica:** PC + sobre el juego real (añadir una
   comprobación a `tests/prueba_tarou.c` y verla pasar).
 - **Aprobación:** la prueba nueva pasa en `tests/pruebas.exe` y el ejercicio
   imprime la secuencia de estados esperada.
@@ -173,7 +196,7 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   con la receta de §6.4, copiarlo a la unidad y anotar, línea a línea, qué
   instrucción corresponde a cada sentencia de C).
 - **Código del juego:** `Makefile`, `src/juego/camara.c` y su `.asm`
-  generado (77 líneas, verificado el 2026-10-22 con FastROM: carga del parámetro desde la
+  generado (85 líneas, la función en las 10–68; verificado el 2026-10-22 con FastROM: carga del parámetro desde la
   pila, `adc.w #48`, `sbc.w #128`, recorte por abajo con `bvc`/`bmi`, recorte
   por arriba comparando con `#1792` (`ANCHO_NIVEL − ANCHO_PANTALLA`) y `rtl`:
   las funciones de tcc816 son «largas», se llaman con `jsl`/`jsr.l`),
@@ -194,7 +217,7 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   **forced blank** (con la pantalla apagada, `setScreenOff`, la VRAM se escribe
   cuando se quiera: así reaparece Tarou); qué pasa si la lógica se pasa de
   tiempo (se pierde un VBlank); medir la velocidad real con un recorrido
-  conocido (2238 cuadros = 37,3 s a 60 FPS).
+  conocido (2270 cuadros, `GUION_TUTORIAL_FIN` = 37,8 s a 60 FPS).
 - **Archivos:** `README.md`, `rom/` (mini-ROM con un contador de frames en
   pantalla y un «segundero» calculado con `SEGUNDOS`), `ejercicio_04.md`
   (hacer que el contador parpadee cada medio segundo).
@@ -212,13 +235,18 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   FPS; hoy cuesta 24–63 y tiene un tope de línea: ~6 frames en todo el
   recorrido). Ojo al
   leer `LIN`: la lógica empieza dentro del VBlank, así que las cifras pueden
-  estar en 225..261 o haber dado ya la vuelta (70–120 en el tutorial).
+  estar en 225..261 o haber dado ya la vuelta; un valor en 225..261 es
+  ambiguo (frame barato o pasado de una vuelta entera) y lo decide `F` frente a
+  `VB`. 70–120 es donde acaba la lógica; con el HUD, el frame acaba en 150–200.
+  La unidad trae además la variante con `nmiSet` propio (y `consoleVblank`,
+  que la 4.6.0 no declara en ninguna cabecera).
 
 ### Unidad 05 — El mando
 
 - **Objetivo:** leer los botones y separar «mantenido» de «recién pulsado».
-- **Conceptos:** bits y máscaras (`&`, `|`, `<<`); `padsCurrent` y
-  `padsDown`; autolectura del joypad en el VBlank; la `struct Mando` como
+- **Conceptos:** bits y máscaras (repaso: se enseñan en la unidad 00, parte 5);
+  `padsCurrent` y `padsDown` (macros sobre `pad_keys`/`pad_keysdown`) y
+  `padsUp` (función); autolectura del joypad en el VBlank; la `struct Mando` como
   traducción a intenciones; prioridad entre botones pulsados a la vez; un
   **guion de mando** (botones leídos de una tabla de tiempo): como la lógica
   solo ve la `struct Mando`, se puede jugar sin manos, en el PC o en la ROM.
@@ -241,10 +269,12 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   bytes; paleta y color de 15 bits; tilemap (palabra por celda: tile,
   paleta, prioridad, **volteo horizontal y vertical**); modos de vídeo
   (Mode 1, Mode 3); `gfx4snes` y sus opciones; PNG indexado; índice 0
-  transparente; DMA; deduplicación de tiles, volteos incluidos (por qué los
-  2080×256 px de la capa cercana del tutorial caben en unos 250 tiles: el arte
-  se pega alineado a la rejilla de 8×8 y las letras de los carteles ocupan un
-  tile cada una, así que se comparten).
+  transparente; DMA; deduplicación de tiles (por qué los 2080×256 px de la
+  capa cercana del tutorial caben en 281 tiles: el arte se pega alineado a la
+  rejilla de 8×8 y las letras de los carteles ocupan un tile cada una, así que
+  se comparten). Los volteos solo se deduplican si `gfx4snes` recibe `-F`, y
+  el `Makefile` no lo pasa: hoy hay 0 celdas volteadas (con `-F` serían 260
+  tiles; medido el 2026-10-22, decisión del autor si se adopta).
 - **Archivos:** `README.md`, `rom/` (mini-ROM que carga un fondo de 16
   colores con `bgInitTileSet` + `bgInitMapSet`), `ejercicio_06.md` (cambiar
   un color de la paleta en tiempo de ejecución y cambiar un tile del mapa).
@@ -442,7 +472,9 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 - **Conceptos:** mapa de memoria del 65816 (bancos `$7E/$7F` = WRAM; LoROM;
   FastROM: la ROM en `$80-$FF`, y por qué 128 bancos SlowROM pisarían la
   WRAM); la WRAM **no** se pone a cero al arrancar (una `static` sin
-  inicializar vale basura);
+  inicializar vale basura: `crt0` intenta borrar `.bss`, pero como
+  `SECTIONSTART_.bss` se repite en cada `.c`, en esta ROM solo borra 10 bytes
+  de `$7E:2000`);
   sección `superfree`; `.incbin`; etiqueta; por qué una sección no puede
   cruzar 32 KB (y por eso 10 cuadros de 96×64 por animación); dirección de
   24 bits = banco + 16 bits, y cómo darle a C el banco de una etiqueta
@@ -457,7 +489,11 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   `nivel1_cerca_col` y explicar por qué hace falta `nivel1_cerca_col_banco`).
 - **Código del juego:** `data.asm` (`.rodata_nivel1_cerca`, `.rodata_nivel1_banco`,
   `.rodata_nivel1_colision`), `src/sistema/comun.h`, `src/juego/fondo_nivel.c`
-  (`REG_A1T0LH` y `REG_A1B0`: la dirección y el banco del DMA),
+  (pasa dirección y banco a `dma_lista_anadir`; `dma_ejecutar.asm` escribe el
+  banco en `$4304`), `src/escena/efectos.c` (`efectos_destello`: dirección y
+  banco del HDMA desde C con `REG_A1T6LH`, `REG_A1B6`, `REG_DASB6`). Medido el
+  2026-10-22: las `const` globales van a la WRAM (`$7F`, copiadas por `crt0`);
+  solo las `static const` quedan en `.rodata` de la ROM (banco `$0E`),
   `ProyectoSNES.log`, `ProyectoSNES.sym`.
 - **Prerrequisitos:** 03, 06, 08. **Práctica:** sobre el juego real.
 - **Aprobación:** captura de Memory Tools con `tarou` y la cuenta de ROM libre.
@@ -480,7 +516,7 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   `u8`: dos llamadas `jsr.l tcc__div`) con `tile_del_bloque32` (parámetro
   `u16`: ninguna) y explicar la diferencia; y reescribir a propósito
   `mantenidos` de `src/juego/guion.c` con `guion[i]`, generar su `.asm`,
-  contar los `jsr.l tcc__mul` (structs de 5 bytes: `i × 5` en cada acceso),
+  contar los `jsr.l tcc__mul` (`TramoGuion` mide 6 bytes por el relleno, no 5: `i × 6` en cada acceso, 3 `tcc__mul` por vuelta),
   explicar por qué la versión con puntero no tiene ninguno y deshacer el
   cambio).
 - **Código del juego:** los `.asm` generados, `data.asm`, `hdr.asm`, las
@@ -494,7 +530,8 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 
 - **Objetivo:** escribir una rutina en `.asm` y llamarla desde C.
 - **Conceptos:** convención de llamada de tcc816 (parámetros en la pila,
-  valor en A / `tcc__r0`); secciones `.section ".text"`; `.export`/`extern`;
+  valor en `tcc__r0`/`tcc__r0h`, no en A); secciones `.section ".text"`;
+  `extern` (no hace falta `.export`: medido el 2026-10-22);
   `REP #$20` / `SEP #$20`; bucles con `DEX`/`BNE`; escribir un registro de la
   PPU a mano (`STA $2100`); medir ciclos con el profiler de Mesen.
 - **Archivos:** `README.md`, `rom/` (mini-ROM con `src/relleno.asm`: una
@@ -504,7 +541,10 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   detrás, porque WLA-DX suma la base también a los bancos de RAM),
   `ejercicio_15.md` (reescribir `numero` del HUD en ensamblador y comparar
   ciclos; de paso, ver en el `.asm` generado por qué un bucle `*p++ = 0` en C
-  son ~60 instrucciones por vuelta y `memset` de la librería, 3; ampliación: `colision_en` de `src/juego/colision.c`, la
+  son ~40 instrucciones por vuelta en una función aislada (37–40 medidas) y
+  `memset` de la librería, 3; ampliación: `colision_apoyan` de
+  `src/juego/colision.c` (el juego ya no llama a `colision_en`, solo las
+  pruebas), la
   consulta más repetida de la física, manteniendo la versión C para el PC y
   comprobando con la ROM de prueba que el recorrido sigue igual).
 - **Código del juego:** `src/juego/dma_ejecutar.asm` (**la rutina en
@@ -543,25 +583,33 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 - **Prerrequisitos:** 05, 08, 13. **Práctica:** sobre el juego real.
 - **Aprobación:** los cuatro casos resueltos con la captura que lo demuestra.
 
-### Unidad 17 — SPC700 y audio
+### Unidad 17 — Audio desde C con PVSnesLib
 
-- **Objetivo:** entender el segundo procesador y el driver de audio del SDK
-  (sin componer: la música es de otra sesión).
-- **Conceptos:** SPC700 (su RAM de 64 KB, su juego de instrucciones, su
-  DSP de 8 voces); los puertos `$2140-$2143`; cómo `spcBoot` carga el driver;
-  soundbank y `smconv`; módulos `.it`; BRR (`snesbrr`) para efectos;
-  `spcProcess` cada frame; por qué el audio sigue sonando mientras la CPU
-  hace otra cosa.
-- **Archivos:** `README.md`, `rom/` (mini-ROM que reproduce
-  `examples/likemario/overworld.it` y dispara `examples/likemario/mariojump.brr`
-  con un botón; base: `tools/pvsneslib/snes-examples/audio/`),
-  `ejercicio_17.md` (leer el ensamblador SPC700 del driver y anotar el bucle
-  principal).
-- **Código del juego:** `src/audio/audio.h` (el contrato previsto),
-  `examples/likemario/src/LikeMario.c` (inicialización de audio),
-  `examples/likemario/soundbank.asm`.
-- **Prerrequisitos:** 14. **Práctica:** mini-ROM + lectura.
-- **Aprobación:** la mini-ROM suena en Mesen (música y efecto).
+Rehecha el 2026-10-22 (decisión del autor: el curso se centra en C; sin
+ensamblador del SPC700). **El juego aún no aplica esta unidad.**
+
+- **Objetivo:** poner música y efectos en una ROM desde C con el driver de
+  audio del SDK (sin componer: la música es de otra sesión).
+- **Conceptos:** SPC700 y DSP solo a nivel conceptual (otro procesador con
+  su RAM de 64 KB; por qué el audio sigue sonando mientras la CPU hace otra
+  cosa); los puertos `$2140-$2143` y la cola de mensajes de snesmod;
+  soundbank y `smconv` (`soundbank.h`, `MOD_*`, banco propio); módulos `.it`;
+  BRR y `snesbrr`; `spcBoot`, `spcSetBank`, `spcLoad`, `spcPlay`, `spcStop`,
+  `spcPauseMusic`/`spcResumeMusic`, `spcSetModuleVolume`; dos vías de efectos
+  (`spcLoadEffect`/`spcEffect` frente a BRR en streaming con
+  `spcAllocateSoundRegion` + `spcSetSoundEntry` + `spcPlaySound`, la de
+  LikeMario); `spcProcess` una vez por frame.
+- **Archivos:** `README.md`, `rom/` (ejercicio en C con TODO 1..9: música de
+  fondo con `overworld.it`, el efecto `mariojump` con A, pausa/reanudar con
+  Start y volumen con arriba/abajo; texto en pantalla en inglés; base:
+  `tools/pvsneslib/snes-examples/audio/effectsandmusic`), `solucion/rom/`.
+- **Código del juego:** `src/audio/audio.h` (el contrato previsto, traducido
+  a llamadas `spc*`), `tools/pvsneslib/snes-examples/systems/games/likemario/`
+  (copia en `examples/likemario/`).
+- **Prerrequisitos:** 04, 05. **Práctica:** mini-ROM.
+- **Aprobación:** la mini-ROM suena en Mesen (música, efecto con A, pausa con
+  Start y volumen). Pista sin oírla: con el esqueleto sin resolver, el
+  enlazador descarta el soundbank (banco 5 al 100 % libre).
 
 ### Unidad 18 — Herramientas: gfx4snes, scripts de Python y el Makefile
 
@@ -672,7 +720,7 @@ el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
           │                      ├──► 08 sprites ──► 09 metasprites ────────────┤
           │                      └──► 12 HDMA                                    │
           └──► 13 memoria ──► 14 asm leer ──► 15 asm escribir                    │
-                   │  │              └──► 17 SPC700                              │
+                   │  │      (04 + 05 ──► 17 audio desde C)                      │
                    │  └──────────────────────────────────────────────────────────┘
                    └──► 16 Mesen
 (20 colisión: código listo; después de 07, 10, 13 y 18)
@@ -682,12 +730,12 @@ el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
 
 | Ítem de `docs/plan-desarrollo.md` (Etapas 0–2) | Unidad |
 |---|---|
-| Etapa 0: C básico, tipos, funciones, arrays, binario/hexadecimal | 00, 01 |
+| Etapa 0: C básico, tipos, funciones, arrays, binario/hexadecimal | 00 (01: desbordamiento y punto fijo) |
 | Etapa 0/1: la tubería PVSnesLib, Makefile, estructura de una ROM | 03, 13 |
 | Etapa 1: tiles, paletas, tilemaps, modos de vídeo, gfx4snes | 06, 18 |
 | Etapa 1: sprites y OAM | 08, 09 |
 | Etapa 1: HDMA, mosaico, fundidos | 12 |
-| Etapa 1: audio SPC700, soundbank, smconv | 17 |
+| Etapa 1: audio (desde C), soundbank, smconv | 17 |
 | Etapa 2: el loop principal y VBlank/NMI | 04 |
 | Etapa 2: lectura de input (joypad) | 05 |
 | Etapa 2: aritmética de punto fijo | 01 |
@@ -719,7 +767,14 @@ Una unidad está hecha cuando:
    la salida de consola, la prueba en verde o la captura de Mesen existen.
    Las capturas de referencia se guardan en `unidad-NN-tema/capturas/`.
 5. La tabla de §7 está marcada y hay un commit (sin push salvo que el autor
-   lo pida).
+   lo pida). (El 2026-10-22 las unidades 01–20 se escribieron a la vez y se
+   confirmaron en un solo commit, por decisión del autor.)
+6. Si la unidad usa la SNES, su `README.md` tiene la sección «La librería:
+   PVSnesLib» (firma de cada función, qué hace, qué registros toca, enlace a
+   la página de su cabecera en <https://alekmaul.github.io/pvsneslib/> y el
+   ejemplo del SDK equivalente), y la función está en el índice común
+   `aprendizaje/pvsneslib.md`. Regla: **primero la librería, después el
+   registro** (`REG_xxx` desde C) cuando el juego baja a él.
 
 ### 6.2 Convenciones (las del proyecto, `CLAUDE.md`)
 
@@ -783,8 +838,8 @@ make clean; $env:CFLAGS="-DGUION_PRUEBA"; make; $env:CFLAGS=$null
 .\scripts\capturar_mesen.ps1 -Rom RUTA\tutorial_guion.sfc -Duracion 46 -Cada 2 -Espera 3 -Guion "1,1.3,Select"
 ```
 
-Valores de referencia hoy: **280** pruebas de PC y **35** de scripts en
-verde; el título aparece hacia el segundo 50 de la captura; en la ROM de
+Valores de referencia hoy (2026-10-22): **367** pruebas de PC y **35** de
+scripts en verde; el título aparece hacia el segundo 47 de la captura; en la ROM de
 prueba el nivel termina a los ~37,5 s. Para capturas con el guion de teclas,
 **no usar el equipo durante la tanda**: con el equipo en uso el foco de Mesen
 salta a su barra de menús y se pierden teclas (en la sesión del 2026-10-20 se
@@ -809,10 +864,12 @@ perdieron en todas las tandas).
   exacto (unidades 07, 19, 20).
 - `PF_ENTERO` es solo para valores ≥ 0: una y negativa (un salto por encima de
   la pantalla) da un número enorme. Comparar en punto fijo (unidades 01, 20).
-- Indexar un array de structs de tamaño no potencia de 2 (`guion[i]`, 5 bytes;
-  `copias[i]`, 6 bytes) hace que tcc816 llame a `tcc__mul` en cada acceso:
-  recorrer con un puntero o rellenar la struct a 8 bytes (unidades 09, 13, 14,
-  20). Y `<< n` dentro de un bucle caliente es un bucle de n vueltas: sumar en
+- Indexar un array de structs de tamaño no potencia de 2 (`guion[i]`, 6 bytes con el relleno;
+  `copias[i]` cuando medía 6 bytes; hoy `CopiaBloque` mide 8) hace que tcc816
+  llame a `tcc__mul` en cada acceso: recorrer con un puntero o rellenar la
+  struct a 8 bytes (unidades 09, 13, 14, 20). Matiz medido el 2026-10-22: con
+  3 bytes (`ANIMACIONES[t->estado]`) tcc816 multiplica con `asl` + `adc`, sin
+  llamada; medir el `.asm` antes de rellenar (unidad 11). Y `<< n` dentro de un bucle caliente es un bucle de n vueltas: sumar en
   vez de desplazar.
 - Lo que se escribe en la VRAM después de la línea 37 del VBlank se pierde sin
   aviso: el HUD lo mide (`V a b`) y Tarou a trozos fue eso (unidades 04, 09, 16).
@@ -825,14 +882,21 @@ perdieron en todas las tandas).
   pantalla antes de cada `_iniciar` (unidades 04, 12).
 - Con FastROM, un `.asm` a mano con `RAMSECTION` lleva `.BASE $00` delante y
   `.BASE $80` detrás; si no, sus variables «viven» en la ROM (unidades 13, 15).
-- Las `static` de C NO empiezan en 0: la WRAM arranca con basura y tcc816 no
-  limpia `.bss`. Inicializar siempre (unidades 00, 13).
-- Un bucle de relleno en C (`*p++ = 0`) cuesta ~60 instrucciones por vuelta
+- Las `static` de C NO empiezan en 0: la WRAM arranca con basura y `crt0`
+  solo borra 10 bytes de `.bss` (cuenta mal las secciones repetidas por cada
+  `.c`). Inicializar siempre (unidades 00, 13).
+- `setBrightness(0)` escribe `$80`: pantalla apagada (forced blank), no
+  «brillo 0 encendida»; `fade_out` sí acaba en `$00` con la pantalla encendida
+  (unidades 04, 12).
+- Un bucle de relleno en C (`*p++ = 0`) cuesta ~40 instrucciones por vuelta (37–40 medidas en la unidad 14; ~60 en el contexto del HUD)
   en tcc816; `memset` de la librería es ensamblador (unidades 14, 15).
 - El HDMA escribe en el HBlank del final de la línea: una tabla que empieza
   «en la línea 64» se ve desde la 65 (unidad 12).
 - `255 * 256` no cabe en el `int` de 16 bits de tcc816: las macros con
-  constantes grandes se reparten (`* 128 ... * 2`) (unidades 01, 12).
+  constantes grandes se reparten (`* 128 ... * 2`) (unidades 01, 12). Matiz
+  medido el 2026-10-22: con constantes solas el compilador pliega la cuenta
+  con más bits y `RAMPA` sale igual byte a byte; desborda cuando un operando
+  es una variable. El reparto sigue siendo la opción segura.
 
 ### 6.7 Orden de trabajo recomendado
 
@@ -845,7 +909,35 @@ cambió desde este plan, manda el código y se corrige el plan.
 
 | Unidad | Estado |
 |---|---|
-| 00 | **hecha** (2026-10-19): `unidad-00-c-en-el-pc/`; las 12 fuentes compilan con `gcc -std=c99 -Wall -Wextra` sin avisos y las 4 soluciones dan exactamente su salida esperada (`capturas/`). El autor tiene pendiente resolver el ejercicio 03 (y el 04) por su cuenta |
-| 01–19 | por escribir (siguiente: 01). Fichas revisadas el 2026-10-20 contra el código del tutorial |
-| 12 | por escribir: el motor de escenas existe desde el 2026-10-21 (`src/escena/`); ficha en §3 actualizada |
-| 20 | por escribir: el código existe desde el 2026-10-20 (el tutorial); ficha en §3 |
+Todas escritas el 2026-10-22 (la 00, ampliada), en un solo commit. Todo lo
+que se ejecuta en el PC (gcc, pruebas, scripts) y todas las compilaciones
+(mini-ROM y juego modificado, en clones) se ejecutaron de verdad y su salida
+está en `capturas/`. **Pendiente en todas las de hardware: las capturas de
+Mesen**, por decisión del autor: `aprendizaje/tanda_mesen.ps1` las hace de una
+vez (~20 min sin tocar el PC) a partir de las ROM de
+`E:\ProyectoSNES_trabajo\roms\`; las de las ventanas del depurador
+(breakpoints, Memory Tools, profiler: unidades 13, 14, 15, 16) son a mano.
+
+| Unidad | Estado (2026-10-22) |
+|---|---|
+| 00 | **hecha**, ampliada a 8 partes; 27 compilaciones sin avisos y 21 capturas idénticas a la salida. Los ejercicios 03 y 04 siguen sin resolver (pendientes del autor) |
+| 01 | **hecha**; PC; altura máxima 69 px medida |
+| 02 | **hecha**; PC + prueba nueva (374/374 en el clon); trampa de `tarou_anim.h` demostrada |
+| 03 | **hecha**; mini-ROM compila; experimento de la cabecera reproducido. Falta captura de Mesen |
+| 04 | **hecha**; 3 variantes de mini-ROM + ROM de prueba con HUD. Falta captura de Mesen |
+| 05 | **hecha**; demo de PC + mini-ROM con guion sin manos. Falta captura de Mesen |
+| 06 | **hecha**; mini-ROM; deduplicación medida (281 tiles; 260 con `-F`). Falta captura de Mesen |
+| 07 | **hecha**; mini-ROM + `camara_para_ancho` (375/375 en el clon). Falta captura de Mesen |
+| 08 | **hecha**; mini-ROM + 2 variantes de fallo. Falta captura de Mesen |
+| 09 | **hecha**; mini-ROM con el motor del SDK; `tcc__mul` medido. Falta captura de Mesen |
+| 10 | **hecha**; demo de PC + parches A (6 fallos explicados) y B (367/367). Falta captura de Mesen |
+| 11 | **hecha**; demo de PC + parche (367/367); trampa del guion verificada. Falta captura de Mesen |
+| 12 | **hecha**; mini-ROM HDMA + motor de escenas en el publisher (378/378 en el clon). Falta captura de Mesen (medir la fila de la línea blanca) |
+| 13 | **hecha**; PC contra la ROM real. Falta Memory Tools (a mano) |
+| 14 | **hecha**; `.asm` generados y anotados; sonda de divisiones. Falta el breakpoint en `camara_para` (a mano) |
+| 15 | **hecha**; mini-ROM + `numero` y `colision_apoyan` en asm (simulador: 0 fallos en 65 536 valores). Falta captura de Mesen y el profiler (a mano) |
+| 16 | **hecha**; 5 ROM con fallos provocados. Faltan capturas de Mesen y las ventanas del depurador (a mano) |
+| 17 | **hecha** (rehecha: audio desde C); mini-ROM compila. Falta oírla en Mesen |
+| 18 | **hecha**; animación «guardia» con TDD (36/36 de scripts). Falta captura de Mesen |
+| 19 | **hecha**; TDD (39/39 de scripts) + 4 ROM. Falta captura de Mesen |
+| 20 | **hecha**; segundo foso + guion (367/367). Falta captura de Mesen |

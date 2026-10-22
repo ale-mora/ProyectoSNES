@@ -1,0 +1,13 @@
+diff --git a/src/juego/tarou_sprite.c b/src/juego/tarou_sprite.c
+index 15ad599..e1c6536 100644
+--- a/src/juego/tarou_sprite.c
++++ b/src/juego/tarou_sprite.c
+@@ -90,7 +90,7 @@ extern u8 tarou_til_bancos[];        /* El banco de cada tira, en el orden del e
+    parecía flotar; dibujado 2 px más abajo que su posición física, los pies quedan
+    DENTRO de la banda de hierba (que empieza 2 px por encima del borde: 4 px en total).
+    Solo es dibujo: la física y las pruebas usan el borde exacto de las celdas. */
+-#define HUNDIR_PIES 2
++#define HUNDIR_PIES (-2)
+ #define SIN_ESTADO 0xFF              /* "Todavía no hay ningún cuadro en la OAM".         */
+ 
+ /*--- Estado ----------------------------------------------------------------------------*/

@@ -21,8 +21,9 @@
       ninguno (se ejecuta en el PC).
 
     VARIABLES
-      vidas      int          3 → 5            entero que se cambia a través de un puntero
-      pv         int *        &vidas           puntero: guarda la dirección de vidas
+      vidas      u8           3 → 5            entero que se cambia a través de un puntero
+      pv         u8 *         &vidas           puntero: guarda la dirección de vidas
+      f          u8           1..FRAMES        número de frame del paso 4
       tarou      Personaje    x 100..106       el personaje de ejemplo
       pt         Personaje *  &tarou           puntero a la struct
       cuerpo     Caja         -                la caja que rellena caja_cuerpo
@@ -85,8 +86,8 @@ static void caja_cuerpo(const Personaje *p, Caja *c)
 int main(void)                       /* El programa empieza aquí.                         */
 {
     /* 1. Un puntero a un entero: & da la dirección, * llega a lo apuntado. */
-    int vidas = 3;                   /* Una variable normal.                              */
-    int *pv = &vidas;                /* pv guarda DÓNDE está vidas, no su valor.          */
+    u8 vidas = 3;                    /* Una variable normal.                              */
+    u8 *pv = &vidas;                 /* u8 *: "puntero a u8"; guarda DÓNDE está vidas.    */
     *pv = 5;                         /* Escribir en *pv es escribir en vidas.             */
     printf("1. vidas = %d (cambiada a traves de pv)\n", vidas);
 
@@ -100,7 +101,7 @@ int main(void)                       /* El programa empieza aquí.              
     printf("3. despues de mover_copia el original sigue en x=%d\n", tarou.x);
 
     /* 4. Por puntero: la función cambia el original. */
-    for (int f = 1; f <= FRAMES; f++)
+    for (u8 f = 1; f <= FRAMES; f++)
     {
         mover(&tarou);               /* Se pasa la dirección: la struct no se copia.      */
         printf("4. frame %d: x=%d\n", f, tarou.x);

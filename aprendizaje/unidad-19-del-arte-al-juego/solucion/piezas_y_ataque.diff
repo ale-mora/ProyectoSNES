@@ -1,0 +1,218 @@
+diff --git a/scripts/preparar_nivel.py b/scripts/preparar_nivel.py
+index 4039366..5c0d4ab 100644
+--- a/scripts/preparar_nivel.py
++++ b/scripts/preparar_nivel.py
+@@ -90,6 +90,7 @@ LIMITE_TILES = 460
+ SEMILLA = 2026
+ 
+ CARPETA_PIXELLAB = Path("res/descargas/graficos/pixellab/suelo")
++PIEZAS = ("zarza", "cartel", "tronco", "salida")    # piezas sueltas (README de esa carpeta)
+ TMJ = Path("res/nivel1/tutorial.tmj")
+ LOGICA_PNG = Path("res/nivel1/logica.png")
+ SETO = Path("res/titulo/fondo_cerca.png")
+@@ -297,14 +298,43 @@ def poner_seto(capa: Image.Image, g, seto: Image.Image) -> None:
+         capa.alpha_composite(trozo, (x0, base - trozo.height))
+ 
+ 
+-def poner_zarzas(capa: Image.Image, g, oscuro, claro) -> None:
+-    """Marcador de zarza (hasta que llegue el arte): púas sobre una mata, 16x16."""
+-    t = Image.new("RGBA", (CELDA, CELDA), (0, 0, 0, 0))
+-    d = ImageDraw.Draw(t)
+-    d.rectangle([0, 10, 15, 15], fill=oscuro + (255,))
+-    for x in (1, 6, 11):
+-        d.polygon([(x, 10), (x + 2, 2), (x + 4, 10)], fill=oscuro + (255,))
+-        d.point((x + 2, 3), fill=claro + (255,))
++def hoja_de_suelo(carpeta: Path):
++    """La hoja Sidescroller: el PNG más reciente de la carpeta que NO sea una de las
++    PIEZAS sueltas (zarza.png...), que viven en la misma carpeta. None si no hay."""
++    pngs = [p for p in carpeta.glob("*.png") if p.stem.lower() not in PIEZAS]
++    return max(pngs, key=lambda p: p.stat().st_mtime) if pngs else None
++
++
++def cargar_pieza(ruta: Path, ancho: int = CELDA, alto: int = CELDA):
++    """Una pieza suelta de Pixellab (RGBA), o None si no existe. Sin escalar: si no
++    mide ancho x alto, se avisa y se usa el marcador."""
++    if not ruta.is_file():
++        return None
++    with Image.open(ruta) as im:
++        pieza = im.convert("RGBA")
++    if pieza.size != (ancho, alto):
++        print(f"AVISO: {ruta} mide {pieza.size[0]}x{pieza.size[1]} y debe medir {ancho}x{alto}: uso el marcador")
++        return None
++    return pieza
++
++
++def colores_ajenos(pieza: Image.Image, colores) -> int:
++    """Cuántos colores opacos de la pieza NO están en la paleta (indexar los cambiará
++    por el más cercano: hay que mirarlo en Mesen)."""
++    return len({p[:3] for p in pixeles(pieza) if p[3] > 0} - set(colores))
++
++
++def poner_zarzas(capa: Image.Image, g, oscuro, claro, pieza=None) -> None:
++    """Una zarza de 16x16 en cada celda ZARZA: la pieza de Pixellab si la hay; si no,
++    el marcador (púas sobre una mata)."""
++    t = pieza
++    if t is None:
++        t = Image.new("RGBA", (CELDA, CELDA), (0, 0, 0, 0))
++        d = ImageDraw.Draw(t)
++        d.rectangle([0, 10, 15, 15], fill=oscuro + (255,))
++        for x in (1, 6, 11):
++            d.polygon([(x, 10), (x + 2, 2), (x + 4, 10)], fill=oscuro + (255,))
++            d.point((x + 2, 3), fill=claro + (255,))
+     for f in range(FILAS):
+         for c in range(COLS):
+             if g[f][c] == ZARZA:
+@@ -408,7 +438,7 @@ def escribir_cabecera(ruta: Path, g, objetos) -> None:
+ 
+ 
+ def preparar(tmj: Path, hoja: Path, salida_png: Path = SALIDA_PNG, salida_bin: Path = SALIDA_BIN,
+-             salida_h: Path = SALIDA_H, limite: int = LIMITE_TILES) -> int:
++             salida_h: Path = SALIDA_H, limite: int = LIMITE_TILES, zarza: Path = None) -> int:
+     g, objetos = leer_tmj(tmj)
+     with Image.open(hoja) as im:
+         piezas = piezas_por_esquinas(im.convert("RGBA"))
+@@ -423,7 +453,11 @@ def preparar(tmj: Path, hoja: Path, salida_png: Path = SALIDA_PNG, salida_bin: P
+     por_luz = sorted(colores, key=lambda c: c[0] * 3 + c[1] * 6 + c[2])
+     verdes = sorted([c for c in colores if c[1] > c[0] + 20], key=lambda c: sum(c))
+     oscuro, claro = por_luz[0], por_luz[-1]
+-    poner_zarzas(capa, g, verdes[0] if verdes else oscuro, claro)
++    pieza = cargar_pieza(zarza) if zarza else None
++    if pieza is not None:
++        print(f"  zarza: {zarza} ({colores_ajenos(pieza, colores)} colores fuera de la paleta: "
++              "se cambian por el más cercano)")
++    poner_zarzas(capa, g, verdes[0] if verdes else oscuro, claro, pieza)
+     with Image.open(FUENTE) as f:
+         fuente = f.convert("L")
+     pardos = [c for c in colores if c[0] > c[1] > c[2]]
+@@ -466,12 +500,11 @@ def main() -> int:
+         escribir_tmj(args.tmj, g, objetos)
+         escribir_logica_png(LOGICA_PNG)
+         print(f"  {args.tmj} y {LOGICA_PNG} creados (ábrelos con Tiled)")
+-    pngs = sorted(CARPETA_PIXELLAB.glob("*.png"))
+-    if not pngs:
+-        sys.exit(f"ERROR: no hay ningún PNG en {CARPETA_PIXELLAB}")
+-    hoja = max(pngs, key=lambda p: p.stat().st_mtime)
++    hoja = hoja_de_suelo(CARPETA_PIXELLAB)
++    if hoja is None:
++        sys.exit(f"ERROR: no hay ninguna hoja de tiles (PNG) en {CARPETA_PIXELLAB}")
+     print(f"[nivel] mapa: {args.tmj}; hoja: {hoja}")
+-    preparar(args.tmj, hoja)
++    preparar(args.tmj, hoja, zarza=CARPETA_PIXELLAB / "zarza.png")
+     return 0
+ 
+ 
+diff --git a/scripts/preparar_personaje.py b/scripts/preparar_personaje.py
+index f2525ff..a4386b3 100644
+--- a/scripts/preparar_personaje.py
++++ b/scripts/preparar_personaje.py
+@@ -42,7 +42,8 @@
+       COLORES       int    15                colores opacos (el 16.º es el transparente)
+       TRANSPARENTE  tuple  magenta           color que marca el índice 0 al guardar
+       ANIMACIONES   list   (nombre, cuadros) las 13 animaciones y sus cuadros por defecto
+-      MAPEOS_PIXELLAB dict personaje -> {animación: (estado, dirección, desde, hasta, al_revés)}
++      MAPEOS_PIXELLAB dict personaje -> {animación: (estado, dirección, desde, hasta, al_revés)
++                                         o una lista de esas reglas, por orden de preferencia}
+ 
+     Uso (desde la raíz del repo):
+       python scripts/preparar_personaje.py tarou
+@@ -90,7 +91,9 @@ MAPEOS_PIXELLAB = {
+         "agachado_caminar": ("Sneak", "east", 0, None, False),
+         "desenvainar": ("Unsheathe", "east", 0, None, False),
+         "envainar": ("Unsheathe", "east", 0, None, True),  # el mismo gesto, al revés
+-        "atacar": ("Attack_1", "east", None, None, False), # PROVISIONAL: pose fija
++        # Una LISTA de reglas: se usa la primera que exista en la exportación. Cuando
++        # Pixellab genere la animación «Attack», entra sola; mientras, la pose fija.
++        "atacar": [("Attack", "east", 0, None, False), ("Attack_1", "east", None, None, False)],
+         "echarse": ("Stand_up", "east", 0, 6, True),       # levantarse al revés = tumbarse
+         "dormido": ("Sleep", "south", 0, None, False),
+         "despertar": ("Stand_up", "east", 0, 10, False),   # 11 cuadros no caben: 10
+@@ -297,7 +300,14 @@ def preparar(nombre: str, entrada: Path, salida: Path) -> dict:
+                  f"en MAPEOS_PIXELLAB. No se escribió nada.")
+     for animacion, por_defecto in ANIMACIONES:
+         if nativo:
+-            cuadros = cargar_pixellab(entrada, mapeo[animacion]) if animacion in mapeo else None
++            reglas = mapeo.get(animacion, [])
++            if isinstance(reglas, tuple):
++                reglas = [reglas]                     # una sola regla
++            cuadros = None
++            for regla in reglas:                      # la primera que esté en la exportación
++                cuadros = cargar_pixellab(entrada, regla)
++                if cuadros is not None:
++                    break
+             origen = "pixellab"
+         else:
+             cuadros = cargar_cuadros(entrada, animacion)
+diff --git a/scripts/pruebas/prueba_preparar_nivel.py b/scripts/pruebas/prueba_preparar_nivel.py
+index 4c8f806..ced1731 100644
+--- a/scripts/pruebas/prueba_preparar_nivel.py
++++ b/scripts/pruebas/prueba_preparar_nivel.py
+@@ -152,6 +152,34 @@ class PruebaArte(unittest.TestCase):
+             self.assertFalse((d / "c.png").exists())           # no escribe nada
+ 
+ 
++class PruebaPiezas(unittest.TestCase):
++    """Unidad 19, ejercicio B: las piezas que faltan (zarza.png...) se dejan en la
++    MISMA carpeta que la hoja de Pixellab del suelo."""
++
++    def test_la_hoja_no_es_una_pieza(self):
++        """Una zarza.png más nueva que la hoja no debe tomarse por la hoja."""
++        import os
++        import time
++        with tempfile.TemporaryDirectory() as d:
++            d = Path(d)
++            hoja_doble(d / "pixellab-tileset-suelo.png")
++            Image.new("RGBA", (T, T), (0, 0, 0, 0)).save(d / "zarza.png")
++            ahora = time.time()
++            os.utime(d / "zarza.png", (ahora + 60, ahora + 60))       # la más reciente
++            self.assertEqual(pn.hoja_de_suelo(d).name, "pixellab-tileset-suelo.png")
++
++    def test_zarza_de_pixellab(self):
++        """Con una pieza, cada celda de zarza lleva SUS píxeles (no el marcador)."""
++        g = [[pn.VACIO] * pn.COLS for _ in range(pn.FILAS)]
++        g[10][3] = pn.ZARZA
++        pieza = Image.new("RGBA", (T, T), (0, 0, 0, 0))
++        pieza.putpixel((0, 15), (10, 200, 10, 255))
++        capa = Image.new("RGBA", (64, 176), (0, 0, 0, 0))
++        pn.poner_zarzas(capa, g, (0, 0, 0), (255, 255, 255), pieza)
++        self.assertEqual(capa.getpixel((48, 175)), (10, 200, 10, 255))   # celda (3, 10)
++        self.assertEqual(capa.getpixel((50, 165))[3], 0)    # el marcador habría pintado aquí
++
++
+ class PruebaColumnas(unittest.TestCase):
+     def test_reordenar(self):
+         ancho, alto = 4, 3
+diff --git a/scripts/pruebas/prueba_preparar_personaje.py b/scripts/pruebas/prueba_preparar_personaje.py
+index 1746108..685ffb7 100644
+--- a/scripts/pruebas/prueba_preparar_personaje.py
++++ b/scripts/pruebas/prueba_preparar_personaje.py
+@@ -290,5 +290,30 @@ class PruebasPixellabNativo(unittest.TestCase):
+             self.assertEqual((b[0] + b[2]) // 2, ANCHO // 2)
+ 
+ 
++class PruebasAtaqueNuevo(unittest.TestCase):
++    """Unidad 19, ejercicio C: atacar sale de la animación «Attack» cuando la
++    exportación la trae, y de la pose fija de Attack_1 mientras no."""
++
++    def preparar_con(self, con_animacion: bool):
++        tmp = tempfile.TemporaryDirectory()
++        self.addCleanup(tmp.cleanup)
++        entrada = Path(tmp.name) / "Tarou"
++        exportar_pixellab(entrada, "Idle", "east", 9)
++        rotacion_pixellab(entrada, "Attack_1", "east")
++        if con_animacion:
++            exportar_pixellab(entrada, "Attack", "east", 6)
++        salida = Path(tmp.name) / "salida"
++        return pp.preparar("tarou", entrada, salida), salida
++
++    def test_sin_animacion_usa_la_pose(self):
++        resultado, _ = self.preparar_con(False)
++        self.assertEqual(resultado["atacar"], 1)
++
++    def test_con_animacion_usa_la_animacion(self):
++        resultado, salida = self.preparar_con(True)
++        self.assertEqual(resultado["atacar"], 6)
++        self.assertEqual(orden_de(salida / "tarou_atacar.png"), list(range(6)))
++
++
+ if __name__ == "__main__":
+     unittest.main()

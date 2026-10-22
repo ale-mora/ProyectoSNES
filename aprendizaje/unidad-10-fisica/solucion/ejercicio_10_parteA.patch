@@ -1,0 +1,13 @@
+diff --git a/src/juego/tarou.h b/src/juego/tarou.h
+index 8e99637..d4589a8 100644
+--- a/src/juego/tarou.h
++++ b/src/juego/tarou.h
+@@ -50,7 +50,7 @@
+ #define ACEL_AIRE 1                  /* Control aéreo suave.                              */
+ #define GRAVEDAD 4                   /* 0,25 px por frame cada frame.                     */
+ #define VEL_TERMINAL PF(6)           /* 96: velocidad máxima de caída.                    */
+-#define VEL_SALTO (-96)              /* -6,0 px por frame al despegar (~72 px de altura). */
++#define VEL_SALTO (-80)              /* -6,0 px por frame al despegar (~72 px de altura). */
+ #define VEL_SALTO_CORTE (-32)        /* Al soltar B subiendo, la subida se recorta a esto.*/
+ #define FRAMES_PARA_DORMIR 600       /* 10 s sin actividad.                               */
+ 

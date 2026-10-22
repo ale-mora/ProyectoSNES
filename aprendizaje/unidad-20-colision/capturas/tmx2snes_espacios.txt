@@ -1,0 +1,6 @@
+PS> tmx2snes -i maplevel01_espacios.tmj -m tileslevel1.map   (el .tmj del ejemplo graphics/maps/tiled con un espacio tras cada ':')
+tmx2snes: (1.1.0) version 20260728
+tmx2snes: Loading map: [maplevel01_espacios.tmj]
+WARNING (cute_tiled.h:2994): Invalid integer found during parse. (maplevel01_espacios.tmj:6190)
+tmx2snes: fatal error: Cannot load map
+exit 1

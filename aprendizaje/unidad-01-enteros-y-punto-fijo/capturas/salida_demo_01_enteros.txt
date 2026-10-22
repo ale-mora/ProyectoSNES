@@ -1,0 +1,15 @@
+1. u8:  255 + 1 = 0
+1. u8:  0 - 1 = 255
+1. u16: 65535 + 1 = 0
+2. s16      1 se guarda como 0x0001 (leido sin signo: 1)
+2. s16     -1 se guarda como 0xFFFF (leido sin signo: 65535)
+2. s16    -96 se guarda como 0xFFA0 (leido sin signo: 65440)
+2. s16 -32768 se guarda como 0x8000 (leido sin signo: 32768)
+2. ~96 + 1 = 0xFFA0, el mismo patron que -96
+3. s16: 32767 + 1 = -32768
+4. PF(1952) = 31232 (X_MAX_FP de tarou.c: cabe)
+4. PF(2047) = 32752 (el ultimo pixel entero que cabe)
+4. PF(2048) = -32768 (el ancho del nivel ya NO cabe)
+5. 255 * 256 a 16 bits = -256 (deberia ser 65280)
+5. ... y dividido entre 32 = -8 (deberia ser 2040)
+5. (255 * 128 / 32) * 2 a 16 bits = 2040 (correcto)

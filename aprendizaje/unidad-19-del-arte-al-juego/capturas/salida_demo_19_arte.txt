@@ -1,0 +1,49 @@
+1. Escalar con vecino mas cercano (cada numero: cuantas veces sale esa columna)
+   81 -> 64 px (factor 0.79): 1111011110111101111011101111011110111101...  perdidas: 17
+   16 -> 24 px (factor 1.50): 2121212121212121  perdidas: 0
+   16 -> 32 px (factor 2.00): 2222222222222222  perdidas: 0
+   Con factor no entero los pixeles salen desiguales (0, 1 o 2 columnas);
+   con factor 2 todos salen dobles: por eso el arte entra SIN escalar.
+
+2. Anclar cada lienzo en la celda de 96x64 (por el centro y los pies)
+   Idle             lienzo  88x 88: esquina en x=   4; cabe de lado a lado
+   Walk             lienzo  88x 88: esquina en x=   4; cabe de lado a lado
+   Jump             lienzo  88x 88: esquina en x=   4; cabe de lado a lado
+   Run              lienzo  96x 96: esquina en x=   0; cabe de lado a lado
+   Sneak            lienzo  96x 96: esquina en x=   0; cabe de lado a lado
+   Unsheathe        lienzo  96x 84: esquina en x=   0; cabe de lado a lado
+   Stand_up         lienzo 104x 84: esquina en x=  -4; sobra 4 px por cada lado (fuera, transparente)
+   Sleep            lienzo  76x 76: esquina en x=  10; cabe de lado a lado
+   Attack_1 (pose)  lienzo  64x 64: esquina en x=  16; cabe de lado a lado
+   Anclar por la ESQUINA moveria al perro de una animacion a otra: lienzos distintos.
+
+3. Las tiras de res/personajes/tarou/ (celda de 96x64, 3 KB por cuadro)
+   animacion         cuadros piezas  bytes  %banco  ancho  pies
+   reposo                 9      6  27648    84%     66    63
+   caminar                8      6  24576    75%     64    63
+   correr                 8      6  24576    75%     76    63
+   saltar                 3      6   9216    28%     66    63
+   caer                   3      6   9216    28%     70    63
+   agachado               1      6   3072     9%     80    63
+   agachado_caminar       8      6  24576    75%     81    63
+   desenvainar            9      6  27648    84%     65    63
+   envainar               9      6  27648    84%     65    63
+   atacar                 1      6   3072     9%     64    63
+   echarse                6      6  18432    56%     72    63
+   dormido                9      6  27648    84%     56    63
+   despertar             10      6  30720    93%     72    63
+   indices de paleta usados en total: 16 (0 = transparente + 15 colores)
+
+4. Rejilla doble: la logica (# = solido) y la clave de cada vertice
+   logica fila 0: ........
+   logica fila 1: ...##...
+   logica fila 2: ########
+   logica fila 3: ########
+   vertices fila 0 (arte en y= -8):  0  0  0  0  0  0  0  0  0
+   vertices fila 1 (arte en y=  8):  0  0  0  8 12  4  0  0  0
+   vertices fila 2 (arte en y= 24): 12 12 12 14 15 13 12 12 12
+   vertices fila 3 (arte en y= 40): 15 15 15 15 15 15 15 15 15
+   vertices fila 4 (arte en y= 56): 15 15 15 15 15 15 15 15 15
+   combinaciones usadas: [0, 4, 8, 12, 13, 14, 15] de 16; la 0 no se dibuja (aire)
+   Cada celda de arte va en (c*16-8, f*16-8): media celda desplazada, y como 8
+   es multiplo de 8 todo cae en la rejilla de tiles de la SNES.

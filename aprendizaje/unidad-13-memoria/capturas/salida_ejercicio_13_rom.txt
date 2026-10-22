@@ -1,0 +1,7 @@
+nivel1_colision: $86:F900 -> byte 0x037900 del .sfc
+nivel1_colision: los 1792 bytes coinciden con E:/ProyectoSNES_trabajo/u13/res/nivel1/colision.bin
+nivel1_cerca_col_banco: $80:FFB1 -> byte 0x007FB1 del .sfc
+nivel1_cerca_col_banco: primer byte = $81
+nivel1_cerca_col: $81:B3BA -> byte 0x00B3BA del .sfc
+nivel1_cerca_col: los 16640 bytes coinciden con E:/ProyectoSNES_trabajo/u13/res/nivel1/fondo_cerca.col
+ESCENA_NINTENDO: $7F:01FA no esta en la ROM (WRAM o registros)

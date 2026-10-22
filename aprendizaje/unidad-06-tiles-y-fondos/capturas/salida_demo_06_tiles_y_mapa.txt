@@ -1,0 +1,27 @@
+1. Un tile de 8x8 son 64 pixeles:
+   2bpp (4 colores):   64 * 2 / 8 = 16 bytes
+   4bpp (16 colores):  64 * 4 / 8 = 32 bytes
+   8bpp (256 colores): 64 * 8 / 8 = 64 bytes
+   Pantalla 256x224 = 896 celdas; 4bpp sin repetir ninguna: 28672 bytes
+2. Bytes del tile (planos 0-1 | planos 2-3):
+   18 00 24 18 5A 3C BD 7E 3C 18 3C 18 3C 18 3C 00 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+   Decodificado otra vez (indice de color por pixel, . = 0):
+   ...11...
+   ..1221..
+   .123321.
+   12333321
+   ..1331..
+   ..1331..
+   ..1331..
+   ..1111..
+3. Entradas de tilemap (16 bits):
+  tile 17, paleta 2        0x0811 = tile   17  paleta 2  prioridad 0  voltH 0  voltV 0
+  el mismo, voltH          0x4811 = tile   17  paleta 2  prioridad 0  voltH 1  voltV 0
+  el mismo, voltH y voltV  0xC811 = tile   17  paleta 2  prioridad 0  voltH 1  voltV 1
+  HUD: TILE('A')           0x2021 = tile   33  paleta 0  prioridad 1  voltH 0  voltV 0
+  HUD: TILE('0')           0x2010 = tile   16  paleta 0  prioridad 1  voltH 0  voltV 0
+  montanas: 0x0800         0x0800 = tile    0  paleta 2  prioridad 0  voltH 0  voltV 0
+4. Colores (0bbbbbgggggrrrrr):
+   RGB8(232,120,40) = 0x15FD  (r 29, g 15, b 5 de 0..31)
+   RGB5(2,3,10)     = 0x2862
+   blanco RGB5(31,31,31) = 0x7FFF; una paleta de 16 = 32 bytes

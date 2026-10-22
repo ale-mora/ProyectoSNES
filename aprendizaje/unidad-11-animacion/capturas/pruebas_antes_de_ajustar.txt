@@ -1,0 +1,15 @@
+--- con la copia fija tests/tarou_anim.h (make -C tests) ---
+FALLO prueba_tarou.c:511: t.estado == ESTADO_DESPERTANDO
+FALLO prueba_tarou.c:512: t.vx_fp == 0 && t.x_fp == PF(100)
+FALLO prueba_tarou.c:514: t.estado == ESTADO_PARADO
+FALLO prueba_tarou.c:372: t.x_fp == PF(100)
+FALLO prueba_tarou.c:373: t.estado == ESTADO_DESENVAINANDO
+FALLO prueba_tarou.c:374: t.anim_terminada == 1
+FALLO prueba_tarou.c:375: t.cuadro == 3
+FALLO prueba_tarou.c:376: t.espada == ESPADA_ENVAINADA
+FALLO prueba_tarou.c:378: t.estado == ESTADO_PARADO
+367 pruebas, 9 fallos
+--- con el tarou_anim.h REAL (res/personajes/tarou), solo prueba_recorrido ---
+
+367 pruebas, 16 fallos
+

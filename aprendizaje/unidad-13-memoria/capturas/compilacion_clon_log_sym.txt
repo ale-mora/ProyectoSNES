@@ -1,0 +1,27 @@
+Clon u13 (git clone de E:\ProyectoSNES, 2026-10-22), make: No warnings or errors found.
+Extracto de ProyectoSNES.log:
+ROM bank 0 (10 bytes (0.03%) free)
+ROM bank 1 (0 bytes (0.00%) free)
+ROM bank 13 (3 bytes (0.01%) free)
+ROM bank 14 (10723 bytes (32.72%) free)
+ROM bank 15 (32768 bytes (100.00%) free)
+ROM bank 127 (32768 bytes (100.00%) free)
+RAM slot 0 bank 126 (24445 bytes (74.60%) free)
+RAM slot 1 bank 0 (7995 bytes (97.60%) free)
+RAM slot 2 bank 126 (55567 bytes (96.90%) free)
+RAM slot 3 bank 127 (64958 bytes (99.12%) free)
+ROM: 3713537 bytes (88.54%) free of total 4194304.
+RAM: 152965 bytes (93.36%) free of total 163840.
+
+Extracto de ProyectoSNES.sym:
+007f01fa ESCENA_NINTENDO
+007f0150 ANIMACIONES
+000ed5b2 tccs_src/pantallas/pantalla_nivel1.asm_controles
+007e2631 tccs_src/pantallas/pantalla_nivel1.asm_tarou
+008ed147 main
+007e26e9 frames_en_pantalla
+0081b3ba nivel1_cerca_col
+0081f4ba nivel1_cerca_col_end
+0080ffb1 nivel1_cerca_col_banco
+0086f900 nivel1_colision
+008ed604 tarou_til_bancos

@@ -1,0 +1,20 @@
+Compilación de las variantes de la mini-ROM de la unidad 04 (2026-10-22, PowerShell; todas recompiladas al final de la sesión, cada una con este resumen)
+
+1) rom/ tal cual:                      make
+   --- COMPILATION SUMMARY ---
+   No warnings or errors found.               -> roms\u04_contador.sfc
+
+2) rom/ con la rutina de VBlank propia:  $env:CFLAGS="-DNMI_PROPIA"; make; $env:CFLAGS=$null
+   (en el .log: 816-tcc -DNMI_PROPIA ... -c src/contador.c -F)
+   --- COMPILATION SUMMARY ---
+   No warnings or errors found.
+   El enlazador resuelve consoleVblank (libc.obj) aunque ninguna cabecera la
+   declara; mi_vblank aparece en el .sym.   -> roms\u04_contador_nmi_propia.sfc
+
+3) solucion/contador.c (copia de rom/ con la solución, compilada aparte):  make
+   --- COMPILATION SUMMARY ---
+   No warnings or errors found.               -> roms\u04_contador_parpadeo.sfc
+
+Comprobación del TODO 1 (sin divisiones en la ROM): make src/contador.asm en la copia de la
+solución -> 0 apariciones de tcc__div / tcc__mul; las comparaciones salen como sbc.w #60
+(SEGUNDOS(1)) y sbc.w #30 (MEDIO_SEGUNDO). El .asm se borró después.

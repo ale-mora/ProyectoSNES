@@ -1,0 +1,24 @@
+1. 202 en decimal = 0xCA en hexadecimal = 1100 1010
+1. 0x2000 = 8192: solo el bit 13 encendido
+2. a          = 0xCA = 1100 1010
+2. b          = 0x0F = 0000 1111
+2. a & b      = 0x0A = 0000 1010
+2. a | b      = 0xCF = 1100 1111
+2. a ^ b      = 0xC5 = 1100 0101
+2. ~a         = 0x35 = 0011 0101
+2. 0x05 << 2  = 0x14 = 0001 0100
+2. 0x50 >> 4  = 0x05 = 0000 0101
+3. encender bit 3: 0x08 = 0000 1000
+3. encender bit 0: 0x09 = 0000 1001
+3. bit 3 encendido? 1
+3. bit 2 encendido? 0
+3. apagar bit 3:   0x01 = 0000 0001
+3. alternar bit 0: 0x00 = 0000 0000
+4. KEY_B           = 0x8000 = 1000 0000 0000 0000
+4. KEY_RIGHT       = 0x0100 = 0000 0001 0000 0000
+4. ahora           = 0x8100 = 1000 0001 0000 0000
+4. B mantenido? 1  A mantenido? 0
+4. ahora & ~antes  = 0x8000 = 1000 0000 0000 0000
+5. attr = 0x67 = 0110 0111
+5. paleta=3 prioridad=2 hflip=1 tile_alto=1
+5. attr ^ ATTR_HFLIP = 0x27 = 0010 0111

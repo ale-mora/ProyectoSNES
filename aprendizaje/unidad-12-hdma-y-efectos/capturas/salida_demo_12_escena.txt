@@ -1,0 +1,32 @@
+1. evento: frame  0,  0 frames, pista 1, hasta 15, paso     0 (0.000 por frame)
+1. evento: frame  0, 16 frames, pista 0, hasta 15, paso   240 (0.938 por frame)
+1. evento: frame  0,  6 frames, pista 1, hasta  0, paso  -640 (-2.500 por frame)
+1. evento: frame 20,  3 frames, pista 0, hasta  0, paso -1280 (-5.000 por frame)
+2. frame | brillo 8.8  entero | mosaico 8.8  entero
+2.     0 |        240       0 |        3200      12
+2.     1 |        480       1 |        2560      10
+2.     2 |        720       2 |        1920       7
+2.     3 |        960       3 |        1280       5
+2.     4 |       1200       4 |         640       2
+2.     5 |       1440       5 |           0       0   <- ultimo frame de una rampa: exacto
+2.     6 |       1680       6 |           0       0
+2.     7 |       1920       7 |           0       0
+2.     8 |       2160       8 |           0       0
+2.     9 |       2400       9 |           0       0
+2.    10 |       2640      10 |           0       0
+2.    11 |       2880      11 |           0       0
+2.    12 |       3120      12 |           0       0
+2.    13 |       3360      13 |           0       0
+2.    14 |       3600      14 |           0       0
+2.    15 |       3840      15 |           0       0   <- ultimo frame de una rampa: exacto
+2.    16 |       3840      15 |           0       0
+2.    17 |       3840      15 |           0       0
+2.    18 |       3840      15 |           0       0
+2.    19 |       3840      15 |           0       0
+2.    20 |       2560      10 |           0       0
+2.    21 |       1280       5 |           0       0
+2.    22 |          0       0 |           0       0   <- ultimo frame de una rampa: exacto
+2.    23 |          0       0 |           0       0
+2. frame 24: FIN_ESCENA (los valores se quedan como estaban)
+4. 255 * 256 en 16 bits = -256 (deberia ser 65280)
+4. 255 * 128 en 16 bits = 32640 (cabe); / 56 frames = 582; * 2 = 1164 (paso de 0 a 255 en 56)

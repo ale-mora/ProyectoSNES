@@ -1,0 +1,51 @@
+frame  1: vy=-92 y_fp=2212 y=138 px
+frame  2: vy=-88 y_fp=2124 y=132 px
+frame  3: vy=-84 y_fp=2040 y=127 px
+frame  4: vy=-80 y_fp=1960 y=122 px
+frame  5: vy=-76 y_fp=1884 y=117 px
+frame  6: vy=-72 y_fp=1812 y=113 px
+frame  7: vy=-68 y_fp=1744 y=109 px
+frame  8: vy=-64 y_fp=1680 y=105 px
+frame  9: vy=-60 y_fp=1620 y=101 px
+frame 10: vy=-56 y_fp=1564 y=97 px
+frame 11: vy=-52 y_fp=1512 y=94 px
+frame 12: vy=-48 y_fp=1464 y=91 px
+frame 13: vy=-44 y_fp=1420 y=88 px
+frame 14: vy=-40 y_fp=1380 y=86 px
+frame 15: vy=-36 y_fp=1344 y=84 px
+frame 16: vy=-32 y_fp=1312 y=82 px
+frame 17: vy=-28 y_fp=1284 y=80 px
+frame 18: vy=-24 y_fp=1260 y=78 px
+frame 19: vy=-20 y_fp=1240 y=77 px
+frame 20: vy=-16 y_fp=1224 y=76 px
+frame 21: vy=-12 y_fp=1212 y=75 px
+frame 22: vy=-8 y_fp=1204 y=75 px
+frame 23: vy=-4 y_fp=1200 y=75 px
+frame 24: vy=0 y_fp=1200 y=75 px
+frame 25: vy=4 y_fp=1204 y=75 px
+frame 26: vy=8 y_fp=1212 y=75 px
+frame 27: vy=12 y_fp=1224 y=76 px
+frame 28: vy=16 y_fp=1240 y=77 px
+frame 29: vy=20 y_fp=1260 y=78 px
+frame 30: vy=24 y_fp=1284 y=80 px
+frame 31: vy=28 y_fp=1312 y=82 px
+frame 32: vy=32 y_fp=1344 y=84 px
+frame 33: vy=36 y_fp=1380 y=86 px
+frame 34: vy=40 y_fp=1420 y=88 px
+frame 35: vy=44 y_fp=1464 y=91 px
+frame 36: vy=48 y_fp=1512 y=94 px
+frame 37: vy=52 y_fp=1564 y=97 px
+frame 38: vy=56 y_fp=1620 y=101 px
+frame 39: vy=60 y_fp=1680 y=105 px
+frame 40: vy=64 y_fp=1744 y=109 px
+frame 41: vy=68 y_fp=1812 y=113 px
+frame 42: vy=72 y_fp=1884 y=117 px
+frame 43: vy=76 y_fp=1960 y=122 px
+frame 44: vy=80 y_fp=2040 y=127 px
+frame 45: vy=84 y_fp=2124 y=132 px
+frame 46: vy=88 y_fp=2212 y=138 px
+frame 47: vy=92 y_fp=2304 y=144 px
+Apogeo en el frame 23: y minima 75 px
+Altura maxima: 69 px
+Aterriza en el frame 47
+Con el orden al reves: 75 px

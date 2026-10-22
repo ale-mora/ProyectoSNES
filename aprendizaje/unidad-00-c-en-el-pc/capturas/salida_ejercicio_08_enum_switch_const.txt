@@ -1,0 +1,8 @@
+0 PARADO: 4 cuadros x 12 frames = 48 frames, bucle 1, grupo suelo
+1 CAMINANDO: 8 cuadros x 6 frames = 48 frames, bucle 1, grupo suelo
+2 CORRIENDO: 8 cuadros x 4 frames = 32 frames, bucle 1, grupo suelo
+3 SALTANDO: 3 cuadros x 6 frames = 18 frames, bucle 0, grupo aire
+4 CAYENDO: 2 cuadros x 6 frames = 12 frames, bucle 0, grupo aire
+5 ATACANDO: 1 cuadros x 20 frames = 20 frames, bucle 0, grupo espada
+6 DORMIDO: 2 cuadros x 20 frames = 40 frames, bucle 1, grupo sueno
+Estado 7: grupo desconocido

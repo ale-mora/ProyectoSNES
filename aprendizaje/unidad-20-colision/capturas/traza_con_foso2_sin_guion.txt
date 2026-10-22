@@ -1,0 +1,51 @@
+cuadro botones  celda          pies (x)      vx/vy en 1/16 px   estado
+    0 .>...... x=   8 y= 112 pies=  44..  72 vx=   2 vy=   0 CAMINANDO           suelo 
+  267 .>..Bb.. x= 260 y= 106 pies= 296.. 324 vx=   4 vy= -92 SALTANDO            aire  
+  290 .>..B... x= 273 y=  43 pies= 309.. 337 vx=  16 vy=   0 CAYENDO             aire  
+  297 .>...... x= 280 y=  50 pies= 316.. 344 vx=  16 vy=  28 CAYENDO             aire  
+  311 .>...... x= 294 y=  96 pies= 330.. 358 vx=  16 vy=   0 CAMINANDO           suelo 
+  332 .>..Bb.. x= 308 y=  90 pies= 344.. 372 vx=   2 vy= -92 SALTANDO            aire  
+  355 .>..B... x= 325 y=  27 pies= 361.. 389 vx=  16 vy=   0 CAYENDO             aire  
+  362 .>...... x= 332 y=  34 pies= 368.. 396 vx=  16 vy=  28 CAYENDO             aire  
+  376 .>...... x= 346 y=  80 pies= 382.. 410 vx=  16 vy=   0 CAMINANDO           suelo 
+  426 .>...... x= 396 y=  80 pies= 432.. 460 vx=  16 vy=   0 CAYENDO             aire  
+  442 .>...... x= 412 y= 112 pies= 448.. 476 vx=  16 vy=   0 CAMINANDO           suelo 
+  592 .>..Bb.. x= 516 y= 106 pies= 552.. 580 vx=   0 vy= -92 SALTANDO            aire  
+  615 .>..B... x= 525 y=  43 pies= 561.. 589 vx=  16 vy=   0 CAYENDO             aire  
+  628 .>..B... x= 538 y=  64 pies= 574.. 602 vx=  16 vy=   0 CAMINANDO           suelo 
+  632 .>...... x= 542 y=  64 pies= 578.. 606 vx=  16 vy=   0 CAMINANDO           suelo 
+  694 .>...... x= 604 y=  64 pies= 640.. 668 vx=  16 vy=   0 CAYENDO             aire  
+  714 .>...... x= 624 y= 112 pies= 660.. 688 vx=  16 vy=   0 CAMINANDO           suelo 
+  892 .>v..... x= 772 y= 112 pies= 808.. 836 vx=   0 vy=   0 AGACHADO            suelo 
+  893 .>v..... x= 772 y= 112 pies= 808.. 836 vx=   2 vy=   0 AGACHADO_CAMINANDO  suelo 
+ 1252 .>.Y.... x= 951 y= 112 pies= 987..1015 vx=   8 vy=   0 CAMINANDO           suelo 
+ 1253 .>.Y.... x= 951 y= 112 pies= 987..1015 vx=  10 vy=   0 CORRIENDO           suelo 
+ 1320 .>.YBb.. x=1079 y= 106 pies=1115..1143 vx=  32 vy= -92 SALTANDO            aire  
+ 1343 .>.YB... x=1125 y=  43 pies=1161..1189 vx=  32 vy=   0 CAYENDO             aire  
+ 1352 .>.Y.... x=1143 y=  54 pies=1179..1207 vx=  32 vy=  36 CAYENDO             aire  
+ 1366 .>.Y.... x=1171 y= 112 pies=1207..1235 vx=  32 vy=   0 CORRIENDO           suelo 
+ 1382 .>...... x=1202 y= 112 pies=1238..1266 vx=  30 vy=   0 CAMINANDO           suelo 
+ 1444 .>..Bb.. x=1267 y= 106 pies=1303..1331 vx=  16 vy= -92 SALTANDO            aire  
+ 1467 .>..B... x=1290 y=  43 pies=1326..1354 vx=  16 vy=   0 CAYENDO             aire  
+ 1477 .>...... x=1300 y=  56 pies=1336..1364 vx=  16 vy=  40 CAYENDO             aire  
+ 1480 .>...... x=1303 y=  64 pies=1339..1367 vx=  16 vy=   0 CAMINANDO           suelo 
+ 1538 .>..Bb.. x=1361 y=  58 pies=1397..1425 vx=  16 vy= -92 SALTANDO            aire  
+ 1560 .>...... x=1383 y=  -5 pies=1419..1447 vx=  16 vy=  -4 SALTANDO            aire  
+ 1561 .>...... x=1384 y=  -5 pies=1420..1448 vx=  16 vy=   0 CAYENDO             aire  
+ 1584 .>...... x=1407 y=  64 pies=1443..1471 vx=  16 vy=   0 CAMINANDO           suelo 
+ 1606 .>..Bb.. x=1429 y=  58 pies=1465..1493 vx=  16 vy= -92 SALTANDO            aire  
+ 1629 .>..B... x=1452 y=  -5 pies=1488..1516 vx=  16 vy=   0 CAYENDO             aire  
+ 1640 .>...... x=1463 y=  11 pies=1499..1527 vx=  16 vy=  44 CAYENDO             aire  
+ 1660 .>...... x=1483 y= 112 pies=1519..1547 vx=  16 vy=   0 CAMINANDO           suelo 
+ 1757 ........ x=1564 y= 112 pies=1600..1628 vx=   2 vy=   0 CAMINANDO           suelo 
+ 1758 ........ x=1564 y= 112 pies=1600..1628 vx=   0 vy=   0 PARADO              suelo 
+ 1772 .......r x=1564 y= 112 pies=1600..1628 vx=   0 vy=   0 DESENVAINANDO       suelo 
+ 1773 ........ x=1564 y= 112 pies=1600..1628 vx=   0 vy=   0 DESENVAINANDO       suelo 
+ 1792 ........ x=1564 y= 112 pies=1600..1628 vx=   0 vy=   0 PARADO              suelo 
+ 1872 ......a. x=1564 y= 112 pies=1600..1628 vx=   0 vy=   0 ATACANDO            suelo <- TRONCO ROTO
+ 1873 ........ x=1564 y= 112 pies=1600..1628 vx=   0 vy=   0 ATACANDO            suelo 
+ 1892 ........ x=1564 y= 112 pies=1600..1628 vx=   0 vy=   0 PARADO              suelo 
+ 1912 .>...... x=1564 y= 112 pies=1600..1628 vx=   2 vy=   0 CAMINANDO           suelo 
+ 2026 .>...... x=1676 y= 112 pies=1712..1740 vx=  16 vy=   0 CAYENDO             aire  
+ 2051 .>...... x=1700 y= 193 pies=1736..1764 vx=   0 vy=  96 CAYENDO             aire  <- REAPARECER
+REAPARECER en el cuadro 2051: el guion no supera el obstaculo de x 1748.

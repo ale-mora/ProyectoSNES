@@ -1,0 +1,6 @@
+valores probados: 65536, fallos: 0 , instrucciones max. por llamada: 279
+valor 0 -> 69 instrucciones
+valor 7 -> 69 instrucciones
+valor 1234 -> 126 instrucciones
+valor -32768 -> 213 instrucciones
+valor 32767 -> 205 instrucciones

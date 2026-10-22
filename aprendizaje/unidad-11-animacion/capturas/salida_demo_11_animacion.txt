@@ -1,0 +1,45 @@
+== 1. Las 13 animaciones con el ARTE REAL ==
+  animacion          cuadros  fr/cuad  bucle  frames segundos
+  reposo (PARADO)          9       12     si     108     1.80
+  caminar                  8        6     si      48     0.80
+  correr                   8        4     si      32     0.53
+  saltar                   3        6     no      18     0.30
+  caer                     3        6     no      18     0.30
+  agachado                 1       12     si      12     0.20
+  agachado_caminar         8        8     si      64     1.07
+  desenvainar              9        5     no      45     0.75   <- larga (gesto sin bucle de mas de 2/3 s)
+  envainar                 9        5     no      45     0.75   <- larga (gesto sin bucle de mas de 2/3 s)
+  atacar                   1       20     no      20     0.33
+  echarse                  6        8     no      48     0.80   <- larga (gesto sin bucle de mas de 2/3 s)
+  dormido                  9       20     si     180     3.00
+  despertar               10        8     no      80     1.33   <- larga (gesto sin bucle de mas de 2/3 s)
+
+== 2. desenvainar (arte real: 9 cuadros x 5 frames), frame a frame ==
+  fin del frame   5: cuadro 1  frames_cuadro 0  anim_terminada 0
+  fin del frame  10: cuadro 2  frames_cuadro 0  anim_terminada 0
+  fin del frame  15: cuadro 3  frames_cuadro 0  anim_terminada 0
+  fin del frame  20: cuadro 4  frames_cuadro 0  anim_terminada 0
+  fin del frame  25: cuadro 5  frames_cuadro 0  anim_terminada 0
+  fin del frame  30: cuadro 6  frames_cuadro 0  anim_terminada 0
+  fin del frame  35: cuadro 7  frames_cuadro 0  anim_terminada 0
+  fin del frame  40: cuadro 8  frames_cuadro 0  anim_terminada 0
+  fin del frame  45: cuadro 8  frames_cuadro 0  anim_terminada 1
+  -> el frame 46 (el siguiente) manejar_espada ve anim_terminada y pasa a PARADO
+
+== 3. caminar (8 cuadros x 6 frames, con bucle), una vuelta ==
+  fin del frame   6: cuadro 1  frames_cuadro 0  anim_terminada 0
+  fin del frame  12: cuadro 2  frames_cuadro 0  anim_terminada 0
+  fin del frame  18: cuadro 3  frames_cuadro 0  anim_terminada 0
+  fin del frame  24: cuadro 4  frames_cuadro 0  anim_terminada 0
+  fin del frame  30: cuadro 5  frames_cuadro 0  anim_terminada 0
+  fin del frame  36: cuadro 6  frames_cuadro 0  anim_terminada 0
+  fin del frame  42: cuadro 7  frames_cuadro 0  anim_terminada 0
+  fin del frame  48: cuadro 0  frames_cuadro 0  anim_terminada 0
+
+== 4. Las mismas reglas con la COPIA FIJA de las pruebas (tests/tarou_anim.h) ==
+  desenvainar        arte  9 x  5 =  45 frames | copia fija  4 x  5 =  20 frames
+  envainar           arte  9 x  5 =  45 frames | copia fija  4 x  5 =  20 frames
+  atacar             arte  1 x 20 =  20 frames | copia fija  5 x  4 =  20 frames
+  echarse            arte  6 x  8 =  48 frames | copia fija  4 x  8 =  32 frames
+  dormido            arte  9 x 20 = 180 frames | copia fija  4 x 20 =  80 frames
+  despertar          arte 10 x  8 =  80 frames | copia fija  4 x  8 =  32 frames

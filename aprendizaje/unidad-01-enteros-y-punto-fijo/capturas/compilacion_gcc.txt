@@ -1,0 +1,10 @@
+$ gcc -std=c99 -Wall -Wextra -DPRUEBAS_PC -I../../src (cada archivo)
+--- demo_01_enteros.c
+codigo de salida: 0
+--- demo_01_puntofijo.c
+codigo de salida: 0
+--- ejercicio_01_gravedad.c
+codigo de salida: 0
+--- solucion/ejercicio_01_gravedad.c
+codigo de salida: 0
+gcc.exe (MinGW-W64 x86_64-ucrt-posix-seh, built by Brecht Sanders, r2) 16.1.0

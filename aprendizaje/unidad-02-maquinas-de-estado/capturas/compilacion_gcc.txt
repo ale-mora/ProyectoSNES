@@ -1,0 +1,8 @@
+$ gcc -std=c99 -Wall -Wextra (cada archivo)
+--- demo_02_semaforo.c
+codigo de salida: 0
+--- ejercicio_02_perro.c
+codigo de salida: 0
+--- solucion/ejercicio_02_perro.c
+codigo de salida: 0
+gcc.exe (MinGW-W64 x86_64-ucrt-posix-seh, built by Brecht Sanders, r2) 16.1.0

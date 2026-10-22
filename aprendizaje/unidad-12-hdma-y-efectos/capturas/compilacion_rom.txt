@@ -1,0 +1,6 @@
+Mini-ROM u12_cielo (esqueleto, rom/):
+No warnings or errors found.
+ROM: 233630 bytes (89.12%) free of total 262144.
+RAM: 155152 bytes (94.70%) free of total 163840.
+Mini-ROM con solucion/cielos.c (copia aparte): No warnings or errors found. ROM: 233495 bytes (89.07%) free of total 262144.
+Juego con la ampliación (clon u12, make clean + make): No warnings or errors found. ROM: 3713430 bytes (88.54%) free of total 4194304.

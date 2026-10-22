@@ -1,0 +1,5 @@
+1. static sin inicializar vale 0 en el PC (en la SNES: lo que hubiera en la RAM)
+2. informe 1: frames_totales=1 segundos=0
+2. informe 2: frames_totales=60 segundos=1
+2. informe 3: frames_totales=150 segundos=2
+2. informe 4: frames_totales=0 segundos=0

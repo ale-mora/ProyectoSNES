@@ -1,0 +1,7 @@
+FALLO prueba_tarou.c:181: PF_ENTERO(y_minimo) >= 73 && PF_ENTERO(y_minimo) <= 77
+FALLO prueba_colision.c:181: PF_ENTERO(t.x_fp) > 640
+FALLO prueba_recorrido.c:66: tronco_roto == 1
+FALLO prueba_recorrido.c:67: e == PARTIDA_SALIDA
+FALLO prueba_recorrido.c:68: cuadro == GUION_TUTORIAL_FIN
+FALLO prueba_recorrido.c:69: p.reaparicion == controles[NIVEL1_CONTROLES - 1]
+367 pruebas, 6 fallos

@@ -1,0 +1,5 @@
+FALLO prueba_recorrido.c:65: reapariciones == 0
+FALLO prueba_recorrido.c:67: e == PARTIDA_SALIDA
+FALLO prueba_recorrido.c:68: cuadro == GUION_TUTORIAL_FIN
+FALLO prueba_recorrido.c:69: p.reaparicion == controles[NIVEL1_CONTROLES - 1]
+367 pruebas, 4 fallos

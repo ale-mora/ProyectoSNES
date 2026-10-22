@@ -1,0 +1,13 @@
+diff --git a/src/pantallas/personajes.c b/src/pantallas/personajes.c
+index 3a5e8c8..456e95e 100644
+--- a/src/pantallas/personajes.c
++++ b/src/pantallas/personajes.c
+@@ -107,7 +107,7 @@ static u16 tile_del_bloque32(u16 n)
+ /*--- tile_del_bloque64: bloque de 64x64 número n (de la tira de Bárbara) → tile ---*/
+ static u16 tile_del_bloque64(u8 n)
+ {
+-    return (u16)(TILE_BASE_BARBARA + (n / 2) * 128 + (n % 2) * 8);
++    return (u16)(TILE_BASE_BARBARA + ((u16)n / 2) * 128 + ((u16)n % 2) * 8);   /* EXPERIMENTO */
+ }
+ 
+ /*--- esconder: manda una entrada de la OAM fuera de la pantalla -------------------

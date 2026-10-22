@@ -19,7 +19,7 @@
     VARIABLES
       tarou      Personaje   x 0..X_MAX, vx -VEL_MAX..VEL_MAX   el personaje que se mueve
       cuerpo     Caja        -                                  su caja al final
-      f          int         1..9                               número de frame
+      f          u8          1..9                               número de frame
 
     → conceptos (README de la unidad 00): puntero, struct, typedef, const, #define
 ---------------------------------------------------------------------------------*/
@@ -125,7 +125,7 @@ int main(void)
     personaje_iniciar(&tarou, 150, 144);   /* Empieza cerca del borde derecho.            */
     printf("Inicio: x=%d vx=%d dir=%d\n", tarou.x, tarou.vx, tarou.direccion);
 
-    for (int f = 1; f <= 9; f++)     /* 9 frames: 6 hacia la derecha y 3 a la izquierda.  */
+    for (u8 f = 1; f <= 9; f++)      /* 9 frames: 6 hacia la derecha y 3 a la izquierda.  */
     {
         if (f <= 6)
         {

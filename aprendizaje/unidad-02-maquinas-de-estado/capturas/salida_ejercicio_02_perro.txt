@@ -1,0 +1,24 @@
+inicio:         PARADO    x=0 y=0
+frame  1 [.]:   PARADO    x=0 y=0
+frame  2 [.]:   PARADO    x=0 y=0
+frame  3 [d]:   CAMINANDO x=1 y=0  <- cambia
+frame  4 [d]:   CAMINANDO x=2 y=0
+frame  5 [.]:   PARADO    x=2 y=0  <- cambia
+frame  6 [b]:   SALTANDO  x=2 y=3  <- cambia
+frame  7 [.]:   SALTANDO  x=2 y=5
+frame  8 [.]:   SALTANDO  x=2 y=6
+frame  9 [.]:   SALTANDO  x=2 y=6
+frame 10 [.]:   SALTANDO  x=2 y=5
+frame 11 [.]:   SALTANDO  x=2 y=3
+frame 12 [.]:   PARADO    x=2 y=0  <- cambia
+frame 13 [d]:   CAMINANDO x=3 y=0  <- cambia
+frame 14 [d]:   CAMINANDO x=4 y=0
+frame 15 [x]:   SALTANDO  x=5 y=3  <- cambia
+frame 16 [d]:   SALTANDO  x=6 y=5
+frame 17 [x]:   SALTANDO  x=7 y=6
+frame 18 [d]:   SALTANDO  x=8 y=6
+frame 19 [d]:   SALTANDO  x=9 y=5
+frame 20 [d]:   SALTANDO  x=10 y=3
+frame 21 [d]:   CAMINANDO x=11 y=0  <- cambia
+frame 22 [.]:   PARADO    x=11 y=0  <- cambia
+Secuencia: PARADO > CAMINANDO > PARADO > SALTANDO > PARADO > CAMINANDO > SALTANDO > CAMINANDO > PARADO
