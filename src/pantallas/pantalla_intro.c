@@ -74,8 +74,8 @@ static void preparar_escena(void)
         fondo16_cargar(1, &escena3_til, &escena3_til_end, &escena3_pal, 1,
                        &escena3_map, &escena3_map_end, VRAM_FONDO_A, VRAM_MAPA_B, SC_32x32);
         /* Pies sobre el borde inferior de la imagen (fila 128): celda 64..128. */
-        personajes_mostrar(32, 64, 0, 150, 64);  /* Tarou mira a la derecha (celda de
-                                                    96 px: x 32 = centro en el 80).    */
+        personajes_mostrar(32, 64, 0, 150, 64); /* Tarou mira a la derecha (celda de
+                                                   96 px: x 32 = centro en el 80).    */
         break;
     default:
         break;
@@ -93,7 +93,7 @@ static void escribir_parrafo(void)
     case 0:
         restante = escribir_parcial(18, "IN A QUIET VILLAGE BY THE HILLS", letras);
         restante = escribir_parcial(20, "LIVED A PUPPY NAMED TAROU", restante);
-        restante = escribir_parcial(22, "AND HIS BEST FRIEND, BáRBARA.", restante);
+        restante = escribir_parcial(22, "AND HIS BEST FRIEND, BARBARA.", restante);
         break;
     case 1:
         restante = escribir_parcial(18, "ONE MORNING, A STRANGE WIND", letras);
