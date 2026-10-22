@@ -174,16 +174,24 @@ compilador (2026-10-21). Por eso la rutina se llama `dma_ejecutar.asm`.
 
 ## 6. Leer el resultado
 
-Al final de `make` (o en el `.log`):
+Al final de `make` (o en el `.log`). Ejemplo de la ROM actual (4 MB LoROM
+FastROM, compilación del 2026-10-22; las cifras cambian un poco con cada
+cambio de código). «`ROM bank n`» es el trozo n del archivo, que la CPU ve
+como banco `$80 + n`:
 
 ```
-ROM bank 0 (10 bytes (0.03%) free)        ← el banco 0 está lleno (código + cabecera)
-...
-ROM bank 7 (32768 bytes (100.00%) free)   ← bancos vacíos
-RAM slot 0 bank 126 (24445 bytes free)    ← WRAM de trabajo (variables)
-ROM: 238927 bytes (45.57%) free of total 524288.
-RAM: 154372 bytes (94.22%) free of total 163840.
+ROM bank 0 (10 bytes (0.03%) free)        ← $80 lleno (código + cabecera)
+ROM bank 1 .. 13: 0..5 bytes libres        ← $81..$8D llenos
+ROM bank 14 (10723 bytes (32.72%) free)   ← $8E a medias
+ROM bank 15 .. 127 (32768 bytes (100.00%) free)   ← $8F..$FF: bancos vacíos
+RAM slot 2 bank 126 (55567 bytes (96.90%) free)   ← $7E: variables (.bss)
+RAM slot 3 bank 127 (64958 bytes (99.12%) free)   ← $7F: tablas const globales
+ROM: 3709920 bytes (88.45%) free of total 4194304.
 ```
+
+(Las líneas `ROM bank 1 .. 13` y `15 .. 127` resumen varias del `.log`.
+Antes de la ampliación, con la ROM de 512 KB SlowROM, el total era
+`ROM: 238927 bytes (45.57%) free of total 524288.`)
 
 - Una sección `superfree` de `data.asm` que no quepa en ningún banco da un
   error del enlazador: dividir el asset (tiles en una sección, mapa en otra).

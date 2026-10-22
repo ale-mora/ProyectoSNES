@@ -21,7 +21,7 @@
 #include "juego/camara.h"
 #include "juego/nivel.h"
 
-#define CAMARA_MAX (ANCHO_NIVEL - ANCHO_PANTALLA)   /* 256: la última posición con nivel. */
+#define CAMARA_MAX (ANCHO_NIVEL - ANCHO_PANTALLA)   /* 1792: la última posición con nivel. */
 
 u16 camara_para(u16 x_pix)
 {

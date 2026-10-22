@@ -20,7 +20,7 @@
       ninguno (se compila también en el PC).
 
     VARIABLES (campos de Tarou)
-      x_fp, y_fp       s16  0..6656 / 0..3584, punto fijo 12.4  esquina superior izquierda de la celda (96x64), en el mundo
+      x_fp, y_fp       s16  0..31232 / 0..3584, punto fijo 12.4 esquina superior izquierda de la celda (96x64), en el mundo
       vx_fp, vy_fp     s16  -96..96, punto fijo 12.4            velocidad por frame (negativa = izquierda / arriba)
       estado           u8   un valor de Estado                  qué hace ahora (una sola cosa)
       espada           u8   ESPADA_ENVAINADA / ESPADA_FUERA     persiste entre estados
@@ -50,7 +50,7 @@
 #define ACEL_AIRE 1                  /* Control aéreo suave.                              */
 #define GRAVEDAD 4                   /* 0,25 px por frame cada frame.                     */
 #define VEL_TERMINAL PF(6)           /* 96: velocidad máxima de caída.                    */
-#define VEL_SALTO (-96)              /* -6,0 px por frame al despegar (~72 px de altura). */
+#define VEL_SALTO (-96)              /* -6,0 px por frame al despegar (69 px de altura). */
 #define VEL_SALTO_CORTE (-32)        /* Al soltar B subiendo, la subida se recorta a esto.*/
 #define FRAMES_PARA_DORMIR 600       /* 10 s sin actividad.                               */
 

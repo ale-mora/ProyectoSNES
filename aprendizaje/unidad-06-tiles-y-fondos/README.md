@@ -13,7 +13,7 @@ La SNES no dibuja píxeles sueltos: la CPU deja en la memoria de vídeo unos
 cuadraditos de 8×8 y una cuadrícula que dice cuál va en cada sitio, y la PPU
 (→ glosario: SNES) compone la imagen línea a línea, 60 veces por segundo. Esta
 unidad es esa idea, byte a byte. Al final se mira la capa cercana del
-tutorial, que mide 2080 px de ancho y cabe en 281 cuadraditos.
+tutorial, que mide 2080 px de ancho y cabe en 260 cuadraditos.
 
 ## Material
 
@@ -198,7 +198,7 @@ todas):
 | `-m` | escribir el mapa (`.map`) | solo fondos |
 | `-e 2` | paleta que se pone en cada entrada del mapa | montañas: paleta 2 |
 | `-y` | mapa en páginas de 32×32 (para 64×32) | capas de 512 px (unidad 07) |
-| `-F` | contar como iguales los tiles volteados (pone los bits en el mapa) | **no se usa** (abajo) |
+| `-F` | contar como iguales los tiles volteados (pone los bits en el mapa) | solo en la capa cercana del nivel (desde el 2026-10-22, abajo) |
 | `-R` | no reducir tiles repetidos | nunca |
 
 Salen `.pic` (tiles), `.pal` (paleta) y `.map` (mapa), que `data.asm` pega en
@@ -225,12 +225,15 @@ la ROM. Reducida, son 281 tiles de los 512 de `VRAM_FONDO_A`. Cabe porque
 letras de los carteles son la fuente de consola, un tile por letra: la «E»
 de `JUMP HIGHER` y la de `EXIT` son el mismo tile.
 
-**Lo que hoy NO pasa (comprobado el 2026-10-22):** el script varía la tierra
-con volteos al azar contando con que «los volteos son gratis», pero el
-`Makefile` convierte la capa **sin `-F`**: el `.map` del juego tiene **0**
-celdas volteadas, y cada tile volteado se guarda como uno distinto (281 en
-vez de 260). Funciona igual (sobra VRAM), pero los volteos no se están
-aprovechando. Es la parte C del ejercicio.
+**Lo que encontró esta unidad (corregido el 2026-10-22):** el script varía la
+tierra con volteos al azar contando con que «los volteos son gratis», pero el
+`Makefile` convertía la capa **sin `-F`**: el `.map` del juego tenía **0**
+celdas volteadas, y cada tile volteado se guardaba como uno distinto (281 en
+vez de 260). Funcionaba igual (sobra VRAM), pero los volteos no se
+aprovechaban. Tras medirlo aquí, el autor adoptó `-F` en la regla de
+`res/nivel1/fondo_cerca.pic`: hoy la capa son 260 tiles (la ROM ganó 672
+bytes). Las cifras de la tabla de arriba y de la parte C del ejercicio son
+las de la conversión **sin** `-F`, para que se vea la diferencia.
 
 ### DMA
 
@@ -323,7 +326,7 @@ pantalla:
 | Etiquetas `_til`, `_til_end`, `_pal`, `_map` | `data.asm` (p. ej. `.rodata_nivel1_lejos`, líneas 165-171) |
 | Una entrada de mapa escrita a mano, con el bit de prioridad | `TILE(c)`, `src/juego/hud_debug.c:82-85` |
 | La capa cercana del nivel: tiles y paleta 1 con el SDK, mapa de 64×32 | `fondo_nivel_cargar`, `src/juego/fondo_nivel.c:118-126` |
-| Los volteos que el script pone y `gfx4snes` no aprovecha | `scripts/preparar_nivel.py:257-266` (`volteos`) y `Makefile:96-97` (sin `-F`) |
+| Los volteos que el script pone y `gfx4snes` no aprovecha | `scripts/preparar_nivel.py:257-266` (`volteos`) y la regla de `res/nivel1/fondo_cerca.pic` del `Makefile` (con `-F` desde el 2026-10-22) |
 | Mapas de VRAM, CGRAM y registros por módulo | `docs/hardware-snes-por-modulo.md` §2, §3, §4 |
 
 Fíjate en `fondo_nivel_cargar`: carga tiles y paleta con `bgInitTileSet`,

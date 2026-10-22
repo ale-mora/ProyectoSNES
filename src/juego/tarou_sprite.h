@@ -5,9 +5,11 @@
       Es la capa de hardware del protagonista: traduce (estado, cuadro,
       dirección, posición) a seis entradas de la OAM y, cuando el cuadro cambia,
       apunta en la lista de DMA (juego/dma_lista.h) las copias que suben sus
-      tiles a la VRAM en el siguiente VBlank. Hasta el 2026-10-20 lo hacía el
-      motor de sprites dinámicos del SDK; su copia de 3 KB costaba 32 líneas de
-      las 37 del VBlank y, con las columnas del fondo, se salía: los píxeles que
+      tiles a la VRAM, repartidas en los dos VBlanks siguientes (3 KB son unas
+      18 líneas calculadas: media celda por VBlank; medido en el HUD, V5 17..20
+      en esos frames). Hasta el 2026-10-20 lo hacía el motor de sprites
+      dinámicos del SDK; su copia de 3 KB costaba 32 líneas de las 37 del
+      VBlank y, con las columnas del fondo, se salía (V5 46): los píxeles que
       la PPU descartaba dejaban a Tarou a trozos.
 
     SE CONECTA CON

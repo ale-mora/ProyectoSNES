@@ -17,10 +17,10 @@
       HDMA del título. START vuelve al título con fundido.
       Flujo por frame (docs/diseno-demo-jugable.md §11): dma_lista_vaciar →
       mando_leer → tarou_actualizar (lógica pura) → partida_actualizar →
-      camara_para → bgSetScroll de las dos capas → tarou_sprite_dibujar (OAM y,
-      si cambió el cuadro, sus copias a la lista) → fondo_nivel_actualizar (las
-      columnas, a la lista) → hud_debug_dibujar (su fila, a la lista); y, tras
-      el VBlank, dma_lista_ejecutar. Al entrar (_iniciar) y al
+      camara_para → tarou_sprite_dibujar (OAM y, si cambió el cuadro, sus
+      copias a la lista) → fondo_nivel_actualizar (las columnas, a la lista) →
+      hud_debug_dibujar (su fila, a la lista); y, tras el VBlank, el scroll de
+      las dos capas (bgSetScroll) y dma_lista_ejecutar. Al entrar (_iniciar) y al
       reaparecer, con la pantalla apagada, la lista se dispara en el acto.
       Se mide cuántas líneas del VBlank usa todo eso (diag_vblank, fila LIN
       del HUD): el VBlank tiene 37 y el SDK gasta 5 antes de llegar aquí.
@@ -216,10 +216,12 @@ void pantalla_nivel1_actualizar(void)
     }
     diag_linea[0] = leer_linea();                    /* Medida: coste de la lógica pura.    */
 
-    /*--- 3. Cámara y parallax: la cercana sigue a la cámara; la lejana, a la mitad --*/
+    /*--- 3. Cámara: solo se calcula aquí; el scroll se escribe en el VBlank --------
+           (pantalla_nivel1_vblank). bgSetScroll escribe los registros en el acto: si
+           se llamara aquí, a mitad del dibujo, la parte de abajo de la pantalla ya
+           usaría la cámara nueva mientras las columnas que entran y la OAM de Tarou
+           no llegan hasta el VBlank (unidad 07 de aprendizaje/). ---------------------*/
     camara = camara_para(PF_ENTERO(tarou.x_fp));
-    bgSetScroll(0, camara, 0);
-    bgSetScroll(1, camara >> 1, 0);
 
     /*--- 4. Tarou: entradas de la OAM del cuadro actual y, si cambió el cuadro, sus
            copias de tiles a la lista (primero: son lo más importante del VBlank);
@@ -236,6 +238,9 @@ void pantalla_nivel1_actualizar(void)
 void pantalla_nivel1_vblank(void)
 {
     diag_vblank[0] = desde_vblank(leer_linea());     /* Medida: dónde empieza (unos 5).     */
+    bgSetScroll(0, camara, 0);                       /* Scroll de las dos capas, a la vez   */
+    bgSetScroll(1, camara >> 1, 0);                  /* que sus columnas y que la OAM: la   */
+                                                     /* cercana 1:1, la lejana a la mitad.  */
     dma_lista_ejecutar();                            /* Tiles de Tarou, columnas y HUD, de
                                                         un tirón.                           */
     diag_vblank[1] = desde_vblank(leer_linea());     /* Medida: dónde acaba (< 37 o se pierde). */

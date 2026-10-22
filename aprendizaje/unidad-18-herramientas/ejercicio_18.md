@@ -10,11 +10,17 @@ cuadro**. Recorre la tubería entera: prueba → script → tira → `Makefile` 
 `ESTADO_PARADO` con `espada == ESPADA_FUERA`: solo cambia **lo que se
 dibuja**. Por eso no se toca `animaciones.c` ni el `enum Estado` (pregunta 3).
 
+**Desde el 2026-10-22 la guardia ya está en el juego**: el autor adoptó esta
+solución. Para hacer el ejercicio, vuelve en tu clon al commit anterior a
+ese cambio, `6d12030`, en el que la guardia todavía no existe; al terminar,
+compara tu resultado con el juego actual (`git diff 6d12030 HEAD`).
+
 Trabaja en un **clon** (los cambios no van a la rama principal; `PLAN.md` §2):
 
 ```
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mi_u18
 cd E:\ProyectoSNES_trabajo\mi_u18
+git checkout -q 6d12030
 ```
 
 ## Paso 1 — La prueba primero (TDD, en rojo)

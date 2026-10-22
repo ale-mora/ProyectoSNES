@@ -115,10 +115,10 @@ class PruebasPrepararPersonaje(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_marcador_cuando_falta_animacion(self):
-        """Sin entrada, salen 13 marcadores con los cuadros por defecto."""
+        """Sin entrada, salen 14 marcadores con los cuadros por defecto."""
         resultado = pp.preparar("tarou", self.entrada, self.salida)
         pngs = sorted(self.salida.glob("tarou_*.png"))
-        self.assertEqual(len(pngs), 14)          # 13 animaciones + tarou_reposo_estatico.png
+        self.assertEqual(len(pngs), 15)          # 14 animaciones + tarou_reposo_estatico.png
         for png in pngs:
             with Image.open(png) as im:
                 self.assertEqual(im.height, ALTO, png.name)
@@ -128,8 +128,9 @@ class PruebasPrepararPersonaje(unittest.TestCase):
         self.assertEqual(cuadros_del_header(header, "reposo"), 4)
         self.assertEqual(cuadros_del_header(header, "caminar"), 8)
         self.assertEqual(cuadros_del_header(header, "atacar"), 5)
+        self.assertEqual(cuadros_del_header(header, "guardia"), 1)     # pose fija: 1 cuadro
         self.assertEqual(resultado["reposo"], 4)
-        self.assertIn("#define TAROU_ANIMACIONES 13", header.read_text(encoding="utf-8"))
+        self.assertIn("#define TAROU_ANIMACIONES 14", header.read_text(encoding="utf-8"))
 
     def test_reposo_estatico_siempre_dos_cuadros(self):
         """La tira estática de reposo (intro y título, personajes.c) tiene SIEMPRE
@@ -162,7 +163,7 @@ class PruebasPrepararPersonaje(unittest.TestCase):
         self.assertEqual(cuadros_de(self.salida / "tarou_reposo_estatico.png"), [0, 3])
         # El reposo del nivel sigue entero (6 cuadros) y el header no cuenta la estática.
         self.assertEqual(cuadros_del_header(self.salida / "tarou_anim.h", "reposo"), 6)
-        self.assertIn("#define TAROU_ANIMACIONES 13", (self.salida / "tarou_anim.h").read_text(encoding="utf-8"))
+        self.assertIn("#define TAROU_ANIMACIONES 14", (self.salida / "tarou_anim.h").read_text(encoding="utf-8"))
 
         reposo_de(2).save(self.entrada / "reposo.png")
         pp.preparar("tarou", self.entrada, self.salida)
@@ -244,6 +245,7 @@ class PruebasPixellabNativo(unittest.TestCase):
         exportar_pixellab(self.entrada, "Stand_up", "east", 11, lienzo=(104, 84))
         exportar_pixellab(self.entrada, "Sleep", "south", 9, lienzo=(76, 76), ancho=56, alto=40)
         rotacion_pixellab(self.entrada, "Attack_1", "east")
+        rotacion_pixellab(self.entrada, "Fight_Pose", "east", ancho=50, alto=45)
         self.resultado = pp.preparar("tarou", self.entrada, self.salida)
 
     def tearDown(self):
@@ -253,7 +255,7 @@ class PruebasPixellabNativo(unittest.TestCase):
         """Cada animación del juego sale del estado de Pixellab que dice el mapeo."""
         esperado = {"reposo": 9, "caminar": 8, "correr": 8, "saltar": 3, "caer": 3, "agachado": 1,
                     "agachado_caminar": 8, "desenvainar": 9, "envainar": 9, "atacar": 1,
-                    "echarse": 6, "dormido": 9, "despertar": 10}
+                    "echarse": 6, "dormido": 9, "despertar": 10, "guardia": 1}
         self.assertEqual(self.resultado, esperado)
         for animacion, n in esperado.items():
             self.assertEqual(cuadros_del_header(self.salida / "tarou_anim.h", animacion), n, animacion)
@@ -288,6 +290,17 @@ class PruebasPixellabNativo(unittest.TestCase):
             b = caja_opaca(im)
             self.assertEqual(b[3], ALTO)
             self.assertEqual((b[0] + b[2]) // 2, ANCHO // 2)
+
+    def test_guardia_es_la_pose_fija(self):
+        """guardia (Tarou quieto con la espada fuera) es la pose fija Fight_Pose
+        mirando al este: un solo cuadro de 96x64, con los pies en la última fila
+        y centrado, y con su tamaño original (50x45, sin escalar)."""
+        with Image.open(self.salida / "tarou_guardia.png") as im:
+            self.assertEqual(im.size, (ANCHO, ALTO))           # 1 cuadro
+            b = caja_opaca(im)
+            self.assertEqual((b[2] - b[0], b[3] - b[1]), (50, 45))
+            self.assertEqual(b[3], ALTO)                       # pies en la fila 63
+            self.assertEqual((b[0] + b[2]) // 2, ANCHO // 2)   # centrado
 
 
 if __name__ == "__main__":

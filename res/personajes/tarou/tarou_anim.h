@@ -14,7 +14,7 @@
 
     VARIABLES (constantes)
       TAROU_<ANIMACION>_CUADROS  1..10  cuadros de 96x64 de esa tira
-      TAROU_ANIMACIONES          13      cuántas animaciones hay
+      TAROU_ANIMACIONES          14      cuántas animaciones hay
 ---------------------------------------------------------------------------------*/
 #ifndef TAROU_ANIM_H
 #define TAROU_ANIM_H
@@ -32,7 +32,8 @@
 #define TAROU_ECHARSE_CUADROS 6
 #define TAROU_DORMIDO_CUADROS 9
 #define TAROU_DESPERTAR_CUADROS 10
+#define TAROU_GUARDIA_CUADROS 1
 
-#define TAROU_ANIMACIONES 13
+#define TAROU_ANIMACIONES 14
 
 #endif /* TAROU_ANIM_H */

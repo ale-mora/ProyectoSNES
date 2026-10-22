@@ -93,8 +93,10 @@ res/titulo/fondo_cerca.pic: res/titulo/fondo_cerca.png
 # El juego no carga ese mapa de golpe (no cabe en un mapa de 64x32 de la VRAM): copia
 # columnas sueltas según avanza la cámara, y para eso mapa_a_columnas.py lo reordena
 # columna a columna (src/juego/fondo_nivel.c).
+# -F reutiliza también los tiles volteados (el mapa guarda el volteo en cada celda):
+# 281 → 260 tiles (medido en la unidad 06 de aprendizaje/, 2026-10-22).
 res/nivel1/fondo_cerca.pic: res/nivel1/fondo_cerca.png
-	$(GFXCONV) -s 8 -o 16 -u 16 -e 1 -p -m -i $<
+	$(GFXCONV) -s 8 -o 16 -u 16 -e 1 -p -m -F -i $<
 
 res/nivel1/fondo_cerca.col: res/nivel1/fondo_cerca.pic
 	@echo map to columns ... $(notdir $@)
@@ -126,7 +128,7 @@ res/titulo/cielo_grad_data.as: res/titulo/cielo.bmp
 # de metasprite (-T) de 96x64 (-X 96 -Y 64: 3x2 piezas) y prioridad 3 (-P 3). Por cada
 # tarou_<anim>.png salen tarou_<anim>.pic (tiles), .pal (paleta, igual en todas)
 # y tarou_<anim>_meta.inc (tablas t_metasprite que incluye src/juego/tarou_sprite.c).
-TAROU_ANIMS := reposo caminar correr saltar caer agachado agachado_caminar desenvainar envainar atacar echarse dormido despertar
+TAROU_ANIMS := reposo caminar correr saltar caer agachado agachado_caminar desenvainar envainar atacar echarse dormido despertar guardia
 TAROU_PICS := $(foreach a,$(TAROU_ANIMS),res/personajes/tarou/tarou_$(a).pic)
 # Más la tira ESTÁTICA de reposo (siempre 2 cuadros) que intro y título cargan de
 # una vez en VRAM (src/pantallas/personajes.c); misma conversión que las demás.

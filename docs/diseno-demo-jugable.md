@@ -145,7 +145,7 @@ Reglas transversales:
 | `FRENADO_SUELO` | 2 | | 8 frames hasta parar desde caminar |
 | `ACEL_AIRE` | 1 | | control aéreo suave |
 | `GRAVEDAD` | 4 | 0,25 px/frame² | |
-| `VEL_SALTO` | −96 | −6,0 px/frame | apogeo a los 24 frames, ~72 px de altura |
+| `VEL_SALTO` | −96 | −6,0 px/frame | 69 px de altura (4·24·23/2 = 1104 = 69 px): la y mínima se alcanza en el frame 23 y `vy` llega a 0 en el 24 |
 | `VEL_SALTO_CORTE` | −32 | −2,0 px/frame | salto corto ≈ 8 px tras soltar |
 | `VEL_TERMINAL` | 96 | 6,0 px/frame | |
 | `FRAMES_PARA_DORMIR` | 600 | | 10 s |
@@ -356,13 +356,19 @@ main.c ─ secuencia_actualizar() ─▶ pantalla_nivel1_actualizar()
                                       SELECT → hud_debug_alternar()
                                       tarou_actualizar(&tarou, &mando, suelo)   [lógica pura]
                                       camara = camara_para(x_pix)
-                                      bgSetScroll(0, camara) · bgSetScroll(1, camara>>1)
+                                      (el scroll ya no se escribe aquí: ver _vblank)
                                       tarou_sprite_dibujar(&tarou, camara)      [OAM]
                                       hud_debug_dibujar(&tarou, camara)
                                       oamInitDynamicSpriteEndFrame()
        ─ WaitForVBlank()
        ─ secuencia_vblank() ───────▶ pantalla_nivel1_vblank(): oamVramQueueUpdate()
 ```
+
+(Diagrama de la Revisión 1. Hoy el motor dinámico del SDK ya no existe:
+`pantalla_nivel1_vblank` escribe el scroll de las dos capas con `bgSetScroll`
+y dispara la lista de DMA con `dma_lista_ejecutar`. El scroll se pasó al
+VBlank el 2026-10-22 para que cambie a la vez que las columnas y la OAM;
+antes se escribía a mitad del dibujo.)
 
 - **Lógica pura** (`tarou.c`, `camara.c`, `nivel.c`, `animaciones.c`): sin
   `snes.h`. Incluyen `sistema/tipos.h`, que en la SNES toma `u8/u16/s16` de

@@ -240,6 +240,11 @@ tarou_dormido_til_end:
 tarou_despertar_til:  .incbin "res/personajes/tarou/tarou_despertar.pic"
 tarou_despertar_til_end:
 .ends
+; La pose de guardia (PARADO con la espada fuera), 1 cuadro = 3 KB (unidad 18 del curso).
+.section ".rodata_tarou_guardia" superfree
+tarou_guardia_til:    .incbin "res/personajes/tarou/tarou_guardia.pic"
+tarou_guardia_til_end:
+.ends
 
 ; El BANCO de la ROM de cada tira, en el orden del enum Estado
 ; (src/juego/animaciones.h): el DMA que sube un cuadro a la VRAM lo necesita aparte
@@ -250,4 +255,5 @@ tarou_til_bancos: .db :tarou_reposo_til, :tarou_caminar_til, :tarou_correr_til
                   .db :tarou_agachado_caminar_til, :tarou_desenvainar_til, :tarou_envainar_til
                   .db :tarou_atacar_til, :tarou_echarse_til, :tarou_dormido_til
                   .db :tarou_despertar_til
+                  .db :tarou_guardia_til     ; índice 13 = DIBUJO_GUARDIA (no es un estado)
 .ends

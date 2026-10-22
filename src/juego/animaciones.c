@@ -4,8 +4,9 @@
     PROPÓSITO
       Rellenar ANIMACIONES[] con los frames por cuadro y bucles de la spec (§7,
       "a afinar") y con los cuadros que genera el pipeline (tarou_anim.h), y
-      NOMBRES_ESTADO[] con el texto que muestra el HUD. Son tablas const: viven
-      en la ROM, no gastan RAM.
+      NOMBRES_ESTADO[] con el texto que muestra el HUD. Son tablas const globales:
+      tcc816 las pone en la WRAM ($7F, copiadas desde la ROM al arrancar), no en
+      la ROM (solo las static const se quedan en la ROM; unidad 13).
 
     SE CONECTA CON
       Incluye:  juego/animaciones.h, tarou_anim.h (por ruta de inclusión: en la
@@ -16,7 +17,7 @@
     HARDWARE QUE TOCA
       ninguno.
 
-    VARIABLES (globales const, en ROM)
+    VARIABLES (globales const, en la WRAM)
       ANIMACIONES[13]     AnimDef      ver animaciones.h
       NOMBRES_ESTADO[13]  const char*  nombres sin el prefijo ESTADO_
 

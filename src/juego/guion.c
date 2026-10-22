@@ -21,9 +21,10 @@
 
 /*--- mantenidos: los botones de los tramos que contienen el cuadro ---------------
     Se recorre la tabla con un PUNTERO que avanza de tramo en tramo (t++ suma el
-    tamaño de un TramoGuion, 5 bytes). Con guion[i], tcc816 calcula i * 5 con su
-    rutina de multiplicar (tcc__mul) en cada acceso: 72 multiplicaciones por frame,
-    medio frame de la SNES. */
+    tamaño de un TramoGuion: 6 bytes, porque el compilador añade uno de relleno).
+    Con guion[i], tcc816 calcula i * 6 con su rutina de multiplicar (tcc__mul) en
+    cada acceso: 3 por vuelta, entre 26 y 78 multiplicaciones por frame (medido en
+    la unidad 14 de aprendizaje/). */
 static u8 mantenidos(const TramoGuion *t, u8 n, u16 cuadro)
 {
     u8 b = 0;

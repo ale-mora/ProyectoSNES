@@ -153,9 +153,9 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   «Mecánicas»): lo aplica `scripts/preparar_nivel.py`.
 - **Volteo de tile** — cada celda del tilemap puede mostrar su tile espejado
   en horizontal o en vertical sin gastar tiles nuevos. **Ojo:** gfx4snes solo
-  aprovecha los volteos para ahorrar tiles si recibe `-F`, y el Makefile no lo
-  pasa a la capa cercana del nivel: hoy son 281 tiles y ninguno volteado (con
-  `-F` serían 260).
+  aprovecha los volteos para ahorrar tiles si recibe `-F`; el Makefile se lo
+  pasa a la capa cercana del nivel desde el 2026-10-22 (260 tiles; sin `-F`
+  eran 281 y ninguno volteado) (unidad 06).
 - **Paleta** — grupo de colores (16 en Mode 1) que un tile o sprite usa.
   Hay 8 paletas para fondos y 8 para sprites. El **color 0** de cada paleta
   es transparente en sprites y en las capas superiores.

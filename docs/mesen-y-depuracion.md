@@ -91,16 +91,20 @@ Cómo usar las dos últimas filas para medir:
 - **Coste del frame**: `LIN` es la línea del haz (0..261 en NTSC) cuando
   termina cada tramo. El VBlank empieza en la 225; si el último número es
   menor que 225, el frame ha usado `(37 + LIN) / 262` del tiempo. Con todo
-  encendido, la lógica acaba hacia la línea 60: un 37 %. Un valor ≥ 225 (o que
-  da la vuelta) significa frame pasado de tiempo. En el tutorial la lógica
-  (con colisión) acaba hacia la línea 70-120 y el final del frame, con el
-  HUD encendido, hacia 150-200: **el propio HUD cuesta 50-80 líneas**, y con
-  él encendido el nivel baja a unos 50 FPS (sin él, 60).
+  encendido, la lógica acaba hacia la línea 60: un 37 %. Un valor en 225..261
+  es **ambiguo**: o es un frame baratísimo que acabó aún dentro del VBlank
+  (gasta `LIN − 225` líneas), o uno que se pasó de tiempo y dio la vuelta
+  entera. `LIN` solo no lo distingue: lo decide `F` frente a `VB` (si `F`
+  sube igual que `VB`, era barato; ver `aprendizaje/unidad-04-frame-y-vblank`).
+  En el tutorial la lógica (con colisión) acaba hacia la línea 70-120 y el
+  final del frame, con el HUD encendido, hacia 150-200. Gracias al tope de la
+  línea 150, **el HUD encendido cuesta unos 6 frames en todo el recorrido**
+  (medido con la ROM de prueba, 2026-10-21); sin él, 60 FPS.
 - **Coste del VBlank**: `V a b`. `a` es donde empieza nuestro `_vblank` (5: el
   SDK copia la OAM y lee el mando) y `b` donde acaba. Si `b` pasa de 37, los
   últimos DMA se hacen con la PPU dibujando y la VRAM los descarta: sprites a
-  trozos o columnas que no aparecen. Hoy: `V5 8` en frames normales y `V5 19..23`
-  cuando sube medio cuadro de Tarou. Así se encontró el fallo de Tarou a trozos
+  trozos o columnas que no aparecen. Hoy (FastROM): `V5 7` en frames normales y
+  `V5 17..20` cuando sube medio cuadro de Tarou. Así se encontró el fallo de Tarou a trozos
   (2026-10-20: `V5 46`).
 - Las filas se escriben por turnos (una por frame): un dato puede tener hasta
   6 frames de retraso respecto a otro. Para capturar un instante exacto, usa
@@ -114,7 +118,7 @@ una enseña de este proyecto:
 | Herramienta | Para qué sirve aquí |
 |---|---|
 | **Debugger** | Ver el código en ensamblador con las etiquetas de nuestro código C, poner puntos de ruptura (breakpoints) en una función (`tarou_actualizar`, `pantalla_nivel1_vblank`), avanzar paso a paso y mirar los registros del 65816 (A, X, Y, P, DB, S). Las etiquetas vienen de `ProyectoSNES.sym`, que `snes_rules` filtra "para el depurador de Mesen"; si no aparecen, File → Import Labels dentro del depurador y elegir el `.sym`. |
-| **Memory Tools** | Ver y editar cualquier memoria: WRAM (las variables; `ANIMACIONES` está en `$7F00E4`, porque tcc816 copia las tablas `const` a RAM), VRAM (tiles y mapas: `VRAM_FUENTE` en `0x6000` palabras, el mapa de texto en `0x6800`...), CGRAM (paletas), OAM (los 128 sprites), ROM. Útil para comprobar que un DMA dejó los datos donde `comun.h` dice. |
+| **Memory Tools** | Ver y editar cualquier memoria: WRAM (las variables; `ANIMACIONES` está en `$7F0150` (según el `.sym` actual; cambia al añadir datos), porque tcc816 copia las tablas `const` a RAM), VRAM (tiles y mapas: `VRAM_FUENTE` en `0x6000` palabras, el mapa de texto en `0x6800`...), CGRAM (paletas), OAM (los 128 sprites), ROM. Útil para comprobar que un DMA dejó los datos donde `comun.h` dice. |
 | **Tilemap Viewer** | Dibuja cada capa de fondo tal como la ve la PPU, con el scroll aplicado: para ver el mapa de 64×32 de la capa cercana del nivel, dónde está la costura del espejo, o si el HUD escribe en la fila correcta del mapa de texto. |
 | **Tile Viewer** | Los tiles crudos de la VRAM, por formato (2bpp, 4bpp, 8bpp). Para comprobar la numeración de bloques de gfx4snes (`(n/4)·64 + (n%4)·4`) o que el motor dinámico copió el cuadro correcto en `0x0000`. |
 | **Sprite Viewer** | Las 128 entradas de la OAM con posición, tile, paleta, tamaño y prioridad, y una vista de dónde cae cada una. Para ver las 6 piezas del metasprite de Tarou, un sprite "fantasma" fuera de pantalla, o el bit de espejo. |
@@ -128,7 +132,9 @@ Dos consejos de uso:
 
 - Para pausar en el frame exacto en que Tarou aterriza, pon un breakpoint
   de escritura en la dirección de `tarou.en_suelo` (Memory Tools muestra la
-  dirección de `tarou` por su etiqueta en el `.sym`).
+  dirección de `tarou` por su etiqueta en el `.sym`; como es una variable
+  `static` de `pantalla_nivel1.c`, la etiqueta es
+  `tccs_src/pantallas/pantalla_nivel1.asm_tarou`, no `tarou`).
 - Para ver un glitch de un solo frame, usa Game → Pause y avanza frame a
   frame (Game → Step Frame o la tecla asignada).
 
@@ -207,8 +213,8 @@ SELECT y START.) Si la ROM y el PC no hacen lo mismo con el mismo guion, el
 compilador de la SNES hace algo distinto: compara las x del HUD con la traza
 del PC. El 2026-10-20 coincidieron y la ROM llegó a la salida.
 
-**Medir los FPS sin HUD:** el recorrido son 2238 cuadros; a 60 FPS dura
-37,3 s. Capturar con `-Cada 0.5` cerca del final y ver cuándo se oscurece.
+**Medir los FPS sin HUD:** el recorrido son 2270 cuadros
+(`GUION_TUTORIAL_FIN`); a 60 FPS dura 37,8 s. Capturar con `-Cada 0.5` cerca del final y ver cuándo se oscurece.
 
 ## 6. Fallos conocidos y cómo se vieron
 

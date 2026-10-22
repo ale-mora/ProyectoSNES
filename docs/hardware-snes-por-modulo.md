@@ -47,7 +47,7 @@ palabras de 2 bytes como las escribe el código. Términos: `docs/glosario-snes.
 | `sistema/secuencia.c` | ninguno | lógica pura |
 | `sistema/comun.c` | PPU, VRAM, CGRAM | `BGMODE $2105` (`setMode`), `BGnSC $2107-$210A` base de mapas y `BGnNBA $210B/$210C` base de tiles (`bgSetMapPtr`, `bgSetGfxPtr`), `TM $212C` capas encendidas (`bgSetEnable/Disable`), `VMAIN/VMADD/VMDATA $2115-$2118` por DMA (`bgInitTileSet`, `bgInitMapSet`, `consoleInitText`), `CGADD/CGDATA $2121/$2122` (paletas), brillo con pasos (`setFadeEffectEx`) |
 | `pantallas/pantalla_intro.c` | PPU | además, `MOSAIC $2106` (`setMosaicEffect`, `REG_MOSAIC = 0`) y Mode 3 (`BGMODE`) |
-| `pantallas/pantalla_titulo.c`, `pantalla_nivel1.c` | PPU, HDMA | `BGnHOFS/BGnVOFS $210D-$2114` scroll (`bgSetScroll`, dos escrituras de 8 bits); `COLDATA $2132` color de fondo por línea vía **HDMA** canal 6 (`setModeHdmaColor` programa `$43x0-$43x7` y `HDMAEN $420C`; `setModeHdmaReset` lo apaga); `SLHV $2137` / `OPVCT $213D` lectura de la línea del haz (medidor `LIN`) |
+| `pantallas/pantalla_titulo.c`, `pantalla_nivel1.c` | PPU, HDMA | `BGnHOFS/BGnVOFS $210D-$2114` scroll (`bgSetScroll`, dos escrituras de 8 bits); `CGADD/CGDATA $2121/$2122`: el **color 0 de la CGRAM** (el color de fondo) por línea vía **HDMA** canal 6 (`setModeHdmaColor` programa el canal en modo 3 con destino `$21`, es decir `$2121`×2 y `$2122`×2, en `$43x0-$43x4`; apaga **todos** los canales, hace dos `wai` y enciende solo el suyo en `HDMAEN $420C`; `setModeHdmaReset` lo apaga; ojo: `setModeHdmaGradient`, `setModeHdmaShadeUpDown` y `setParallaxScrolling` del SDK usan el canal 3); `SLHV $2137` / `OPVCT $213D` lectura de la línea del haz (medidor `LIN`) |
 | `pantallas/personajes.c` | OAM, VRAM, CGRAM | `OBSEL $2101` tamaño y base de sprites (`oamInitGfxAttr`), `OAMADD/OAMDATA $2102-$2104` por la copia de la OAM en la NMI (`oamSet`, `oamSetEx`, `oamSetXY` escriben en un buffer en RAM), `dmaCopyVram`, `dmaCopyCGram` |
 | `juego/tarou_sprite.c` | OAM, VRAM, CGRAM | `oamInitGfxAttr` (`OBSEL`: tiles desde 0x0000, tamaños 16/32), `oamSet`/`oamSetEx`/`oamSetXY` (el buffer de la OAM, una pieza de 32×32 por entrada), `dmaCopyCGram` (paleta 0). Los tiles del cuadro van por la lista de DMA, a una de las dos celdas de la VRAM (tiles 0..127 o 128..255), medio cuadro por VBlank |
 | `juego/dma_ejecutar.asm` | VRAM, DMA | **la única escritura a la VRAM del nivel en marcha**, con los registros a mano: por cada entrada de la lista, `VMAIN $2115` (`0x80` tiles, `0x81` columnas: avanzar 32 palabras = bajar una fila del mapa), `VMADD $2116`, canal 0 (`$4300 = 0x01` dos registros, `$4301 = 0x18` destino `VMDATA`, `$4302-$4304` origen de 24 bits, `$4305` bytes), `MDMAEN $420B`; deja `VMAIN = 0x80`. ~60 ciclos por entrada: en C eran 100-200 |
@@ -93,8 +93,9 @@ celda: tile, paleta, prioridad, volteretas); uno de 64×32, 4 KB.
 | 144..159 | sprites 1 | Bárbara |
 
 El color 0 de cada paleta es **transparente** en sprites y en las capas
-superiores; en la capa de más abajo se ve el color de fondo (`COLDATA`), que
-en título y nivel pinta el HDMA línea a línea.
+superiores; donde todas las capas son transparentes se ve el color de fondo,
+que es el **color 0 de la CGRAM** (no `COLDATA`): en título y nivel lo cambia
+el HDMA línea a línea (`setModeHdmaColor`, §2).
 
 ## 5. Mapa de la OAM (128 sprites)
 
@@ -113,7 +114,7 @@ línea, y 512 tiles direccionables (por eso Tarou tiene que ser dinámico).
 Desde el 2026-10-21 la ROM mide **4 MB** (`ROMSIZE 0C`, `ROMBANKS 128`,
 `FASTROM 1` en el `Makefile`): el máximo de los mapas estándar de la SNES y
 el mayor que sabe generar la cabecera del SDK. Del `ProyectoSNES.log`: 15
-bancos usados, 3 713 537 bytes libres (88,5 %). Antes (512 KB, 16 bancos
+bancos usados, 3 709 920 bytes libres (88,5 %; 2026-10-22, con la tira de guardia). Antes (512 KB, 16 bancos
 SlowROM) quedaban 47 KB.
 
 **LoROM**: cada banco de 32 KB se ve en la mitad alta (`$8000-$FFFF`) de un
@@ -140,10 +141,16 @@ antes de su `RAMSECTION BANK $7E` y volver a `.BASE $80` antes del código
 - `wlalink -d` descarta las secciones que nadie referencia: los stubs y el
   lobo samurái no ocupan ROM.
 
-Un detalle importante para los junior: `tcc816` coloca las **tablas `const`**
-de C en la WRAM, no en la ROM (`ANIMACIONES` está en `$7F00E4`, se ve en el
-`.sym`): se copian al arrancar. Los datos grandes deben ir en `data.asm` con
-`.incbin`, que sí se quedan en la ROM.
+Un detalle importante para los junior: `tcc816` coloca las **tablas `const`
+globales** de C en la WRAM (banco `$7F`), no en la ROM (`ANIMACIONES` está en
+`$7F0150`, se ve en el `.sym`): sus valores van en la ROM y el arranque
+(`crt0`) los copia. Solo las **`static const`** se quedan en la ROM, en la
+sección `.rodata` (que sale con banco `$0E`, la misma ROM que `$8E` leída a
+velocidad lenta). Los datos grandes deben ir en `data.asm` con `.incbin`, que
+sí se quedan en la ROM. Y el arranque **no** deja la `.bss` a cero: por las
+etiquetas `SECTIONSTART_.bss` repetidas solo borra 10 bytes
+(`$7E:2000..$7E:2009`); por eso hay que inicializar las `static`
+(`aprendizaje/unidad-13-memoria`).
 
 ## 7. Mapa de la WRAM (128 KB)
 
@@ -151,7 +158,7 @@ de C en la WRAM, no en la ROM (`ANIMACIONES` está en `$7F00E4`, se ve en el
 |---|---|
 | `$7E0000-$7E1FFF` (8 KB, también visible en `$0000-$1FFF`) | la página cero y la pila del 65816; variables rápidas del SDK |
 | `$7E2000-$7EFFFF` | variables globales y estáticas de nuestros `.c` (`.bss`), el buffer de la OAM, la consola |
-| `$7F0000-$7FFFFF` | tablas `const` copiadas por tcc816, buffers grandes |
+| `$7F0000-$7FFFFF` | tablas `const` globales copiadas por el arranque, buffers grandes |
 
 El `.log` dice cuánto queda: en la Revisión 1, 154 372 bytes libres de 163 840.
 Toda variable global de nuestro código está aquí; por eso la lógica pura usa
@@ -163,13 +170,14 @@ Toda variable global de nuestro código está aquí; por eso la lógica pura usa
 línea 0           la PPU empieza a dibujar la línea 0 (área visible 0..224)
                   │  nuestra lógica del frame corre aquí (en el tutorial, con colisión y
                   │  sin HUD, acaba hacia la línea 100-130: "LIN")
-                  │  mientras, HDMA escribe COLDATA en cada línea (el cielo)
+                  │  mientras, HDMA escribe el color 0 de la CGRAM ($2121/$2122) (el cielo)
 línea 225         VBlank: la PPU descansa; la consola autolee el mando ($4218)
                   │  NMI: el SDK copia la OAM (DMA), lee pad_keys, cuenta snes_vblank_count
                   │  WaitForVBlank() vuelve → secuencia_vblank(): dma_lista_ejecutar: de un
                   │  tirón, medio cuadro de Tarou (≤ 1,5 KB), las dos columnas del mapa
-                  │  (128 B) y una fila del HUD (64 B). Acaba hacia la línea 23 del
-                  │  VBlank (la 248); el límite es la 37 (la 0 del frame siguiente)
+                  │  (128 B) y una fila del HUD (64 B). Acaba hacia la línea 7 del
+                  │  VBlank (HUD "V5 7") y hacia la 17..20 en los frames que suben
+                  │  sprite ("V5 17..20"); el límite es la 37 (la 0 del frame siguiente)
 línea 262 → 0     siguiente frame
 ```
 

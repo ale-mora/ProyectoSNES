@@ -61,7 +61,7 @@ const EventoEscena ESCENA_NINTENDO[] = {
 
 | Pista | Registro | Cómo |
 |---|---|---|
-| Brillo | `INIDISP` | `setBrightness(v)`; 0 es negro **con la pantalla encendida** |
+| Brillo | `INIDISP` | `setBrightness(v)`; ojo: `setBrightness(0)` escribe `$80` = **forced blank** (pantalla apagada), mientras que el final de `fade_out` sí deja `$00`, negro **con la pantalla encendida** |
 | Mosaico | `MOSAIC` | `(tamaño << 4) \| fondos` |
 | Destello | `WH0`/`WH1` por HDMA | ventana 1 cuyos bordes cambian línea a línea |
 | Luz | `COLDATA` | suma de color fijo, solo dentro de la ventana (`CGWSEL = 0x10`, `CGADSUB = fondos`) |
@@ -107,7 +107,7 @@ en 0, así que la pantalla arranca en negro: la escena hace el fundido.
 | Síntoma | Causa | Arreglo |
 |---|---|---|
 | Raya gris de 1 px bajo el logo durante el destello | el HDMA copia en el HBlank del **final** de cada línea: lo copiado "en la línea n" se ve en la n+1 | la primera entrada de la tabla cubre `arriba − 1` líneas |
-| `255 * 256` daba un paso absurdo | `int` de 16 bits en tcc816 | `* 128 ... * 2` en `RAMPA` |
+| `255 * 256` puede dar un paso absurdo | `int` de 16 bits en tcc816: con todo constante (las tablas de `RAMPA`) el compilador pliega la cuenta con más bits y sale bien, pero si un operando es una variable el producto se hace a 16 bits y desborda (`aprendizaje/unidad-01-enteros-y-punto-fijo`, medido 2026-10-22) | `* 128 ... * 2` en `RAMPA`: la opción segura, no depende de lo que el compilador pliegue |
 | Variables `static` sin inicializar con basura | la WRAM no se pone a cero al arrancar y tcc816 no copia `.bss` | inicializar siempre en `_preparar`/`_empezar` |
 
 ## 7. Pendiente / ideas

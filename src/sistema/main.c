@@ -40,8 +40,10 @@ int main(void)
     oamInit();                    /* Limpia la OAM (arranca con basura).                 */
     personajes_ocultar();         /* Y esconde de verdad los dos sprites grandes.        */
 
-    /* Encendemos la pantalla y de inmediato bajamos el brillo a 0 (negro): así la
-       primera pantalla puede hacer su fade in desde negro sin un destello. */
+    /* Encendemos la pantalla y de inmediato la dejamos en negro: setBrightness(0)
+       escribe $80 en INIDISP, es decir, pantalla apagada (forced blank), no
+       "brillo 0 encendida". Así la primera pantalla hace su fade in desde negro
+       sin un destello (su fade in escribe $00..$0F y la vuelve a encender). */
     setScreenOn();
     setBrightness(0);
 

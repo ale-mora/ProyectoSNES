@@ -75,7 +75,7 @@ Tiled (el autor): res/nivel1/tutorial.tmj   (capa «logica» de 128x14 celdas de
      │                                       con res/nivel1/logica.png; capa «objetos»)
      ▼
 scripts/preparar_nivel.py  ◄── Pixellab Sidescroller, seto del título, fuente de consola
-     ├─► res/nivel1/fondo_cerca.png (2048x256) ─► gfx4snes -m ─► .pic .pal .map
+     ├─► res/nivel1/fondo_cerca.png (2080x256: el nivel + 4 columnas del tronco) ─► gfx4snes -m ─► .pic .pal .map
      │                                              └─► scripts/mapa_a_columnas.py ─► .col
      ├─► res/nivel1/colision.bin (1792 bytes)  ─► data.asm ─► src/juego/colision.c
      └─► res/nivel1/nivel1_datos.h (objetos; la rejilla también, para el PC)
@@ -93,11 +93,15 @@ El reparto de la VRAM no cambia (v1 lo movía por el motor del SDK). La capa
 cercana sigue en `VRAM_MAPA_A`, un mapa de 64×32 tiles (512 px) que se usa como
 **anillo**: la columna `c` del nivel va a `VRAM_MAPA_A + nivel_columna_vram(c)`
 = `((c & 32) << 5) | (c & 31)`, y el scroll de la PPU da la vuelta a los 512 px,
-así que coincide. En cada VBlank, `fondo_nivel_vblank` escribe las columnas
-`(camara >> 3) + 33` y `(camara >> 3) − 1`: a 2 px por cuadro como mucho, nunca
-se salta una. Cada columna es un DMA de 64 bytes (canal 0) con `VMAIN = 0x81`
-(avanzar 32 palabras: bajar una fila); después se deja en 0x80, que es lo que
-esperan las funciones del SDK (`dmaCopyVram` fija 0x80, por eso no sirve aquí).
+así que coincide. Durante el frame, cuando la cámara entra en una columna nueva,
+`fondo_nivel_actualizar` apunta en la lista de DMA (§7) las columnas
+`(camara >> 3) + 33` y `(camara >> 3) − 1`, y en el VBlank `dma_ejecutar.asm`
+las escribe: a 2 px por cuadro como mucho, nunca se salta una. Cada columna es
+un DMA de 64 bytes (canal 0) con `VMAIN = 0x81` (avanzar 32 palabras: bajar una
+fila); después se deja en 0x80, que es lo que esperan las funciones del SDK
+(`dmaCopyVram` fija 0x80, por eso no sirve aquí; `dmaCopyVram7` sí recibe
+`VMAIN`, pero el juego usa su lista igualmente por el presupuesto del VBlank:
+cada llamada desde C cuesta cientos de instrucciones).
 El banco del mapa en la ROM lo da `data.asm` (`nivel1_cerca_col_banco: .db
 :nivel1_cerca_col`), porque el DMA lo necesita aparte. Verificado en Mesen el
 2026-10-20: la cámara pasa de 256 (el límite viejo) a 356 y los obstáculos
@@ -189,12 +193,12 @@ Un commit por fase, sin push:
 
 ## 8. Verificación y resultados (2026-10-20)
 
-- **PC:** 280 comprobaciones en verde, entre ellas: cada obstáculo exige su
+- **PC:** 367 comprobaciones en verde (eran 280 el 2026-10-20), entre ellas: cada obstáculo exige su
   movimiento (`tests/prueba_colision.c`: escalón, muro con salto corto y
   largo, túnel de pie y agachado, foso caminando y corriendo, plataforma), las
   reglas (`tests/prueba_partida.c`: foso, zarzas, tronco con y sin espada,
   salida) y el **recorrido completo** con la rejilla real
-  (`tests/prueba_recorrido.c`: llega a la salida en el cuadro 2238 sin
+  (`tests/prueba_recorrido.c`: llega a la salida en el cuadro 2270, `GUION_TUTORIAL_FIN`, sin
   reaparecer, rompe el tronco y pasa por los 8 puntos de control).
 - **Scripts:** 35 pruebas `unittest` (11 de `preparar_nivel.py` y
   `mapa_a_columnas.py`).
@@ -206,7 +210,8 @@ Un commit por fase, sin push:
   nivel retocado por el autor y Tarou entero).
 - **Coste del VBlank** (v1.3, columna `V` del HUD: línea al entrar y al salir
   de `_vblank`, contadas desde el inicio del VBlank; el límite es 37): frames
-  normales `V5 8`; frames con medio cuadro de Tarou `V5 19..23`. Antes del
+  normales `V5 7`; frames con medio cuadro de Tarou `V5 17..20` (hoy, con
+  FastROM). Antes del
   arreglo: `V5 46` (columnas 9 líneas + tiles 32 por el motor del SDK), y con
   el HUD `V5 14 46`: las últimas 9 líneas se escribían con la PPU dibujando y
   la VRAM las descartaba. La corrección se midió con la ROM de prueba y se
@@ -218,10 +223,12 @@ Un commit por fase, sin push:
   reaparecer varias veces seguidas sin fallos
   (`docs/screenshots/tutorial/09-reaparicion.png`).
 - **Rendimiento:** con el HUD de depuración **apagado**, 60 FPS: el recorrido
-  de 2238 cuadros dura ≈ 37,5 s de reloj. Con el HUD **encendido**, F avanza
-  ~82–85 % de lo que avanza VB (≈ 50 FPS), medido también después de la
-  última ronda de optimizaciones: el HUD cuesta 50–80 líneas y la colisión se
-  comió el margen que antes lo absorbía. La lógica pasó de ~30 a ~90 líneas.
+  de 2270 cuadros dura ≈ 37,8 s de reloj. Con el HUD **encendido**, el
+  2026-10-20 F avanzaba ~82–85 % de lo que avanza VB (≈ 50 FPS): el HUD costaba
+  50–80 líneas y la colisión se comió el margen que antes lo absorbía. Desde el
+  2026-10-21 (`memset`, punteros y el tope de la línea 150 en `hud_debug.c`) el
+  HUD encendido cuesta unos 6 frames en todo el recorrido. La lógica pasó de
+  ~30 a ~90 líneas.
 - **No verificado:** el juego con el mando real (el guion de teclas de
   `capturar_mesen.ps1` perdió las teclas en todas las tandas de esta sesión).
   El autor debe jugarlo a mano.

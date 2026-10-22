@@ -19,7 +19,7 @@
     VARIABLES (constantes)
       ESCENA_NINTENDO_FRAMES   244   frame del FIN_ESCENA
       ESCENA_NINTENDO_EVENTOS  8     líneas de la tabla
-      ESCENA_NINTENDO          const EventoEscena[]  la tabla (en la ROM)
+      ESCENA_NINTENDO          const EventoEscena[]  la tabla (const global: en la WRAM)
     → glosario: Motor de escenas
 ---------------------------------------------------------------------------------*/
 #ifndef ESCENA_NINTENDO_H

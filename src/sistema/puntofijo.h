@@ -8,8 +8,10 @@
       "1,0 px", 24 es "1,5 px", 7168 es "448 px". Sumar, restar y comparar
       funcionan igual que con enteros; el píxel se obtiene desplazando 4 bits.
       Regla del proyecto: las POSICIONES nunca son negativas (se recortan antes
-      de convertir), así el desplazamiento >> es seguro en tcc816; solo las
-      VELOCIDADES pueden ser negativas y nunca se convierten a píxel.
+      de convertir) y las VELOCIDADES, que sí pueden serlo, nunca se convierten
+      a píxel. El >> de un s16 es aritmético en tcc816 (conserva el signo; medido
+      en la unidad 01 de aprendizaje/); el peligro está en el cast a (u16) de
+      PF_ENTERO, que convierte un negativo en un número enorme.
 
     SE CONECTA CON
       Incluye:  sistema/tipos.h.

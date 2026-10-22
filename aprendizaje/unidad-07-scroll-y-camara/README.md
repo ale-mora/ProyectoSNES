@@ -259,13 +259,18 @@ cada línea (`setModeHdmaColor(HDMA_CHANNEL6, ...)` en `pantalla_nivel1.c` y
 `pantalla_titulo.c`). Por eso el degradado no se desplaza con la cámara: no
 depende del scroll, solo de la línea. Cómo funciona, en la unidad 12.
 
-**Observación para comprobar en Mesen (no corregida):** en el nivel, el paso
-3 llama a `bgSetScroll` después de la lógica, a mitad del dibujo (la fila
-`LIN` del HUD dice en qué línea: 70–120 en el tutorial). Como `bgSetScroll`
-escribe en el acto, las líneas de arriba de ese punto se dibujan con el
-scroll del frame anterior: en teoría, un corte de 1–2 px en la capa cercana
-mientras Tarou camina. A 2 px por frame no se aprecia a simple vista; el
-Event Viewer de Mesen (unidad 16) enseña en qué línea se escribe `$210D`.
+**Lo que encontró esta unidad (corregido el 2026-10-22):** hasta ese día, el
+paso 3 del nivel llamaba a `bgSetScroll` después de la lógica, a mitad del
+dibujo (la fila `LIN` del HUD dice en qué línea: 70–120 en el tutorial). Como
+`bgSetScroll` escribe en el acto, las líneas de arriba de ese punto se
+dibujaban con el scroll del frame anterior y las de abajo con el nuevo,
+mientras las columnas que entran y la OAM de Tarou no llegaban hasta el
+VBlank: en teoría, un corte de 1–2 px en la capa cercana mientras Tarou
+camina. Ahora el paso 3 solo calcula `camara` y las dos llamadas a
+`bgSetScroll` están en `pantalla_nivel1_vblank`, antes de
+`dma_lista_ejecutar`: scroll, columnas y sprite cambian a la vez. El Event
+Viewer de Mesen (unidad 16) enseña en qué línea se escribe `$210D`: antes,
+a mitad de la pantalla; ahora, dentro del VBlank.
 
 ## Trampas
 

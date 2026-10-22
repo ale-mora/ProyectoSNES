@@ -14,14 +14,14 @@
       personaje y los pies siempre en la misma fila. Este script hace esa
       traducción SIN escalar el arte y, si falta una animación, fabrica un
       marcador numerado para que el juego compile sin esperar al arte.
-      La exportación nativa trae otros nombres y otros cortes que las 13
+      La exportación nativa trae otros nombres y otros cortes que las 14
       animaciones del juego: el diccionario MAPEOS_PIXELLAB dice de qué estado,
       dirección y tramo de cuadros sale cada una (y si va al revés).
 
     SE CONECTA CON
       Lee:      res/descargas/graficos/pixellab/<nombre>/ (ver su README.md): la
                 exportación nativa de Pixellab o un archivo por animación.
-      Escribe:  res/personajes/<nombre>/<nombre>_<animación>.png (13 tiras),
+      Escribe:  res/personajes/<nombre>/<nombre>_<animación>.png (14 tiras),
                 <nombre>_reposo_estatico.png (SIEMPRE 2 cuadros del reposo, para
                 la carga estática de intro y título en src/pantallas/personajes.c)
                 y res/personajes/<nombre>/<nombre>_anim.h (#define *_CUADROS).
@@ -41,7 +41,7 @@
       CUADROS_ESTATICOS int 2                cuadros de la tira estática de reposo (6 KB en VRAM)
       COLORES       int    15                colores opacos (el 16.º es el transparente)
       TRANSPARENTE  tuple  magenta           color que marca el índice 0 al guardar
-      ANIMACIONES   list   (nombre, cuadros) las 13 animaciones y sus cuadros por defecto
+      ANIMACIONES   list   (nombre, cuadros) las 14 animaciones y sus cuadros por defecto
       MAPEOS_PIXELLAB dict personaje -> {animación: (estado, dirección, desde, hasta, al_revés)}
 
     Uso (desde la raíz del repo):
@@ -64,12 +64,14 @@ CUADROS_ESTATICOS = 2
 COLORES = 15
 TRANSPARENTE = (255, 0, 255)
 
-# Las 13 animaciones de la Revisión 1 (docs/diseno-demo-jugable.md §7), con los
-# cuadros que tiene el marcador cuando el arte real todavía no está.
+# Las 13 animaciones de la Revisión 1 (docs/diseno-demo-jugable.md §7) más la pose
+# de guardia (unidad 18 del curso), con los cuadros que tiene el marcador cuando el
+# arte real todavía no está.
 ANIMACIONES = [
     ("reposo", 4), ("caminar", 8), ("correr", 8), ("saltar", 2), ("caer", 2),
     ("agachado", 2), ("agachado_caminar", 6), ("desenvainar", 4), ("envainar", 4),
     ("atacar", 5), ("echarse", 4), ("dormido", 4), ("despertar", 4),
+    ("guardia", 1),     # Tarou quieto con la espada fuera (un dibujo, no un estado)
 ]
 
 # De qué parte de la exportación NATIVA de Pixellab sale cada animación del juego
@@ -94,6 +96,7 @@ MAPEOS_PIXELLAB = {
         "echarse": ("Stand_up", "east", 0, 6, True),       # levantarse al revés = tumbarse
         "dormido": ("Sleep", "south", 0, None, False),
         "despertar": ("Stand_up", "east", 0, 10, False),   # 11 cuadros no caben: 10
+        "guardia": ("Fight_Pose", "east", None, None, False),  # pose fija: espada en la boca
     },
 }
 
@@ -287,7 +290,7 @@ def escribir_header(ruta: Path, nombre: str, cuadros: dict) -> None:
 # --- 6. Todo junto ------------------------------------------------------------------
 
 def preparar(nombre: str, entrada: Path, salida: Path) -> dict:
-    """Prepara las 13 animaciones de `nombre`. Devuelve {animación: cuadros}.
+    """Prepara las 14 animaciones de `nombre`. Devuelve {animación: cuadros}.
     No escribe nada si alguna animación no cumple el límite de cuadros."""
     por_animacion = {}
     nativo = es_pixellab_nativo(entrada)

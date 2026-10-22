@@ -18,7 +18,7 @@
       ninguno.
 
     VARIABLES (globales)
-      ESCENA_NINTENDO  const EventoEscena[8]  en la ROM (const)
+      ESCENA_NINTENDO  const EventoEscena[8]  en la WRAM (const global: tcc816 la copia al arrancar)
     → glosario: Motor de escenas
 ---------------------------------------------------------------------------------*/
 #include "escena/escena_nintendo.h"

@@ -274,7 +274,7 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   rejilla de 8×8 y las letras de los carteles ocupan un tile cada una, así que
   se comparten). Los volteos solo se deduplican si `gfx4snes` recibe `-F`, y
   el `Makefile` no lo pasa: hoy hay 0 celdas volteadas (con `-F` serían 260
-  tiles; medido el 2026-10-22, decisión del autor si se adopta).
+  tiles; medido y adoptado el 2026-10-22: la regla del `Makefile` ya lo pasa).
 - **Archivos:** `README.md`, `rom/` (mini-ROM que carga un fondo de 16
   colores con `bgInitTileSet` + `bgInitMapSet`), `ejercicio_06.md` (cambiar
   un color de la paleta en tiempo de ejecución y cambiar un tile del mapa).
@@ -838,7 +838,7 @@ make clean; $env:CFLAGS="-DGUION_PRUEBA"; make; $env:CFLAGS=$null
 .\scripts\capturar_mesen.ps1 -Rom RUTA\tutorial_guion.sfc -Duracion 46 -Cada 2 -Espera 3 -Guion "1,1.3,Select"
 ```
 
-Valores de referencia hoy (2026-10-22): **367** pruebas de PC y **35** de
+Valores de referencia hoy (2026-10-22): **367** pruebas de PC y **36** de
 scripts en verde; el título aparece hacia el segundo 47 de la captura; en la ROM de
 prueba el nivel termina a los ~37,5 s. Para capturas con el guion de teclas,
 **no usar el equipo durante la tanda**: con el equipo en uso el foco de Mesen
