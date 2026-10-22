@@ -56,7 +56,7 @@ se ajustan tras verlos en Mesen con el HUD de depuración.
 | 1 | Protagonista y edad | **Tarou adulto** | Pedido del autor; el arte de Pixellab existe para el adulto |
 | 2 | Mecánicas | caminar, correr, saltar, agacharse y caminar agachado, envainar/desenvainar, ataque básico, dormir y despertar | Lista del autor. Sin colisión por tiles (exige tileset y Tiled: otra sesión) |
 | 3 | Tamaño y técnica del sprite | **96×64 como metasprite dinámico del SDK** (v3; era 64×64): hasta 6 piezas de 32×32, `gfx4snes -s 32 -T -X 96 -Y 64`, `oamMetaDrawDyn32` | Con ~90 cuadros no cabe nada estático (límite 512 tiles = 5 cuadros). Las animaciones de Pixellab miden hasta 81 px de ancho y reducirlas al 79 % estropeaba el pixel art (decisión del 2026-10-19). Es el motor de LikeMario y sirve para enemigos |
-| 4 | Tamaño de ROM | **16 bancos (512 KB)** | ~115 KB libres no bastan con margen: los cuadros ocupan ~110 KB |
+| 4 | Tamaño de ROM | **16 bancos (512 KB)**; desde el 2026-10-21, **128 bancos (4 MB) LoROM + FastROM** | ~115 KB libres no bastan con margen: los cuadros ocupan ~110 KB. Con 512 KB quedaban 47 KB; 4 MB es el máximo estándar (`docs/hardware-snes-por-modulo.md` §6) |
 | 5 | Mando | B salta, Y corre, A ataca, R envaina/desenvaina, Abajo agacha, SELECT HUD, START título; X y L libres | Ver [§3](#3-mando) |
 | 6 | Salto | altura variable, control aéreo, sin doble salto | Expresivo y barato de programar |
 | 7 | Correr | Y mantenido, sin derrape | Convención Nintendo |

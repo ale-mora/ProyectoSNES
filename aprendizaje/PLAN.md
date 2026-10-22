@@ -160,7 +160,9 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 - **Objetivo:** saber qué hace cada herramienta y leer el ensamblador que
   genera el compilador.
 - **Conceptos:** compilador, ensamblador, enlazador; código objeto y
-  sección; banco de ROM (LoROM, 32 KB); cabecera de la ROM; `Makefile`,
+  sección; banco de ROM (LoROM, 32 KB; FastROM: los bancos se ven en
+  `$80-$FF` y el código va a 3,58 MHz, `-F` en `tcc816`); cabecera de la ROM
+  (`ROMSIZE 0C` = 4 MB, `ROMBANKS 128`, `FASTROM 1`); `Makefile`,
   regla, dependencia; archivo intermedio (por qué `make` borra los `.ps` y
   `.asm` de `tcc816`); por qué `make clean` tras tocar un `.h`; el `.log` y
   el `.sym`.
@@ -171,7 +173,7 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   con la receta de §6.4, copiarlo a la unidad y anotar, línea a línea, qué
   instrucción corresponde a cada sentencia de C).
 - **Código del juego:** `Makefile`, `src/juego/camara.c` y su `.asm`
-  generado (82 líneas, verificado el 2026-10-20: carga del parámetro desde la
+  generado (77 líneas, verificado el 2026-10-22 con FastROM: carga del parámetro desde la
   pila, `adc.w #48`, `sbc.w #128`, recorte por abajo con `bvc`/`bmi`, recorte
   por arriba comparando con `#1792` (`ANCHO_NIVEL − ANCHO_PANTALLA`) y `rtl`:
   las funciones de tcc816 son «largas», se llaman con `jsl`/`jsr.l`),
@@ -205,8 +207,10 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   (medir con el HUD cuánto frame usa el nivel).
 - **Aprobación:** captura de Mesen con el contador y una nota con el valor
   de `LIN` medido en el nivel y su porcentaje de frame, con el HUD encendido y
-  la explicación de por qué entonces `F` avanza menos que `VB` (el HUD cuesta
-  50–80 líneas: el tutorial baja a ~50 FPS con él y va a 60 sin él). Ojo al
+  la explicación de por qué `F` puede avanzar menos que `VB` (hasta el
+  2026-10-21 el HUD costaba 50–150 líneas por fila y el tutorial bajaba a ~47
+  FPS; hoy cuesta 24–63 y tiene un tope de línea: ~6 frames en todo el
+  recorrido). Ojo al
   leer `LIN`: la lógica empieza dentro del VBlank, así que las cifras pueden
   estar en 225..261 o haber dado ya la vuelta (70–120 en el tutorial).
 
@@ -393,26 +397,52 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 
 ### Unidad 12 — HDMA y efectos de la PPU
 
-- **Objetivo:** cambiar un registro de la PPU en cada línea sin gastar CPU.
-- **Conceptos:** HDMA (tabla de valores por línea); canales; `COLDATA`;
-  mosaico; brillo y fundidos (`setFadeEffectEx` y su cuenta de frames por
-  paso); por qué los fundidos bloquean; brillo 0 frente a pantalla apagada
-  (forced blank, `setScreenOff`).
+- **Objetivo:** cambiar un registro de la PPU en cada línea sin gastar CPU,
+  y animar una pantalla con una tabla de eventos en vez de con esperas.
+- **Conceptos:** HDMA (tabla de valores por línea); canales; HDMA
+  **indirecto** (la tabla lleva un puntero; mover el efecto es cambiar 2
+  bytes) y por qué lo que se escribe «en la línea n» se ve en la n+1;
+  `COLDATA`; **ventanas** (`WH0`/`WH1`, una diagonal es `izq = base − línea`);
+  **matemática de color** (`CGWSEL`, `CGADSUB`: sumar un color fijo solo
+  dentro de la ventana); mosaico (`(tamaño << 4) | fondos`); brillo y
+  fundidos (`setFadeEffectEx` y su cuenta de frames por paso); por qué los
+  fundidos bloquean; brillo 0 frente a pantalla apagada (forced blank,
+  `setScreenOff`: `fade_out` deja la pantalla ENCENDIDA y las copias a VRAM
+  fuera del VBlank se pierden, el fallo del título tras el nivel); el **motor
+  de escenas**: tabla de eventos ordenada, pistas en punto fijo 8.8, paso
+  calculado por el compilador en la macro, valor exacto en el último frame,
+  separación lógica pura / registros (`docs/diseno-motor-escenas.md`).
 - **Archivos:** `README.md`, `rom/` (mini-ROM con un degradado de cielo por
-  HDMA y un fundido), `ejercicio_12.md` (otra tabla: cielo de atardecer).
-- **Código del juego:** `src/pantallas/pantalla_titulo.c` (HDMA canal 6),
+  HDMA y un fundido), `ejercicio_12.md` (otra tabla: cielo de atardecer;
+  ampliación: una escena nueva para el logo del publisher con el motor:
+  escribir la tabla, una prueba en `tests/` que compruebe su duración y que
+  acaba apagada, y verla en Mesen).
+- **Código del juego:** `src/escena/escena.c` (el secuenciador: `RAMPA`,
+  `FIJAR`, `FIN_ESCENA`, `escena_avanzar`), `src/escena/efectos.c` (los
+  registros; `efectos_destello` arma la lista de pares y la tabla HDMA
+  indirecta del canal 6), `src/escena/escena_nintendo.c` (la tabla del logo:
+  mosaico que se enfoca, destello, fundidos, 244 frames),
+  `src/pantallas/pantalla_nintendo.c` (cómo una pantalla usa el motor:
+  `_iniciar`/`_actualizar`/`_vblank`), `tests/prueba_escena.c`,
+  `src/pantallas/pantalla_titulo.c` (HDMA canal 6 directo, el cielo),
   `res/titulo/cielo.bmp` + regla `-n`, `src/pantallas/pantalla_intro.c`
   (mosaico: la salida de la intro con `setMosaicEffect` que parece un fallo
   y no lo es), `src/sistema/comun.c` (`fade_in`, `fade_out`),
+  `src/sistema/secuencia.c` (`setScreenOff` antes de cada `_iniciar`),
   `src/pantallas/pantalla_nivel1.c` (`reaparecer`: fundido, pantalla apagada,
   fundido).
-- **Prerrequisitos:** 06. **Práctica:** mini-ROM.
-- **Aprobación:** captura con el degradado nuevo.
+- **Prerrequisitos:** 01, 04, 06. **Práctica:** mini-ROM + sobre el juego real.
+- **Aprobación:** captura con el degradado nuevo; la escena del ejercicio
+  pasa su prueba en el PC y se ve en Mesen sin dejar la ventana ni la luz
+  encendidas en la pantalla siguiente.
 
 ### Unidad 13 — Memoria: VRAM, CGRAM, OAM, WRAM y ROM por bancos
 
 - **Objetivo:** saber dónde vive cada byte y leer el `.log` y el `.sym`.
-- **Conceptos:** mapa de memoria del 65816 (bancos `$7E/$7F`, LoROM);
+- **Conceptos:** mapa de memoria del 65816 (bancos `$7E/$7F` = WRAM; LoROM;
+  FastROM: la ROM en `$80-$FF`, y por qué 128 bancos SlowROM pisarían la
+  WRAM); la WRAM **no** se pone a cero al arrancar (una `static` sin
+  inicializar vale basura);
   sección `superfree`; `.incbin`; etiqueta; por qué una sección no puede
   cruzar 32 KB (y por eso 10 cuadros de 96×64 por animación); dirección de
   24 bits = banco + 16 bits, y cómo darle a C el banco de una etiqueta
@@ -422,8 +452,8 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 - **Archivos:** `README.md` (resumen de `docs/hardware-snes-por-modulo.md`
   con ejercicios), `ejercicio_13.md` (localizar en Memory Tools de Mesen la
   `struct Tarou` usando el `.sym` y verla cambiar al caminar; calcular cuántos
-  cuadros de 96×64 más caben en la ROM: hoy quedan 47 289 bytes, casi todos
-  en los bancos 14 y 15; localizar en el `.sym` `nivel1_colision` y
+  cuadros de 96×64 más caben en la ROM: hoy quedan 3 713 537 bytes de 4 MB
+  (bancos `$8F..$FF` vacíos); localizar en el `.sym` `nivel1_colision` y
   `nivel1_cerca_col` y explicar por qué hace falta `nivel1_cerca_col_banco`).
 - **Código del juego:** `data.asm` (`.rodata_nivel1_cerca`, `.rodata_nivel1_banco`,
   `.rodata_nivel1_colision`), `src/sistema/comun.h`, `src/juego/fondo_nivel.c`
@@ -469,9 +499,12 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
   PPU a mano (`STA $2100`); medir ciclos con el profiler de Mesen.
 - **Archivos:** `README.md`, `rom/` (mini-ROM con `src/relleno.asm`: una
   rutina que rellena una zona de VRAM con un tile, llamada desde C; OJO: el
-  `.asm` no puede llamarse como ningún `.c` de la ROM, `make` lo sobrescribiría),
-  `ejercicio_15.md` (reescribir `poner_numero` del HUD en ensamblador y
-  comparar ciclos; ampliación: `colision_en` de `src/juego/colision.c`, la
+  `.asm` no puede llamarse como ningún `.c` de la ROM, `make` lo sobrescribiría;
+  y con FastROM una `RAMSECTION` necesita `.BASE $00` delante y `.BASE $80`
+  detrás, porque WLA-DX suma la base también a los bancos de RAM),
+  `ejercicio_15.md` (reescribir `numero` del HUD en ensamblador y comparar
+  ciclos; de paso, ver en el `.asm` generado por qué un bucle `*p++ = 0` en C
+  son ~60 instrucciones por vuelta y `memset` de la librería, 3; ampliación: `colision_en` de `src/juego/colision.c`, la
   consulta más repetida de la física, manteniendo la versión C para el PC y
   comprobando con la ROM de prueba que el recorrido sigue igual).
 - **Código del juego:** `src/juego/dma_ejecutar.asm` (**la rutina en
@@ -762,8 +795,9 @@ perdieron en todas las tandas).
 - `tests/tarou_anim.h` es una copia fija con los cuadros de los marcadores;
   el arte real tiene otros (unidades 02, 10, 11).
 - Las cifras de `LIN` pueden estar en 225..261 (la lógica empieza dentro del
-  VBlank) o haber dado la vuelta; y el HUD encendido baja el tutorial a ~50
-  FPS: no es la lógica del juego, es el HUD (unidades 04, 16).
+  VBlank) o haber dado la vuelta. Desde el 2026-10-21 el HUD encendido cuesta
+  ~6 frames en todo el recorrido; si una fila no se refresca en un frame es
+  el tope `HUD_LINEA_MAX`, no un fallo (unidades 04, 16).
 - `tests/prueba_colision.c`, `prueba_partida.c` y `prueba_recorrido.c` usan la
   rejilla REAL del nivel (`res/nivel1/nivel1_datos.h`): retocar el nivel en
   Tiled las rompe a propósito (unidades 10, 20).
@@ -786,6 +820,19 @@ perdieron en todas las tandas).
   el intermedio del compilador (unidades 03, 15).
 - Las tablas de Tiled en JSON para `tmx2snes`: sin espacio tras los dos puntos
   (unidad 20).
+- `fade_out` termina con brillo 0 pero la pantalla ENCENDIDA: cargar la VRAM
+  después, fuera del VBlank, pierde datos. `secuencia_cambiar` apaga la
+  pantalla antes de cada `_iniciar` (unidades 04, 12).
+- Con FastROM, un `.asm` a mano con `RAMSECTION` lleva `.BASE $00` delante y
+  `.BASE $80` detrás; si no, sus variables «viven» en la ROM (unidades 13, 15).
+- Las `static` de C NO empiezan en 0: la WRAM arranca con basura y tcc816 no
+  limpia `.bss`. Inicializar siempre (unidades 00, 13).
+- Un bucle de relleno en C (`*p++ = 0`) cuesta ~60 instrucciones por vuelta
+  en tcc816; `memset` de la librería es ensamblador (unidades 14, 15).
+- El HDMA escribe en el HBlank del final de la línea: una tabla que empieza
+  «en la línea 64» se ve desde la 65 (unidad 12).
+- `255 * 256` no cabe en el `int` de 16 bits de tcc816: las macros con
+  constantes grandes se reparten (`* 128 ... * 2`) (unidades 01, 12).
 
 ### 6.7 Orden de trabajo recomendado
 
@@ -800,4 +847,5 @@ cambió desde este plan, manda el código y se corrige el plan.
 |---|---|
 | 00 | **hecha** (2026-10-19): `unidad-00-c-en-el-pc/`; las 12 fuentes compilan con `gcc -std=c99 -Wall -Wextra` sin avisos y las 4 soluciones dan exactamente su salida esperada (`capturas/`). El autor tiene pendiente resolver el ejercicio 03 (y el 04) por su cuenta |
 | 01–19 | por escribir (siguiente: 01). Fichas revisadas el 2026-10-20 contra el código del tutorial |
+| 12 | por escribir: el motor de escenas existe desde el 2026-10-21 (`src/escena/`); ficha en §3 actualizada |
 | 20 | por escribir: el código existe desde el 2026-10-20 (el tutorial); ficha en §3 |

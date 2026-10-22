@@ -11,7 +11,7 @@ palabras de 2 bytes como las escribe el código. Términos: `docs/glosario-snes.
 
 ```
                  ┌──────────────── cartucho ────────────────┐
-                 │ ROM 512 KB = 16 bancos LoROM de 32 KB    │  código + data.asm
+                 │ ROM 4 MB = 128 bancos LoROM FastROM      │  código + data.asm
                  └───────────────────┬──────────────────────┘
                                      │ bus
 ┌──────────────────┐   ┌─────────────┴──────────────┐   ┌──────────────────────┐
@@ -108,15 +108,30 @@ Cada entrada guarda x, y, el tile inicial, la paleta, la prioridad y los
 bits de volteo. Límites: 128 sprites, 32 por línea, 34 "ranuras" de 8 px por
 línea, y 512 tiles direccionables (por eso Tarou tiene que ser dinámico).
 
-## 6. Mapa de la ROM (16 bancos de 32 KB)
+## 6. Mapa de la ROM (128 bancos de 32 KB, LoROM + FastROM)
 
-Del `ProyectoSNES.log` del 2026-10-20 (tutorial, arte real): bancos 0..13
-llenos, banco 14 al 56 %, banco 15 vacío (47 289 bytes libres de 524 288).
-En la Revisión 1, con los marcadores, quedaban 238 927.
+Desde el 2026-10-21 la ROM mide **4 MB** (`ROMSIZE 0C`, `ROMBANKS 128`,
+`FASTROM 1` en el `Makefile`): el máximo de los mapas estándar de la SNES y
+el mayor que sabe generar la cabecera del SDK. Del `ProyectoSNES.log`: 15
+bancos usados, 3 713 537 bytes libres (88,5 %). Antes (512 KB, 16 bancos
+SlowROM) quedaban 47 KB.
 
-- **Banco 0**: la cabecera (`hdr.asm`), los vectores de interrupción y el
+**LoROM**: cada banco de 32 KB se ve en la mitad alta (`$8000-$FFFF`) de un
+banco de direcciones del 65816. Con SlowROM el enlazador los numera desde
+`$00`, y 128 bancos llegarían hasta `$7F`: **encima de la WRAM** (`$7E/$7F`).
+Con **FastROM** los numera desde `$80` (`.BASE $80` en `hdr.asm`): los 128
+caben en `$80-$FF`, y el código que corre ahí va a 3,58 MHz en vez de
+2,68 MHz (el acceso a los registros de la PPU y a la WRAM sigue igual de
+lento). `snes_rules` compila con `-F` y enlaza `LoROM_FastROM`.
+
+Trampa de FastROM: WLA-DX aplica `.BASE $80` también al banco de una
+`RAMSECTION`, así que un `.asm` escrito a mano tiene que poner `.BASE $00`
+antes de su `RAMSECTION BANK $7E` y volver a `.BASE $80` antes del código
+(ver `src/juego/dma_ejecutar.asm`; el nivel salía en negro).
+
+- **Banco `$80`**: la cabecera (`hdr.asm`), los vectores de interrupción y el
   código que el enlazador coloca primero (nuestro `.text` y la librería).
-- **Bancos 1..8**: el resto del código y las secciones `superfree` de
+- **Bancos `$81..$8E`**: el resto del código y las secciones `superfree` de
   `data.asm`: cada asset entero en un banco (ninguna sección puede cruzar los
   32 KB). Las 13 animaciones de Tarou (3 KB por cuadro de 96×64) son el bloque
   mayor; la capa cercana del tutorial (tiles + mapa por columnas, ~25 KB) va

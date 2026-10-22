@@ -73,7 +73,7 @@ incluye `<snes.h>` y es la única que toca la PPU, la OAM y el mando.
 
 | Archivo | Qué hace | Se conecta con | Hardware |
 |---|---|---|---|
-| `Makefile` | Define `ROMNAME`, `ROMTITLE`, `ROMSIZE 09`/`ROMBANKS 16` (512 KB), una regla `gfx4snes` por asset, la lista `ASSETS`, `bitmaps` y `data.obj: $(ASSETS)`; luego incluye `snes_rules` del SDK y añade `-Isrc -Ires/personajes/tarou` a `CFLAGS`. | Lo ejecuta `make` (desde `run.bat`, PowerShell o la tarea de VS Code). Lee `res/**`, produce `.pic/.pal/.map/_meta.inc`, `.ps/.asm/.obj`, `linkfile`, `hdr.asm`, `.sfc/.sym/.log`. Detalle regla por regla en `tuberia-de-compilacion.md`. | ninguno (describe la ROM: LoROM, SlowROM, 16 bancos) |
+| `Makefile` | Define `ROMNAME`, `ROMTITLE`, `ROMSIZE 0C`/`ROMBANKS 128`/`FASTROM 1` (4 MB, LoROM FastROM), una regla `gfx4snes` por asset, la lista `ASSETS`, `bitmaps` y `data.obj: $(ASSETS)`; luego incluye `snes_rules` del SDK y añade `-Isrc -Ires/personajes/tarou` a `CFLAGS`. | Lo ejecuta `make` (desde `run.bat`, PowerShell o la tarea de VS Code). Lee `res/**`, produce `.pic/.pal/.map/_meta.inc`, `.ps/.asm/.obj`, `linkfile`, `hdr.asm`, `.sfc/.sym/.log`. Detalle regla por regla en `tuberia-de-compilacion.md`. | ninguno (describe la ROM: LoROM, FastROM, 128 bancos) |
 | `data.asm` | Ensamblador que "pega" los binarios en la ROM con `.incbin` y les da etiquetas (`nintendo_til`, `tarou_pal`...). Una sección `superfree` por asset (≤ 32 KB cada una). | Incluye `hdr.asm`. Lee los `.pic/.pal/.map/.as` de `res/`. Lo usan todos los `.c` que declaran `extern char etiqueta;`. | ROM: bancos de 32 KB (→ glosario: Banco / LoROM) |
 | `run.bat` | `make clean` + `make` + abre Mesen con la ROM; fija `PVSNESLIB_HOME`, `DEVKITSNES` y el `PATH` de la sesión. Se detiene con `[ERROR]` si falla. | Llama a `make` (MSYS2) y a `tools/mesen/Mesen.exe`. | — |
 | `CLAUDE.md` | Guía para Claude Code: comandos, arquitectura, reglas del proyecto (comentarios en español, texto del juego en inglés, `make clean` tras tocar cabeceras). | La lee el agente al empezar una sesión. | — |
@@ -103,7 +103,7 @@ Todas siguen el mismo patrón: `_iniciar()` carga gráficos y hace el fade in;
 
 | Archivo | Qué hace | Incluye / Lo usan | Hardware |
 |---|---|---|---|
-| `pantalla_nintendo.c` | (1) Logo Nintendo + "LICENSED BY NINTENDO", 3 s. | `nintendo_*` de `data.asm`; `secuencia.c`. | PPU y VRAM vía `comun.c`; mando solo si `PERMITE_SALTO` |
+| `pantalla_nintendo.c` | (1) Logo Nintendo + "LICENSED BY NINTENDO", 244 frames, animado por el **motor de escenas**: `_iniciar` carga el logo y prepara el destello, `_actualizar` avanza la escena y sale al terminar, `_vblank` aplica los efectos. | `nintendo_*` de `data.asm`; `escena/escena_nintendo.h`, `escena/efectos.h`; `secuencia.c`. | PPU y VRAM vía `comun.c`; brillo, mosaico, ventana, color y HDMA vía `efectos.c` |
 | `pantalla_publisher.c` | (2) Logo del publisher (Capcom del SDK, provisional), 3 s. | `publisher_*`; `secuencia.c`. | ídem |
 | `pantalla_devs.c` | (3) Logo del estudio y créditos con la consola de texto, 4 s; entra de golpe (`setBrightness(15)`). | `devs_*`; `secuencia.c`. | ídem + brillo directo |
 | `pantalla_dedicatoria.c` | (4) "A la memoria de Tarou" letra a letra sobre negro, fundidos lentos, 7 s. | `comun.c` (`escribir_parcial`); `secuencia.c`. | PPU vía `comun.c` |
@@ -112,6 +112,14 @@ Todas siguen el mismo patrón: `_iniciar()` carga gráficos y hace el fade in;
 | `pantalla_nivel1.c` | (7) El nivel 1, el tutorial. Por frame: `mando_leer` → `tarou_actualizar` → `partida_actualizar` (reaparecer, tronco roto, salida) → `camara_para` → scroll de dos capas → `dma_lista_vaciar` al empezar; `tarou_sprite_dibujar` → `fondo_nivel_actualizar` → HUD (cada uno apunta sus copias en la lista); en `_vblank`: `dma_lista_ejecutar`, y la medida `V` (líneas del VBlank usadas). `reaparecer()`: fundido, pantalla apagada, Tarou al último cartel, anillo reescrito, fundido. La salida lleva a `PANTALLA_PROXIMAMENTE`; START vuelve al título, SELECT alterna el HUD. Mide la línea del haz (`$2137/$213D`) para el medidor `LIN`. | `nivel1_colision`, `nivel1_lejos_*`, `hdmaGradcieloList`; `nivel1_datos.h`; `juego/*.h`; `secuencia.c`. | PPU: modo, scroll, BG2 on/off; HDMA; OAM/VRAM por `tarou_sprite.c`; mando por `mando.c`; contadores del haz |
 | `pantalla_proximamente.c` | (8) «LEVEL 2 / COMING SOON» unos segundos tras la salida del tutorial; vuelve al título. Desaparecerá cuando exista el nivel 2. | `pantallas.h` (`DURACION_PROXIMAMENTE`), `secuencia.h`, `comun.h`. | PPU por `comun.c` |
 | `personajes.c` / `.h` | Sprites de Tarou y Bárbara para intro y título con carga **estática**: la tira `tarou_reposo_estatico` (siempre 2 cuadros de 96×64; piezas de 32×32 según su tabla metasprite, `tile = (n/4)·64 + (n%4)·4`, **hasta** 6 por cuadro: las entradas sobrantes se esconden) en VRAM 0x0000 (tiles 0..191) y Bárbara (64×64) en la segunda tabla de tiles (256, VRAM 0x1000); `mostrar/animar/ocultar`. | `tarou_reposo_estatico_til`, `tarou_pal`, `barbara_samurai_*` de `data.asm`; `tarou_reposo_estatico_meta.inc`; `juego/metasprite.h` (`metasprite_piezas`); lo usan `pantalla_intro.c`, `pantalla_titulo.c`, `main.c`. | OAM (`oamSet`, `oamSetEx`, `oamSetXY`), VRAM (`dmaCopyVram`), CGRAM (`dmaCopyCGram`), `oamInitGfxAttr` |
+
+## 4b. `src/escena/` — el motor de escenas
+
+| Archivo | Qué hace | Incluye / Lo usan | Hardware |
+|---|---|---|---|
+| `escena.h` / `escena.c` | **Lógica pura**: tabla de eventos (`RAMPA`, `FIJAR`, `FIN_ESCENA`; 8 bytes cada uno, paso en 8.8 calculado por el compilador) que mueve 4 pistas (brillo, mosaico, destello, luz). `escena_empezar`, `escena_avanzar` (por frame), `ESCENA_VALOR`. | `tipos.h`. Lo usan `pantalla_nintendo.c`, `tests/prueba_escena.c`. | **ninguno** (se prueba en PC) |
+| `efectos.h` / `efectos.c` | Lleva las pistas a la PPU en el VBlank: `efectos_preparar(fondos)`, `efectos_destello(arriba, alto, x_min, x_max, ancho)` (calcula una vez los pares de ventana y arma la tabla HDMA indirecta), `efectos_aplicar(&escena)`, `efectos_terminar()`. | `<snes.h>`, `escena.h`. Lo usa `pantalla_nintendo.c`. | `INIDISP`, `MOSAIC`, `WOBJSEL`/`WH0`/`WH1`, `CGWSEL`/`CGADSUB`/`COLDATA`, canal 6 de HDMA (`$4360-$4367`, `$420C`) |
+| `escena_nintendo.h` / `escena_nintendo.c` | La tabla del logo Nintendo (8 eventos, `ESCENA_NINTENDO_FRAMES = 244`). | `escena.h`. | ninguno |
 
 ## 5. `src/juego/` — la lógica del nivel
 
@@ -198,9 +206,10 @@ salidas (`.pic` tiles, `.pal` paleta, `.map` mapa, `.inc`/`_meta.inc` tablas,
 | `prueba_puntofijo.c` | `PF`, `PF_ENTERO`, signo de `s16`. |
 | `prueba_camara.c` | `camara_para` en el centro y en ambos bordes (0..1792); constantes del nivel; `nivel_columna_vram` (el anillo). |
 | `prueba_animacion.c` | Tabla `ANIMACIONES` (cuadros, frames por cuadro, bucle), `NOMBRES_ESTADO`, `struct Mando`. |
-| `prueba_tarou.c` | Caminar, correr, frenar, bordes; salto variable, corte, terminal, aterrizajes, control aéreo; agacharse, espada, ataque y cajas; dormir, despertar; avance de animación. Sobre un escenario plano (fila 13 sólida). Con las demás suites, 280 comprobaciones en total. |
+| `prueba_tarou.c` | Caminar, correr, frenar, bordes; salto variable, corte, terminal, aterrizajes, control aéreo; agacharse, espada, ataque y cajas; dormir, despertar; avance de animación. Sobre un escenario plano (fila 13 sólida). Con las demás suites, 367 comprobaciones en total. |
 | `prueba_colision.c` | `colision_en`, las consultas de columna y fila y el bloque; y, sobre la rejilla **real** del tutorial, que cada obstáculo exige su movimiento (escalón, muro, túnel, foso, plataforma) y que desde el inicio se llega al primer escalón. |
 | `prueba_partida.c` | Reglas sobre el nivel real: foso y zarzas mandan reaparecer en el último cartel; el tronco para a Tarou, A sin espada no hace nada, con espada se rompe; la salida. |
+| `prueba_escena.c` | El motor de escenas: rampas exactas, `FIJAR`, fin, evento fuera de orden; y la tabla real del logo (orden, 244 frames, sin saltos, todo apagado al final). |
 | `prueba_recorrido.c` | El guion `GUION_TUTORIAL` juega el nivel real entero: llega a la salida en el cuadro 2270, sin reaparecer, tronco roto, los 8 controles pasados. |
 | `prueba_metasprite.c` | `metasprite_piezas` y `metasprite_espejar` con tablas de 6, 3 y 0 piezas y una sin terminador (el límite de 6 protege); el terminador `0xFF80` queda detrás de la última pieza; `metasprite_copias` con los cuadros 0 y 1 de una tira de 8 (8 y 16 copias, orígenes y destinos exactos). |
 | `tarou_anim.h` | Copia fija del header generado, con los cuadros de los marcadores, para que las pruebas no dependan del arte. |

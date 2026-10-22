@@ -101,8 +101,12 @@ NTSC) y se ajustan a ojo en Mesen.
   texto "LICENSED BY NINTENDO". Muda (como casi todas las de la época).
 - **Técnica:** Mode 1. BG1 = imagen del logo (16 colores, 4bpp). Texto con la
   fuente de consola en BG3 (o dentro de la misma imagen si se prefiere una sola
-  pieza). `setFadeEffectEx(FADE_IN, 2)` → espera → `setFadeEffectEx(FADE_OUT, 2)`
-  (el parámetro es frames por paso de brillo; 16 pasos × 2 = 32 frames).
+  pieza). Hasta el 2026-10-21: `setFadeEffectEx(FADE_IN, 2)` → espera →
+  `setFadeEffectEx(FADE_OUT, 2)` (16 pasos × 2 = 32 frames). **Desde entonces**
+  la pantalla usa el motor de escenas (`docs/diseno-motor-escenas.md`): el logo
+  se enfoca desde un mosaico mientras sube el brillo, una banda de luz diagonal
+  lo cruza (ventana 1 por HDMA + suma de color) y se apaga. Misma duración
+  total: 244 frames.
 - **Asset:** `res/nintendo/logo_nintendo.png` (256×224, indexado, ≤16 colores).
   Lo descarga el usuario; se adapta con `scripts/preparar_imagen.py`.
 

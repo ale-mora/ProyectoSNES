@@ -83,9 +83,15 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   Comparado con `frames_en_pantalla` dice si el juego pierde frames; comparado
   con el reloj, si el emulador va a 60 por segundo.
 - **Banco / LoROM** — la ROM del cartucho se ve en trozos de **32 KB** llamados
-  bancos. Nuestro proyecto tiene 16 (512 KB). Un asset (imagen, música) no puede
-  cruzar de un banco a otro; `data.asm` reparte cada uno en una sección
-  `superfree` y el enlazador elige el banco.
+  bancos, cada uno en la mitad alta (`$8000-$FFFF`) de un banco de direcciones
+  del 65816. Nuestro proyecto tiene 128 (4 MB, el máximo estándar). Un asset
+  (imagen, música) no puede cruzar de un banco a otro; `data.asm` reparte cada
+  uno en una sección `superfree` y el enlazador elige el banco.
+- **FastROM** — modo en que la ROM se lee a 3,58 MHz en vez de 2,68 MHz
+  (los registros y la WRAM van igual). Para la SNES, los bancos `$80-$FF` son
+  la misma ROM que `$00-$7F` pero rápidos: con `FASTROM 1`, `hdr.asm` pone
+  `.BASE $80` y todo el código vive ahí. Es también lo que permite 128 bancos:
+  numerados desde `$00`, los dos últimos pisarían la WRAM (`$7E/$7F`).
 
 ## Gráficos
 
@@ -163,7 +169,30 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   dura el efecto.
 - **Mosaico** — efecto de la PPU que agranda los píxeles de una capa hasta
   volverla bloques. `setMosaicEffect(MOSAIC_OUT, ...)` lo agranda (la doc del
-  SDK lo tiene al revés) y `REG_MOSAIC = 0` lo apaga.
+  SDK lo tiene al revés) y `REG_MOSAIC = 0` lo apaga. El motor de escenas lo
+  escribe a mano: `(tamaño << 4) | fondos`.
+- **Forced blank (pantalla apagada)** — el bit 7 de `INIDISP` (`setScreenOff`).
+  Con él la PPU no dibuja y la VRAM se puede escribir en cualquier momento.
+  **Brillo 0 no es lo mismo**: `fade_out` deja la pantalla encendida en negro
+  y lo que se copie a la VRAM fuera del VBlank se pierde (fallo del título al
+  volver del nivel, 2026-10-21). `secuencia_cambiar` apaga antes de cada
+  `_iniciar`.
+- **Ventana** — la PPU tiene dos rangos de columnas (`WH0..WH3`, bordes
+  izquierdo y derecho) que pueden recortar capas o limitar la matemática de
+  color (`WOBJSEL`, `TMW`). Cambiando los bordes **en cada línea** por HDMA
+  salen formas: una diagonal es `izq = base − línea`. → `src/escena/efectos.c`.
+- **Matemática de color** — la PPU puede sumar o restar a cada píxel otro color:
+  el de la pantalla secundaria o un **color fijo** (`COLDATA`). `CGWSEL` dice
+  dónde (todo, solo dentro de la ventana...) y `CGADSUB` qué capas. Sumar un
+  gris dentro de una ventana estrecha es el destello del logo Nintendo.
+- **HDMA indirecto** — variante del HDMA en que la tabla no lleva los valores
+  sino un **puntero** a ellos; en modo repetir el canal lee un valor nuevo por
+  línea avanzando por esa memoria. Mover un efecto es cambiar el puntero (2
+  bytes) en vez de reescribir la tabla. Registros `$43x0` bit 6 y `$43x7`
+  (banco de los datos).
+- **Motor de escenas** — una tabla de eventos (frame, duración, pista, valor
+  final, paso) que mueve números en punto fijo 8.8, y una capa que lleva esos
+  números a los registros en el VBlank. → `docs/diseno-motor-escenas.md`.
 - **Consola de texto** — PVSnesLib trae una fuente y una capa de texto de
   32 columnas × 28 filas (celdas de 8×8). `consoleDrawText(x, y, "...")`
   escribe en la celda (x, y); la librería copia el texto a VRAM en el

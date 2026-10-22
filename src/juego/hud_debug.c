@@ -52,15 +52,17 @@
 
     CUÁNTO CUESTA (medido en Mesen el 2026-10-21, ROM FastROM)
       Con el HUD encendido el juego iba a ~47 FPS: preparar una fila costaba de
-      45 a 150 líneas del haz (globales indexadas: mapa vía `celda[col]`, los
-      bucles con `i` y `n` estáticos), y en los frames en que Tarou planifica un
-      cuadro nuevo la lógica y el sprite ya acaban en la línea 170-220. Hoy:
+      48 a 150 líneas del haz, y en los frames en que Tarou planifica un cuadro
+      nuevo la lógica y el sprite ya acaban en la línea 170-220. Tres cambios:
+        - La fila se deja en blanco con memset (ensamblador de la librería):
+          el bucle en C costaba ~30 líneas; memset, ~3.
         - Se escribe con un PUNTERO que avanza (`*p++ = ...`) y variables
-          locales: tcc816 lo traduce a un acceso indirecto por fila, no a
-          recalcular `celda + col` en cada carácter.
+          locales, no con globales indexadas (`celda[col]`, `POTENCIAS[n]`).
         - TOPE: si cuando toca el HUD el haz ya pasó de HUD_LINEA_MAX, la fila
-          espera al frame siguiente. El HUD tarda un poco más en refrescarse en
-          los frames cargados, pero ya no le roba frames al juego.
+          espera al frame siguiente.
+      Coste por fila después (líneas): X 47, Y 44, EST 33, ESP 36, GOLPE 24,
+      LIN 58, V/VB 57. Con el HUD encendido todo el recorrido del tutorial se
+      pierden ~6 frames más que con él apagado (antes, ~1 de cada 5).
 
     → glosario: HUD de depuración, Tilemap, Tile, DMA / HDMA, Caja de colisión / caja de golpe
 ---------------------------------------------------------------------------------*/

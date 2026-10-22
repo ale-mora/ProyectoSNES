@@ -59,7 +59,7 @@ los 15 s (attract).
 
 ## 3. El HUD de depuración (SELECT en el nivel)
 
-Siete filas de texto sobre el juego (`juego/hud_debug.c`), que leen la struct
+Ocho filas de texto sobre el juego (`juego/hud_debug.c`), que leen la struct
 `Tarou` y los contadores del nivel. Es la herramienta principal para afinar
 constantes y para **ver** el punto fijo:
 
@@ -70,12 +70,17 @@ EST CAMINANDO          estado actual, con el nombre del enum
 ESP FUERA  DIR DER     espada fuera/envainada; dirección derecha/izquierda
 CAM 0  F 1234          cámara (0..1792 en el tutorial) y frames desde que empezó el nivel
 GOLPE 167 168 28 16    caja de golpe de la espada (x, y, ancho, alto) o "-"
-LIN 65 120 170 V5 8 VB 3738  línea del haz tras la lógica, tras el sprite (y las
-                       columnas) y al final del frame; V: líneas del VBlank al
-                       entrar y al salir de _vblank, contadas desde su inicio (el
-                       límite es 37: más allá, la VRAM descarta lo que se escribe);
-                       y VBlanks totales desde el arranque
+LIN 65 120 170         línea del haz tras la lógica, tras el sprite (y las
+                       columnas) y al final del frame
+V5 7  VB 3738          V: líneas del VBlank al entrar y al salir de _vblank, contadas
+                       desde su inicio (el límite es 37: más allá, la VRAM descarta
+                       lo que se escribe; hoy 7, y 17..20 cuando sube un cuadro);
+                       VB: VBlanks totales desde el arranque
 ```
+
+Cada fila se refresca en un frame distinto (una por frame, por turnos), y si
+el haz ya pasó de la línea 150 cuando le toca al HUD, esa fila espera al
+frame siguiente: así el HUD no roba frames al juego.
 
 Cómo usar las dos últimas filas para medir:
 
@@ -209,7 +214,10 @@ del PC. El 2026-10-20 coincidieron y la ROM llegó a la salida.
 
 | Síntoma | Causa | Dónde está la solución |
 |---|---|---|
-| Con el HUD encendido F avanza ~84 % de VB en el nivel tutorial | el HUD cuesta 50–80 líneas y la colisión se comió el margen; sin HUD va a 60 FPS | pendiente (abaratar el HUD) |
+| Con el HUD encendido F avanzaba ~84 % de VB en el nivel tutorial | una fila costaba 48–150 líneas (30 solo el bucle en C que la dejaba en blanco) y en los frames de cuadro nuevo no quedaba margen | `memset`, punteros que avanzan y un tope (`HUD_LINEA_MAX`): si el haz pasó de la línea 150 la fila espera. Hoy pierde ~6 frames en todo el recorrido (2026-10-21) |
+| El título tras el nivel mostraba a Tarou con trozos del nivel | `fade_out` deja brillo 0 con la pantalla **encendida**; la copia de tiles del título fuera del VBlank se perdía | `setScreenOff()` en `secuencia_cambiar` antes de cada `_iniciar` |
+| Raya gris de 1 px bajo el logo Nintendo durante el destello | el HDMA escribe al final de la línea: se ve en la siguiente | la primera entrada de la tabla HDMA cubre una línea menos (`efectos.c`) |
+| La primera captura de una tanda con `-Desde` muestra un instante anterior | `PrintWindow` devuelve la capa compuesta anterior la primera vez | ignorar la captura 001 cuando `-Desde` > 0 |
 | La ROM de prueba iba mucho más lenta que la normal | `guion[i]` con structs de 5 bytes: `tcc__mul` en cada acceso | `guion.c` recorre la tabla con un puntero |
 | Tarou reaparecía en lo alto de un salto | `PF_ENTERO` de una y negativa da un número enorme | comparar en punto fijo (`partida.c`) |
 | El juego va "lento" (salto de 0,8 s tarda 1,5 s) | `EmulationSpeed = 75` en los ajustes de Mesen | §1; el HUD (`F`/`VB`) lo delata |

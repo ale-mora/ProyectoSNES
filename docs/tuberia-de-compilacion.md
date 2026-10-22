@@ -25,7 +25,7 @@ src/juego/tarou.obj       objeto con secciones (.text, .rodata, .bss) y etiqueta
 linkfile                  lista de objetos que escribe la regla %.sfc
    │  wlalink -d -s -v -A -c -L <lib> linkfile ProyectoSNES.sfc
    ▼
-ProyectoSNES.sfc          la ROM (16 bancos de 32 KB = 524 288 bytes)
+ProyectoSNES.sfc          la ROM (128 bancos de 32 KB = 4 194 304 bytes)
 ProyectoSNES.sym          etiquetas → direcciones (para el depurador de Mesen)
 ProyectoSNES.log          todo lo que dijeron las herramientas + espacio libre por banco
 ```
@@ -87,8 +87,9 @@ bloques 0, 1, 8 y 9).
 ```make
 export ROMNAME  := ProyectoSNES      # nombre de los archivos de salida
 export ROMTITLE := TAROU DEMO        # nombre dentro de la cabecera de la ROM (21 caracteres máx.)
-export ROMSIZE  := 09                # byte de tamaño de la cabecera: 09 = 512 KB (08 = 256 KB)
-export ROMBANKS := 16                # cuántas secciones de 32 KB reparte el enlazador
+export ROMSIZE  := 0C                # byte de tamaño de la cabecera: 0C = 4 MB (09 = 512 KB, 2^n KB)
+export ROMBANKS := 128               # cuántas secciones de 32 KB reparte el enlazador
+export FASTROM  := 1                 # bancos en $80-$FF (si no, 128 pisarían la WRAM) y CPU a 3,58 MHz
 include ${PVSNESLIB_HOME}/devkitsnes/snes_rules   # las reglas genéricas del SDK (ver §4)
 CFLAGS += -Isrc                      # #include "sistema/comun.h" desde cualquier .c
 CFLAGS += -Ires/personajes/tarou -Ires/nivel1   # tarou_anim.h y nivel1_datos.h, generados
@@ -201,7 +202,7 @@ RAM: 154372 bytes (94.22%) free of total 163840.
 src/juego/tarou.c + tests/prueba_tarou.c + ...
    │  gcc -std=c99 -Wall -Wextra -DPRUEBAS_PC -I. -I../src -I../res/nivel1   (tests/Makefile)
    ▼
-tests/pruebas.exe   → "280 pruebas, 0 fallos"
+tests/pruebas.exe   → "367 pruebas, 0 fallos"
 ```
 
 `-DPRUEBAS_PC` hace que `sistema/tipos.h` tome `u8/u16/s16` de `<stdint.h>`

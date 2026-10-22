@@ -240,6 +240,9 @@ Un commit por fase, sin push:
 | Un `.asm` propio con el mismo nombre que un `.c` (`dma_lista.asm` y `dma_lista.c`) desaparecía | `snes_rules` compila `dma_lista.c` pasando por un `dma_lista.asm` intermedio que lo sobrescribe | nombres distintos: `dma_ejecutar.asm` |
 | El frame en que se planificaba un cuadro costaba 130 líneas | `CopiaBloque` medía 6 bytes: `copias[i]` llamaba a `tcc__mul` en cada acceso (otra vez la trampa de `guion[i]`); y `<< n` dentro del bucle (tcc816 hace cada desplazamiento con un bucle) | struct de 8 bytes (relleno) y sumas acumuladas |
 | Tarou empezaba en x 0 y no avanzaba | el objeto «inicio» marcaba su centro en 40: la celda empezaba en −8 | inicio en x 88; prueba `prueba_inicio` |
+| El título tras el nivel (START o «COMING SOON») mostraba a Tarou con trozos del nivel | `fade_out` termina con brillo 0 pero la pantalla **encendida**: `personajes_cargar` copiaba los tiles con la PPU dibujando y se perdían; quedaban los del nivel. Bárbara salía bien porque el nivel no pisa su zona | `setScreenOff()` en `secuencia_cambiar` antes de cada `_iniciar` (2026-10-21) |
+| Con FastROM el nivel salía en negro | WLA-DX sumaba `.BASE $80` al banco de la `RAMSECTION` de `dma_ejecutar.asm`: la lista acababa en `$FE`, ROM | `.BASE $00` antes de la `RAMSECTION`, `.BASE $80` antes del código |
+| El HUD encendido robaba 1 de cada 5 frames | 48–150 líneas por fila; el bucle en C que la dejaba en blanco costaba 30 (unas 60 instrucciones por `*p++ = 0`) | `memset` (3 líneas), punteros, tope `HUD_LINEA_MAX` |
 
 ## 9. Pendiente
 
@@ -251,17 +254,17 @@ Un commit por fase, sin push:
   `python scripts/preparar_nivel.py`, `make clean` y `make`). Si un retoque rompe
   el recorrido, `tests/prueba_recorrido.c` falla: hay que ajustar
   `src/juego/guion_tutorial.c`.
-- **HUD de depuración a 60 FPS** (abaratar su dibujo: la fila que prepara
-  cada frame cuesta ~75 líneas por `poner_numero`; con el HUD encendido, los
-  frames en que se planifica un cuadro se pasan de los 262 y se pierde uno).
-- **El título al volver del nivel** (con START o tras «COMING SOON») muestra
-  a Tarou con piezas del nivel, descolocadas; Bárbara sale bien. Pasaba ya
-  antes del arreglo de v1.3 (comprobado el 2026-10-21 con la ROM anterior) y
-  no pasa al llegar desde la intro. Sin diagnosticar: `personajes_cargar`
-  recarga los tiles y la OAM, así que algo del estado del nivel (OBSEL, la
-  tabla alta de la OAM...) sobrevive. Siguiente paso: Sprite Viewer de Mesen.
-- Una raya horizontal de 1 px, del color del cielo, aparece a veces dentro del
-  techo del túnel y cambia de sitio entre capturas. Sin diagnosticar (¿una
-  pieza de sprite suelta o un píxel transparente de una celda de tierra?).
+- ~~HUD de depuración a 60 FPS~~ y ~~el título al volver del nivel~~:
+  resueltos el 2026-10-21 (tabla de trampas).
+- **Una raya horizontal de 1 px** aparece a veces, un instante, y cambia de
+  sitio entre capturas: en el techo del túnel y también en pleno cielo, junto
+  a Tarou. Medido el 2026-10-21: sus colores son los de la **tierra de la capa
+  cercana** (`(13,8,6)`, `(14,8,6)`, `(15,8,6)` en 5 bits), no los de Tarou, y
+  ocupa una sola línea de unos 16 px. En `fondo_cerca.png` no hay ninguna fila
+  suelta así. Hipótesis: una escritura de la lista de DMA que, en un frame
+  cargado, llega con la PPU ya dibujando (`V` > 37) y cae en la zona de tiles
+  del fondo; o un tile de columna copiado con `VMAIN` equivocado. Siguiente
+  paso: en Mesen, punto de ruptura de escritura en VRAM `$2000-$3FFF` fuera
+  del VBlank.
 - Los fosos dejan ver la capa lejana por debajo del suelo (una franja de
   agua/bosque): queda raro; falta arte de fondo de foso o pintar ahí la tierra.

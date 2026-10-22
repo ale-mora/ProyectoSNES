@@ -34,6 +34,9 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
 - **`diseno-secuencia-arranque.md`** — La especificación de las seis
   pantallas de arranque (logos, dedicatoria, intro, título) con los hallazgos
   técnicos verificados en el SDK (Etapa 1.5).
+- **`diseno-motor-escenas.md`** — El motor de escenas (`src/escena/`): una
+  tabla de eventos mueve brillo, mosaico y un destello por ventana + HDMA;
+  lógica pura probada en el PC. Estrenado en el logo Nintendo (2026-10-21).
 
 ## Planes
 
