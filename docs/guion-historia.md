@@ -1,7 +1,8 @@
 # Guion de la historia — *Tarou: A Dog's Journey*
 
 Estado: **Revisión 3 del guion (2026-10-23)**. La Rev. 3 fija la intro, el epílogo, la
-ascensión, la voz del Señor Pimentón y la revelación de Rex. La Rev. 1 fijó tono, reparto y final;
+ascensión, la voz del Señor Pimentón, la revelación de Rex y aprueba los textos en
+inglés. La Rev. 1 fijó tono, reparto y final;
 la Rev. 2 cierra jefes, pelea final, flashback, federación nueva y añade los textos en
 inglés (§11–§13). Las escenas de las fases 2 a 4 las propuso el asistente y el autor las
 aprobó tal cual. En pantalla la federación se llama **MARTIAL AUTISTS**. Es diseño narrativo, no código. Complementa a
@@ -177,7 +178,6 @@ ya existen. Faltan Gomasuri-dono, los ninjas genéricos y los jefes de las fases
 
 - **Diseño visual** (arte) de Gomasuri-dono, de los tres jefes de §2 y de los ninjas con
   sus 4 paletas de rango.
-- Revisión del autor de los textos en inglés (§11–§13).
 - Hecho: `diseno-beat-em-up.md` (v5–v6), `arte-beat-em-up.md`, `plan-desarrollo.md`,
   `glosario-snes.md`, `README.md` y `aprendizaje/PLAN.md` ajustados a §9.
 
@@ -185,7 +185,11 @@ ya existen. Faltan Gomasuri-dono, los ninjas genéricos y los jefes de las fases
 
 Inglés sencillo, frases cortas: la consola de 8×8 da 32 columnas; cada cuadro lleva
 **hasta 3 líneas de 26 caracteres** junto al retrato. Todas las líneas de abajo cumplen esa
-medida; `/` separa dos cuadros seguidos.
+medida; `/` separa dos cuadros seguidos. **Textos aprobados por el autor (2026-10-23).**
+
+Nombres en pantalla: el Señor Pimentón es **Pimenton-sama** (sin tilde: la fuente 8×8
+no tiene `ó`); Bárbara, `Barbara`. Honoríficos: los jefes son *-dono*, los ninjas dicen
+`master` a Nikoraemon y, al final, `Barbara-sama` a Bárbara; Rex es *Rex-sensei*.
 
 ### 11.1 Flashback
 
@@ -204,7 +208,7 @@ medida; `/` separa dos cuadros seguidos.
 | Ninja | `Shhh! Rule 14: no noise!` |
 | Ninja | `NO NOISE!!` |
 | Bárbara | `Who's there?!` |
-| Tarou | `...Mr. Pimenton?` / `MR. PIMENTON!` |
+| Tarou | `...Pimenton-sama?` / `PIMENTON-SAMA!` |
 | Bárbara | `They'll pay for this.` |
 | Tarou | `*sob* I want him back...` |
 
@@ -280,7 +284,7 @@ medida; `/` separa dos cuadros seguidos.
 | Apoyo Fenrir | Fenrir | `WHEEE!` |
 | Comida | Lucinda (si es apoyo elegido) | `Hey! That's mine!` |
 | Vida extra | — | `1UP` |
-| Rangos (HUD) | — | blanco `TRAINEE NINJA` · amarillo `ASSISTANT NINJA` · verde `DEPUTY NINJA` · rojo `SENIOR VICE NINJA` |
+| Rangos (HUD) | — | blanco `INTERN NINJA` · amarillo `JUNIOR CLERK NINJA` · verde `ACTING DEPUTY NINJA` · rojo `SENIOR VICE NINJA (II)` |
 
 ## 13. Continue, game over y créditos
 
@@ -289,7 +293,7 @@ medida; `/` separa dos cuadros seguidos.
 | Texto |
 |---|
 | `CONTINUE?` |
-| `Mr. Pimenton is waiting...` |
+| `Pimenton-sama waits...` |
 
 **Game over** (habla el Señor Pimentón, tono tierno):
 
@@ -311,8 +315,8 @@ ALEJANDRO MORA
 
 STARRING
 TAROU ............ HIMSELF
-BARBARA .......... BIG SISTER
-MR. PIMENTON ..... ANCIENT GOD
+BARBARA .......... SISTER
+PIMENTON-SAMA .... GOD
 REX .............. MONK
 LUCINDA .......... SAMURAI
 FENRIR ........... RUNNING
