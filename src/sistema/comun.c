@@ -83,7 +83,9 @@ void video_texto_mode1(void)
     bgSetEnable(0);
     bgSetDisable(1);
     bgSetDisable(2);
-}
+    bgSetScroll(0, 0, SCROLL_Y_FILA0);               /* Scroll vertical -1 en el texto y en */
+    bgSetScroll(1, 0, SCROLL_Y_FILA0);               /* la imagen: sin la raya de la última */
+}                                                    /* línea (ver SCROLL_Y_FILA0).         */
 
 /*=== FONDOS ======================================================================*/
 

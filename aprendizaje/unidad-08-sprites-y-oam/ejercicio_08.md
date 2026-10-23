@@ -51,11 +51,39 @@ Antes de ejecutarlo, **predice** qué se verá. El lobo es un sprite de 64×64:
 empieza su fila 4, según la PPU? (README, «Las dos tablas de 256».) Y la
 copia de sus 128 tiles, ¿qué tiles de Bárbara pisa?
 
-Después, en Mesen: la mitad de arriba del lobo bien; la de abajo, trozos de
-Bárbara (de sus tiles 0..63 y 8..71: la mitad de arriba de sus cuadros 0 y
-1). Y Bárbara, en los cuadros 2 y 3, lleva en su mitad de abajo la mitad de
-arriba del lobo: los tiles 192..255 eran suyos y la copia los pisó.
-Haz una captura en la que se vea.
+Después, en Mesen: **el lobo casi desaparece**. Quedan la punta de las
+orejas y la punta de la espada arriba, y abajo un fragmento marrón suelto; el
+resto, tiles vacíos. Es la cuenta de antes llevada hasta el final, con dos
+efectos que se suman:
+
+1. **La copia parte al lobo entre las dos tablas.** Los 128 tiles copiados
+   son las 8 filas de 16 tiles de su hoja (sus cuadros 0 y 1, uno al lado del
+   otro). Desde el tile 192, sus filas 0..3 caen en los tiles 192..255 (tabla
+   0) y sus filas 4..7 en los 256..319 (tabla 1). El cuerpo del lobo está en
+   la mitad de abajo de su cuadro de 64×64: en la tabla 1, **que el sprite no
+   lee nunca** (su tile, 192 o 200, tiene el bit 8 a 0).
+2. **El sprite da la vuelta dentro de la tabla 0.** Sus filas 0..3 leen
+   192..255: la mitad de arriba del lobo, casi vacía (orejas y espada). Sus
+   filas 4..7 leen `(192 + 64) & 255` = 0..63 (8..71 en el cuadro 1): la
+   mitad de arriba de los cuadros 0 y 1 de Bárbara, también casi vacía; solo
+   asoma la punta de su coleta, pintada con la paleta del lobo (el fragmento
+   marrón).
+
+Y Bárbara pierde el cuerpo en la mitad de su animación: en los cuadros 2 y 3
+su mitad de abajo son los tiles 192..255, que la copia pisó con la mitad de
+arriba del lobo. Se ve parpadear: dos cuadros entera, dos cuadros con solo el
+pelo arriba y, a sus pies, la espada y las orejas del lobo pintadas con la
+paleta de Bárbara (la 0: es su entrada de la OAM la que elige la paleta, no
+los tiles).
+
+La predicción «la mitad de abajo del lobo hecha de trozos de Bárbara» es
+correcta en los tiles pero engaña a la vista: los trozos que lee son la parte
+vacía (de arriba) de sus cuadros. `capturas/simulacion_cruce192.png` lo
+reproduce en el PC leyendo los `.pic` como lo haría la PPU
+(`capturas/simular_vram_sprites.py 192 salida.png`: lobo cuadros 0 y 1,
+Bárbara cuadros 0..3); con 256 (`simulacion_tile256.png`) sale todo bien.
+Haz una captura en la que se vea y, en el **Tile Viewer** de Mesen, mira
+dónde quedó cada mitad del lobo (tiles 192..255 y 256..319).
 
 ## Parte C — Esconder mal un sprite (y = 240)
 

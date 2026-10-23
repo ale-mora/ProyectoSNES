@@ -29,14 +29,18 @@ de 96×64, 864×64 px). Añádela como tercera animación.
   piezas tiene el cuadro: una función `piezas(tabla)` que cuente hasta
   `dx == FIN_TABLA` (como `metasprite_piezas`), y el texto
   `ANIM SLEEP FRAME n PIECES p`. Sin `?:` con cadenas: un `if`/`else` por
-  animación.
+  animación. Cada `u8` que pases a un `%d` va con `(u16)`: tcc816 empuja un
+  `u8` como un solo byte y `%d` lee dos (README, «La primera versión de esta
+  mini-ROM salía rota»). Y no llames a `texto` en el frame en que cambia el
+  cuadro: la mini-ROM ya la retrasa un frame con `texto_pendiente`.
 
 Compila con la orden del README (debe decir `No warnings or errors found.`).
 Antes de abrir Mesen, **predice**: mira `rom/res/tarou_dormido_meta.inc` (lo
 genera `make`) y apunta qué cuadros tienen menos de 6 `METASPR_ITEM`.
 
-**Lo que debe verse:** con Abajo, Tarou tumbado respirando; en los cuadros 0, 1
-y 8, `PIECES 4`; en los demás, `PIECES 6`. Si mirabas a la izquierda antes de
+**Lo que debe verse:** con Abajo, Tarou tumbado respirando, entero y sin
+restos del Tarou de pie; en los cuadros 0, 1 y 8, `PIECES 4`; en los demás,
+`PIECES 6`; `VBLANK LINES` por debajo de 37. Si mirabas a la izquierda antes de
 pulsar Abajo, duerme mirando a la izquierda (el espejo vale para cualquier
 tabla).
 

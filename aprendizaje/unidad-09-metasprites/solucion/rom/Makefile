@@ -30,6 +30,12 @@ endif
 export ROMNAME := u09_solucion
 export ROMTITLE := U09 SOLUCION
 
+# FastROM (como el Makefile del juego): el código en los bancos $80-$FF corre a
+# 3,58 MHz en vez de 2,68. Aquí importa porque el motor dinámico prepara cada
+# DMA con instrucciones: más rápido = más margen en las 37 líneas del VBlank.
+# Debe ir ANTES del include de snes_rules (y tras cambiarlo, make clean).
+export FASTROM := 1
+
 include ${PVSNESLIB_HOME}/devkitsnes/snes_rules
 
 # Los _meta.inc que genera gfx4snes quedan en res/: main.c los incluye por esta ruta.

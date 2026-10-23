@@ -66,7 +66,8 @@ static void dibujar_estado(void)
     {
         consoleDrawText(4, 16, "MUSIC:  PLAYING");
     }
-    consoleDrawText(4, 17, "VOLUME: %d  ", volumen); /* Espacios: borran cifras viejas. */
+    consoleDrawText(4, 17, "VOLUME: %d  ", (u16)volumen); /* (u16): un u8 en "..." */
+                                                     /* sale con basura (README). */
 }
 
 int main(void)                                       /* La librería exige int main.     */
@@ -79,6 +80,10 @@ int main(void)                                       /* La librería exige int m
     consoleSetTextGfxPtr(0x3000);                    /* Tiles de la fuente en $3000.    */
     consoleSetTextOffset(0x0100);                    /* Los tiles empiezan en el 256.   */
     consoleInitText(0, 2 * 2, &snesfont, &snespal);  /* Paleta 0: 2 colores x 2 bytes. */
+    {
+        setPaletteColor(0, RGB5(0, 0, 0));           /* El color 0 de la fuente es el   */
+    }                                                /* magenta clave del .bmp y el 0 de */
+                                                     /* la CGRAM es el fondo: negro.     */
     bgSetGfxPtr(0, 0x2000);                          /* BG1: base de tiles.             */
     bgSetMapPtr(0, 0x6800, SC_32x32);                /* BG1: el mapa de la consola.     */
     setMode(BG_MODE1, 0);                            /* Mode 1.                         */

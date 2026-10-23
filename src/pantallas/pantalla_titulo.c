@@ -75,8 +75,8 @@ void pantalla_titulo_iniciar(void)
                                                         celda de 96: centro de Tarou en 72. */
 
     scroll_cerca = 0;
-    bgSetScroll(0, 0, 0);
-    bgSetScroll(1, 0, 0);
+    bgSetScroll(0, 0, SCROLL_Y_FILA0);               /* Scroll vertical -1: sin la raya de */
+    bgSetScroll(1, 0, SCROLL_Y_FILA0);               /* la última línea (comun.h).          */
     frames_sin_input = 0;
     frames_parpadeo = 0;
 
@@ -113,7 +113,7 @@ void pantalla_titulo_actualizar(void)
     /*--- 3. Parallax: la capa cercana avanza 1 píxel por frame; el mapa de 512 px
            da la vuelta solo (la imagen es original + espejo, sin costura). ------*/
     scroll_cerca++;
-    bgSetScroll(0, scroll_cerca, 0);
+    bgSetScroll(0, scroll_cerca, SCROLL_Y_FILA0);
 
     /*--- 4. Sprites en reposo ------------------------------------------------*/
     personajes_animar();

@@ -327,6 +327,21 @@ cruceta = flechas, A = tecla S, B = tecla A, Start = tecla D.
 - **El volumen es un `u8`.** Un `u8` solo guarda 0..255: `volumen + 16` con
   `volumen = 248` guardado en un `u8` da 8, no 264 (el resultado «da la
   vuelta», se desborda). Hay que comparar antes de sumar.
+- **Un `u8` en `consoleDrawText` con `%d` sale con basura en el byte alto.**
+  La primera versión de la mini-ROM mostraba `VOLUME: -16256`, `12160`...: el
+  byte bajo era el bueno (128 = `$80`, 144, 160) y el alto, basura
+  (-16256 = `$C080`). tcc816 **no promociona** un `u8` a 16 bits en los
+  argumentos `...` de una función variádica: lo empuja como **un byte**
+  (`sep #$20` / `pha`) y `%d` lee **dos**; el segundo es lo que haya al lado en
+  la pila. Comprobado compilando un `f("%d", c)` suelto con `816-tcc`
+  (`capturas/tcc_u8_variadico.txt`): con `u8`, 1 byte y `add sp, #5`; con
+  `(u16)c`, `pei` (2 bytes) y `add sp, #6`. Remedio: `(u16)volumen`. En gcc no
+  pasa (C promociona `u8` a `int` en `...`).
+- **Fondo magenta.** El color 0 de `pvsneslibfont.pal` es `$7C1F`, el magenta
+  que el `.bmp` usa como color clave, y el color 0 de la CGRAM es el fondo de la
+  pantalla (donde no hay nada dibujado). `setPaletteColor(0, RGB5(0, 0, 0))`
+  justo después de `consoleInitText` lo deja negro (es una macro de tres
+  sentencias: entre llaves).
 - **`?:` con cadenas como argumento variádico** (`consoleDrawText(x, y, "%s",
   pausada ? "PAUSED" : "PLAYING")`) hace fallar a tcc816 (`PLAN.md` §6.6): dos
   llamadas en un `if`.

@@ -87,13 +87,14 @@ void efectos_destello(u8 arriba, u8 alto, u8 x_min, u8 x_max, u8 ancho)
 
     /* La tabla del canal: (líneas, puntero) x 3 y un 0. Bit 7 de "líneas" =
        repetir: un par nuevo en cada línea; sin él, un par y se mantiene.
-       OJO, una línea de desfase: el HDMA copia en el HBlank del FINAL de cada
-       línea, así que lo que copia "en la línea n" se ve en la n + 1. Con
-       `arriba` líneas en la primera entrada, la banda bajaba un píxel y
-       pintaba una raya gris en el negro de debajo del logo (Mesen,
-       2026-10-21): la primera entrada cubre arriba - 1. */
+       La primera entrada cubre `arriba` líneas: con el fondo en scroll vertical
+       -1 (SCROLL_Y_FILA0, desde el 2026-10-23) la fila n del logo cae en la
+       línea n y la ventana coincide con él. Hasta entonces el fondo iba en
+       scroll 0, el logo se veía 1 px más arriba y hacía falta `arriba - 1`
+       (la raya gris bajo el logo del 2026-10-21 venía de ese desfase del
+       fondo, no del HDMA; unidad 12 de aprendizaje/). */
     dir = (u16)pares;                                /* Dirección del par vacío.            */
-    tabla[0] = (u8)(arriba - 1);                     /* Las líneas de arriba: vacía.        */
+    tabla[0] = (u8)arriba;                           /* Las líneas de arriba: vacía.        */
     tabla[1] = (u8)dir;
     tabla[2] = (u8)(dir >> 8);
     tabla[3] = (u8)(0x80 | alto);                    /* Las del rectángulo: un par por      */

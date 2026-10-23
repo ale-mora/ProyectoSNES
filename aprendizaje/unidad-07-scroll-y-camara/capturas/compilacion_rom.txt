@@ -4,8 +4,8 @@ LoROM SlowROM compilation is enabled
 --- COMPILATION SUMMARY ---
 No warnings or errors found.
 ---------------------------
-ROM bank 0 (11 bytes (0.03%) free)
-ROM bank 1 (20314 bytes (61.99%) free)
+ROM bank 0 (12 bytes (0.04%) free)
+ROM bank 1 (19244 bytes (58.73%) free)
 ROM bank 2 (32768 bytes (100.00%) free)
 ROM bank 3 (32768 bytes (100.00%) free)
 ROM bank 4 (32768 bytes (100.00%) free)
@@ -14,7 +14,7 @@ ROM bank 6 (32768 bytes (100.00%) free)
 ROM bank 7 (32768 bytes (100.00%) free)
 RAM slot 0 bank 126 (25120 bytes (76.66%) free)
 RAM slot 1 bank 0 (7995 bytes (97.60%) free)
-RAM slot 2 bank 126 (57326 bytes (99.97%) free)
+RAM slot 2 bank 126 (57135 bytes (99.64%) free)
 RAM slot 3 bank 127 (65536 bytes (100.00%) free)
-ROM: 216933 bytes (82.75%) free of total 262144.
-RAM: 155977 bytes (95.20%) free of total 163840.
+ROM: 215864 bytes (82.35%) free of total 262144.
+RAM: 155786 bytes (95.08%) free of total 163840.

@@ -11,7 +11,13 @@
       - Fondo 1 = capa LEJANA (las montañas del nivel 1): scroll = cámara / 2.
         Las dos miden 512 px y el scroll de la PPU da la vuelta a los 512: se
         repiten solas a lo largo de los 2048 del "nivel".
-      - Fondo 2 = texto (CAM, NEAR, FAR, COL, RING).
+      - Fondo 2 = texto (CAM, NEAR, FAR, COL, RING). Las dos líneas fijas, con
+        consoleDrawText antes de encender; las tres que cambian, escritas a mano
+        en un mapa de texto en la WRAM (como src/juego/hud_debug.c): una fila
+        por frame, sin %d ni divisiones, subida por DMA (64 bytes) en el VBlank.
+        Con consoleDrawText y %d, cada vuelta del bucle costaba unos 3 frames
+        (la cámara iba a ~40 px/s en vez de 120) y la NMI copiaba el texto a
+        medias: filas de frames distintos.
       - A pinta de rojo, en el mapa de 64x32 de la capa cercana, la columna que
         está en el centro de la pantalla. Como el mapa es un anillo, la raya
         vuelve a aparecer cada 512 px de cámara. Se escribe con VMAIN = 0x81
@@ -37,7 +43,8 @@
 
     VARIABLES (estáticas de este archivo)
       camara       u16  0..CAMARA_MAX px   borde izquierdo de la pantalla en el "nivel"
-      anterior     u16  px                 cámara del frame anterior (para no reescribir el texto)
+      texto_mapa   u16[96]  entradas       las 3 filas de texto que cambian (tilemap en WRAM)
+      turno        u8   0..2               fila de texto que se prepara y sube en este frame
       columna      u16  0..255             columna del nivel que se pinta con A
       pintar       u8   0 / 1              1 = pintar `columna` en el próximo VBlank
       teclas       u16  bits               botones mantenidos este frame
@@ -45,6 +52,7 @@
     → glosario: Cámara, Parallax, BG / capas, Streaming de columnas, Registro de doble escritura
 ---------------------------------------------------------------------------------*/
 #include <snes.h>
+#include <string.h>                  /* memset: la de la librería está en ensamblador.    */
 
 /*--- Datos en la ROM (data.asm) -------------------------------------------------*/
 extern char fuente_til, fuente_pal;
@@ -78,9 +86,91 @@ static const u8 tile_macizo[32] = {
     0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+/*--- El texto que cambia: 3 filas escritas a mano (como src/juego/hud_debug.c) -----*/
+#define FILA_TEXTO 4                 /* Primera fila de pantalla del texto que cambia.    */
+#define FILAS_TEXTO 3                /* CAM / NEAR FAR / COL RING.                        */
+/* Tile de un carácter: la fuente empieza en ' ' (ASCII 32) = tile 0; paleta 0 y el bit
+   de prioridad (0x2000) para ir delante de las otras capas, como el HUD del juego. */
+#define TILE(c) ((u16)(((c) - 32) | 0x2000))
+
 /*--- Estado -------------------------------------------------------------------------*/
-static u16 camara, anterior, columna, teclas;
-static u8 pintar, i;
+static u16 camara, columna, teclas;
+static u8 pintar, i, turno;
+static u16 texto_mapa[FILAS_TEXTO * 32];   /* Las 3 filas, seguidas, como en la VRAM.    */
+static const u16 POTENCIAS[4] = {10000, 1000, 100, 10};
+static u16 columna_vram(u16 col);                    /* Definida más abajo.               */
+
+/*--- texto: escribe una cadena en p y devuelve dónde sigue -------------------------*/
+static u16 *texto(u16 *p, const char *s)
+{
+    while (*s != 0)
+    {
+        *p++ = TILE(*s);                             /* Un carácter = una celda.          */
+        s++;
+    }
+    return p;
+}
+
+/*--- numero: un u16 en decimal, SIN dividir (restas por potencia de diez, como
+    numero() de hud_debug.c): como mucho 9 restas por cifra. --------------------------*/
+static u16 *numero(u16 *p, u16 v)
+{
+    const u16 *pot = POTENCIAS;                      /* Se recorre con puntero, no [k].    */
+    u8 cifra;
+    u8 empezado = 0;                                 /* Sin ceros a la izquierda.          */
+    u8 k;
+
+    for (k = 4; k != 0; k--, pot++)
+    {
+        cifra = '0';
+        while (v >= *pot)
+        {
+            v -= *pot;                               /* Una resta = una unidad de la cifra.*/
+            cifra++;
+        }
+        if (cifra != '0' || empezado)
+        {
+            *p++ = TILE(cifra);
+            empezado = 1;
+        }
+    }
+    *p++ = TILE('0' + v);                            /* Las unidades, siempre.             */
+    return p;
+}
+
+/*--- preparar_fila: la fila `turno` del texto, con los valores de este frame -------
+    Se borra entera (memset: 0 = espacio) y se reescribe: así un número que se acorta
+    no deja cifras viejas detrás. Una fila por frame: las tres juntas, como hace el
+    HUD del juego, no merecen el riesgo de pasarse del frame. */
+static void preparar_fila(void)
+{
+    u16 *p = texto_mapa + ((u16)turno << 5);         /* Fila turno = palabra turno * 32.   */
+    u16 col = camara >> 3;                           /* Columna del nivel (8 px).          */
+
+    memset(p, 0, 32 * 2);                            /* 32 espacios.                       */
+    p++;                                             /* Columna 1 de la pantalla.          */
+    if (turno == 0)
+    {
+        p = texto(p, "CAM ");
+        p = numero(p, camara);
+    }
+    else if (turno == 1)
+    {
+        p = texto(p, "NEAR ");
+        p = numero(p, camara & 511);                 /* Lo que usa la PPU de la cercana.   */
+        p = texto(p, "  FAR ");
+        p = numero(p, (camara >> 1) & 511);          /* Y de la lejana.                    */
+    }
+    else
+    {
+        p = texto(p, "COL ");
+        p = numero(p, col);                          /* 0..224 a la izquierda.             */
+        p = texto(p, "  RING ");
+        p = numero(p, col & 63);                     /* Columna del anillo: 0..63.         */
+        p = texto(p, "  +");
+        p = numero(p, columna_vram(col));            /* Palabra en el mapa: 0..31 o 1024..1055. */
+    }
+}
 
 /*--- columna_vram: columna del nivel → palabra de su fila 0 en el mapa de 64x32 -----
     La misma cuenta que nivel_columna_vram (src/juego/nivel.c): (col & 32) dice la
@@ -152,10 +242,11 @@ int main(void)
     bgSetEnable(2);
 
     consoleDrawText(1, 1, "UNIT 07 - SCROLL AND PARALLAX");
-    consoleDrawText(1, 2, "LEFT/RIGHT MOVE  Y FAST  A PAINT");
+    consoleDrawText(1, 2, "LEFT/RIGHT MOVE Y FAST A PAINT");   /* 30 letras: cabe en 31. */
     camara = 0;
-    anterior = 0xFFFF;                               /* Fuerza el primer texto.           */
+    columna = 0;
     pintar = 0;
+    turno = 0;                                       /* static NO empieza a 0: se pone.   */
     setScreenOn();
 
     while (1)
@@ -168,13 +259,7 @@ int main(void)
             columna = (u16)((camara + ANCHO_PANTALLA / 2) >> 3); /* Centro de pantalla. */
             pintar = 1;
         }
-        if (camara != anterior)                      /* El texto, solo si cambió.         */
-        {
-            consoleDrawText(1, 4, "CAM %d   ", camara);
-            consoleDrawText(1, 5, "NEAR %d  FAR %d   ", camara & 511, (camara >> 1) & 511);
-            consoleDrawText(1, 6, "COL %d  RING +%d   ", camara >> 3, columna_vram(camara >> 3));
-            anterior = camara;
-        }
+        preparar_fila();                             /* Una fila de texto, en la WRAM.    */
 
         WaitForVBlank();                             /* Lo que sigue, ya en el VBlank.     */
 
@@ -183,10 +268,18 @@ int main(void)
             dibujo, la parte de arriba de la pantalla saldría con el scroll viejo. */
         bgSetScroll(0, camara, 0);                   /* Cercana: 1:1 con la cámara.        */
         /* TODO 2: la capa lejana (fondo 1), a la mitad de la cámara. */
+        /* La fila de texto preparada: 64 bytes por DMA a su fila del mapa de texto. */
+        dmaCopyVram((u8 *)(texto_mapa + ((u16)turno << 5)),
+                    VRAM_MAPA_TEXTO + ((u16)(FILA_TEXTO + turno) << 5), 32 * 2);
         if (pintar)
         {
             pintar_columna(columna);
             pintar = 0;
+        }
+        turno++;                                     /* La siguiente fila, en el próximo frame. */
+        if (turno == FILAS_TEXTO)
+        {
+            turno = 0;
         }
     }
     return 0;

@@ -80,6 +80,8 @@ static void preparar_escena(void)
     default:
         break;
     }
+    bgSetScroll(0, 0, SCROLL_Y_FILA0);   /* Las imágenes son de 224 px: la fila 0 en   */
+    bgSetScroll(1, 0, SCROLL_Y_FILA0);   /* la primera línea, nada vacío abajo (comun.h). */
     limpiar_texto();
     letras = 0;                         /* El párrafo empieza vacío.           */
     inicio_escena = frames_en_pantalla; /* Para medir los 8 s de esta escena.  */

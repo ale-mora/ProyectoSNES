@@ -43,18 +43,39 @@ cd E:\ProyectoSNES
 .\scripts\capturar_mesen.ps1 -Rom E:\ProyectoSNES\aprendizaje\unidad-07-scroll-y-camara\rom\u07_parallax.sfc -Duracion 14 -Cada 1 -Espera 3 -Guion "1,1.3,A;2,12,Right;6,12,Y;12.5,12.8,A"
 ```
 
-El guion: A a 1 s (raya en la columna 16 del nivel, la del centro: x = 128),
-Derecha de 2 a 12 s (a 2 px por frame hasta los 6 s: cámara ~480; con Y, a
-8 px: llega al tope de 1792) y A otra vez al final.
+El guion (sus segundos son los de las capturas, que empiezan unos 3 s
+después de arrancar la ROM): A a 1 s (raya en la columna 16 del nivel, la del
+centro: x = 128), Derecha de 2 a 12 s (a 2 px por frame = 120 px/s hasta los
+6 s: cámara 480; desde ahí con Y, a 8 px = 480 px/s: llega al tope de 1792
+hacia los 8,7 s) y A otra vez al final.
 Mientras dura la captura, no uses el equipo (las teclas se pierden si el foco
 de Mesen salta).
 
-Lo que debe verse: en `t1s` la raya roja en el centro; de `t2s` a `t6s` los
-arbustos avanzando y las montañas a la mitad de velocidad (comparad dos
-capturas seguidas: los arbustos se mueven el doble); hacia `t5s` la raya
-vuelve a entrar por la derecha (cámara ~400: x = 128 + 512 = 640 cae en el
-mismo sitio del anillo); al final, `CAM 1792` quieto aunque se siga pulsando
-Derecha, y una raya nueva en el centro.
+Lo que debe verse (con la solución):
+
+| Captura | Pantalla |
+|---|---|
+| `t1s`–`t2s` | la raya roja en el centro (`CAM 0`; según el instante exacto de la pulsación, desde `t1s` o desde `t2s`) |
+| `t3s`–`t4s` | arbustos y montañas avanzando, las montañas a la mitad (`CAM` ~120 y ~240, `FAR` = la mitad); la raya ya salió por la izquierda (sale con `CAM` > 128, hacia 3,1 s) |
+| `t5s`–`t6s` | la raya **vuelve a entrar por la derecha** hacia 5,2 s: con `CAM` = 384 la columna 16 + 64 del anillo (x = 128 + 512 = 640 en el nivel) queda en x = 256 de la pantalla; en `t6s` (`CAM` 480) está en x = 160 |
+| `t7s`–`t8s` | con Y, 8 px por frame: la cámara salta ~480 px entre capturas y la raya pasa una vez por cada 512 px |
+| `t9s`–`t12s` | `CAM 1792` quieto aunque se siga pulsando Derecha; `NEAR 256  FAR 384`; `COL 224  RING 32  +1024`. La raya vieja no se ve (cae en x = 384, fuera) |
+| `t13s` | una raya nueva en el centro (A a 12,5 s: columna 240 del nivel, 48 del anillo, palabra +1040) |
+
+Las tres filas que cambian se reescriben una por frame (abajo, «Por qué el
+texto no usa `consoleDrawText`»), así que en una captura con la cámara en
+marcha pueden diferir en 1–2 frames (2–16 px); paradas, coinciden.
+
+**Por qué el texto no usa `consoleDrawText`.** La primera versión de la
+mini-ROM escribía esas tres filas con `consoleDrawText` y `%d` en cada
+frame. En Mesen la cámara iba a ~40 px/s sin Y (y 130–160 con Y) en vez de
+120 y 480: cada vuelta del bucle costaba unos 3 frames, casi todo en formatear
+los cinco números (`%d` divide por 10, y el 65816 no tiene división). A los
+12 s la cámara iba por 1068 y la raya volvía a entrar a los ~11 s
+(2 + 384 / 40). Además la NMI del SDK copiaba el mapa de texto en mitad del
+formateo: filas de frames distintos en la misma imagen. La solución es la del
+HUD del juego (`src/juego/hud_debug.c`): números por restas, una fila por
+frame en un tilemap en la WRAM y un DMA de 64 bytes en el VBlank.
 
 ## Parte B — Una cámara para cualquier ancho de nivel (juego real, PC)
 

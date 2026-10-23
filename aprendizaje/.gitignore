@@ -6,3 +6,5 @@
 **/rom/res/**/*_data.as
 **/rom/res/**/*.brr
 **/rom/**/soundbank.*
+# Capturas de Mesen de tanda_mesen.ps1 (34 MB): no se versionan, la tanda las regenera
+**/capturas/mesen_*/

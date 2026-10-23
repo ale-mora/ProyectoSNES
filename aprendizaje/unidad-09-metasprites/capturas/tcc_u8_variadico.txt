@@ -1,0 +1,41 @@
+# tcc816 y un u8 como argumento variádico (2026-10-23)
+# Fuente (va.c), compilada con: 816-tcc -o va.ps -c va.c
+void f(char *fmt, ...);
+unsigned char c; unsigned short w;
+void g(void){ f("%d", c); f("%d", (unsigned short)c); }
+
+# Ensamblador generado (va.ps), extracto:
+g:
+lda.w #0
+sep #$20
+lda.l c + 0
+rep #$20
+sta.b tcc__r0
+sep #$20
+lda.b tcc__r0
+pha
+rep #$20
+pea.w :tccs_{WLA_FILENAME}_L.{WLA_FILENAME}0
+pea.w tccs_{WLA_FILENAME}_L.{WLA_FILENAME}0 + 0
+jsr.l f
+clc
+adc #5
+lda.w #0
+sep #$20
+lda.l c + 0
+rep #$20
+sta.b tcc__r0
+pei (tcc__r0)
+pea.w :tccs_{WLA_FILENAME}_L.{WLA_FILENAME}1
+pea.w tccs_{WLA_FILENAME}_L.{WLA_FILENAME}1 + 0
+jsr.l f
+clc
+adc #6
+clc
+adc #__g_locals
+rtl
+
+# Lectura: f("%d", c) con c u8 hace 'sep #$20 / pha' (empuja 1 byte) y luego
+# 'add sp, #5' (4 del puntero + 1). Con (unsigned short)c hace 'pei' (2 bytes) y
+# 'add sp, #6'. tcc816 NO promociona el u8 a int en '...'; consoleDrawText lee
+# 2 bytes por cada %d: el byte alto es lo que haya al lado en la pila (basura).

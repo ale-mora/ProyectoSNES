@@ -890,8 +890,28 @@ perdieron en todas las tandas).
   (unidades 04, 12).
 - Un bucle de relleno en C (`*p++ = 0`) cuesta ~40 instrucciones por vuelta (37–40 medidas en la unidad 14; ~60 en el contexto del HUD)
   en tcc816; `memset` de la librería es ensamblador (unidades 14, 15).
-- El HDMA escribe en el HBlank del final de la línea: una tabla que empieza
-  «en la línea 64» se ve desde la 65 (unidad 12).
+- El HDMA escribe en el HBlank del final de la línea, pero en una captura la
+  fila r es la línea del haz r+1, así que una entrada de la tabla «en la fila
+  n» cae justo en la fila n (la línea blanca de la unidad 12 sale en la 120).
+  El desfase de 1 px que se veía en el logo de Nintendo era del FONDO: con
+  scroll vertical 0 la fila r de pantalla enseña la fila r+1 del fondo, la
+  fila 0 no se ve y en la última (223) aparece la fila 224, vacía en una
+  imagen de 224 px (una raya del color de fondo). Desde el 2026-10-23 las
+  pantallas de imagen usan scroll vertical −1 (`SCROLL_Y_FILA0` de
+  `comun.h`); el nivel sigue en 0 (unidad 12).
+- tcc816 NO promociona un `u8` en los argumentos `...`: lo empuja como 1 byte
+  y `%d` lee 2, así que `consoleDrawText("%d", un_u8)` imprime basura en el
+  byte alto. Castear a `(u16)` (unidades 09, 17).
+- Cada `consoleDrawText` marca el mapa de texto y la NMI siguiente copia sus
+  2 KB enteros: junto a una subida de tiles desborda el VBlank, y llamado cada
+  frame con varios `%d` el bucle baja de 60 vueltas por segundo. Para texto que
+  cambia cada frame, escribir el mapa como `hud_debug.c` (unidades 07, 09, 12).
+- Un bucle en C justo después de `WaitForVBlank` se come el VBlank: el DMA que
+  va detrás llega con la PPU dibujando y se pierde. En el VBlank solo se suben
+  datos ya preparados (unidad 06).
+- El color 0 de una paleta sacada de un PNG con color clave es magenta, y el
+  color 0 de la CGRAM es el fondo de la pantalla: ponerlo con
+  `setPaletteColor(0, RGB5(0,0,0))` (unidades 09, 17).
 - `255 * 256` no cabe en el `int` de 16 bits de tcc816: las macros con
   constantes grandes se reparten (`* 128 ... * 2`) (unidades 01, 12). Matiz
   medido el 2026-10-22: con constantes solas el compilador pliega la cuenta
@@ -907,37 +927,45 @@ cambió desde este plan, manda el código y se corrige el plan.
 
 ## 7. Estado
 
-| Unidad | Estado |
-|---|---|
 Todas escritas el 2026-10-22 (la 00, ampliada), en un solo commit. Todo lo
 que se ejecuta en el PC (gcc, pruebas, scripts) y todas las compilaciones
 (mini-ROM y juego modificado, en clones) se ejecutaron de verdad y su salida
-está en `capturas/`. **Pendiente en todas las de hardware: las capturas de
-Mesen**, por decisión del autor: `aprendizaje/tanda_mesen.ps1` las hace de una
-vez (~20 min sin tocar el PC) a partir de las ROM de
-`E:\ProyectoSNES_trabajo\roms\`; las de las ventanas del depurador
-(breakpoints, Memory Tools, profiler: unidades 13, 14, 15, 16) son a mano.
+está en `capturas/`.
 
-| Unidad | Estado (2026-10-22) |
+**Verificación en Mesen (2026-10-22/23).** `aprendizaje/tanda_mesen.ps1`
+capturó las 37 ROM; la revisión encontró fallos reales en las mini-ROM de
+las unidades 06 (el bucle en C se comía el VBlank), 07 (`consoleDrawText`
+cada frame), 09 (VBlank desbordado por el texto, `u8` con `%d`, fondo
+magenta), 12 (calendario por vueltas del bucle) y 17 (`u8` con `%d`, fondo
+magenta), y una predicción equivocada en la 08. Se arreglaron y la segunda
+tanda (`-Solo ...`) las dio todas por buenas, junto con las ventanas
+corregidas de las 11, 18 y 19. Las capturas NO se versionan (decisión del
+autor: 34 MB); la tanda las regenera en `capturas/mesen_<rom>/`. Siguen a
+mano, por ser ventanas del depurador: Memory Tools (13), el breakpoint en
+`camara_para` (14), el profiler (15) y los visores de los casos de la 16.
+La tanda destapó además un fallo del juego: la raya de la última línea en
+las pantallas de imagen (scroll vertical −1, §6.6).
+
+| Unidad | Estado (2026-10-23) |
 |---|---|
 | 00 | **hecha**, ampliada a 8 partes; 27 compilaciones sin avisos y 21 capturas idénticas a la salida. Los ejercicios 03 y 04 siguen sin resolver (pendientes del autor) |
 | 01 | **hecha**; PC; altura máxima 69 px medida |
 | 02 | **hecha**; PC + prueba nueva (374/374 en el clon); trampa de `tarou_anim.h` demostrada |
-| 03 | **hecha**; mini-ROM compila; experimento de la cabecera reproducido. Falta captura de Mesen |
-| 04 | **hecha**; 3 variantes de mini-ROM + ROM de prueba con HUD. Falta captura de Mesen |
-| 05 | **hecha**; demo de PC + mini-ROM con guion sin manos. Falta captura de Mesen |
-| 06 | **hecha**; mini-ROM; deduplicación medida (281 tiles; 260 con `-F`). Falta captura de Mesen |
-| 07 | **hecha**; mini-ROM + `camara_para_ancho` (375/375 en el clon). Falta captura de Mesen |
-| 08 | **hecha**; mini-ROM + 2 variantes de fallo. Falta captura de Mesen |
-| 09 | **hecha**; mini-ROM con el motor del SDK; `tcc__mul` medido. Falta captura de Mesen |
-| 10 | **hecha**; demo de PC + parches A (6 fallos explicados) y B (367/367). Falta captura de Mesen |
-| 11 | **hecha**; demo de PC + parche (367/367); trampa del guion verificada. Falta captura de Mesen |
-| 12 | **hecha**; mini-ROM HDMA + motor de escenas en el publisher (378/378 en el clon). Falta captura de Mesen (medir la fila de la línea blanca) |
+| 03 | **hecha**; mini-ROM compila; experimento de la cabecera reproducido. Mesen: verificada |
+| 04 | **hecha**; 3 variantes de mini-ROM + ROM de prueba con HUD. Mesen: verificada |
+| 05 | **hecha**; demo de PC + mini-ROM con guion sin manos. Mesen: verificada |
+| 06 | **hecha**; mini-ROM; deduplicación medida (281 tiles; 260 con `-F`). Mesen: verificada |
+| 07 | **hecha**; mini-ROM + `camara_para_ancho` (375/375 en el clon). Mesen: verificada |
+| 08 | **hecha**; mini-ROM + 2 variantes de fallo. Mesen: verificada |
+| 09 | **hecha**; mini-ROM con el motor del SDK; `tcc__mul` medido. Mesen: verificada |
+| 10 | **hecha**; demo de PC + parches A (6 fallos explicados) y B (367/367). Mesen: verificada |
+| 11 | **hecha**; demo de PC + parche (367/367); trampa del guion verificada. Mesen: verificada |
+| 12 | **hecha**; mini-ROM HDMA + motor de escenas en el publisher (378/378 en el clon). Mesen: verificada (línea blanca en la fila 120) |
 | 13 | **hecha**; PC contra la ROM real. Falta Memory Tools (a mano) |
 | 14 | **hecha**; `.asm` generados y anotados; sonda de divisiones. Falta el breakpoint en `camara_para` (a mano) |
-| 15 | **hecha**; mini-ROM + `numero` y `colision_apoyan` en asm (simulador: 0 fallos en 65 536 valores). Falta captura de Mesen y el profiler (a mano) |
-| 16 | **hecha**; 5 ROM con fallos provocados. Faltan capturas de Mesen y las ventanas del depurador (a mano) |
-| 17 | **hecha** (rehecha: audio desde C); mini-ROM compila. Falta oírla en Mesen |
-| 18 | **hecha**; animación «guardia» con TDD (36/36 de scripts). Falta captura de Mesen |
-| 19 | **hecha**; TDD (39/39 de scripts) + 4 ROM. Falta captura de Mesen |
-| 20 | **hecha**; segundo foso + guion (367/367). Falta captura de Mesen |
+| 15 | **hecha**; mini-ROM + `numero` y `colision_apoyan` en asm (simulador: 0 fallos en 65 536 valores). Mesen: verificada; falta el profiler (a mano) |
+| 16 | **hecha**; 5 ROM con fallos provocados. Mesen: verificada; faltan las ventanas del depurador (a mano) |
+| 17 | **hecha** (rehecha: audio desde C); mini-ROM compila. Mesen: verificada en pantalla; el sonido, a oído |
+| 18 | **hecha**; animación «guardia» con TDD (36/36 de scripts). Mesen: verificada |
+| 19 | **hecha**; TDD (39/39 de scripts) + 4 ROM. Mesen: verificada |
+| 20 | **hecha**; segundo foso + guion (367/367). Mesen: verificada |

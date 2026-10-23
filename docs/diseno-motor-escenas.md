@@ -106,7 +106,7 @@ en 0, así que la pantalla arranca en negro: la escena hace el fundido.
 
 | Síntoma | Causa | Arreglo |
 |---|---|---|
-| Raya gris de 1 px bajo el logo durante el destello | el HDMA copia en el HBlank del **final** de cada línea: lo copiado "en la línea n" se ve en la n+1 | la primera entrada de la tabla cubre `arriba − 1` líneas |
+| Raya gris de 1 px bajo el logo durante el destello | con scroll vertical 0 el fondo se ve 1 px más arriba que sus coordenadas (la línea n enseña la fila n+1), y la ventana no | hasta el 2026-10-23, la primera entrada cubría `arriba − 1` líneas; desde entonces el fondo va en scroll −1 (`SCROLL_Y_FILA0`) y la entrada cubre `arriba` |
 | `255 * 256` puede dar un paso absurdo | `int` de 16 bits en tcc816: con todo constante (las tablas de `RAMPA`) el compilador pliega la cuenta con más bits y sale bien, pero si un operando es una variable el producto se hace a 16 bits y desborda (`aprendizaje/unidad-01-enteros-y-punto-fijo`, medido 2026-10-22) | `* 128 ... * 2` en `RAMPA`: la opción segura, no depende de lo que el compilador pliegue |
 | Variables `static` sin inicializar con basura | la WRAM no se pone a cero al arrancar y tcc816 no copia `.bss` | inicializar siempre en `_preparar`/`_empezar` |
 

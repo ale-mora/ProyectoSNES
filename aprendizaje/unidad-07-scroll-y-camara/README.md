@@ -230,8 +230,16 @@ en 0x80 al acabar. Dos motivos, los dos medidos:
   entrada 0 de la CGRAM (en el juego es un HDMA, abajo).
 - La raya roja: un tile macizo propio copiado al hueco 511 de
   `VRAM_FONDO_A` con `dmaCopyVram`, con la paleta 3 (libre).
-- El bucle: lógica (mando, cámara, texto) → `WaitForVBlank()` → scroll y
-  columna, al principio del VBlank.
+- El texto que cambia (`CAM`, `NEAR`/`FAR`, `COL`/`RING`) no va con
+  `consoleDrawText`: se escribe a mano en un tilemap en la WRAM, una fila por
+  frame, con los números hechos por restas, y se sube por DMA (64 bytes) en el
+  VBlank, como `src/juego/hud_debug.c`. `RING` es la columna del anillo
+  (0..63) y `+n`, la palabra de su fila 0 dentro del mapa: 0..31 en la
+  página izquierda, 1024..1055 (0x400 + c − 32) en la derecha; por eso la
+  columna 42 del anillo sale como `+1034`.
+- El bucle: lógica (mando, cámara, preparar una fila de texto) →
+  `WaitForVBlank()` → scroll, la fila de texto y la columna, al principio del
+  VBlank.
 
 Compilación del esqueleto y de la solución: `No warnings or errors found.`
 (`capturas/compilacion_rom.txt`, `capturas/compilacion_solucion.txt`).
@@ -282,6 +290,17 @@ a mitad de la pantalla; ahora, dentro del VBlank.
   por filas y la mitad derecha aparece desordenada. La columna `c` de la
   página derecha está en `0x400 + c − 32`.
 - **`bgSetScroll` no espera al VBlank** (arriba).
+- **`consoleDrawText` con `%d` en cada frame frena el bucle.** Medido en la
+  primera versión de la mini-ROM (Mesen, captura con guion): con tres
+  líneas y cinco números por frame, cada vuelta costaba ~3 frames; la cámara
+  de 2 px por vuelta iba a ~40 px/s en vez de 120 y la NMI copiaba el texto a
+  medio escribir (filas que no casaban entre sí). Para texto que cambia cada
+  frame: números por restas y el tilemap a mano (`hud_debug.c`).
+- **Un número que se acorta deja cifras viejas** si solo se escribe encima:
+  hay que borrar la fila (o rellenar con espacios) antes. `preparar_fila`
+  hace `memset` de la fila entera cada vez.
+- **Una línea de texto de 32 letras empezando en x = 1 no cabe**: la consola
+  sigue en la fila de abajo. El mapa tiene 32 columnas (0..31).
 - **`VMAIN` hay que dejarlo en 0x80.** Las funciones del SDK
   (`dmaCopyVram`, la consola) lo dan por supuesto; `dma_ejecutar.asm` lo
   restaura al acabar.

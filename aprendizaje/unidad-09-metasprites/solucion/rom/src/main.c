@@ -42,6 +42,10 @@
       ult_anim, ult_cuadro, ult_izq  u8      lo dibujado el frame anterior (0xFF = nada)
       espejo       t_metasprite[7] la tabla espejada del cuadro actual (RAM)
       pad          u16             botones mantenidos (padsCurrent(0))
+      texto_pendiente u8           1 = la línea de estado está por escribir (se
+                                   escribe un frame SIN subida de tiles)
+      vb_lineas    u16             0..60     líneas del VBlank usadas en la última
+                                   subida (medidas con el haz; el límite es 37)
 
     → glosario: Metasprite, Sprite dinámico, OAM, VRAM, VBlank, DMA / HDMA
 ---------------------------------------------------------------------------------*/
@@ -73,11 +77,21 @@ extern char fuente_til, fuente_pal;
 #define ESPEJO_DX 64                       /* 96 - 32: la pieza en dx pasa a 64 - dx.         */
 #define BIT_HFLIP 0x40                     /* Bit h del atributo (OBJ_FLIPX): espejo.         */
 #define NADA 0xFF                          /* "Todavía no se dibujó nada".                    */
+#define LINEA_VBLANK 225                   /* Primera línea del VBlank (NTSC, 224 visibles).  */
+#define LINEAS_VBLANK 37                   /* 262 - 225: lo que dura el VBlank.               */
+
+/* Contadores del haz (PVSnesLib no les da nombre; los mismos que usa
+   src/pantallas/pantalla_nivel1.c): leer $2137 congela el contador y $213D da
+   la línea en dos lecturas (bits 0..7 y bit 8). $213F rearma esa doble lectura. */
+#define REG_SLHV (*(vuint8 *)0x2137)
+#define REG_OPVCT (*(vuint8 *)0x213D)
 
 /*--- Estado ------------------------------------------------------------------------*/
 static u16 x, pad;
 static u8 anim, cuadro, frames, izquierda;
 static u8 ult_anim, ult_cuadro, ult_izq;
+static u8 texto_pendiente;                    /* 1 = escribir la línea de estado.       */
+static u16 vb_lineas;                         /* Líneas del VBlank de la última subida. */
 static t_metasprite espejo[PIEZAS_MAX + 1];   /* Hasta 6 piezas + el terminador.        */
 
 /*--- espejar: copia `tabla` en `espejo` mirando a la izquierda ------------------------
@@ -100,21 +114,33 @@ static void espejar(const t_metasprite *tabla)
     espejo[n].dx = FIN_TABLA;                          /* El terminador.                    */
 }
 
+/*--- linea_haz: en qué línea de la pantalla va el haz ahora mismo (0..261) ------------*/
+static u16 linea_haz(void)
+{
+    u8 bajo, alto;
+    bajo = REG_STAT78;                                 /* Rearma la doble lectura de $213D. */
+    bajo = REG_SLHV;                                   /* Congela los contadores del haz.   */
+    bajo = REG_OPVCT;                                  /* Primera lectura: bits 0..7.       */
+    alto = (u8)(REG_OPVCT & 1);                        /* Segunda: el bit 8.                */
+    return (u16)(((u16)alto << 8) | bajo);
+}
+
 /*--- texto: la línea de estado (con las piezas del cuadro), solo cuando algo cambió --------------------------------*/
 static void texto(u8 n_piezas)
 {
     if (anim == ANIM_CAMINAR)                          /* Sin ?: con cadenas: tcc816 se     */
     {                                                  /* rompe (error interno).            */
-        consoleDrawText(2, 20, "ANIM WALK  FRAME %d PIECES %d ", cuadro, n_piezas);
+        consoleDrawText(2, 20, "ANIM WALK  FRAME %d PIECES %d ", (u16)cuadro, (u16)n_piezas);
     }
     else if (anim == ANIM_DORMIDO)                     /* TODO 7: el texto de la nueva.     */
     {
-        consoleDrawText(2, 20, "ANIM SLEEP FRAME %d PIECES %d ", cuadro, n_piezas);
+        consoleDrawText(2, 20, "ANIM SLEEP FRAME %d PIECES %d ", (u16)cuadro, (u16)n_piezas);
     }
     else
     {
-        consoleDrawText(2, 20, "ANIM IDLE  FRAME %d PIECES %d ", cuadro, n_piezas);
+        consoleDrawText(2, 20, "ANIM IDLE  FRAME %d PIECES %d ", (u16)cuadro, (u16)n_piezas);
     }
+    consoleDrawText(2, 22, "VBLANK LINES %d/37 ", vb_lineas); /* La última subida.   */
 }
 
 /*--- piezas: cuántas piezas tiene una tabla (para en el terminador) ----------------*/
@@ -138,6 +164,10 @@ int main(void)
     consoleSetTextGfxPtr(0x3000);                      /* Tiles de la fuente.                */
     consoleSetTextOffset(0x0100);                      /* Primer tile de la fuente en el mapa.*/
     consoleInitText(0, 16 * 2, (u8 *)&fuente_til, (u8 *)&fuente_pal);  /* Carga fuente y paleta.*/
+    {
+        setPaletteColor(0, RGB5(0, 0, 0));             /* El color 0 de la fuente es el     */
+    }                                                  /* magenta clave del PNG, y el color */
+                                                       /* 0 de la CGRAM es el fondo: negro. */
     bgSetGfxPtr(0, 0x2000);                            /* BG1: tiles...                      */
     bgSetMapPtr(0, 0x6800, SC_32x32);                  /* ...y mapa (el de la consola).      */
     setMode(BG_MODE1, 0);                              /* Mode 1.                            */
@@ -162,7 +192,11 @@ int main(void)
     ult_anim = NADA;                                   /* Fuerza la primera copia de tiles.  */
     ult_cuadro = 0;
     ult_izq = 0;
+    texto_pendiente = 0;
+    vb_lineas = 0;
 
+    WaitForVBlank();                                   /* El texto de arriba (2 KB) sale en */
+                                                       /* este VBlank, antes que Tarou.     */
     setScreenOn();                                     /* Encender la pantalla.              */
 
     while (1)
@@ -220,7 +254,12 @@ int main(void)
             ult_anim = anim;
             ult_cuadro = cuadro;
             ult_izq = izquierda;
-            texto(piezas(tabla));                      /* Línea de estado, con las piezas.   */
+            texto_pendiente = 1;                       /* El texto, en OTRO frame: ver abajo.*/
+        }
+        else if (texto_pendiente)                      /* Frame sin subida de tiles: ahora   */
+        {                                              /* sí cabe la copia del texto.        */
+            texto(piezas(tabla));
+            texto_pendiente = 0;
         }
         if (izquierda)
         {
@@ -234,6 +273,12 @@ int main(void)
         oamInitDynamicSpriteEndFrame();                /* Fin del frame para el motor.       */
         WaitForVBlank();                               /* Esperar al VBlank...               */
         oamVramQueueUpdate();                          /* ...y copiar los tiles encolados.   */
+        if (texto_pendiente)                           /* Frame con subida: ¿cuánto VBlank   */
+        {                                              /* se llevó? (línea >= 225: dentro.)  */
+            vb_lineas = linea_haz();
+            if (vb_lineas >= LINEA_VBLANK) vb_lineas = vb_lineas - LINEA_VBLANK;
+            else vb_lineas = vb_lineas + LINEAS_VBLANK; /* Ya dibujando: se pasó del VBlank.*/
+        }
     }
     return 0;                                          /* Nunca se llega aquí.               */
 }

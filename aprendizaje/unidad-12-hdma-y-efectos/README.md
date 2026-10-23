@@ -151,15 +151,44 @@ capas son transparentes. Así empieza la tabla real del cielo del título
 En la mini-ROM la tabla se escribe a mano con una macro, `FRANJA(lineas, r, g,
 b)` (`rom/src/cielos.h`), para ver cada byte.
 
-**Cuándo se ve lo que escribe.** El canal escribe en el HBlank del **final** de
-una línea, así que el valor nuevo se ve desde la línea **siguiente**. En el
-juego eso se notó en el destello del logo Nintendo: con la primera entrada de
-`arriba` líneas la banda bajaba una línea y pintaba una raya gris de 1 px bajo
-el logo (medido en Mesen el 2026-10-21); el arreglo es que la primera entrada
-cubra `arriba − 1` (`src/escena/efectos.c:96`, `tabla[0] = arriba - 1`). La
-regla práctica del proyecto: **una tabla que empieza «en la línea 64» se ve
-desde la 65; mídelo siempre en Mesen**. La parte A del ejercicio pone una línea
-blanca de 1 px en el cielo para medir dónde cae de verdad.
+**Cuándo se ve lo que escribe: líneas del haz y filas de la imagen.** Hay
+que distinguir dos numeraciones:
+
+- La **línea del haz** (*scanline*), la que cuentan el HDMA y `$213D`: 0..261.
+  La línea 0 se dibuja pero **no se ve**: la imagen de 224 líneas son las
+  líneas del haz **1..224**.
+- La **fila de la imagen** (0..223), la de una captura de Mesen: la fila `r` es
+  la línea del haz `r + 1`.
+
+El canal escribe en el HBlank del **final** de una línea, así que una entrada
+que empieza «después de n líneas» de tabla se escribe al final de la línea del
+haz n y se ve desde la línea del haz **n + 1**... que es la fila **n** de la
+imagen. Los dos desfases se anulan: en la imagen, la entrada cae justo donde
+dice la suma de las cuentas. Medido en la parte A del ejercicio (Mesen,
+2026-10-22): las entradas antes de la línea blanca suman 120 y la línea blanca
+sale en la fila **120** de la captura.
+
+¿Y el desfase de una línea que el proyecto encontró en el destello del logo
+Nintendo? No era del HDMA sino del **fondo**: con el scroll vertical a 0, la
+línea del haz `s` enseña la fila `s` del fondo, así que la fila `r` de la
+imagen enseña la fila **`r + 1`** del fondo (la fila 0 del fondo cae en la
+línea 0, la que no se ve). Una ventana por HDMA que empieza en la fila 64 de
+la imagen cubre la fila 65 del fondo: para cuadrar con un dibujo del fondo
+hay que empezar una línea antes. Por eso `src/escena/efectos.c:96` hace
+`tabla[0] = arriba - 1` (raya gris de 1 px bajo el logo, medida en Mesen el
+2026-10-21). La regla práctica: **mídelo siempre en Mesen**.
+
+**La última línea de la pantalla.** En las capturas de la mini-ROM, la fila
+223 de la imagen sale del color de la tabla del cielo, debajo del suelo de las
+montañas. Es el mismo efecto: la fila 223 de la imagen enseña la fila **224**
+del fondo, y una imagen de 224 px (mapa de 32×28 en un mapa de 32×32) tiene
+vacías las filas 224..255: tiles transparentes, así que se ve el color de fondo,
+que es el que pone el HDMA. El remedio clásico es un **scroll vertical de −1**
+(`bgSetScroll(n, x, 0xFFFF)`; el registro guarda 10 bits, `$3FF`): la fila
+`r` de la imagen pasa a enseñar la fila `r` del fondo, la 223 vuelve a ser
+suelo y la 0 enseña la fila 0 (que antes no se veía). La mini-ROM lo aplica a
+los fondos 0 y 1 a los 16 s del ciclo (o con L) y lo quita a los 22 s: compara
+la última fila de la captura antes y después.
 
 ### HDMA indirecto
 
@@ -360,8 +389,21 @@ su cielo y heredaría la ventana y la luz.
   y `setScreenOff()` escriben `$80` (apagada). Tras un `fade_out`, cargar la
   VRAM fuera del VBlank pierde datos.
 - **Los fundidos y el mosaico de la librería bloquean** 32 y 48 frames.
-- **El HDMA escribe al final de la línea**: lo de «la línea n» se ve en la
-  n + 1. Mídelo en Mesen (lo hace la parte A del ejercicio).
+- **El HDMA escribe al final de la línea**: una entrada que empieza tras n
+  líneas de tabla se ve desde la línea del haz n + 1, que es la **fila n** de
+  la imagen. El desfase de una línea aparece al cuadrar el HDMA con un
+  **fondo** con scroll vertical 0 (la fila r de la imagen enseña la fila r + 1
+  del fondo). Mídelo en Mesen (lo hace la parte A del ejercicio).
+- **Con scroll vertical 0, la última fila de la imagen es la fila 224 del
+  fondo**: en una imagen de 224 px está vacía y se ve el color de fondo (el del
+  HDMA, si lo hay). Remedio: scroll vertical −1 (`0xFFFF`).
+- **Un ciclo contado en vueltas del bucle no es un reloj.** La primera versión
+  de la mini-ROM contaba los segundos en vueltas (60 = 1 s), pero un
+  `consoleDrawText` con dos `%d` en cada vuelta tardaba más de un frame: el
+  bucle iba a **30 Hz** (medido en las capturas: entre dos capturas a 3,5 s,
+  `VBL` subió 188 y `LOOP` 94) y además los efectos bloqueantes no cuentan
+  vueltas. Todo salía tarde (el mosaico «de los 4 s» salió hacia `VBL` 360..450, ~6..7,5 s). Para tiempos
+  de verdad, `snes_vblank_count`; y el texto con números, no en cada frame.
 - **El mosaico de salida de la intro no es un fallo.**
 - **`255 * 256` no cabe** en el `int` de 16 bits de tcc816: por eso `RAMPA`
   reparte la cuenta (`* 128 … * 2`). En gcc (`int` de 32 bits) no se nota: la
@@ -409,16 +451,34 @@ Salida de referencia en `capturas/salida_demo_12_escena.txt`. Fíjate en:
 
 `rom/` parte de `snes-examples/graphics/Effects/GradientColors` (receta de
 `PLAN.md` §6.3). Muestra las montañas del título (su cielo es transparente:
-color 0) con el cielo degradado por el canal 6 detrás, y se anima sola en un
-ciclo de 10 s (también responde al mando):
+color 0) con el cielo degradado por el canal 6 detrás, y se anima **sola**, sin
+teclas, en un ciclo de 22 s contado con `snes_vblank_count` (frames de verdad:
+un efecto que bloquea no retrasa los siguientes). Los segundos son desde el
+arranque: `VBL / 60`, el número que se ve en pantalla (la línea `LOOP n  VBL
+m` se reescribe cada 16 vueltas). También responde al mando:
 
-| Segundo | Tecla | Qué hace | Función |
+| Segundo (VBL) | Tecla | Qué se ve | Función |
 |---|---|---|---|
-| 2 | A | fundido a negro y vuelta (`LOOP` se para 64 frames; `VBL` no) | `setFadeEffectEx(FADE_OUT/IN, 2)` |
-| 4 | B | mosaico que crece y se deshace en las montañas (96 frames parado) | `setMosaicEffect(MOSAIC_OUT/IN, MOSAIC_BG2)` |
-| 6 | X | cambia a la tabla del atardecer (en el esqueleto: negro) | `setModeHdmaColor` |
-| 8 | Y | apaga el HDMA: el cielo queda **de un solo color**, el último que escribió el canal (el de la franja de abajo) | `setModeHdmaReset(0)` |
-| 10 | — | vuelve el cielo de día y el ciclo empieza | `setModeHdmaColor` |
+| 0 | — | cielo de día degradado; `SKY TABLE: DAY`, `HDMA CH6: ON`, `BG VSCROLL: 0` (filas 10..12, bajo el logo); la fila 223 de la imagen, del color del cielo | `setModeHdmaColor` |
+| 6 (360) | A | fundido a negro y vuelta, ~1,1 s (64 frames: `VBL` sube 64 más que `LOOP`) | `setFadeEffectEx(FADE_OUT/IN, 2)` |
+| 9 (540) | B | mosaico que crece y se deshace en las montañas (no en el texto), ~1,6 s (96 frames: 16 tamaños × 3 VBlanks, dos veces) | `setMosaicEffect(MOSAIC_OUT/IN, MOSAIC_BG2)` |
+| 13 (780) | X | cambia a la tabla del atardecer, `SKY TABLE: SUNSET` (en el esqueleto: cielo negro; en la solución, morado → naranja, la línea blanca en la fila 120 y naranja → amarillo) | `setModeHdmaColor` |
+| 16 (960) | L | scroll vertical −1 en los fondos 0 y 1, `BG VSCROLL: -1`: el texto y las montañas bajan 1 px y la fila 223 pasa a ser suelo | `bgSetScroll(n, 0, 0xFFFF)` |
+| 19 (1140) | Y | apaga el HDMA, `HDMA CH6: OFF`: el cielo queda **de un solo color**, el último que escribió el canal (el amarillo de la franja de abajo; en el esqueleto, negro) | `setModeHdmaReset(0)` |
+| 22 (1320) | — | cielo de día, HDMA encendido, scroll 0; el ciclo vuelve a empezar (los siguientes, 22 s después de cada vuelta) | `setModeHdmaColor`, `bgSetScroll` |
+
+Ojo: `MOSAIC_OUT` hace **crecer** los bloques (tamaño 0 → 15) y `MOSAIC_IN`
+los deshace, al revés de lo que dice el comentario de `video.h` («IN = normal
+to mosaic»). Comprobado en el código de la librería desensamblado de la ROM
+(`setMosaicEffect`: con modo 1 escribe `$2106` con 0, `$10`, `$20`... cada 3
+VBlanks).
+
+Para capturarla sin teclas: la primera captura llega con el juego ya en marcha
+(en la tanda del 2026-10-22, la primera mostraba `VBL 266`, unos 4,4 s), así
+que con `-Duracion 22 -Cada 0.5` se ven el fundido (captura ~1,6..2,7 s), el
+mosaico (~4,6..6,2), el atardecer (~8,6), el scroll −1 (~11,6), el cielo de un
+color (~14,6) y la vuelta al día (~17,6). Lee siempre el `VBL` de la captura:
+es el reloj.
 
 Compilar desde `rom/` (PowerShell):
 

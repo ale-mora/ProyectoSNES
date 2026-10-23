@@ -200,6 +200,18 @@ su propio `esconder`.
   la mueve 1 px por frame sin salir de la pantalla.
 - El lobo (TODO 1 y 2): sus 2 primeros cuadros (4 KB) en el tile
   `TILE_LOBO` = 256 (VRAM 0x1000), paleta 1, entrada 1, volteado.
+- **La raya oscura a la izquierda del lobo es del arte, no un fallo.** En la
+  tira original (`res/personajes/lobo_samurai.png`) la espada llega hasta el
+  borde de cada celda de 64 px, y el contorno de la punta de la espada del
+  cuadro siguiente se cuela 1 px en la última columna de la celda anterior
+  (x = 63, 127 y 191, filas 22..27, índice 14, casi negro), separado del
+  cuerpo. Con el volteo horizontal esa columna pasa a x = 0 del sprite: una
+  rayita vertical de 6 px a la izquierda, a la altura de la punta de la
+  espada (arriba del lomo). La mini-ROM usa la tira tal cual; para el juego (etapa de
+  enemigos) habrá que limpiar esas columnas en el PNG.
+- Con `-DTILE_LOBO=192` (parte B) el lobo casi desaparece y Bárbara pierde
+  el cuerpo en sus cuadros 2 y 3: el porqué completo, con una simulación de
+  la VRAM hecha en el PC, está en el enunciado.
 - `#ifndef TILE_LOBO` / `#ifndef LOBO_Y`: los experimentos se compilan con
   `CFLAGS` sin tocar el código (como `-DGUION_PRUEBA` en el juego).
 

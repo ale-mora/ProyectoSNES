@@ -278,7 +278,8 @@ Detalles que la tabla no dice:
   las otras dos se ejecutan siempre. Úsala siempre dentro de `{ }`.
 - Ninguna función de PVSnesLib cambia **una** celda del mapa: se hace con
   `dmaCopyVram` de 2 bytes (o de una fila, 64) desde una variable, en el VBlank.
-  Es lo que hacen los TODO 3 y 4.
+  Es lo que hacen los TODO 3 y 4: preparan 4 filas en la WRAM y las suben con
+  un solo `dmaCopyVram` de 256 bytes al principio del VBlank siguiente.
 - No hay que cambiar el registro a mano para nada de esta unidad. Cuando el
   juego lo hace (el `VMAIN = 0x81` de las columnas, unidad 07) es porque
   `dmaCopyVram` fija siempre 0x80.
@@ -311,7 +312,12 @@ pantalla:
    tamaños se calculan restando etiquetas: `&montanas_til_end - &montanas_til`.
 3. **Modo y capas**: `setMode`, `bgSetEnable`/`bgSetDisable`.
 4. **`setScreenOn()`**.
-5. **Bucle**: `WaitForVBlank()` y, justo después, los cambios a VRAM/CGRAM.
+5. **Bucle**: `WaitForVBlank()` y, justo después, los cambios a VRAM/CGRAM
+   **ya preparados** (el DMA de `bloque` si `pendiente` vale 1, y los
+   colores); después, con todo el frame por delante, se prepara lo del
+   siguiente. Es el mismo reparto que el juego hace con `src/juego/dma_lista.c`
+   (los módulos apuntan copias durante el frame; `dma_ejecutar.asm` las
+   dispara en el VBlank).
 
 ## Dónde está en el juego
 
@@ -343,6 +349,23 @@ columnas sueltas. Eso es la unidad 07.
 - **Escribir en la VRAM o la CGRAM con la pantalla encendida y fuera del
   VBlank** pierde datos sin aviso (unidad 04). Carga antes de
   `setScreenOn()` o justo después de `WaitForVBlank()`.
+- **El bucle se come el VBlank.** El VBlank dura unas 37 líneas. La primera
+  versión de la solución hacía, tras `WaitForVBlank()`, un bucle de 32 vueltas
+  en C para armar una fila y luego su `dmaCopyVram`, cuatro veces. **Medido**:
+  en Mesen, las 8 capturas (de ~3 a ~10 s) salieron idénticas byte a byte;
+  la copia y el espejo no aparecieron nunca, sin un solo aviso. **Estimado**
+  (contando instrucciones en el `.ps` de tcc816, antes del optimizador): cada
+  vuelta de `fila[i] = mapa[(r << 5) + i]` son del orden de 100 instrucciones
+  (cargas de `u8` estáticos, el `<< 5` hecho como bucle de 5 `asl`, aritmética
+  de punteros de 24 bits), un par de líneas de pantalla; la primera fila
+  tardaba decenas de líneas en armarse y **los cuatro DMA llegaban con la
+  pantalla pintando**, cuando la PPU ignora las escrituras a la VRAM. Regla: en el VBlank, solo DMA de
+  datos ya preparados; los bucles, antes o después.
+- **Elegir el índice de color a ojo.** El color más usado de las montañas
+  del título (el 7, 13 942 píxeles) no es el de las montañas sino el bosque
+  verde azulado de las 8 filas de abajo; las montañas son el 5 (y el 4 en
+  las sombras). Antes de tocar un color, cuenta qué píxeles lo usan (en
+  Python con Pillow, o pasando el ratón en el Tile Viewer de Mesen).
 - **`consoleInitText` también escribe en la CGRAM:** con la paleta 0 pisa la
   entrada 0, el color de fondo. Si cargas un fondo con la paleta 0 después de
   la fuente, pisas los colores de la fuente (por eso el juego da paletas
@@ -366,8 +389,9 @@ El enunciado completo está en `ejercicio_06.md`:
 - **C.** Contar tiles con y sin reducción, y con `-F`, y responder por qué.
 
 **Aprobación:** captura de la mini-ROM con el fondo, los colores cambiados y
-la copia del logo en espejo (las tres fases se ven en una captura sin manos
-de 8 s, comando en el enunciado), y las cifras de la parte C (las de
+la copia del logo en espejo (la captura sin manos de 8 s del enunciado
+empieza ~3 s tarde: colores cambiados desde la captura 0, copia derecha
+seguro en la 2, espejo seguro desde la 4; la 1 y la 3 caen en el cambio), y las cifras de la parte C (las de
 referencia están en `capturas/salida_parte_c_gfx4snes.txt`: 281, 8320 y 260).
 
 ## Lo que viene

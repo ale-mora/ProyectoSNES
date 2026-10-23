@@ -30,22 +30,24 @@ Comprobaciones antes de compilar:
    `$7F:008D`; la diferencia, 141, es 28 × 5 + 1.
 
 Compila desde `rom/` con la orden del README y busca `No warnings or errors
-found.`. En Mesen, a los 6 s del ciclo (o con X) el cielo cambia al atardecer.
+found.`. En Mesen, a los 13 s del arranque (`VBL` 780, o con X) el cielo
+cambia al atardecer.
 
 **Medir la línea blanca.** Pausa (Game → Pause) con el atardecer en pantalla y
 haz una captura (o usa el Event Viewer de Mesen, Debug → Event Viewer: marca
 las escrituras en `$2122` y mira en qué línea cae cada una). Anota la fila de
 píxel de la imagen de 256×224 en la que se ve la línea blanca y compárala con
-tu predicción del TODO 2. El README explica por qué el proyecto midió un
-desfase de una línea en la tabla de la ventana del logo Nintendo; aquí, con la
-tabla de color, comprueba si se repite y escribe en una línea por qué crees que
-sí o que no.
+tu predicción del TODO 2 (medido el 2026-10-22: fila **120**). El README
+(«Cuándo se ve lo que escribe») explica por qué en la imagen no hay desfase y
+de dónde salía el de una línea en la ventana del logo Nintendo; escribe en una
+línea con tus palabras por qué. Fíjate también en la **última fila** (223):
+antes de los 16 s es del color del cielo; después del scroll −1, suelo.
 
 **Preguntas** (respóndelas en tu cuaderno):
 
 - a) Con el cielo de atardecer puesto, ¿qué color queda en el cielo cuando el
-  ciclo apaga el HDMA a los 8 s? ¿Por qué ese y no otro?
-- b) Durante el fundido de los 2 s, ¿cuánto avanza `VBL` mientras `LOOP` está
+  ciclo apaga el HDMA a los 19 s? ¿Por qué ese y no otro?
+- b) Durante el fundido de los 6 s, ¿cuánto avanza `VBL` mientras `LOOP` está
   parado? Calcúlalo antes de mirarlo (`FRAMES_PASO` = 2).
 - c) ¿Por qué `setModeHdmaColor` puede leer `cielo_atardecer` aunque esté en la
   WRAM y no en la ROM?

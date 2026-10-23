@@ -240,9 +240,63 @@ $env:PVSNESLIB_HOME="/e/ProyectoSNES/tools/pvsneslib"; $env:PATH="E:\ProyectoSNE
 ```
 
 Debe terminar en `No warnings or errors found.` (`capturas/compilacion_rom.txt`)
-y dejar `u09_metasprite.sfc`. En Mesen se ve el texto
-`UNIT 09 - METASPRITE 96X64`, a Tarou respirando y, con la cruceta, caminando
-en las dos direcciones; abajo, `ANIM WALK  FRAME n`.
+y dejar `u09_metasprite.sfc`. En Mesen, sobre fondo negro, se ve el texto
+`UNIT 09 - METASPRITE 96X64`, a Tarou **entero** respirando (`ANIM IDLE
+FRAME n`, n de 0 a 8, un cuadro cada 12 frames) y, con la cruceta, caminando
+en las dos direcciones (`ANIM WALK  FRAME n`, 0 a 7). Debajo, `VBLANK LINES
+v/37`: las líneas del VBlank que se llevó la última subida de tiles, medidas
+con el haz. Si `v` pasa de 37, la subida se salió del VBlank (ver la trampa
+siguiente).
+
+### La primera versión de esta mini-ROM salía rota (y por qué)
+
+En la primera tanda de Mesen (2026-10-22) esta ROM salió mal de tres formas.
+Las tres son trampas que vas a volver a encontrar:
+
+1. **Tarou a trozos, también aquí.** Se veían la cabeza, una franja del lomo
+   y una columna de la cola; faltaban el cuerpo y las patas. En la solución,
+   al pasar a «dormido» seguía un Tarou de pie sin cabeza (los tiles viejos,
+   porque los nuevos no llegaron). La causa: la línea de estado se escribía
+   **en el mismo frame** en que cambiaba el cuadro. `consoleDrawText` no
+   escribe la VRAM: copia el texto a un búfer en la WRAM (`scr_txt_font_map`,
+   2 KB) y pone `scr_txt_dirty = 1`; la NMI del SDK (`consoleVblank`) copia
+   entonces **los 2 KB enteros** del mapa. Ese VBlank llevaba, por orden:
+
+   ```
+   NMI: OAM (544 B) + mapa de texto (2048 B) + mando     ~ 17 líneas
+   oamVramQueueUpdate: 6 piezas x 4 DMA de 128 B          ~ 25..32 líneas
+   total                                                  ~ 42..49 de 37
+   ```
+
+   Lo que llega después de la línea 37 se pierde sin aviso. El motor copia
+   cada pieza de 32×32 en **cuatro** DMA de 128 bytes (una fila de 8 px de
+   4 tiles cada una; la tira está en una hoja de 128 px de ancho, 0x200 bytes
+   por fila de tiles): por eso se veían **franjas** de 8 px de algunas piezas
+   y otras faltaban enteras. Se comprobó leyendo el código del motor
+   desensamblado de la ROM (`oamVramQueueUpdate`, `_ovquDo32`) y el de
+   `consoleVblank` (`scr_txt_dirty` → DMA de 0x800 bytes).
+   **Arreglo:** la línea de estado se escribe **un frame después**, en un frame
+   sin subida de tiles (`texto_pendiente`); el texto inicial sale con un
+   `WaitForVBlank()` antes de `setScreenOn()`; y la ROM pasa a FastROM
+   (`export FASTROM := 1`, como el juego) para que el código que prepara cada
+   DMA corra a 3,58 MHz. `VBLANK LINES` deja a la vista el margen que queda.
+   El motor del SDK, además, limita la cola a `0x240` «unidades» por frame
+   (`ovquFrameBudget`; una pieza de 32×32 cuesta `0x60`): 6 piezas justas;
+   una séptima esperaría al frame siguiente.
+2. **Fondo magenta.** El color 0 de `fuente.pal` es `0x7C1F`, el magenta que
+   el PNG usa como color clave. En Mode 1 el color 0 de los fondos es
+   transparente, pero el color 0 de la **CGRAM** es el *backdrop*: lo que se
+   ve donde no hay nada. **Arreglo:** `setPaletteColor(0, RGB5(0, 0, 0))`
+   después de `consoleInitText` (es una macro de tres sentencias: va entre
+   llaves).
+3. **`FRAME 2560`, `PIECES -31146`.** `cuadro` y `n_piezas` son `u8`. tcc816
+   **no promociona** un `u8` a 16 bits en los argumentos `...` de una función
+   variádica: lo empuja como **un byte** (`sep #$20 / pha`), pero `%d` de
+   `consoleDrawText` lee **dos**. El byte alto es lo que haya al lado en la
+   pila: 2560 = `$0A00` es `cuadro` = 0 con un `$0A` de basura encima.
+   Comprobado compilando un `f("%d", c)` suelto (`capturas/tcc_u8_variadico.txt`):
+   con `u8` empuja 1 byte y suma 5 a la pila; con `(u16)c`, `pei` y 6.
+   **Arreglo:** `(u16)cuadro` en cada argumento `%d`.
 
 Tres diferencias con el ejemplo del SDK, todas reglas del proyecto: no hay
 `bool` ni `int` en las variables (sí en `main`, que C exige), las `static` se
@@ -253,7 +307,8 @@ con `if`/`else`.
 
 ## Por qué el juego dejó el motor del SDK: Tarou a trozos
 
-En la mini-ROM el motor funciona: en el VBlank no hay nada más. En el nivel,
+En la mini-ROM el motor funciona si en ese VBlank no va nada más (ya se vio
+arriba qué pasa con el texto). En el nivel,
 el VBlank lo comparten tres cosas. Las cifras, medidas con la columna `V`
 del HUD (líneas del VBlank al entrar y al salir de `pantalla_nivel1_vblank`;
 → glosario: Presupuesto del VBlank) y contadas en
@@ -417,6 +472,14 @@ dibujo; la física y las pruebas usan el borde exacto (unidad 19).
 - **Escribir la VRAM fuera del VBlank** (o pasarse de la línea 37) se pierde
   sin aviso. La columna `V` del HUD lo vigila.
 - **`?:` con cadenas como argumento variádico**: error interno de tcc816.
+- **Un `u8` como argumento de `consoleDrawText` con `%d`** sale con el byte
+  alto de basura (tcc816 empuja 1 byte, `%d` lee 2): siempre `(u16)valor`.
+  `capturas/tcc_u8_variadico.txt`.
+- **Texto y tiles en el mismo VBlank.** Cada `consoleDrawText` cuesta, en la
+  NMI siguiente, un DMA de 2 KB (todo el mapa). Con los 3 KB de un cuadro
+  nuevo no caben: escribe el texto en otro frame.
+- **El color 0 de la CGRAM es el fondo de la pantalla.** Una paleta cargada
+  desde un PNG con color clave lo deja magenta: ponlo a mano.
 
 ## Dónde está en el juego
 
@@ -450,9 +513,10 @@ El enunciado completo está en `ejercicio_09.md`; la solución, en
    `tcc__mul`.
 
 **Aprobación:** la solución compila con `No warnings or errors found.`;
-capturas de Mesen con Tarou mirando a la derecha y a la izquierda (el
-metasprite en ambas direcciones) y dormido con `PIECES 4`; las cifras del
-Sprite Viewer anotadas.
+capturas de Mesen con Tarou **entero** (cabeza, cuerpo, patas y cola) mirando
+a la derecha y a la izquierda y dormido (tumbado, sin restos del Tarou de pie)
+con `PIECES 4` en los cuadros 0, 1 y 8; `VBLANK LINES` por debajo de 37 y el
+fondo negro; las cifras del Sprite Viewer anotadas.
 
 ## Lo que viene
 

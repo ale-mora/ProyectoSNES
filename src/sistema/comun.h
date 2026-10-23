@@ -33,6 +33,13 @@
 #define VRAM_MAPA_TEXTO  0x6800   /* 0x6800-0x6BFF mapa de la capa de texto (32x32)             */
 #define VRAM_MAPA_A      0x6C00   /* 0x6C00-0x73FF mapa de la capa cercana (64x32, para scroll) */
 #define VRAM_MAPA_B      0x7400   /* 0x7400-0x77FF mapa del fondo principal / capa lejana        */
+
+/* Scroll vertical -1 (0xFFFF; la PPU usa los 10 bits bajos) para las imágenes de 224 px.
+   Con scroll 0 la SNES enseña en la primera línea visible la fila 1 del fondo: la fila 0
+   no se ve nunca y en la última (la 223) aparece la fila 224, vacía en esas imágenes, con
+   el color de fondo (la raya de la intro y el título, medida el 2026-10-22). Con -1 cada
+   fila de la imagen cae en su línea y los sprites quedan alineados con el fondo. */
+#define SCROLL_Y_FILA0   0xFFFF
 /* Mode 3 (intro): la imagen de 256 colores ocupa 0x0000-0x3FFF (hasta 512
    tiles de 64 bytes) y su mapa va en VRAM_MAPA_B. Mode 7 (devs): 0x0000-0x3FFF. */
 

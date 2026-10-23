@@ -9,12 +9,17 @@
       contando frames:
         a los 2 s  cambiar dos colores: el color de fondo (CGRAM 0: el "cielo",
                    porque el índice 0 de las montañas es transparente) y el color
-                   7 de la paleta 2 (el cuerpo de las montañas);
+                   5 de la paleta 2 (el celeste de las montañas; el 7, el más
+                   usado, es el bosque verde azulado de abajo);
         a los 4 s  copiar las 4 filas del mapa donde está la palabra TAROU a las
                    filas 10..13 (el cielo): el mismo dibujo dos veces sin gastar ni
                    un tile más de VRAM;
         a los 6 s  reescribir esa copia en espejo: invertir el orden de las 32
                    celdas de cada fila Y voltear cada tile (bit 14 de la entrada).
+      Las copias se PREPARAN en la WRAM fuera del VBlank y se SUBEN con un solo DMA
+      de 256 bytes al principio del VBlank siguiente: el bucle en C que arma las
+      4 filas tarda varias veces lo que dura el VBlank (unas 37 líneas), y un DMA a
+      la VRAM hecho después, con la pantalla pintando, se pierde sin aviso.
       Copia rom/src/fondo.c sobre este archivo para compilar la solución.
 
     SE CONECTA CON
@@ -36,8 +41,11 @@
 
     VARIABLES (estáticas de este archivo)
       frames  u16              0..65535   frames desde que se encendió la pantalla
-      fila    u16[32]          entradas   una fila del mapa preparada en la WRAM
+      bloque  u16[128]         entradas   las 4 filas del mapa preparadas en la WRAM
+      pendiente u8             0/1        1 = bloque listo, se sube en el próximo VBlank
       mapa    const u16 *      ROM        el mapa de las montañas, tal como está en la ROM
+      origen  const u16 *      ROM        principio de la fila de origen (mapa + fila*32)
+      destino u16 *            WRAM       siguiente celda libre de bloque
       i       u8               0..31      columna dentro de la fila
       f       u8               0..3       fila dentro del bloque que se copia
     → glosario: Tile, Tilemap, Paleta, BG / capas, Mode 1, VRAM, CGRAM, DMA / HDMA,
@@ -58,7 +66,7 @@ extern char montanas_map, montanas_map_end;                  /* Mapa de 32x28 en
 
 /*--- Paletas y momentos -----------------------------------------------------------*/
 #define PALETA_MONTANAS 2            /* gfx4snes -e 2: CGRAM 32..47, como en el título.   */
-#define COLOR_MONTANA 7              /* El color más usado: el cuerpo azul verdoso.       */
+#define COLOR_MONTANA 5              /* El celeste de las montañas (el 7 es el bosque).   */
 #define FRAMES_COLOR 120             /* 2 s a 60 frames por segundo.                      */
 #define FRAMES_COPIA 240             /* 4 s.                                              */
 #define FRAMES_ESPEJO 360            /* 6 s.                                              */
@@ -68,8 +76,11 @@ extern char montanas_map, montanas_map_end;                  /* Mapa de 32x28 en
 
 /*--- Estado -------------------------------------------------------------------------*/
 static u16 frames;                   /* Frames desde el encendido.                        */
-static u16 fila[32];                 /* Una fila del mapa, preparada en la WRAM.          */
+static u16 bloque[FILAS_LOGO * 32];  /* Las 4 filas de la copia, preparadas en la WRAM.  */
+static u8 pendiente;                 /* 1 = bloque listo para subir en el próximo VBlank. */
 static const u16 *mapa;              /* El mapa en la ROM, visto como palabras de 16 bits.*/
+static const u16 *origen;            /* Principio de la fila que se lee (en la ROM).      */
+static u16 *destino;                 /* Siguiente celda libre de bloque (en la WRAM).     */
 static u8 i, f;                      /* Columna y fila de los bucles.                     */
 
 int main(void)
@@ -102,19 +113,28 @@ int main(void)
 
     mapa = (const u16 *)&montanas_map;               /* El mapa se lee DIRECTAMENTE de ROM. */
     frames = 0;
+    pendiente = 0;                                   /* static NO empieza a 0: se pone.     */
     setScreenOn();                                   /* Hasta aquí, pantalla apagada.      */
 
     while (1)
     {
         WaitForVBlank();                             /* A partir de aquí estamos en el VBlank: */
-        frames++;                                    /* se puede tocar CGRAM y VRAM.        */
+                                                     /* unas 37 líneas para tocar CGRAM/VRAM.  */
+        if (pendiente)                               /* ¿Hay una copia preparada?           */
+        {
+            /* Lo PRIMERO del VBlank: un solo DMA de 4 filas x 64 bytes. Las filas 10..13
+               de un mapa de 32x32 están seguidas en la VRAM, así que van de una vez. */
+            dmaCopyVram((u8 *)bloque, VRAM_MAPA_B + ((u16)FILA_CIELO << 5), FILAS_LOGO * 64);
+            pendiente = 0;                           /* Subida: no se repite.               */
+        }
+        frames++;                                    /* Cuenta de frames.                   */
 
         if (frames == FRAMES_COLOR)
         {
             /* TODO 1: el color 0 de la CGRAM es el "color de fondo": se ve donde todas
                las capas son transparentes (el cielo). Azul noche. */
             setPaletteColor(0, RGB5(2, 3, 10));
-            /* TODO 2: el color 7 de la paleta 2 (CGRAM 2*16+7 = 39), naranja de
+            /* TODO 2: el color 5 de la paleta 2 (CGRAM 2*16+5 = 37), naranja de
                atardecer: cambian TODOS los píxeles que usan ese índice, a la vez. */
             setPaletteColor(PALETA_MONTANAS * 16 + COLOR_MONTANA, RGB8(232, 120, 40));
         }
@@ -122,16 +142,20 @@ int main(void)
         if (frames == FRAMES_COPIA)
         {
             /* TODO 3: las filas 2..5 del mapa (TAROU) a las filas 10..13. Cada fila son
-               32 entradas de 16 bits seguidas, en la ROM y en la VRAM: se copia la
-               fila a la WRAM y de ahí a la VRAM con un DMA de 64 bytes. */
+               32 entradas de 16 bits seguidas, en la ROM y en la VRAM: se preparan las
+               4 filas en `bloque` (WRAM) y el DMA del principio del bucle las sube en
+               el VBlank siguiente. (Esta copia, sin cambios, podría ir por DMA directo
+               desde la ROM; el bloque hace falta para el espejo del TODO 4.) */
+            destino = bloque;                        /* Se rellena desde la celda 0.       */
             for (f = 0; f < FILAS_LOGO; f++)
             {
+                origen = mapa + ((u16)(FILA_LOGO + f) << 5); /* Fila r = palabra r*32.  */
                 for (i = 0; i < 32; i++)
                 {
-                    fila[i] = mapa[((u16)(FILA_LOGO + f) << 5) + i]; /* Misma entrada.   */
+                    *destino++ = origen[i];          /* Misma entrada, misma columna.      */
                 }
-                dmaCopyVram((u8 *)fila, VRAM_MAPA_B + ((u16)(FILA_CIELO + f) << 5), 32 * 2);
             }
+            pendiente = 1;                           /* Listo: sube en el próximo VBlank.  */
         }
 
         if (frames == FRAMES_ESPEJO)
@@ -140,14 +164,16 @@ int main(void)
                celda de la columna i se toma de la columna 31 - i (el orden se
                invierte) y cada tile se voltea con el bit 14 (BG_TIL_FLIPX). Con ^ y
                no con |: voltear un tile que ya venía volteado lo deja derecho. */
+            destino = bloque;                        /* Se rellena desde la celda 0.       */
             for (f = 0; f < FILAS_LOGO; f++)
             {
+                origen = mapa + ((u16)(FILA_LOGO + f) << 5); /* Fila r = palabra r*32.  */
                 for (i = 0; i < 32; i++)
                 {
-                    fila[i] = mapa[((u16)(FILA_LOGO + f) << 5) + (31 - i)] ^ BG_TIL_FLIPX;
+                    *destino++ = origen[31 - i] ^ BG_TIL_FLIPX; /* Columna al revés y volteo. */
                 }
-                dmaCopyVram((u8 *)fila, VRAM_MAPA_B + ((u16)(FILA_CIELO + f) << 5), 32 * 2);
             }
+            pendiente = 1;                           /* Listo: sube en el próximo VBlank.  */
         }
     }
     return 0;                                        /* Nunca se llega: C lo exige.        */
