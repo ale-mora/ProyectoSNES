@@ -29,6 +29,7 @@ y del truco de hardware que usa cada pieza está en
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v8 | 2026-10-23 | Decisión 5: la intro cuenta la apertura del guion (Rev. 3). |
 | v7 | 2026-10-23 | Decisión 39: ataque corriendo para los dos protagonistas (sale de §12). |
 | v6 | 2026-10-23 | Restos de «santuario» → monasterio (decisión 26, barra de ataque, objetos de Tiled, modos de color, archivos de §10: `pantalla_monasterio.c`); §12 sin los nombres ya decididos. |
 | v5 | 2026-10-23 | Ajuste al guion (`guion-historia.md`): hermanos, Tarou pastor, nombres de villano y apoyos, santuario → monasterio, jefe Gomasuri-dono. Decisiones 14, 15, 23, 24. |
@@ -45,7 +46,7 @@ y del truco de hardware que usa cada pieza está en
 | 2 | Perspectiva | **Belt-scroll**: x (avance), y (profundidad en el carril), z (altura del salto); sombra bajo los pies; orden de dibujo por y. |
 | 3 | Avance | **Zonas por oleadas**: la cámara se bloquea hasta vencer la oleada; después «GO →». |
 | 4 | Código de plataformas | Tag `plataformas-r2`; se **reutilizan los motores** (lista de DMA, metasprite, fondo por columnas, cámara, motor de escenas, HUD de depuración); se **retiran** la física de plataformas, la rejilla de colisión, el tutorial y sus pruebas. Se sigue en la rama `demo-secuencia-arranque`. |
-| 5 | Arranque | La secuencia se queda; la **intro se rehace** (3 escenas, con placeholders en la R3). |
+| 5 | Arranque | La secuencia se queda; la **intro se rehace** (3 escenas, con placeholders en la R3): es la apertura del guion (flashback, robo, juramento; `guion-historia.md` §4). |
 | 6 | Combate | Estilo *Final Fight*: combo A-A-A (el último derriba), ataque aéreo, agarre caminando contra el enemigo (golpe o lanzamiento), especial A+B que cuesta vida. |
 | 7 | Estilos | Distintos. **Tarou**: katana sujeta con la boca (rápida, de alcance corto) + mordisco, combos largos, se mueve rápido. **Bárbara**: katana lenta, mucho alcance y daño, buenos agarres. |
 | 8 | Katana de Tarou | La conserva (es una katana, como la de Bárbara; él la lleva en la boca, como en la portada). **Envaina sola fuera de combate** (al acabar la oleada) y desenvaina al aparecer enemigos; sin botón. |

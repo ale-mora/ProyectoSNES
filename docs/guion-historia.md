@@ -1,6 +1,7 @@
 # Guion de la historia — *Tarou: A Dog's Journey*
 
-Estado: **Revisión 2 del guion (2026-10-23)**. La Rev. 1 fijó tono, reparto y final;
+Estado: **Revisión 3 del guion (2026-10-23)**. La Rev. 3 fija la intro, el epílogo, la
+ascensión, la voz del Señor Pimentón y la revelación de Rex. La Rev. 1 fijó tono, reparto y final;
 la Rev. 2 cierra jefes, pelea final, flashback, federación nueva y añade los textos en
 inglés (§11–§13). Las escenas de las fases 2 a 4 las propuso el asistente y el autor las
 aprobó tal cual. En pantalla la federación se llama **MARTIAL AUTISTS**. Es diseño narrativo, no código. Complementa a
@@ -30,7 +31,7 @@ Todo el texto en pantalla va en **inglés sencillo con honoríficos japoneses**
 |---|---|---|
 | **Tarou** | Perro pastor, pañuelo naranja. Hermano menor, soñador. | Protagonista. Usa también la katana que lleva en la boca (portada). Su vínculo con el Señor Pimentón le da poder. |
 | **Bárbara** | Chica de coleta y gi azul con katana. Hermana mayor. | Protagonista. Solo quiere ser feliz estudiando kendo con su hermano; la venganza nace del robo. |
-| **Señor Pimentón** | Pimiento rojo de goma con forma humana. | El juguete de Tarou y, en verdad, un **dios antiguo**: una reliquia que, con un ritual, concede poderes sagrados. Tarou lo encontró de cachorro en el bosque y Bárbara lo recogió. Perdido por un linaje o templo, llevaba siglos en el bosque. |
+| **Señor Pimentón** | Pimiento rojo de goma con forma humana. | El juguete de Tarou y, en verdad, un **dios antiguo**: una reliquia que, con un ritual, concede poderes sagrados. Tarou lo encontró de cachorro en el bosque y Bárbara lo recogió. El linaje de Rex lo custodió durante siglos; Rex lo dejó en el bosque para que Tarou lo encontrara (§7). Habla **solemne y tierno**: frases cortas, antiguas y cálidas, en contraste con su aspecto de juguete. |
 | **Rex** | Perro blanco con gorro de corte y túnica clara. Monje viejo, cuidador del monasterio. | Apoyo defensivo: protege, cura y levita, pero **nunca golpea** aunque su poder psíquico podría derrotarlos a todos. Es omnisciente; lo sabía todo desde el principio. |
 | **Lucinda** | Gata samurái, armadura roja y casco. | Apoyo. Solo quiere pelear e ir a la guerra, y roba la comida de Rex. Rivalidad amistosa con Bárbara (compiten por derrotar a más enemigos). |
 | **Fenrir** | Husky sonriente, pañuelo rojo. | Apoyo. Solo quiere correr y ser libre; destruye todo a su paso sin querer. Catástrofe cómica que también ayuda. |
@@ -61,8 +62,11 @@ sale en el HUD al golpearlo (§12).
 ## 3. Cómo se cuenta
 
 Escenas cortas entre fases (3 o 4 cuadros con retrato y texto) más frases sueltas durante
-el juego. La noche del robo se cuenta en una escena corta antes de la fase 1, precedida
-por el **flashback** del hallazgo (§4).
+el juego. La apertura (§4) **es la intro del arranque** (decisión 5): flashback del hallazgo
+y noche del robo, antes del título. Al empezar partida no se repite.
+
+La **rivalidad de Lucinda y Bárbara** (quién derrota a más) solo se ve en las escenas;
+no hay contador.
 
 El poder de Tarou crece **solo en lo narrativo**: destellos en las escenas desde la fase 2;
 en el juego no cambia nada hasta la fase 5.
@@ -71,9 +75,13 @@ en el juego no cambia nada hasta la fase 5.
 
 Primero, el **flashback** (Tarou cachorro): en el bosque, el cachorro encuentra un
 pimiento rojo de goma entre las raíces; Bárbara, niña, lo recoge y se lo da. Presenta el
-vínculo antes de perder el juguete. Después, la noche del robo. Cuadros: los ninjas entran en la casa, roban el Señor Pimentón y huyen. Bárbara oye ruido,
+vínculo antes de perder el juguete. Después, la noche del robo.
+
+Son las **3 escenas de la intro del arranque**: 1) flashback en el bosque; 2) años
+después, los ninjas roban el Señor Pimentón de noche; 3) Bárbara jura venganza con la
+katana en alto y Tarou llora; fundido al título. Start la salta. Cuadros del robo: los ninjas entran en la casa, roban el Señor Pimentón y huyen. Bárbara oye ruido,
 Tarou despierta y ve que falta su juguete. Ella se lanza a pelear; él llora por el
-juguete. Arranca la fase 1.
+juguete. Tras el título, Start arranca la fase 1.
 
 ## 5. Fase 1 (cuatro zonas)
 
@@ -120,14 +128,21 @@ Los hermanos habían ido a pedir consejo a Rex al verse sin juguete; la fase 1 e
 - Al recuperar el juguete, el Señor Pimentón, un dios antiguo, le habla a Tarou y le dice
   que debe **ascender a los cielos**.
 - El ritual rechaza a Nikoraemon, que queda derrotado y humillado, y elige a Tarou.
-- La ascensión es una **escena sin control**: despedida luminosa, todos sonríen y Bárbara
+- La ascensión es una **escena sin control**: Tarou sube en luz bajo la luna llena y
+  queda como una **constelación con forma de perro pastor**; todos sonríen y Bárbara
   lo entiende. No se trata como una muerte, sino como ternura.
 - **Bárbara** pasa a liderar la federación y funda otra de prosperidad y alegría: el
   **Dojo del Pastor** (*Shepherd's Dojo*), en homenaje a Tarou. Extraña a Tarou pero sabe que está en un lugar mejor.
-- **Rex** sabía todo desde el principio y cumplió su misión de guiarlos.
+- **Rex** revela que su linaje era el **guardián del dios** y que él dejó al Señor
+  Pimentón en el bosque para que Tarou lo encontrara; cumplió su misión de guiarlos.
+- **Los jefes vencidos** (Gomasuri, Nigeashi, Hankozuki, Nebō) están en el dojo nuevo y,
+  con la misma lealtad irracional, ahora adulan a Bárbara.
+- **Nikoraemon** barre el Dojo del Pastor con una escoba, refunfuñando.
 - **Lucinda** recibe el título de guerrera más mortífera y la federación la adora como a
   un dios entre mortales.
 - **Fenrir** se escapa otra vez y corre feliz por la aldea como si nada.
+- **Tras los créditos**: Tarou juega con el Señor Pimentón entre las nubes y mueve la
+  cola. *THE END*.
 
 ## 8. Arte de referencia
 
@@ -223,6 +238,8 @@ medida; `/` separa dos cuadros seguidos.
 | Fase 3 | Hankozuki-dono | `No fight without a stamp!` |
 | Antes de 4 | Hankozuki-dono | `Defeat... approved.` *(sella)* |
 | Antes de 4 | Lucinda | `I smell dinner. Hurry.` |
+| Antes de 4 | Lucinda | `Count: me 40, you 39.` |
+| Antes de 4 | Bárbara | `You counted Fenrir's!` |
 | Fase 4 | Nebō-dono | `Zzz... five more minutes` |
 | Fase 4 (sin almohada) | Nebō-dono | `MY PILLOW!!` |
 | Antes de 5 | Nebō-dono | `*yawn* Ritual's... there.` |
@@ -244,9 +261,13 @@ medida; `/` separa dos cuadros seguidos.
 | Bárbara | `Go. I'll be fine.` |
 | — | `Barbara founded the` / `SHEPHERD'S DOJO.` |
 | — | `A place of joy for all.` |
-| — | `Rex knew it all along.` |
+| Rex | `My clan guarded the god.` |
+| Rex | `I left it for you, Tarou.` |
+| Gomasuri-dono | `Yes, Barbara-sama! Yes!` |
+| Nikoraemon | `*sweep sweep* Grumble...` |
 | — | `Lucinda: deadliest of all.` / `They pray to her now.` |
 | — | `Fenrir ran away again.` / `Happily.` |
+| — | *(tras los créditos)* `THE END` |
 
 ## 12. Frases durante el juego
 

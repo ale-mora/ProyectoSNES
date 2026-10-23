@@ -261,9 +261,13 @@ Placeholders en la Revisión 3 y arte final después.
 
 | Escena | Qué se ve | Estado |
 |---|---|---|
-| 1 | Jardín de casa: Tarou juega con el **Señor Pimentón**; Bárbara lo mira | [~] |
-| 2 | Los ninjas kendokas irrumpen; el villano se lleva al Señor Pimentón | [~] |
-| 3 | Bárbara jura venganza con la katana en alto; Tarou, decidido. Fundido al título | [~] |
+| 1 | Flashback en el bosque: **Tarou cachorro** encuentra el **Señor Pimentón** entre raíces; Bárbara niña se lo da | [ ] |
+| 2 | Años después, de noche: los ninjas kendokas entran en casa y roban al Señor Pimentón | [~] |
+| 3 | Bárbara jura venganza con la katana en alto; Tarou llora. Fundido al título | [~] |
+
+También del final (guion §7): Tarou sube como **constelación** de perro pastor bajo la
+luna; epílogo en el Dojo del Pastor; escena tras los créditos con Tarou y el Señor
+Pimentón en las nubes. Fuera de la Revisión 3.
 
 ## 9. Cuánta ROM ocupa (estimación)
 
