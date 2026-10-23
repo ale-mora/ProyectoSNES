@@ -1,5 +1,9 @@
 # Plan de implementación — Revisión 1: Tarou adulto en el nivel 1
 
+> **Documento histórico (2026-10-23).** Describe la Revisión 1 de cuando el juego era un
+> plataformas; el código está en el tag `plataformas-r2`. El juego actual es un beat 'em up:
+> `docs/diseno-beat-em-up.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Objetivo:** dejar el repositorio con la estructura del juego completo (código del MVP más stubs documentados), la Revisión 1 jugable y verificada en Mesen, la documentación de cada archivo y su conexión con la cadena de herramientas y el hardware, y el plan de la carpeta `aprendizaje/`.

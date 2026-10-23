@@ -7,25 +7,46 @@ con el foco en programar juegos de Super Nintendo **en C con PVSnesLib**
 **Qué es:** el plan de las unidades de estudio. Cada unidad enseña un
 concepto, lo ancla en un archivo real del juego y se aprueba con una
 práctica. Este documento es la especificación; desde el 2026-10-22 **las 21
-unidades están escritas** (§7) y este plan sirve para revisarlas o
-reescribirlas siguiendo el formato de §2 y el procedimiento de §6. Las
-funciones de la librería que usa el curso están indexadas en
-[`pvsneslib.md`](pvsneslib.md).
+unidades 00–20 están escritas** (§7) y este plan sirve para revisarlas o
+reescribirlas siguiendo el formato de §2 y el procedimiento de §6. Desde el
+2026-10-23 tiene además **6 fichas nuevas (21–26)** para el beat 'em up, por
+escribir cuando exista su código: 27 unidades en total. Las funciones de la
+librería que usa el curso están indexadas en [`pvsneslib.md`](pvsneslib.md).
 
-**Estado del juego que enseñan (2026-10-22, rama `demo-secuencia-arranque`):**
-Revisión 2. Tarou es un perro de Pixellab en celdas de 96×64 (metasprite
-dinámico de hasta 6 piezas) con 13 animaciones. El nivel 1 es un **tutorial
-de movimiento** de 2048 px (`docs/diseno-tutorial-movimiento.md`): escalones,
-muro, túnel, foso, plataformas sobre zarzas, un tronco que se rompe con la
-espada y la salida a «LEVEL 2 / COMING SOON»; colisión contra una rejilla de
-celdas de 16 px, reaparición en puntos de control, la capa cercana dibujada en
-Tiled (la lógica) y vestida por script con el tileset de Pixellab, copiada a
-la VRAM por columnas; montañas en parallax y cielo por HDMA; el logo de
-Nintendo animado por el motor de escenas (`src/escena/`); ROM de 4 MB LoROM
-FastROM. Pruebas: 367 en PC (entre ellas el recorrido completo del nivel) y
-35 de scripts; una ROM de prueba (`-DGUION_PRUEBA`) se juega sola en Mesen.
-Lo que todavía no existe: enemigos, audio, Bárbara jugable y el arte final de
-zarzas, carteles y tronco.
+**Estado del juego que enseñan (2026-10-23, rama `demo-secuencia-arranque`):**
+el juego cambia de género. La **Revisión 3**, un beat 'em up de carril en
+profundidad (*belt-scroll*) con Tarou y Bárbara, relevo, oleadas de ninjas y
+tres apoyos, está **en diseño y sin código**
+([`docs/diseno-beat-em-up.md`](../docs/diseno-beat-em-up.md)); lo primero que
+se construirá es una ROM de prueba de carga (spec §9). Se quedan los motores
+(secuencia de arranque, motor de escenas, lista de DMA, metasprite, fondo por
+columnas, cámara, HUD de depuración, mando y guion) y se retiran la física de
+plataformas, la rejilla de colisión, el tutorial y sus pruebas.
+
+El código que enseñan las unidades 00–20 es el de la **Revisión 2**,
+congelado en el tag **`plataformas-r2`** (commit `480f373`): Tarou es un
+perro de Pixellab en celdas de 96×64 (metasprite dinámico de hasta 6 piezas)
+con 13 animaciones; el nivel 1 es un **tutorial de movimiento** de 2048 px
+(`docs/diseno-tutorial-movimiento.md`): escalones, muro, túnel, foso,
+plataformas sobre zarzas, un tronco que se rompe con la espada y la salida a
+«LEVEL 2 / COMING SOON»; colisión contra una rejilla de celdas de 16 px,
+reaparición en puntos de control, la capa cercana dibujada en Tiled (la
+lógica) y vestida por script con el tileset de Pixellab, copiada a la VRAM por
+columnas; montañas en parallax y cielo por HDMA; el logo de Nintendo animado
+por el motor de escenas (`src/escena/`); ROM de 4 MB LoROM FastROM. Pruebas:
+367 en PC (entre ellas el recorrido completo del nivel) y 36 de scripts; una
+ROM de prueba (`-DGUION_PRUEBA`) se juega sola en Mesen. **Toda práctica
+sobre el juego real de las unidades 00–20 se hace en un clon fijado en ese
+tag** (receta en §6.3), porque sus cifras se midieron contra él:
+
+```text
+git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\<x>
+git -C E:\ProyectoSNES_trabajo\<x> checkout -q plataformas-r2
+```
+
+Las unidades 01, 02, 10, 11 y 20 son **históricas** (su práctica depende del
+código que se retira; cada README lo avisa y dice qué parte del concepto se
+traslada al beat 'em up). Las demás enseñan hardware y motores que se quedan.
 
 Alcance: mecánicas, C con PVSnesLib, ensamblador 65816 (unidades 14 y 15),
 audio desde C (unidad 17, sin ensamblador del SPC700) y la **integración
@@ -77,7 +98,9 @@ Tres tipos de práctica:
   compilar y observar el efecto en Mesen con el HUD de depuración (y, si
   aplica, con las pruebas de `tests/`). Los cambios del alumno no se
   confirman en la rama principal: se deshacen al terminar (`git restore`) o
-  se hacen en una rama propia.
+  se hacen en una rama propia. En las unidades 00–20, el clon o la rama
+  parten del tag `plataformas-r2` (`git switch -c <rama> plataformas-r2`),
+  no de la rama principal.
 
 Criterio de aprobación: siempre algo **observable** (una salida en consola,
 una captura de Mesen, una prueba en verde), nunca «haber leído».
@@ -136,6 +159,10 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 
 ### Unidad 01 — Enteros de 16 bits y punto fijo
 
+- **Histórica (tag `plataformas-r2`).** El ejercicio de gravedad copia las
+  constantes de salto de `tarou.h` de la Revisión 2. Se traslada: todo el
+  punto fijo; la gravedad pasa a ser la del salto en z y los lanzamientos
+  (spec §3).
 - **Objetivo:** hacer aritmética con decimales en una CPU que no los tiene.
 - **Conceptos:** (bits, binario, hex y desplazamientos: repaso de la unidad
   00, parte 5) desbordamiento (qué pasa en 255 + 1 con `u8`); signo (`s16`:
@@ -156,6 +183,9 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 
 ### Unidad 02 — Máquinas de estado
 
+- **Histórica (tag `plataformas-r2`).** La práctica añade una prueba a
+  `tests/prueba_tarou.c` del tutorial. Se traslada: el patrón `switch` por
+  estado; lo nuevo (un luchador cambia el estado de otro) es de la unidad 23.
 - **Objetivo:** modelar «qué está haciendo» algo con una variable y un `switch`.
 - **Conceptos:** estado; transición; `enum` y `switch`/`case`/`break`
   (repaso: se enseñan en la unidad 00, parte 8); máquina de estados finita; el patrón
@@ -378,6 +408,10 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 
 ### Unidad 10 — Física de plataformas: velocidad, aceleración, gravedad y salto
 
+- **Histórica (tag `plataformas-r2`).** La física de plataformas y las pruebas
+  del tutorial salen del juego. Se traslada: integrar, acelerar y frenar
+  (andar y correr por el carril) y la gravedad del salto en z; no se trasladan
+  los choques con paredes y plataformas.
 - **Objetivo:** que un personaje se mueva «como en un Mario»: aceleración
   y frenado suaves, salto de altura variable, velocidad terminal, aterrizaje.
 - **Conceptos:** velocidad y aceleración por frame; integrar
@@ -405,6 +439,9 @@ una captura de Mesen, una prueba en verde), nunca «haber leído».
 
 ### Unidad 11 — Animación por estados
 
+- **Histórica (tag `plataformas-r2`).** La trampa del ejercicio es el guion
+  del tutorial (`prueba_recorrido`). Se traslada: la tabla de animaciones por
+  estado y `anim_terminada`; las cajas por cuadro son de la unidad 23.
 - **Objetivo:** que cada estado muestre su animación con su ritmo, con bucle
   o sin él, y que el cambio de estado reinicie el cuadro.
 - **Conceptos:** cuadro; frames por cuadro; bucle; animación terminada
@@ -673,10 +710,15 @@ ensamblador del SPC700). **El juego aún no aplica esta unidad.**
 - **Aprobación:** las 35 pruebas de scripts en verde, `tests/pruebas.exe` en
   verde y las capturas de Mesen de cada parte del ejercicio.
 
-### Unidad 20 — Colisión con el escenario (código listo, unidad por escribir)
+### Unidad 20 — Colisión con el escenario (histórica, tag `plataformas-r2`)
 
-Desde el 2026-10-20 el código existe (`docs/diseno-tutorial-movimiento.md`):
-el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
+El código es el tutorial de movimiento de la Revisión 2
+(`docs/diseno-tutorial-movimiento.md`), escrito el 2026-10-20 y congelado en el
+tag `plataformas-r2`. No usa `src/niveles/` ni el motor de mapas del SDK.
+`colision.c`, `partida.c`, `guion_tutorial.c`, `res/nivel1/*` y sus pruebas
+salen del beat 'em up. Se traslada: la AABB (`se_tocan`) como base de las
+cajas de golpe (unidad 23), el streaming de columnas y Tiled como editor, ahora
+de zonas y oleadas (unidad 24).
 
 - **Conceptos:** rejilla de colisión (celdas de 16 px, índice con
   desplazamientos), AABB, resolución por ejes, plataforma de un solo sentido,
@@ -708,9 +750,195 @@ el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
 - **Aprobación:** `tests/pruebas.exe` en verde con el obstáculo nuevo y
   capturas de la ROM de prueba superándolo.
 
+### Unidades 21–26 — el beat 'em up (fichas nuevas del 2026-10-23)
+
+**Estado de las seis: por escribir cuando exista el código.** Las fichas
+salen de [`docs/diseno-beat-em-up.md`](../docs/diseno-beat-em-up.md) (la
+spec de la Revisión 3, citada aquí como «spec §n») y de
+[`docs/arte-beat-em-up.md`](../docs/arte-beat-em-up.md). Los archivos de
+«Código del juego» son los **previstos** por la spec (§10): **no existen
+todavía**. Por la definición de «hecho» de §6.1, una unidad se escribe
+cuando su código está en la rama principal y su práctica se puede ejecutar
+contra él; hasta entonces no hay demo, ejercicio ni cifras, y la
+«Aprobación» queda por definir (nada de lo que dicen estas fichas está
+medido). Se numeran en el orden en que la spec construye el código: primero
+la prueba de carga (spec §9), después el mundo, el combate, los enemigos, los
+efectos y el relevo. Al escribir cada una se relee la spec: si el código
+final difiere, manda el código y se corrige la ficha.
+
+### Unidad 21 — Presupuesto de sprites: la prueba de carga (por escribir)
+
+- **Objetivo:** saber cuántos personajes caben en pantalla a la vez y por
+  qué, midiéndolo antes de pedir el arte: el límite que manda en un
+  belt-scroll.
+- **Conceptos:** límite por línea (32 sprites y **34 ranuras de 8 px** por
+  línea; en belt-scroll todos comparten las líneas del carril: Tarou 12
+  ranuras, un ninja de 64×96 8, una sombra 4; Tarou + 3 ninjas = 36 > 34);
+  qué hace la PPU cuando se pasa (se pierde un trozo, sin aviso); los **512
+  tiles** de sprite (el protagonista activo usa 256 en doble búfer; un ninja
+  de 64×96 a 6 piezas son 96 tiles por cuadro, así que 3 no caben: opciones
+  A/B/C de spec §8, piezas de 16×16 recortadas, celda más estrecha o pose
+  compartida); el **ancho de banda del VBlank** (~125 bytes por línea, ~2 KB
+  libres por frame: un cuadro de enemigo por frame con turno rotatorio de
+  subida); **alargar el VBlank** con *forced blank* en las últimas líneas
+  (bandas de cine) por IRQ de línea (`HTIMEN`/`VTIME`) o por HDMA sobre
+  `INIDISP`; el **parpadeo rotatorio** (rotar el orden de la OAM cada frame
+  para que el corte cambie de sitio); sombras a 30 Hz; la ROM de prueba con
+  `#ifdef` (`-DPRUEBA_CARGA`) como herramienta de medida, criterio de salida
+  de spec §9.
+- **Archivos (por escribir):** `README.md`; quizá una mini-ROM de las
+  ranuras por línea (N sprites de 32×32 en la misma línea, con un contador)
+  y un ejercicio sobre la ROM de prueba de carga del juego.
+- **Código del juego (previsto, spec §8–§9; no existe):** la ROM
+  `-DPRUEBA_CARGA` (ninjas placeholder de 64×96 que pasean por el carril con
+  sombras), `src/juego/hud_debug.c` (filas `V a b` y `LIN`; **existe**),
+  `src/juego/dma_lista.c` y `metasprite.c` (**existen**), el resultado
+  escrito en la spec (v2). `docs/hardware-snes-por-modulo.md` (cifras).
+- **Prerrequisitos:** 04, 08, 09, 13, 16. **Práctica:** juego real + Mesen
+  (prevista).
+- **Aprobación:** por definir cuando exista la ROM de prueba de carga.
+
+### Unidad 22 — Belt-scroll: x/y/z, el carril y el orden por profundidad (por escribir)
+
+- **Objetivo:** que un mundo 2D parezca tener fondo: posición en el carril,
+  altura del salto, sombra y quién tapa a quién.
+- **Conceptos:** las tres coordenadas (x avance, y profundidad en el
+  **carril**, z altura; `pantalla_y = y − z`); la **sombra** siempre en y; el
+  carril por columnas (`carril_arriba[col]`, `carril_abajo[col]`, deducido de
+  Tiled); la regla de profundidad del golpe (`|y_a − y_b| ≤ TOLERANCIA_Y`,
+  presentada aquí y usada en la 23); **orden de dibujo por y** (ordenación
+  por inserción de ≤ 8 entidades: casi siempre ya vienen ordenadas, coste
+  mínimo) y por qué en la SNES el **orden de la OAM** decide qué sprite tapa
+  a cuál; el **bit de prioridad** del sprite frente a los tiles de BG1 con
+  prioridad (en Mode 1, BG1 alto queda entre los sprites de prioridad 2 y
+  los de prioridad 3: pasar detrás o delante de un poste); la gravedad de la
+  unidad 10 aplicada a z; la cámara con bloqueo de zona.
+- **Archivos (por escribir):** `README.md`, demo de PC (ordenación por y e
+  impresión del orden de la OAM frame a frame) y ejercicio sobre el juego.
+- **Código del juego (previsto, spec §3 y §10; no existe):**
+  `src/juego/mundo.c/.h` (x/y/z, carril, orden por y), `src/juego/camara.c`
+  (**existe**; se le añade el bloqueo de zona),
+  `src/juego/protagonista_sprite.c` (sucesor de `tarou_sprite.c`), el
+  `zonaN_datos.h` generado por `scripts/preparar_zona.py`.
+- **Prerrequisitos:** 01, 07, 08, 21 (y 10, histórica, para la gravedad en
+  z). **Práctica:** PC + juego real (prevista).
+- **Aprobación:** por definir cuando exista el código.
+
+### Unidad 23 — Combate: estados que se afectan, cajas de golpe y daño (por escribir)
+
+- **Objetivo:** que un golpe conecte, haga daño y cambie el estado del otro,
+  con la contundencia de un *Final Fight*, sin gastar el frame.
+- **Conceptos:** la máquina de estados de un **luchador** (spec §5.1) y lo
+  nuevo: **un luchador cambia el estado de otro** (`RECIBIR`, `DERRIBADO`,
+  `AGARRADO`), resuelto fuera de los dos, en un módulo aparte; **caja de
+  daño** y **caja de golpe** por cuadro de animación, en la tabla generada
+  (AABB de la unidad 20 + tolerancia en y); la entrada de la tabla
+  **rellena a 8 bytes** para que `a[i]` sea un desplazamiento y no
+  `tcc__mul`; combo con ventana de encadenado; agarre por contacto
+  sostenido; lanzamiento que golpea a otros; ataque aéreo; especial A+B que
+  cuesta vida solo si conecta; invulnerabilidad con parpadeo; **parada de
+  impacto** (atacante y objetivo congelados 3–4 frames mientras el mundo se
+  sigue dibujando); **destello** (una paleta blanca copiada a la entrada de
+  CGRAM del objetivo por la lista de DMA); comprobar cajas solo de quien
+  ataca, por pares y sin multiplicar.
+- **Archivos (por escribir):** `README.md`, demo de PC (dos luchadores y una
+  tabla de cajas: quién golpea a quién cuadro a cuadro), ejercicio con
+  pruebas en `tests/`.
+- **Código del juego (previsto, spec §5 y §10; no existe):**
+  `src/juego/combate.c/.h` (cajas, daño, agarre, turnos; lógica pura probada
+  en el PC), `src/juego/tarou.c` (estados de combate), `src/juego/barbara.c`
+  (de stub a código), `src/juego/animaciones.c` y el `<personaje>_anim.h`
+  con cajas que generará `scripts/preparar_personaje.py`.
+- **Prerrequisitos:** 02, 11, 20 (las tres por su concepto; el código que
+  enseñan está en el tag), 22. **Práctica:** PC + juego real (prevista).
+- **Aprobación:** por definir cuando exista el código.
+
+### Unidad 24 — Enemigos: IA con turnos y oleadas desde Tiled (por escribir)
+
+- **Objetivo:** que tres enemigos se sientan justos y la fase avance por
+  zonas: IA simple, turnos de ataque, oleadas y bloqueo de cámara, todo
+  descrito en Tiled.
+- **Conceptos:** IA como máquina de estados por enemigo (acercarse, rodear,
+  esperar, atacar; mantener distancia y cambiar de carril; avanzar y
+  bloquear); el **testigo de ataque** (como mucho 2 atacan a la vez; también
+  abarata la CPU); proyectiles por y (shuriken); el jefe por fases de vida;
+  **variantes por paleta**; **zona** y **oleada** (la cámara se bloquea en
+  `limite_zona` hasta vencerla; después «GO →»); objetos de Tiled con
+  propiedades (`oleada`: `tipos`, `cantidad`, `lado`, `retardo`; `rompible`
+  con `contiene`); un script que pasa Tiled a un `.h` de datos y las pruebas
+  de PC que recorren los datos reales.
+- **Archivos (por escribir):** `README.md`, demo de PC (una oleada simulada
+  con el testigo), ejercicio sobre el juego (añadir una oleada en Tiled y
+  verla pasar las pruebas y la ROM).
+- **Código del juego (previsto, spec §6–§7 y §10; no existe):**
+  `src/enemigos/ninja.c`, `src/enemigos/jefe.c`, `src/juego/oleadas.c`,
+  `src/objetos/*`, `scripts/preparar_zona.py` (sucesor de
+  `preparar_nivel.py`), los `.tmj` de las zonas y su `zonaN_datos.h`.
+- **Prerrequisitos:** 05 (el guion de mando para jugar sin manos), 18, 20
+  (Tiled y el script, por su concepto), 23. **Práctica:** PC + juego real
+  (prevista).
+- **Aprobación:** por definir cuando exista el código.
+
+### Unidad 25 — Matemática de color, ventanas por HDMA y los efectos de los apoyos (por escribir)
+
+- **Objetivo:** hacer con la PPU los efectos que un beat 'em up necesita:
+  sombras que oscurecen, chispas translúcidas y los ataques a toda la
+  pantalla de los tres apoyos, sin gastar CPU.
+- **Conceptos:** qué sprites entran en la **matemática de color** (solo las
+  paletas **4–7**: por eso sombras, chispas y el apoyo van ahí y los cuerpos
+  opacos en 0–3); el modo es **global** para esas 4 paletas (`CGWSEL`/`CGADSUB`,
+  cambiable por línea con HDMA pero no por sprite): **media suma** en el
+  combate (la sombra negra oscurece lo de debajo y las chispas salen
+  translúcidas) y suma con el color fijo solo en los momentos congelados; la **gata samurái**: ventanas 1+2 dibujadas por
+  HDMA en diagonal + suma de color = tajos de luz, destello blanco con el
+  color fijo; el **perro monje**: mosaico pulsante + ondulación por HDMA del
+  scroll de BG2, y los enemigos en `LANZADO` con z alta; el **perro bruto**:
+  temblor de pantalla (scroll ±2 px escrito en el VBlank) y polvo en sprites;
+  congelar la acción durante el apoyo; extender el motor de escenas
+  (`efectos.c`) a estos efectos; el HUD del juego en BG3 con prioridad alta.
+  **Ampliación opcional, fuera de la spec:** Mode 7 en una escena (rotación y
+  escala de un fondo de 8bpp, matriz por HDMA), por ejemplo para la escena
+  del santuario; solo si el autor la decide.
+- **Archivos (por escribir):** `README.md`, mini-ROM (una sombra con media
+  suma sobre un fondo y una diagonal de luz por HDMA), ejercicio sobre el
+  juego.
+- **Código del juego (previsto, spec §5.4, §8 y §10; no existe):**
+  `src/juego/apoyos.c`, `src/escena/efectos.c` (**existe**; se amplía con los
+  efectos de pantalla), `src/hud/hud_juego.c`,
+  `src/pantallas/pantalla_santuario.c`; `docs/arte-beat-em-up.md` §6.
+- **Prerrequisitos:** 12, 21, 22. **Práctica:** mini-ROM + juego real
+  (prevista).
+- **Aprobación:** por definir cuando exista el código.
+
+### Unidad 26 — Relevo y celda de VRAM compartida (por escribir)
+
+- **Objetivo:** cambiar de protagonista en mitad de la pelea sin que la VRAM
+  ni el presupuesto de sprites lo noten.
+- **Conceptos:** **nunca dos protagonistas a la vez**: los dos comparten la
+  celda de VRAM (Tarou 96×64 y Bárbara 64×96 son 6 piezas de 32×32: los
+  mismos 3 KB por cuadro) y la paleta 0 (al relevar se copian 32 bytes de
+  paleta por la lista de DMA); una tabla de metasprite por forma de celda;
+  condiciones del relevo (enfriamiento, estado no bloqueado, vida del que
+  entra); el **golpe de entrada** (daño pequeño y empuje a los cercanos);
+  barras de vida separadas y curación lenta del que espera; entrada
+  automática al caer el activo, y vida perdida si caen los dos; la segunda
+  celda prestada a los cuadros del apoyo mientras el protagonista está en
+  `INVOCAR`; la regla de Tarou de envainar y desenvainar según haya oleada
+  (estado del juego, no botón).
+- **Archivos (por escribir):** `README.md`, demo de PC (la máquina del
+  relevo con sus condiciones), ejercicio sobre el juego.
+- **Código del juego (previsto, spec §4 y §10; no existe):**
+  `src/juego/cambio_protagonista.c` y `src/juego/barbara.c` (hoy stubs
+  documentados), `src/juego/protagonista_sprite.c` (sucesor de
+  `tarou_sprite.c`: celda compartida, dos paletas), `data.asm` (las tiras de
+  Bárbara).
+- **Prerrequisitos:** 09, 13, 23 (y 25 para el préstamo de la celda al
+  apoyo). **Práctica:** PC + juego real (prevista).
+- **Aprobación:** por definir cuando exista el código.
+
 ## 4. Orden y dependencias
 
-```
+```text
 00 C ──► 01 punto fijo ──► 02 estados ──► 10 física ──► 11 animación ──► 18 herramientas ──► 19 arte
  │                                             ▲              ▲                 ▲              ▲
  └──► 03 tubería ──► 04 frame ──► 05 mando ────┘              │                 │              │
@@ -723,12 +951,36 @@ el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
                    │  │      (04 + 05 ──► 17 audio desde C)                      │
                    │  └──────────────────────────────────────────────────────────┘
                    └──► 16 Mesen
-(20 colisión: código listo; después de 07, 10, 13 y 18)
+(20 colisión: después de 07, 10, 13 y 18)
+(01, 02, 10, 11 y 20: históricas, su código está en el tag plataformas-r2)
+```
+
+Las unidades del beat 'em up (por escribir), en el orden en que la spec
+construye el código:
+
+```text
+21 presupuesto de sprites ──► 22 belt-scroll x/y/z ──► 23 combate ──► 24 enemigos y oleadas
+                                     │                     │
+                                     ▼                     ▼
+                         25 color, ventanas y apoyos ──► 26 relevo y celda compartida
+
+Prerrequisitos de fuera del bloque:
+21 ◄── 04, 08, 09, 13, 16
+22 ◄── 01, 07, 08 (+ 10, histórica: la gravedad en z)
+23 ◄── 02, 11, 20 (históricas: el concepto)
+24 ◄── 05, 18, 20 (Tiled y el script)
+25 ◄── 12 (y 21: las paletas 4–7)
+26 ◄── 09, 13
 ```
 
 ## 5. Cobertura de los ítems técnicos del plan de desarrollo
 
-| Ítem de `docs/plan-desarrollo.md` (Etapas 0–2) | Unidad |
+Las filas de las Etapas 0–2 vienen de `docs/plan-desarrollo.md`; las del
+beat 'em up, de `docs/diseno-beat-em-up.md` (el plan de desarrollo se está
+reescribiendo para la Revisión 3). «Histórica» = la unidad enseña el
+concepto con el código del tag `plataformas-r2`.
+
+| Ítem | Unidad |
 |---|---|
 | Etapa 0: C básico, tipos, funciones, arrays, binario/hexadecimal | 00 (01: desbordamiento y punto fijo) |
 | Etapa 0/1: la tubería PVSnesLib, Makefile, estructura de una ROM | 03, 13 |
@@ -738,14 +990,22 @@ el tutorial de movimiento. No usa `src/niveles/` ni el motor de mapas del SDK.
 | Etapa 1: audio (desde C), soundbank, smconv | 17 |
 | Etapa 2: el loop principal y VBlank/NMI | 04 |
 | Etapa 2: lectura de input (joypad) | 05 |
-| Etapa 2: aritmética de punto fijo | 01 |
-| Etapa 2: física de plataformas 2D | 10 |
-| Etapa 2: detección y resolución de colisiones (AABB, tiles) | 20 (el código existe desde el tutorial, 2026-10-20) |
-| Etapa 2/3: un nivel de principio a fin (inicio → meta), editor de mapas (Tiled) | 20 |
-| Etapa 2: máquinas de estado para el personaje | 02, 11 |
-| Etapa 2: scroll de cámara y registros de BG | 07 |
+| Etapa 2: aritmética de punto fijo | 01 (histórica) |
+| Etapa 2: física de plataformas 2D | 10 (histórica: el género cambió; integrar y la gravedad en z se trasladan a la 22) |
+| Etapa 2: detección y resolución de colisiones (AABB, tiles) | 20 (histórica); las cajas de golpe y daño, 23 |
+| Etapa 2/3: un nivel de principio a fin (inicio → meta), editor de mapas (Tiled) | 20 (histórica: el tutorial); zonas y oleadas desde Tiled, 24 |
+| Etapa 2: máquinas de estado para el personaje | 02, 11 (históricas); estados que se afectan entre sí, 23 |
+| Etapa 2: scroll de cámara y registros de BG | 07 (el bloqueo de zona, 22 y 24) |
 | Etapa 2: debugging con el debugger de Mesen | 16 |
 | Integración del arte (Pixellab → ROM) | 19 |
+| Beat 'em up: presupuesto de sprites (34 ranuras por línea, 512 tiles, VBlank, bandas de cine, parpadeo rotatorio; spec §8–§9) | 21 (por escribir) |
+| Beat 'em up: x/y/z, carril, sombra, orden por profundidad (OAM y bit de prioridad; spec §3) | 22 (por escribir) |
+| Beat 'em up: combate (estados que se afectan, cajas de golpe y daño, parada de impacto, destello; spec §5) | 23 (por escribir) |
+| Beat 'em up: IA de enemigos, turnos de ataque, oleadas y zonas desde Tiled (spec §6–§7) | 24 (por escribir) |
+| Beat 'em up: matemática de color, ventanas por HDMA, efectos de los apoyos (spec §5.4, §8; Mode 7 opcional, fuera de la spec) | 25 (por escribir) |
+| Beat 'em up: relevo entre protagonistas, celda de VRAM y paleta compartidas (spec §4) | 26 (por escribir) |
+| Beat 'em up: doble toque para correr (lógica pura con `guion.c`; spec §2) | 05 (el guion de mando); se verá en la 22 o la 23 |
+| Audio del juego (después de la R3, spec §11) | 17 (mini-ROM; el juego aún no lo aplica) |
 
 ## 6. Cómo se ejecuta este plan (para la sesión que escribe las unidades)
 
@@ -775,6 +1035,15 @@ Una unidad está hecha cuando:
    ejemplo del SDK equivalente), y la función está en el índice común
    `aprendizaje/pvsneslib.md`. Regla: **primero la librería, después el
    registro** (`REG_xxx` desde C) cuando el juego baja a él.
+7. **Qué es «el código real» desde la Revisión 3.** Para las unidades 00–20
+   es el del tag `plataformas-r2`: contra él se ejecutaron sus prácticas, y
+   una revisión las vuelve a ejecutar contra él, no contra la rama
+   principal. Una unidad histórica (01, 02, 10, 11, 20) **no se reescribe
+   para enseñar código del beat 'em up**: eso lo harán las unidades 21–26
+   cuando su código exista. Si una unidad no histórica (hardware o motores
+   que se quedan) se quiere reanclar en el código nuevo, se hace cuando ese
+   código esté en la rama principal, volviendo a ejecutar su práctica y
+   cambiando su receta de clon.
 
 ### 6.2 Convenciones (las del proyecto, `CLAUDE.md`)
 
@@ -810,6 +1079,19 @@ Una unidad está hecha cuando:
 4. Las mini-ROM viven fuera de `src/`, así que el `make` del proyecto no las
    compila.
 
+**Clon del juego real (unidades 00–20).** Las prácticas sobre el juego se
+hacen en un clon fijado en el tag de la Revisión 2, el código contra el que
+se verificaron; dentro del clon se compila con el entorno del paso 2:
+
+```text
+git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\<x>
+git -C E:\ProyectoSNES_trabajo\<x> checkout -q plataformas-r2
+```
+
+(El clon queda con la cabeza separada, *detached HEAD*: para guardar cambios
+en él, `git switch -c <rama>`.) Las unidades 21–26 usarán un clon de la rama
+principal cuando existan.
+
 ### 6.4 Receta para ver el ensamblador de un `.c` del juego (verificada)
 
 ```
@@ -838,7 +1120,10 @@ make clean; $env:CFLAGS="-DGUION_PRUEBA"; make; $env:CFLAGS=$null
 .\scripts\capturar_mesen.ps1 -Rom RUTA\tutorial_guion.sfc -Duracion 46 -Cada 2 -Espera 3 -Guion "1,1.3,Select"
 ```
 
-Valores de referencia hoy (2026-10-22): **367** pruebas de PC y **36** de
+Estos comandos y estas cifras son los del **tag `plataformas-r2`** (se
+ejecutan en un clon fijado en él): el tutorial, su guion y sus pruebas salen
+de la rama principal con la Revisión 3, y allí las cifras cambiarán.
+Valores de referencia del tag (2026-10-22): **367** pruebas de PC y **36** de
 scripts en verde; el título aparece hacia el segundo 47 de la captura; en la ROM de
 prueba el nivel termina a los ~37,5 s. Para capturas con el guion de teclas,
 **no usar el equipo durante la tanda**: con el equipo en uso el foco de Mesen
@@ -847,6 +1132,15 @@ perdieron en todas las tandas).
 
 ### 6.6 Trampas conocidas que una unidad no debe enseñar mal
 
+Las trampas que citan el tutorial, su guion o sus pruebas (`prueba_colision`,
+`prueba_partida`, `prueba_recorrido`, `res/nivel1/`) son del código del tag
+`plataformas-r2`; las de hardware y del compilador valen igual para el beat
+'em up.
+
+- **Cambio de género (2026-10-23).** Reescribir una unidad 00–20 contra la
+  rama principal enseñaría ficción mientras el código del beat 'em up no
+  exista, y una vez exista rompería sus cifras verificadas. Las unidades
+  00–20 se revisan contra el tag (§6.1, punto 7).
 - `tests/tarou_anim.h` es una copia fija con los cuadros de los marcadores;
   el arte real tiene otros (unidades 02, 10, 11).
 - Las cifras de `LIN` pueden estar en 225..261 (la lógica empieza dentro del
@@ -920,14 +1214,20 @@ perdieron en todas las tandas).
 
 ### 6.7 Orden de trabajo recomendado
 
-Una unidad por sesión, en el orden 00 → 20 (respetando §4). Las unidades
-00, 01 y 02 son de PC y cortas: pueden ir de dos en dos. Antes de escribir
-una unidad, releer los archivos de «Código del juego» que cita: si algo
-cambió desde este plan, manda el código y se corrige el plan.
+Una unidad por sesión, en el orden 00 → 20 y después 21 → 26 (respetando
+§4). Las unidades 00, 01 y 02 son de PC y cortas: pueden ir de dos en dos.
+Antes de escribir una unidad, releer los archivos de «Código del juego» que
+cita: si algo cambió desde este plan, manda el código y se corrige el plan.
+Para las unidades 00–20, «el código» es el del tag `plataformas-r2` (§6.1,
+punto 7): se relee en un clon fijado en él, no en la rama principal. Las
+21–26 se escriben de una en una cuando su código llegue a la rama principal,
+en el orden de la spec (la 21 en cuanto exista la ROM de prueba de carga).
 
 ## 7. Estado
 
-Todas escritas el 2026-10-22 (la 00, ampliada), en un solo commit. Todo lo
+Las unidades 00–20 se escribieron todas el 2026-10-22 (la 00, ampliada), en
+un solo commit, contra el código que hoy guarda el tag `plataformas-r2`; las
+21–26 (el beat 'em up) son fichas del 2026-10-23, por escribir (§3). Todo lo
 que se ejecuta en el PC (gcc, pruebas, scripts) y todas las compilaciones
 (mini-ROM y juego modificado, en clones) se ejecutaron de verdad y su salida
 está en `capturas/`.
@@ -949,23 +1249,29 @@ las pantallas de imagen (scroll vertical −1, §6.6).
 | Unidad | Estado (2026-10-23) |
 |---|---|
 | 00 | **hecha**, ampliada a 8 partes; 27 compilaciones sin avisos y 21 capturas idénticas a la salida. Los ejercicios 03 y 04 siguen sin resolver (pendientes del autor) |
-| 01 | **hecha**; PC; altura máxima 69 px medida |
-| 02 | **hecha**; PC + prueba nueva (374/374 en el clon); trampa de `tarou_anim.h` demostrada |
-| 03 | **hecha**; mini-ROM compila; experimento de la cabecera reproducido. Mesen: verificada |
-| 04 | **hecha**; 3 variantes de mini-ROM + ROM de prueba con HUD. Mesen: verificada |
+| 01 | **hecha**; PC; altura máxima 69 px medida. **Histórica**: su código está en el tag `plataformas-r2`. |
+| 02 | **hecha**; PC + prueba nueva (374/374 en el clon); trampa de `tarou_anim.h` demostrada. **Histórica**: su código está en el tag `plataformas-r2`. |
+| 03 | **hecha**; mini-ROM compila; experimento de la cabecera reproducido. Mesen: verificada. Práctica sobre el juego: clon en el tag `plataformas-r2`. |
+| 04 | **hecha**; 3 variantes de mini-ROM + ROM de prueba con HUD. Mesen: verificada. Práctica sobre el juego: clon en el tag `plataformas-r2`. |
 | 05 | **hecha**; demo de PC + mini-ROM con guion sin manos. Mesen: verificada |
-| 06 | **hecha**; mini-ROM; deduplicación medida (281 tiles; 260 con `-F`). Mesen: verificada |
-| 07 | **hecha**; mini-ROM + `camara_para_ancho` (375/375 en el clon). Mesen: verificada |
+| 06 | **hecha**; mini-ROM; deduplicación medida (281 tiles; 260 con `-F`). Mesen: verificada. Parte C: la capa del tutorial, del tag `plataformas-r2`. |
+| 07 | **hecha**; mini-ROM + `camara_para_ancho` (375/375 en el clon). Mesen: verificada. Práctica sobre el juego: clon en el tag `plataformas-r2`. |
 | 08 | **hecha**; mini-ROM + 2 variantes de fallo. Mesen: verificada |
-| 09 | **hecha**; mini-ROM con el motor del SDK; `tcc__mul` medido. Mesen: verificada |
-| 10 | **hecha**; demo de PC + parches A (6 fallos explicados) y B (367/367). Mesen: verificada |
-| 11 | **hecha**; demo de PC + parche (367/367); trampa del guion verificada. Mesen: verificada |
-| 12 | **hecha**; mini-ROM HDMA + motor de escenas en el publisher (378/378 en el clon). Mesen: verificada (línea blanca en la fila 120) |
-| 13 | **hecha**; PC contra la ROM real. Falta Memory Tools (a mano) |
-| 14 | **hecha**; `.asm` generados y anotados; sonda de divisiones. Falta el breakpoint en `camara_para` (a mano) |
-| 15 | **hecha**; mini-ROM + `numero` y `colision_apoyan` en asm (simulador: 0 fallos en 65 536 valores). Mesen: verificada; falta el profiler (a mano) |
-| 16 | **hecha**; 5 ROM con fallos provocados. Mesen: verificada; faltan las ventanas del depurador (a mano) |
+| 09 | **hecha**; mini-ROM con el motor del SDK; `tcc__mul` medido. Mesen: verificada. Parte D: clon en el tag `plataformas-r2`. |
+| 10 | **hecha**; demo de PC + parches A (6 fallos explicados) y B (367/367). Mesen: verificada. **Histórica**: su código está en el tag `plataformas-r2`. |
+| 11 | **hecha**; demo de PC + parche (367/367); trampa del guion verificada. Mesen: verificada. **Histórica**: su código está en el tag `plataformas-r2`. |
+| 12 | **hecha**; mini-ROM HDMA + motor de escenas en el publisher (378/378 en el clon). Mesen: verificada (línea blanca en la fila 120). Práctica sobre el juego: clon en el tag `plataformas-r2`. |
+| 13 | **hecha**; PC contra la ROM real. Falta Memory Tools (a mano). Práctica sobre el juego: clon en el tag `plataformas-r2`. |
+| 14 | **hecha**; `.asm` generados y anotados; sonda de divisiones. Falta el breakpoint en `camara_para` (a mano). Práctica sobre el juego: clon en el tag `plataformas-r2`. |
+| 15 | **hecha**; mini-ROM + `numero` y `colision_apoyan` en asm (simulador: 0 fallos en 65 536 valores). Mesen: verificada; falta el profiler (a mano). Práctica sobre el juego: clon en el tag `plataformas-r2`. |
+| 16 | **hecha**; 5 ROM con fallos provocados. Mesen: verificada; faltan las ventanas del depurador (a mano). Las ROM se rehacen en un clon en el tag `plataformas-r2`. |
 | 17 | **hecha** (rehecha: audio desde C); mini-ROM compila. Mesen: verificada en pantalla; el sonido, a oído |
-| 18 | **hecha**; animación «guardia» con TDD (36/36 de scripts). Mesen: verificada |
-| 19 | **hecha**; TDD (39/39 de scripts) + 4 ROM. Mesen: verificada |
-| 20 | **hecha**; segundo foso + guion (367/367). Mesen: verificada |
+| 18 | **hecha**; animación «guardia» con TDD (36/36 de scripts). Mesen: verificada. Clon en `6d12030`; se compara con el tag `plataformas-r2`. |
+| 19 | **hecha**; TDD (39/39 de scripts) + 4 ROM. Mesen: verificada. Práctica sobre el juego: clon en el tag `plataformas-r2`. |
+| 20 | **hecha**; segundo foso + guion (367/367). Mesen: verificada. **Histórica**: su código está en el tag `plataformas-r2`. |
+| 21 | **por escribir** cuando exista la ROM de prueba de carga (spec §9) |
+| 22 | **por escribir** cuando exista `mundo.c` |
+| 23 | **por escribir** cuando exista `combate.c` |
+| 24 | **por escribir** cuando existan los enemigos y `oleadas.c` |
+| 25 | **por escribir** cuando existan los apoyos (`apoyos.c` y los efectos de `efectos.c`) |
+| 26 | **por escribir** cuando exista el relevo (`cambio_protagonista.c`, Bárbara jugable) |

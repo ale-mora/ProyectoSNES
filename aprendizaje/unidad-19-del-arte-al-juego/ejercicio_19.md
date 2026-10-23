@@ -1,8 +1,9 @@
 # Ejercicio 19 (juego real) — Pies, piezas y animaciones nuevas
 
-Tres partes sobre el juego, de menos a más. Trabaja en un **clon** (`git clone
-E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio`) o en una rama propia: nada de esto
-se confirma en la rama principal.
+Tres partes sobre el juego, de menos a más. Trabaja en un **clon** fijado en el tag de la Revisión 2 (`git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio`
+y `git -C E:\ProyectoSNES_trabajo\mio checkout -q plataformas-r2`; la parte 2 retoca `preparar_nivel.py` y el
+tutorial, que ya no estarán en la rama principal) o en una rama propia creada
+desde ese tag: nada de esto se confirma en la rama principal.
 
 **Preparar el clon.** `res/descargas/` no está en git (son descargas). Copia,
 solo para leerlas, las carpetas que necesitan los scripts:

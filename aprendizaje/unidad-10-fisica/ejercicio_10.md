@@ -5,10 +5,13 @@ principal:
 
 ```
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio10
+git -C E:\ProyectoSNES_trabajo\mio10 checkout -q plataformas-r2
 cd E:\ProyectoSNES_trabajo\mio10
 ```
 
-(o una rama propia en tu repositorio; al terminar, `git restore` deshace todo).
+(el tag `plataformas-r2` es la Revisión 2, el código de plataformas que enseña
+esta unidad; o una rama propia creada desde ese tag,
+`git switch -c mio10 plataformas-r2`; al terminar, `git restore` deshace todo).
 Las pruebas se ejecutan así, desde la raíz de la copia:
 
 ```

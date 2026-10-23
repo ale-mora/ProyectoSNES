@@ -18,7 +18,8 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   a 6). Nunca una zona del juego ni una fase de vida del personaje.
 - **Revisión** — iteración numerada del producto mínimo viable (MVP).
   Revisión 1: Tarou adulto camina, corre, salta, se agacha, usa la espada y
-  duerme en el nivel 1. Revisión 2: Bárbara.
+  duerme en el nivel 1. Revisión 2: el tutorial de movimiento (tag
+  `plataformas-r2`). Revisión 3: el beat 'em up con Bárbara jugable (fase 1).
 - **Nivel** — zona jugable con principio y fin (`nivel.c`, `PANTALLA_NIVEL1`).
   El nivel 1 (el tutorial de movimiento) mide 2048 px de ancho: 8 pantallas.
 - **Escenario** — lo que se ve y se pisa dentro de un nivel: las capas de fondo
@@ -301,7 +302,7 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
   `spcAllocateSoundRegion` para efectos BRR que se envían por partes
   (*streaming*) (unidad 17).
 
-## Mecánicas del juego (Revisión 1)
+## Mecánicas del juego (Revisión 1, plataformas)
 
 - **Velocidad, aceleración y frenado** — en píxeles por frame, en punto fijo.
   Cada frame: si hay una dirección pulsada, `velocidad += aceleración` hasta
@@ -390,6 +391,57 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
 - **Animación de espera (dormir)** — tras unos segundos sin tocar el mando, el
   protagonista se echa y duerme; cualquier botón lo despierta y, mientras se
   levanta, el mando se ignora.
+
+## Mecánicas del beat 'em up (Revisión 3)
+
+Términos acordados el 2026-10-23, con el cambio de género
+(`docs/diseno-beat-em-up.md`). Las mecánicas de la sección anterior son las
+del plataformas (tag `plataformas-r2`).
+
+- **Beat 'em up / belt-scroll** — juego de lucha a pie contra oleadas de
+  enemigos, avanzando por un suelo con profundidad (*Final Fight*, *Streets
+  of Rage*). «Belt» (cinta) por la franja de suelo por la que se avanza.
+- **Fase** — el nivel del beat 'em up (fase 1: aldea → bosque → santuario →
+  dojo). Desde la Revisión 3 sustituye a **nivel**.
+- **Zona** — un tramo de la fase con su escenario (la aldea, el bosque...);
+  se carga con la pantalla apagada.
+- **Carril** — la franja de suelo transitable. Su borde de arriba y de abajo
+  se fija por columna en Tiled (`carril_arriba`, `carril_abajo`).
+- **Profundidad (y) y altura (z)** — en el carril, x es el avance, y la
+  profundidad (la línea de pantalla de los pies) y z la altura sobre el suelo.
+  Se dibuja en `y − z`; la sombra, siempre en y.
+- **Orden por profundidad** — cada frame las entidades se ordenan por y y se
+  escriben en la OAM en ese orden: el de más abajo tapa al de más arriba.
+- **Oleada** — grupo de enemigos que aparece en una zona. Mientras vive, la
+  cámara está **bloqueada**; al vencerla sale «GO →».
+- **Relevo** — cambiar de protagonista con L: el que sale desaparece en una
+  nube y el que entra da un **golpe de entrada**. Nunca están los dos en
+  pantalla.
+- **Apoyo** — uno de los 3 aliados (la gata samurái, el perro monje y el perro
+  bruto) que hace un ataque a toda la pantalla con la barra llena.
+- **Barra de ataque** — se llena al conectar golpes y gasta su carga en un
+  apoyo. Se activa en el santuario.
+- **Caja de golpe / caja de daño** — rectángulos por cuadro de animación: la
+  de golpe dice dónde hace daño un ataque; la de daño, dónde se puede recibir.
+  Un golpe conecta si se cruzan en x e y de pantalla y las profundidades
+  están cerca (`TOLERANCIA_Y`).
+- **Combo** — golpes encadenados con A dentro de una ventana de frames; el
+  último **derriba** (deja al enemigo en el suelo).
+- **Agarre** — sujetar a un enemigo al caminar contra él; desde ahí, golpes de
+  agarre o **lanzamiento**.
+- **Especial (A+B)** — ataque alrededor del protagonista, invulnerable, que
+  cuesta vida.
+- **Parada de impacto** (*hit-stop*) — congelar a atacante y objetivo 3–4
+  frames al conectar un golpe fuerte.
+- **Turno de ataque** — como mucho 2 enemigos atacan a la vez; los demás
+  rodean o esperan.
+- **Ranura por línea** — la PPU solo dibuja 34 trozos de 8 px de sprite (y 32
+  sprites) por línea; si hay más, se pierden. Es el límite que manda en un
+  beat 'em up, porque todos comparten el carril.
+- **Prueba de carga** — ROM de medición (`-DPRUEBA_CARGA`) que decide cuántos
+  enemigos y de qué tamaño caben antes de pedir el arte.
+- **Bandas de cine** — apagar la pantalla (*forced blank*) en las últimas
+  líneas para alargar el tiempo de DMA del VBlank.
 
 ## C (lo que aparece en este proyecto)
 

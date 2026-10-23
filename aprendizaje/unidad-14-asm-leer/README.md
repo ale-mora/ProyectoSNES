@@ -26,11 +26,17 @@ Todo lo de esta unidad se genera en un **clon** del juego, nunca en
 
 ```
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mi_u14
+git -C E:\ProyectoSNES_trabajo\mi_u14 checkout -q plataformas-r2
 cd E:\ProyectoSNES_trabajo\mi_u14
 $env:PVSNESLIB_HOME="/e/ProyectoSNES/tools/pvsneslib"; $env:PATH="E:\ProyectoSNES\tools\pvsneslib\devkitsnes\bin;C:\msys64\usr\bin;"+$env:PATH
 make                                  # una vez, entera (genera los gráficos)
 make src/juego/camara.asm             # el .asm de UN .c; muévelo fuera de src/ enseguida
 ```
+
+El clon se fija en el tag `plataformas-r2` (la Revisión 2): parte del
+ejercicio lee el guion del tutorial y `res/nivel1/nivel1_datos.h`, que salen
+del juego actual (un beat 'em up, `docs/diseno-beat-em-up.md`), y los `.asm`
+de referencia se generaron con ese código.
 
 En `asm_generado/` están ya generados (2026-10-22) los cuatro que usa el
 ejercicio: `camara.asm` (85 líneas), `nivel.asm` (43), `personajes.asm` (894) y

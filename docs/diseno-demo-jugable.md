@@ -1,5 +1,9 @@
 # Diseño — Demo jugable, Revisión 1: Tarou adulto en el nivel 1
 
+> **Documento histórico (2026-10-23).** Describe la Revisión 1 de cuando el juego era un
+> plataformas; el código está en el tag `plataformas-r2`. El juego actual es un beat 'em up:
+> `docs/diseno-beat-em-up.md`.
+
 **Proyecto:** _Tarou: A Dog's Journey_ · **Etapa del plan:** 2 (Prototipo) ·
 **Revisión:** 1 · **Fecha de esta versión:** 2026-10-16 · **Estado:** diseño
 acordado en sesión de preguntas (33 decisiones); el plan de implementación

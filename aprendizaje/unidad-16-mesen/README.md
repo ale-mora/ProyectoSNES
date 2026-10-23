@@ -29,7 +29,8 @@ File → Import Labels → el `.sym`). Están en `E:\ProyectoSNES_trabajo\roms\`
 | `u16_caso2_pies_flotan.sfc` | Tarou dibujado 2 px más arriba (sin hundir los pies) | `caso2_pies_flotan.patch` (`HUNDIR_PIES (-2)`), con `-DGUION_PRUEBA` |
 | `u16_caso3_hud_sin_prioridad.sfc` | el HUD sin el bit de prioridad | `caso3_hud_sin_prioridad.patch` (`TILE(c)` sin `0x2000`), `-DGUION_PRUEBA -DHUD_AL_EMPEZAR` |
 
-Para rehacerlas: clon (`git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u16`),
+Para rehacerlas: clon fijado en el tag de la Revisión 2 (`git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u16`
+y `git -C E:\ProyectoSNES_trabajo\u16 checkout -q plataformas-r2`: los parches y la ROM de prueba son del tutorial),
 `git apply` del parche, `make clean`, `$env:CFLAGS="..."; make; $env:CFLAGS=$null`
 con el entorno de la unidad 03, y copiar `.sfc` y `.sym` juntos.
 

@@ -13,7 +13,11 @@ La SNES no dibuja píxeles sueltos: la CPU deja en la memoria de vídeo unos
 cuadraditos de 8×8 y una cuadrícula que dice cuál va en cada sitio, y la PPU
 (→ glosario: SNES) compone la imagen línea a línea, 60 veces por segundo. Esta
 unidad es esa idea, byte a byte. Al final se mira la capa cercana del
-tutorial, que mide 2080 px de ancho y cabe en 260 cuadraditos.
+tutorial, que mide 2080 px de ancho y cabe en 260 cuadraditos. (El tutorial
+es la Revisión 2, el juego de plataformas, guardada en el tag
+`plataformas-r2`; el juego actual es un beat 'em up,
+`docs/diseno-beat-em-up.md`, con sus propias zonas. La lección sobre tiles,
+mapas y deduplicación vale igual para ellas.)
 
 ## Material
 

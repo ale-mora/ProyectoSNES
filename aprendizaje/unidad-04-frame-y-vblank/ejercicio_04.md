@@ -39,8 +39,10 @@ enciende con SELECT, y enviar teclas a Mesen desde un guion no es fiable
 (`docs/mesen-y-depuracion.md` §5). Haz que la ROM de prueba arranque con el
 HUD encendido:
 
-1. Clona el proyecto:
-   `git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio`.
+1. Clona el proyecto y fíjalo en el tag de la Revisión 2 (el tutorial y su
+   guion, que este paso mide, ya no estarán en la rama principal):
+   `git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio` y
+   `git -C E:\ProyectoSNES_trabajo\mio checkout -q plataformas-r2`.
 2. En `src/pantallas/pantalla_nivel1.c`, en `pantalla_nivel1_iniciar()`,
    justo después de `hud_debug_iniciar();`, añade una llamada a
    `hud_debug_alternar();` **solo** cuando se compila con `GUION_PRUEBA`

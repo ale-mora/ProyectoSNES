@@ -1,5 +1,20 @@
 # Unidad 10 — Física de plataformas: velocidad, aceleración, gravedad y salto
 
+> **Lección válida, juego histórico.** Esta unidad enseña sobre el código de
+> la Revisión 2 (plataformas, tag `plataformas-r2`); el juego actual es un
+> beat 'em up ([`docs/diseno-beat-em-up.md`](../../docs/diseno-beat-em-up.md)).
+> La física de plataformas, la rejilla de colisión y el tutorial se retiran
+> del juego y quedan en ese tag. El ejercicio se hace en un clon fijado en él
+> (receta en `ejercicio_10.md`); las cifras (`367 pruebas`, los fallos de
+> `prueba_colision.c` y `prueba_recorrido.c`) son las de ese tag.
+>
+> **Qué se traslada al beat 'em up:** integrar (`posición += velocidad`), la
+> aceleración y el frenado sirven para andar y correr por el carril (en x y en
+> y), y la gravedad, el apogeo y el aterrizaje sirven para el salto en z, el
+> ataque aéreo y los lanzamientos. Lo que no se traslada son los choques con
+> paredes, techos y plataformas: el carril es un suelo plano limitado por
+> columnas (spec §3).
+
 **Objetivo:** que un personaje se mueva «como en un Mario»: arranca y frena
 poco a poco, salta más alto cuanto más tiempo se mantiene B, cae cada vez más
 deprisa hasta una velocidad máxima y aterriza exactamente en el suelo. Y saber

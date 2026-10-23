@@ -1,5 +1,22 @@
 # Unidad 01 — Enteros de 16 bits y punto fijo
 
+> **Lección válida, juego histórico.** Esta unidad enseña sobre el código de
+> la Revisión 2 (plataformas, tag `plataformas-r2`); el juego actual es un
+> beat 'em up ([`docs/diseno-beat-em-up.md`](../../docs/diseno-beat-em-up.md)).
+> Los archivos del juego que cita (`src/juego/tarou.h`, `src/juego/tarou.c`,
+> `tests/prueba_tarou.c`, con sus números de línea) se leen en ese tag, por
+> ejemplo con `git show plataformas-r2:src/juego/tarou.h`, o en un clon fijado
+> en él:
+>
+> ```text
+> git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u01
+> git -C E:\ProyectoSNES_trabajo\u01 checkout -q plataformas-r2
+> ```
+>
+> **Qué se traslada al beat 'em up:** todo el concepto. `puntofijo.h` se
+> queda, x e y del carril siguen en 12.4, y la gravedad de este ejercicio es
+> la del salto en z (`pantalla_y = y − z`, spec §3) y la de los lanzamientos.
+
 **Objetivo:** hacer aritmética con decimales en una CPU que no los tiene, y
 saber qué pasa cuando un entero de 8 o 16 bits se queda sin sitio. Al
 terminar se entiende cada número de `src/sistema/puntofijo.h` y de las

@@ -82,12 +82,15 @@ frame en un tilemap en la WRAM y un DMA de 64 bytes en el VBlank.
 `camara_para` recorta con `ANCHO_NIVEL - ANCHO_PANTALLA`, una constante:
 con ella no se puede probar qué haría la cámara en un nivel de otro ancho
 (el nivel 2 no tiene por qué medir 2048). Trabaja en un clon o en una rama
-propia (nunca en la rama del autor):
+propia creada desde el tag `plataformas-r2` (nunca en la rama del autor):
 
 ```
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio
+git -C E:\ProyectoSNES_trabajo\mio checkout -q plataformas-r2
 cd E:\ProyectoSNES_trabajo\mio
 ```
+
+(`plataformas-r2` es el tag de la Revisión 2, el código contra el que se verificó esta práctica; el juego actual pasa a ser un beat 'em up.)
 
 1. En `src/juego/camara.h` declara
    `u16 camara_para_ancho(u16 x_pix, u16 ancho_nivel);` con su comentario.

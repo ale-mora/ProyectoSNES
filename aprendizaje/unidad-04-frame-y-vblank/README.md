@@ -327,7 +327,8 @@ Un número en 225..261 es **ambiguo**: o es un frame baratísimo que acabó aún
 dentro del VBlank, o uno que se pasó y dio la vuelta entera (casi 262 líneas
 más). `LIN` solo no lo distingue: lo decide `F` frente a `VB` (si no se
 pierden frames, era barato). Cifras de referencia de
-`docs/mesen-y-depuracion.md` §3: en el tutorial la lógica acaba hacia la línea
+`docs/mesen-y-depuracion.md` §3: en el tutorial (Revisión 2, tag
+`plataformas-r2`) la lógica acaba hacia la línea
 70–120 y el final del frame, con el HUD encendido, hacia 150–200.
 
 **Por qué `F` puede avanzar menos que `VB`:** `F` cuenta vueltas del bucle y

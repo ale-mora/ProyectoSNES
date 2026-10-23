@@ -1,5 +1,29 @@
 # Unidad 20 — Colisión con el escenario
 
+> **Lección válida, juego histórico.** Esta unidad enseña sobre el código de
+> la Revisión 2 (plataformas, tag `plataformas-r2`); el juego actual es un
+> beat 'em up ([`docs/diseno-beat-em-up.md`](../../docs/diseno-beat-em-up.md)).
+> `colision.c`, `partida.c`, `guion_tutorial.c`, `res/nivel1/tutorial.tmj` y
+> sus pruebas se retiran del juego y quedan en ese tag. La demo y el ejercicio
+> se hacen en un clon fijado en él:
+>
+> ```text
+> git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio
+> git -C E:\ProyectoSNES_trabajo\mio checkout -q plataformas-r2
+> ```
+>
+> La demo y la traza se compilan desde la copia de esta carpeta **dentro del
+> clon** (`E:\ProyectoSNES_trabajo\mio\aprendizaje\unidad-20-colision\`): así
+> los `../../src`, `../../tests` y `../../res/nivel1` de sus comandos son el
+> código del tag y no el de la rama principal.
+>
+> **Qué se traslada al beat 'em up:** la AABB (`se_tocan`) es la base de las
+> cajas de golpe y de daño, con una regla más: las profundidades tienen que
+> estar cerca (`|y_atacante − y_objetivo| ≤ TOLERANCIA_Y`, spec §3). El
+> streaming de columnas al mapa-anillo (`fondo_nivel.c`) se queda tal cual, y
+> Tiled sigue siendo el editor, ahora de zonas, carril y oleadas (spec §7). La
+> rejilla de plataformas y la resolución por ejes no se trasladan.
+
 **Objetivo:** entender cómo sabe Tarou dónde hay suelo, pared, techo, plataforma
 o zarza en un nivel de 2048 px, cómo se dibuja ese nivel en una VRAM donde solo
 caben 512 px, y cómo se cambia el nivel sin romperlo: Tiled → script → ROM →

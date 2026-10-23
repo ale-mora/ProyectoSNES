@@ -11,6 +11,19 @@ repositorio a medida que el proyecto avanza. Los ítems de estudio usan
 checkboxes de Markdown (`- [ ]`); marcalos como `- [x]` a medida que los vayas
 completando.
 
+## Historial
+
+| Fecha | Cambio |
+|---|---|
+| 2026-09-23 | Primera versión: plataformas al estilo de _Donkey Kong Country_, Etapas 0–6. |
+| 2026-10-16 → 10-20 | Etapa 2 hecha como plataformas: Revisión 1 (`diseno-demo-jugable.md`) y Revisión 2, el tutorial de movimiento (`diseno-tutorial-movimiento.md`). |
+| **2026-10-23** | **Cambio de género**: el juego pasa a ser un **beat 'em up de carril en profundidad** (_belt-scroll_) con Tarou, Bárbara y relevo entre ellos. Spec: [`diseno-beat-em-up.md`](diseno-beat-em-up.md) (Revisión 3); arte y trucos de hardware por pieza: [`arte-beat-em-up.md`](arte-beat-em-up.md). El código de plataformas queda congelado en el tag git **`plataformas-r2`** (commit `480f373`). Se reescriben Premisas, Concepto y las Etapas 2–6; las Etapas 0, 1 y 1.5 quedan como historia, con las frases de plataformas anotadas. |
+
+> **Fuente de verdad.** Si este plan y `diseno-beat-em-up.md` se contradicen,
+> manda la spec. Este documento solo ordena el trabajo y lo que hay que
+> estudiar en cada etapa; las decisiones de diseño viven en la spec (sus
+> números de decisión, «decisión N», se citan aquí tal cual).
+
 ## Premisas del proyecto (confirmadas)
 
 - **Título del juego:** _Tarou: A Dog's Journey_.
@@ -22,9 +35,23 @@ completando.
 - **Punto de partida técnico:** programador principiante — el plan incluye
   una etapa de fundamentos de programación general antes de entrar en
   contenido específico de SNES.
+- **Género (desde el 2026-10-23):** beat 'em up clásico de carril en
+  profundidad (_belt-scroll_: _Final Fight_, _Streets of Rage_), **1 jugador
+  con relevo** entre Tarou y Bárbara. El cooperativo a dos mandos es una meta
+  futura, no un requisito (decisión 1). Hasta el 2026-10-22 fue un
+  plataformas de scroll lateral (Revisiones 1–2, tag `plataformas-r2`).
 - **Stack:** PVSnesLib (SDK en C sobre el compilador `tcc816` y el toolchain
-  `wla-65816`/`wlalink`), formato de ROM LoROM/SlowROM, emulador Mesen para
+  `wla-65816`/`wlalink`), formato de ROM **LoROM + FastROM, 128 bancos
+  (4 MB)** (al principio fue LoROM/SlowROM de 8 bancos), emulador Mesen para
   desarrollo iterativo.
+- **Reutilización:** de las Revisiones 1–2 se quedan los motores (lista de
+  DMA, metasprite, fondo por columnas, cámara, motor de escenas, HUD de
+  depuración); se retiran la física de plataformas, la rejilla de colisión,
+  el tutorial y sus pruebas, que siguen en el tag. Se trabaja en la rama
+  `demo-secuencia-arranque` (decisión 4).
+- **Editor de niveles:** Tiled, para zonas y oleadas (decisión 28).
+- **Arte:** Pixellab con el mismo pipeline que Tarou; placeholders numerados
+  mientras tanto (decisión 22).
 - **Distribución:** proyecto **personal**, sin venta ni distribución (decisión
   del 2026-09-23). Por eso se permite usar material original con copyright de
   la época (logo de Nintendo, logos de publisher/desarrollador) en uso
@@ -36,29 +63,55 @@ completando.
 
 ## Concepto del juego
 
-- **Protagonistas:** Tarou, un perro, y Bárbara, su mejor amiga. Se ayudan
-  mutuamente a completar cada nivel.
-- **Estructura de niveles:** cada nivel es una misión/etapa que ambos
-  completan juntos.
-- **Mecánica de personajes:** el mismo esquema que _Donkey Kong Country_
-  (Donkey Kong / Diddy Kong) — dos personajes presentes, se alterna el
-  control entre ellos, cada uno con habilidades propias. Los detalles
-  exactos (qué pasa si el personaje activo recibe daño, cómo se recupera al
-  compañero, en qué difieren sus habilidades) quedan **pendientes de
-  definir** como parte del GDD en la Etapa 1.
-- **Progresión de Tarou:** el perro pasa por tres etapas de vida — cachorro,
-  adulto y viejo — a lo largo del juego. Cómo se gatilla ese cambio (por
-  nivel, por capítulo, por evento de historia) y qué cambia mecánicamente en
-  cada etapa (habilidades, velocidad, sprite) queda **pendiente de definir**
-  en el GDD.
-- **Guion:** todavía no está escrito. La premisa emocional confirmada es que
-  Tarou y Bárbara son mejores amigos; el resto de la narrativa se
-  desarrolla progresivamente.
-- **Plan de producción incremental:** el primer nivel (Etapa 3 — Vertical
-  Slice de este plan) es una demo técnica conceptual que usa **únicamente a
-  Tarou cachorro**, sin Bárbara y sin el mecanismo de cambio de personaje.
-  Bárbara, el cambio de personaje, y las etapas de vida adulta/vieja se
-  incorporan progresivamente a partir de la Etapa 4 — Producción.
+El detalle completo está en [`diseno-beat-em-up.md`](diseno-beat-em-up.md);
+aquí va el resumen que orienta el plan.
+
+- **Protagonistas:** Tarou, un husky, y Bárbara, su mejor amiga. Tarou es
+  **adulto todo el juego** (decisión 9).
+- **Historia (decisión 14):** Japón feudal. Un clan de **ninjas kendokas**
+  humanos, liderado por el villano, roba el juguete favorito de Tarou, el
+  **Señor Pimentón**, un pimiento rojo de goma con forma humana. Bárbara jura
+  venganza; Tarou quiere recuperar su juguete. Al final de la fase 1 el
+  villano huye con el juguete, que es el gancho para la fase 2 (decisión 24).
+  Los nombres del villano, del lugarteniente y de los apoyos están
+  **pendientes** (spec §12).
+- **Perspectiva:** belt-scroll en x (avance), y (profundidad en el carril) y
+  z (altura del salto), con sombra bajo los pies y orden de dibujo por y
+  (decisión 2). El avance es por **zonas con oleadas**: la cámara se bloquea
+  hasta vencer la oleada y después aparece «GO →» (decisión 3).
+- **Relevo al estilo de _Donkey Kong Country_ (decisiones 10–11):** se juega
+  con uno y el otro espera fuera; **nunca hay dos protagonistas en pantalla a
+  la vez**. Botón L, golpe de entrada que empuja a los cercanos, enfriamiento
+  de ~2 s. Barras de vida separadas; quien espera se cura poco a poco. Si cae
+  el activo entra el otro; si caen los dos, se pierde una vida.
+- **Dos estilos de lucha (decisiones 6–8):** combate a lo _Final Fight_
+  (combo A-A-A con derribo al final, ataque aéreo, agarre con golpe o
+  lanzamiento, especial A+B que cuesta vida). **Tarou**: espada corta y
+  mordisco, rápido, combos largos; envaina solo fuera de combate.
+  **Bárbara**: katana lenta, mucho alcance y daño, buenos agarres.
+- **Tres apoyos (decisiones 15–18):** la **gata samurái** (muy rápida, ráfaga
+  de cortes), el **perro monje** telepático (levanta a todos los enemigos y
+  los suelta) y el **perro bruto** (embestida que derriba a todos). Se
+  invocan con X cuando la **barra de ataque**, compartida por el dúo y que se
+  llena solo golpeando, está llena; R cambia el apoyo elegido. Se conocen en
+  el santuario de la fase 1 (decisión 26).
+- **Enemigos (decisión 21):** ninja básico (shinai), ninja rápido (shuriken),
+  kendoka pesado (agarra, bloquea) y, en la fase 1, un lugarteniente kendoka
+  como jefe. Todos humanos (decisión 34).
+- **Arcade (decisión 12):** 3 vidas, 3 continues, comida que cura y
+  puntuación; armas arrojadizas y vida extra escondida (decisión 25).
+- **Estructura de fases:** la fase 1 es aldea → bosque de bambú → santuario
+  → dojo con el jefe (decisión 23). Cuántas fases tiene el juego completo y
+  qué pasa en cada una queda **pendiente**.
+- **Plan de producción incremental:** la primera entrega (Etapa 3, Revisión
+  3) es la **fase 1 completa**, ya con Bárbara, el relevo y los apoyos;
+  antes, en la Etapa 2, una ROM de prueba de carga mide cuántos enemigos
+  caben (decisiones 13 y 20). El audio va después de la Revisión 3 (decisión
+  27).
+- **Idea aparcada, no descartada: las etapas de vida de Tarou** (cachorro,
+  adulto, viejo), que eran parte del concepto de plataformas. En la Revisión
+  3 Tarou es adulto todo el juego; si la idea vuelve, se decide cuándo y cómo
+  (spec §11, fuera de alcance).
 
 ## Vista general de las etapas de aprendizaje
 
@@ -67,10 +120,10 @@ completando.
 | 0   | [Fundamentos](#etapa-0--fundamentos)                                    | Aprender a programar (lógica, C) y entender cómo funciona una consola retro por dentro.                        |
 | 1   | [Investigación / Preproducción](#etapa-1--investigación--preproducción) | Definir qué juego es y entender la arquitectura técnica del hardware SNES y del toolchain.                     |
 | 1.5 | [Demo técnica: secuencia de arranque](#etapa-15--demo-técnica-secuencia-de-arranque) | Construir el código definitivo del arranque (logos → intro → título) y medir hasta dónde llega el hardware. |
-| 2   | [Prototipo](#etapa-2--prototipo)                                        | Programar las mecánicas núcleo (movimiento, salto, colisión, cámara) para validar que el juego se siente bien. |
-| 3   | [Vertical Slice](#etapa-3--vertical-slice)                              | Un nivel completo con arte y audio final, todos los sistemas integrados.                                       |
-| 4   | [Producción](#etapa-4--producción)                                      | Escalar el vertical slice a todo el contenido del juego.                                                       |
-| 5   | [Pulido](#etapa-5--pulido)                                              | Rendimiento, juice, corrección de bugs, balance de dificultad.                                                 |
+| 2   | [Prototipo](#etapa-2--prototipo)                                        | Medir con una prueba de carga cuántos enemigos caben y programar un prototipo de combate en x/y/z. (Las Revisiones 1–2 de plataformas se hicieron aquí.) |
+| 3   | [Vertical Slice](#etapa-3--vertical-slice)                              | La fase 1 completa (Revisión 3): cuatro zonas, relevo, apoyos y el jefe, todos los sistemas integrados.        |
+| 4   | [Producción](#etapa-4--producción)                                      | Escalar la fase 1 a todas las fases del juego; el cooperativo a dos mandos, si se decide.                      |
+| 5   | [Pulido](#etapa-5--pulido)                                              | Audio, rendimiento, juice, corrección de bugs, balance de dificultad.                                          |
 | 6   | [Alpha/Beta/QA y Lanzamiento](#etapa-6--alphabetaqa-y-lanzamiento)      | Testing en hardware real, certificación de ROM, empaquetado y publicación.                                     |
 
 ---
@@ -164,8 +217,15 @@ y qué cambia en cada etapa, y al menos una lista preliminar de
 niveles/misiones — más comprensión de la arquitectura técnica del hardware
 SNES aplicada a este proyecto.
 
+_Nota (2026-10-23): ese GDD se escribió por partes, primero para el
+plataformas (Revisiones 1–2, tag `plataformas-r2`:
+`diseno-demo-jugable.md`, `diseno-tutorial-movimiento.md`) y ahora para el
+beat 'em up: [`diseno-beat-em-up.md`](diseno-beat-em-up.md) resuelve el
+relevo Tarou/Bárbara (§4) y la fase 1 (§7), y aparca las etapas de vida._
+
 **Criterio de salida:** poder explicar sin notas qué es LoROM/SlowROM, qué
 hace `hdr.asm`, qué son los 8 bancos de ROM, y tener el GDD escrito.
+_(Hoy la ROM es LoROM + FastROM de 128 bancos.)_
 
 ### Ítems técnicos a estudiar
 
@@ -174,7 +234,7 @@ hace `hdr.asm`, qué son los 8 bancos de ROM, y tener el GDD escrito.
       construyendo; evita retrabajo enorme más adelante.
       Recursos: "The Art of Game Design: A Book of Lenses" de Jesse Schell
       (capítulos iniciales).
-- [x] **Análisis de referencias de plataformers** — entender qué hace
+- [x] **Análisis de referencias de plataformers** _(Revisión 1–2, plataformas, tag plataformas-r2; las referencias de beat 'em up se estudian en la Etapa 2)_ — entender qué hace
       "sentir bien" a Super Mario World o Donkey Kong Country da un techo
       realista de qué es alcanzable en solitario.
       _Ya avanzado: investigación del pipeline de producción de Donkey Kong
@@ -200,8 +260,9 @@ hace `hdr.asm`, qué son los 8 bancos de ROM, y tener el GDD escrito.
       piensa la música/sonido del juego.
       Recursos: `wiki.superfamicom.org` (sección APU); ejemplos
       `audio/music` y `audio/effectsandmusic` del SDK.
-- [ ] **Formato de ROM: LoROM vs HiROM, SlowROM vs FastROM** — el proyecto ya
-      está configurado como LoROM/SlowROM en el `Makefile`; entender qué
+- [ ] **Formato de ROM: LoROM vs HiROM, SlowROM vs FastROM** — el proyecto
+      empezó como LoROM/SlowROM y hoy es LoROM + FastROM de 128 bancos
+      (`ROMSIZE 0C`, `FASTROM 1` en el `Makefile`); entender qué
       implica esa elección (mapeo de memoria, velocidad de acceso) evita
       errores de configuración más adelante.
       Recursos: `wiki.superfamicom.org` (sección "Memory Mapping"); el
@@ -212,8 +273,9 @@ hace `hdr.asm`, qué son los 8 bancos de ROM, y tener el GDD escrito.
       interpretar errores de compilación.
       Recursos: `github.com/alekmaul/pvsneslib` (wiki y documentación del
       repo); `snes_rules` dentro de `devkitsnes`.
-- [x] **Estudio de la arquitectura de LikeMario** — es el ejemplo más
-      cercano al género que vas a construir, y sirve de referencia de "cómo
+- [x] **Estudio de la arquitectura de LikeMario** — era el ejemplo más
+      cercano al género de entonces (plataformas, Revisión 1–2, tag
+      plataformas-r2), y sigue sirviendo de referencia de "cómo
       se organiza un proyecto real de PVSnesLib".
       _Ya avanzado: arquitectura documentada (4 capas), inventario completo
       de 33 archivos por categoría/tipo/productor, y físicas explicadas en
@@ -233,11 +295,17 @@ hace `hdr.asm`, qué son los 8 bancos de ROM, y tener el GDD escrito.
       Recursos: desgloses de gameplay de DKC (canal "Retro Game Mechanics
       Explained" en YouTube); tu propia investigación previa del pipeline de
       producción de DKC.
+      _El diseño del relevo quedó fijado el 2026-10-23 en
+      `diseno-beat-em-up.md` §4 (decisiones 10–11); su código es de la
+      Etapa 3._
 - [ ] **Diseño narrativo básico y estructura de misiones/niveles** — aunque
       el guion no está cerrado, cada nivel se organiza como una misión que
       Tarou y Bárbara completan juntos; conviene tener al menos un boceto
       de la lista de niveles/misiones en el GDD antes de entrar en
       Producción.
+      _La premisa (el Señor Pimentón robado por el clan de ninjas kendokas)
+      y la fase 1 están en `diseno-beat-em-up.md` (decisiones 14, 23 y 24);
+      la lista de fases del juego completo sigue pendiente._
       Recursos: "The Art of Game Design: A Book of Lenses" (secciones de
       narrativa y estructura de niveles).
 
@@ -271,6 +339,11 @@ Tarou y Bárbara, título con parallax y cielo HDMA). Falta el **audio** y una
 pasada de **pulido visual**. Detalle y hallazgos técnicos en
 `docs/diseno-secuencia-arranque.md` §9 y §10.
 
+**Nota (2026-10-23):** con el cambio de género la secuencia de arranque se
+queda, pero la **intro se rehace** (3 escenas nuevas, con placeholders en la
+Revisión 3; decisión 5). Ese trabajo está en la Etapa 3. Start en el título
+ya no lleva a «LEVEL 1 — COMING SOON» sino a la fase.
+
 **Aprendido en la práctica (resumen):**
 
 - El sistema de compilación del SDK no sigue dependencias de headers ni de los
@@ -290,6 +363,7 @@ pasada de **pulido visual**. Detalle y hallazgos técnicos en
 - Efectos a demostrar: fade y mosaico (transiciones), Mode 7 (logo de
   desarrolladores entrando con zoom y rotación), degradado HDMA y parallax de
   dos capas (título), sprite animado de Tarou cachorro (intro y título).
+  _(Desde la Revisión 1 es Tarou adulto, con el arte de Pixellab.)_
 - Estética de referencia: _Secret of Mana_. Textos en pantalla en inglés.
 - Assets: el usuario descarga a `res/descargas/` (gráficos y audio); se
   convierten con scripts Python a PNG indexado; música solo en formato `.it`.
@@ -320,10 +394,10 @@ pasada de **pulido visual**. Detalle y hallazgos técnicos en
       Recursos: `graphics/Effects/HDMAGradient` del SDK; `dma.h`.
 - [x] **Scroll y parallax por software** (`bgSetScroll` a dos velocidades) —
       dos capas moviéndose a distinta velocidad dan profundidad; es la misma
-      cámara que usará el nivel.
+      cámara que usará el nivel (y ahora las zonas del beat 'em up).
       Recursos: `graphics/Backgrounds/Mode1Scroll` del SDK.
 - [x] **Sprites (OAM) y animación por cuadros** — Tarou cachorro en reposo en
-      la intro y el título.
+      la intro y el título _(hoy, Tarou adulto)_.
       Recursos: `graphics/Sprites/SimpleSprite` y `AnimatedSprite` del SDK.
 - [x] **Texto por consola y efecto máquina de escribir** — dedicatoria, intro,
       créditos y "PRESS START"; contar frames para mostrar una letra a la vez.
@@ -355,32 +429,48 @@ pasada de **pulido visual**. Detalle y hallazgos técnicos en
 
 ## Etapa 2 — Prototipo
 
-**Objetivo:** programar las mecánicas núcleo del juego (movimiento, salto,
-colisión, cámara) con gráficos y audio de marcador de posición, para validar
-que el gameplay se siente bien antes de invertir en arte/audio final. El
-personaje del prototipo es Tarou en su etapa de cachorro únicamente — el
-mecanismo de cambio de personaje con Bárbara se aborda recién en la Etapa 4.
+**Objetivo:** antes de pedir arte o escribir combate de verdad, **medir**
+cuánto aguanta el hardware en un beat 'em up (sprites por línea, tiles de
+sprite, VBlank, CPU) y validar con un prototipo que el combate en x/y/z se
+siente bien. Todo con placeholders. Spec: `diseno-beat-em-up.md` §8 y §9.
 
-**Entregable(s):** un `.sfc` ejecutable en Mesen donde un personaje (aunque
-sea un cuadrado de color) se mueve, salta con física creíble, colisiona con
-el escenario y la cámara lo sigue.
+**Historia de esta etapa:** las Revisiones 1 y 2 (2026-10-16 → 10-20) se
+hicieron aquí cuando el juego era un plataformas: Tarou adulto con el arte de
+Pixellab en celdas de 96×64, física de salto, colisión contra una rejilla de
+Tiled y un tutorial de movimiento de 2048 px (`diseno-demo-jugable.md`,
+`diseno-tutorial-movimiento.md`). Ese código queda en el tag
+**`plataformas-r2`**. Sus motores se reutilizan; la física de plataformas, la
+rejilla de colisión, el tutorial y sus pruebas se retiran (decisión 4, spec
+§10).
 
-**Criterio de salida:** el prototipo es jugable de punta a punta con
-mando/teclado emulado, sin crashear, a 60 FPS estables.
+**Entregable(s):**
 
-**Estado (2026-10-19):** Revisión 1 hecha y verificada en Mesen a 60 FPS
-(`docs/diseno-demo-jugable.md`): Tarou adulto camina, corre, salta, se agacha,
-usa la espada y duerme en un nivel plano de 512 px con parallax. Desde el
-2026-10-19 con el **arte real de Pixellab**: el perro en celdas de 96×64 (13
-animaciones; el ataque es una pose fija provisional) y un suelo de tileset
-*Sidescroller* con un seto detrás. **Desde el 2026-10-20 (Revisión 2) el
-nivel 1 es un tutorial de movimiento** de 2048 px con colisión contra el
-escenario (escalones, muro, túnel, foso, plataformas, zarzas, tronco que se
-rompe con la espada y salida), dibujado en Tiled (`docs/diseno-tutorial-movimiento.md`).
-Falta: el arte de zarzas, carteles y tronco, una animación de ataque, Sleep
-mirando al este y reajustar el ritmo de desenvainar, envainar y despertar.
+1. **La ROM de prueba de carga** (`-DPRUEBA_CARGA`, spec §9): Tarou o Bárbara
+   y N ninjas placeholder de 64×96 (rectángulos numerados de colores) que se
+   pasean por el carril con sombras, animando y subiendo cuadros por la lista
+   de DMA, sin lógica de combate. Mide ranuras por línea, VRAM (opciones
+   A/B/C de la spec §8), VBlank y CPU.
+2. **El resultado escrito en la spec** (`diseno-beat-em-up.md` v2): cuántos
+   enemigos a la vez, forma y tamaño de la celda del ninja (para pedirlos a
+   Pixellab), sombras sí/no y a qué ritmo, turno de subida de cuadros, bandas
+   de cine sí/no.
+3. **Un prototipo de combate**: un protagonista y un ninja placeholder en un
+   carril plano; movimiento en x/y, doble toque para correr, salto en z con
+   sombra, orden de dibujo por y, combo con cajas de golpe y daño, la regla
+   de profundidad (`TOLERANCIA_Y`), derribo, parada de impacto y destello. La
+   lógica pura (`mundo`, `combate`, doble toque) con pruebas en el PC.
 
-### Ítems técnicos a estudiar
+**Criterio de salida:** la configuración elegida corre a 60 FPS (HUD), sin
+trozos perdidos en el caso típico (2–3 enemigos), con el VBlank por debajo de
+la línea 37 en el peor frame (spec §9). El prototipo de combate se juega en
+Mesen sin crashear y sus pruebas en el PC pasan.
+
+**Estado (2026-10-23):** diseño acordado, sin código. Lo primero que se
+construye es la ROM de prueba de carga.
+
+### Heredado de las Revisiones 1–2 (plataformas, tag plataformas-r2)
+
+Lo que ya se aprendió y se sigue usando:
 
 - [x] **El loop principal y VBlank/NMI** _(Revisión 1, 2026-10-16: `main.c` + `secuencia_vblank`; `docs/hardware-snes-por-modulo.md` §8)_ — toda la lógica del juego debe
       sincronizarse con el refresco de pantalla (60 Hz en NTSC); `src/main.c`
@@ -391,236 +481,306 @@ mirando al este y reajustar el ritmo de desenvainar, envainar y despertar.
       gameplay; PVSnesLib expone funciones para leer el estado del joypad.
       Recursos: ejemplo `input/controller` del SDK.
 - [x] **Aritmética de punto fijo (fixed-point)** _(Revisión 1, 2026-10-16: 12.4 en `sistema/puntofijo.h`, probado en `tests/`)_ — el 65816 no tiene unidad
-      de punto flotante (FPU); toda velocidad/aceleración/gravedad
-      fraccionaria del personaje se debe representar con enteros escalados
-      (ej. formato 8.8). Es un concepto ausente en programación de alto
-      nivel moderna y hay que aprenderlo específicamente para hardware
-      retro.
+      de punto flotante (FPU); toda velocidad fraccionaria se representa con
+      enteros escalados. En el beat 'em up, x, y y z siguen en 12.4.
       Recursos: artículos generales de "fixed point arithmetic for embedded
       systems"; el código de física de LikeMario como caso de estudio real.
-- [x] **Física de plataformas 2D** _(Revisión 1, 2026-10-16: gravedad, salto variable, terminal en `juego/tarou.c`; sin colisión con el escenario todavía)_ (gravedad, salto, velocidad terminal) — es
-      el corazón del gameplay de un plataformer; cómo se calibra la curva de
-      salto define si el juego "se siente bien".
-      Recursos: "Retro Game Mechanics Explained" (análisis de la física de
-      Super Mario Bros/World en YouTube).
-- [ ] **Detección y resolución de colisiones** (AABB, basada en tiles) — el
-      personaje necesita chocar contra el piso/paredes del nivel; la
-      colisión basada en tiles (en vez de pixel-perfect) es el enfoque
-      estándar en plataformers 2D retro por su bajo costo de CPU.
+- [x] **Física de plataformas 2D** _(Revisión 1–2, plataformas, tag plataformas-r2: gravedad, salto variable, terminal en `juego/tarou.c`)_ — se retira; lo que
+      se aprendió (gravedad y salto en punto fijo) se reutiliza para el
+      eje z del salto y de los lanzamientos.
+      Recursos: "Retro Game Mechanics Explained" (YouTube).
+- [x] **Detección y resolución de colisiones** (AABB, basada en tiles) _(Revisión 2, 2026-10-20: rejilla de 128×14 en `juego/colision.c`, en el tag plataformas-r2)_ — la
+      rejilla de plataformas se retira; el carril por columnas y las cajas
+      de golpe la sustituyen (ítems de abajo).
       Recursos: artículos generales sobre "AABB collision detection" y
-      "tile-based collision" (universales a juegos 2D, no específicos de
-      SNES).
+      "tile-based collision".
 - [x] **Máquinas de estado (state machines) para el personaje** _(Revisión 1, 2026-10-16: 13 estados en `juego/tarou.c`)_ — el
-      personaje tiene estados discretos (parado, corriendo, saltando,
-      cayendo) que determinan tanto la física como la animación; modelarlo
-      como una máquina de estados evita código en espagueti.
-      Recursos: `systems/gastates` del SDK (game states); cualquier
-      introducción general a "finite state machines" en videojuegos.
-- [x] **Scroll de cámara y registros de BG** _(Revisión 1, 2026-10-16: `juego/camara.c` + `bgSetScroll` en `pantalla_nivel1.c`)_ — la cámara debe seguir al
-      jugador desplazando el fondo; en SNES esto se hace escribiendo en los
-      registros de scroll del PPU, no moviendo "objetos" como en un motor
-      moderno.
+      mismo patrón (un `switch` por estado, una animación por estado) sirve
+      para los luchadores del beat 'em up (spec §5.1).
+      Recursos: `systems/gastates` del SDK; cualquier introducción general a
+      "finite state machines" en videojuegos.
+- [x] **Scroll de cámara y registros de BG** _(Revisión 1, 2026-10-16: `juego/camara.c`; desde la Revisión 2 el scroll se escribe en `pantalla_nivel1_vblank`)_ — la cámara se
+      queda y gana el bloqueo de zona.
       Recursos: `wiki.superfamicom.org` (sección "Backgrounds");
       `graphics/Backgrounds` del SDK.
-- [x] **Debugging con el debugger de Mesen** _(Revisión 1, 2026-10-16: HUD de depuración con medidor de línea; `docs/mesen-y-depuracion.md`)_ — Mesen trae un debugger
-      completo (breakpoints, inspección de memoria/VRAM/registros) que es la
-      herramienta principal para diagnosticar bugs de física/colisión sin
-      hardware real.
+- [x] **Debugging con el debugger de Mesen** _(Revisión 1, 2026-10-16: HUD de depuración con medidor de línea; `docs/mesen-y-depuracion.md`)_ — el
+      HUD de depuración (`V a b`, `LIN`) es la herramienta con la que se mide
+      la prueba de carga.
       Recursos: documentación/wiki oficial de Mesen; `systems/debug` y
       `systems/breakpoints` del SDK.
+- [x] **Metasprites** _(Revisión 1–2: `juego/metasprite.c`, tablas de `gfx4snes -T`, hasta 6 piezas por celda de 96×64, piezas vacías saltadas)_ — Bárbara
+      (64×96) y los ninjas usan el mismo recorrido (decisión 33).
+- [x] **DMA y la lista de DMA** _(Revisión 2, 2026-10-20/21: `juego/dma_lista.c` + `dma_ejecutar.asm`; doble celda de VRAM de Tarou subida en dos VBlanks)_ — toda
+      escritura a la VRAM pasa por la lista, en el VBlank.
+      Recursos: `wiki.superfamicom.org` (sección "DMA").
+- [x] **Fondo por columnas en un mapa anillo de 64×32** _(Revisión 2: `juego/fondo_nivel.c`)_ — se
+      reutiliza para las zonas.
+- [x] **Niveles en Tiled y pipeline de arte de Pixellab** _(Revisión 2: `scripts/preparar_nivel.py`, `scripts/preparar_personaje.py`)_ — el
+      sucesor es `scripts/preparar_zona.py` (spec §7).
+- [x] **Pruebas en el PC de la lógica pura y ROM con guion** _(Revisión 2: `tests/`, `juego/guion.c`, `-DGUION_PRUEBA`)_ — las
+      pruebas del tutorial salen con él; el método se queda.
+
+### Ítems técnicos a estudiar (beat 'em up)
+
+- [ ] **Referencias del género: _Final Fight_, _Streets of Rage_** — cómo
+      se sienten el combo, el agarre, el derribo y los turnos de ataque; qué
+      hacen cuando la pantalla se llena de sprites.
+      Recursos: partidas y desgloses en YouTube; la spec §5 y §6.
+- [ ] **El mundo en x/y/z** — x avance, y profundidad en el carril, z altura;
+      `pantalla_y = y − z`; la sombra siempre en y. Es el modelo que hace que
+      un juego 2D «parezca 3D» (spec §3). Módulo nuevo `mundo.c`, lógica
+      pura probada en el PC.
+- [ ] **Orden de dibujo por y y prioridad de sprites** — ordenar las
+      entidades vivas (≤ 8) por y con inserción cada frame y escribir la OAM
+      en ese orden; prioridad 2 o 3 contra los tiles de BG1 con el bit de
+      prioridad para pasar detrás o delante de un poste (spec §3).
+      Recursos: `docs/hardware-snes-por-modulo.md` (OAM y prioridades).
+- [ ] **Cajas de golpe y cajas de daño por cuadro** — cada cuadro de
+      animación lleva su caja de daño y, en los activos, su caja de golpe
+      con daño y efecto; la regla de profundidad `TOLERANCIA_Y`; la tabla
+      rellena a 8 bytes por entrada para que `a[i]` sea un desplazamiento y
+      no `tcc__mul` (spec §5.2). Cómo se dibujan las cajas (Tiled o `.json`)
+      queda abierto en la spec.
+- [ ] **Un luchador cambia el estado de otro** — `combate.c`: el golpe que
+      conecta pone al objetivo en `RECIBIR`/`DERRIBADO`, el agarre en
+      `AGARRADO` (spec §5.1).
+- [ ] **Doble toque para correr** — lógica pura sobre la lectura del mando,
+      con `VENTANA_DOBLE_TOQUE` (~12 frames), probada con `guion.c`
+      (spec §2).
+- [ ] **Límite de 34 ranuras de 8 px por línea (y 32 sprites por línea)** —
+      en belt-scroll todos comparten las líneas del carril; Tarou + 3 ninjas
+      a la misma altura son 36 > 34. Medidas a decidir con la prueba de
+      carga: recortar piezas vacías, sombras de 16 px, sombras a 30 Hz,
+      rotar el orden cada frame (spec §8).
+      Recursos: `docs/hardware-snes-por-modulo.md`; `wiki.superfamicom.org`
+      (sección "OAM / Sprite limits").
+- [ ] **512 tiles de sprite (16 KB)** — el protagonista usa 256 en doble
+      búfer; 3 ninjas de 96 tiles no caben. Opciones A (piezas de 16×16
+      recortadas), B (celda de 48×96) y C (2 grandes + 1 en pose residente)
+      a medir (spec §8).
+- [ ] **Presupuesto del VBlank** — 37 líneas, el SDK usa 5; ~125 bytes por
+      línea; un cuadro de enemigo recortado (~2 KB) cabe uno por frame con un
+      turno rotatorio de subida (spec §8).
+- [ ] **Bandas de cine (forced blank)** — apagar la pantalla en las últimas
+      ~16 líneas para alargar el VBlank ~2 KB más de DMA, con una IRQ de
+      línea (`HTIMEN/VTIME`) o HDMA sobre `INIDISP`. Se decide con la prueba
+      de carga (spec §8).
+      Recursos: `wiki.superfamicom.org` (IRQ, `INIDISP`).
+- [ ] **Presupuesto de CPU** — ~59 000 ciclos por frame; cajas solo para los
+      que atacan, por pares, sin multiplicaciones; medido con `LIN`
+      (spec §8).
 
 ---
 
 ## Etapa 3 — Vertical Slice
 
-**Objetivo:** construir el primer nivel de _Tarou: A Dog's Journey_ como
-demo técnica conceptual — jugando únicamente con Tarou cachorro, sin
-Bárbara ni el cambio de personaje — con arte definitivo, audio definitivo, y
-todos los sistemas integrados. Es la prueba de que el pipeline completo
-funciona de punta a punta, no solo el prototipo aislado.
+**Objetivo:** construir la **fase 1 completa** de _Tarou: A Dog's Journey_
+como Revisión 3 (decisión 20): aldea → bosque de bambú → santuario → dojo,
+con el lugarteniente como jefe. Ya con los dos protagonistas, el relevo, los
+tres apoyos, los tres tipos de enemigo, objetos, HUD del juego, pausa y la
+intro rehecha. Es la prueba de que todos los sistemas del beat 'em up
+funcionan juntos de punta a punta.
 
-**Entregable(s):** el primer nivel jugable de principio a fin (inicio →
-meta), protagonizado solo por Tarou cachorro, con la calidad visual y
-sonora que representa el estándar del juego terminado.
+**Entregable(s):** una ROM donde se juega la fase 1 de principio a fin:
+Start en el título → zona 1 (aldea, 3 oleadas) → zona 2 (bosque, 3 oleadas)
+→ zona 3 (santuario: escena con los 3 apoyos, la barra se activa, una oleada
+corta) → zona 4 (dojo: 1 oleada y el jefe) → escena del villano huyendo con
+el Señor Pimentón → «STAGE CLEAR», puntuación → «STAGE 2 / COMING SOON»
+(spec §7). Arte de Pixellab donde lo haya y placeholders numerados donde no
+(decisión 22); la intro con placeholders. **Sin audio** (decisión 27).
 
-**Criterio de salida:** el nivel corre a 60 FPS estables en Mesen sin
-glitches gráficos ni de audio, y representa fielmente el "target" de calidad
-del proyecto.
+**Criterio de salida:** la fase 1 se juega entera en Mesen a 60 FPS, sin
+crashes ni trozos de sprite perdidos en el caso típico, con el VBlank dentro
+de la línea 37; la lógica pura (mundo, combate, oleadas, IA, apoyos, doble
+toque) tiene pruebas en el PC que recorren los datos reales de las zonas, y
+una ROM con guion juega la fase sin manos.
 
 ### Ítems técnicos a estudiar
 
-- [ ] **Pipeline de arte pixel** (creación de sprites y tiles) — hay que
-      producir el arte real del juego (personaje, escenario, enemigos);
-      herramientas como Aseprite están pensadas específicamente para pixel
-      art con paletas limitadas, como exige SNES.
-      Recursos: `aseprite.org` (documentación oficial); paleta de 15-bit
-      color de SNES (`wiki.superfamicom.org`, sección "Palettes/CGRAM").
-- [ ] **Conversión de assets con las herramientas de PVSnesLib** — el arte
-      no se importa directo; hay un paso de conversión de PNG/BMP a los
-      formatos binarios que la PPU entiende (`.pic`, `.pal`, `.map`), como se
-      ve en los archivos de LikeMario (`mario_sprite.pic`, `tiles.pal`,
-      etc.).
-      Recursos: `github.com/alekmaul/pvsneslib` (documentación de
-      herramientas gráficas); los propios archivos de
-      `examples/likemario` como referencia.
-- [ ] **Editores de tilemap (Tiled)** — LikeMario ya usa Tiled (`.tmx`) para
-      diseñar el mapa del nivel (`map_1_1.tmx`); es el estándar de facto
-      para diseño de niveles 2D basados en tiles.
-      Recursos: `mapeditor.org` (documentación oficial de Tiled).
-- [ ] **Formato de audio BRR y el SPC700** — el audio de sample (efectos de
-      sonido) en SNES se codifica en un formato de compresión propio (BRR);
-      sin entenderlo no se puede producir ni depurar sonido.
-      Recursos: `wiki.superfamicom.org` (sección "SPC700 / Audio"); el par
-      `mariojump.brr`/`.wav` en LikeMario como caso de estudio de
-      conversión.
-- [ ] **Música con trackers (formato .it)** — LikeMario usa `overworld.it`
-      (formato Impulse Tracker); PVSnesLib convierte música de trackers a un
-      formato reproducible por el SPC700.
-      Recursos: documentación de OpenMPT (editor de trackers `.it`
-      gratuito); `audio/music` del SDK.
-- [ ] **DMA (Direct Memory Access)** — transferir tiles/paletas/sprites a
-      VRAM/CGRAM es demasiado lento con CPU normal; el DMA permite copiar
-      bloques grandes de datos eficientemente durante VBlank.
-      Recursos: `wiki.superfamicom.org` (sección "DMA"); `graphics/Effects`
-      del SDK suele mostrar casos de uso.
-- [ ] **Animación de sprites (OAM, spritesheets)** — el personaje necesita
-      animarse (correr, saltar); esto implica ciclar qué tile muestra cada
-      entrada de OAM en sincronía con el estado del personaje.
-      Recursos: `graphics/Sprites` del SDK; `mario_sprite.inc` de LikeMario
-      como referencia de estructura.
-- [ ] **Organización de banking de ROM** — con 8 bancos disponibles, hay que
-      decidir en qué banco vive cada tipo de dato (código, gráficos, audio)
-      para no quedarse sin espacio ni generar conflictos de dirección.
-      Recursos: `wiki.superfamicom.org` (sección "Memory Mapping /
-      Banking"); `systems/memory_mapping` del SDK.
+- [ ] **Bárbara y el relevo** — `barbara.c` y `cambio_protagonista.c` pasan
+      de stub a código; los dos comparten la celda de VRAM y la paleta 0 (al
+      relevar se copian 32 bytes de paleta); golpe de entrada, enfriamiento,
+      curación de quien espera, caída de los dos (spec §4).
+      `tarou_sprite.c` pasa a `protagonista_sprite.c`.
+- [ ] **Envainar automático de Tarou** — regla del estado del juego (oleada
+      activa o no), no un botón (decisión 8, spec §4).
+- [ ] **Combate completo** — combo, agarre (golpe y lanzamiento, el lanzado
+      golpea a otros), ataque aéreo, especial A+B que cuesta vida solo si
+      conecta, invulnerabilidad al levantarse, parada de impacto, destello
+      por la lista de DMA (spec §5.3).
+- [ ] **IA por turnos** — como mucho 2 enemigos atacando a la vez (un
+      «testigo» que se pasan); los demás rodean o esperan. Comportamientos
+      del ninja básico, el rápido (proyectiles por y, cambia de carril) y el
+      kendoka pesado (bloqueo frontal, agarre); el jefe por fases de vida
+      (spec §6). Variantes por paleta.
+- [ ] **Oleadas y zonas desde Tiled** — capa lógica de carril/pared/borde
+      con celdas de 16 px; objetos `inicio`, `limite_zona`, `oleada`,
+      `rompible`, `escena`, `jefe`, `salida`; `scripts/preparar_zona.py`
+      genera `fondo_cerca.png` y `zonaN_datos.h` (spec §7). `oleadas.c`
+      bloquea la cámara hasta vencer la oleada y muestra «GO →».
+      Recursos: `mapeditor.org`; `scripts/preparar_nivel.py` como base.
+- [ ] **Carril por columnas** — `carril_arriba[col]` / `carril_abajo[col]`
+      deducidos por el script; una calle se estrecha, el bosque tiene el
+      carril más fino (spec §3, §7).
+- [ ] **Carga de zona con la pantalla apagada** — fundido con mosaico, cada
+      zona con su propio juego de tiles (spec §7).
+- [ ] **Paletas de sprite y matemática de color** — reparto fijo de las 8
+      paletas: 0–3 cuerpos opacos; **4–7** sombras, chispas, apoyo activo y
+      objetos, porque solo las paletas 4–7 entran en la matemática de color.
+      El modo de color es **global** (`CGWSEL/CGADSUB`, como mucho por línea
+      con HDMA): en el combate, media suma con la secundaria (las sombras
+      oscurecen y el resto sale translúcido); la suma con el color fijo, solo
+      en apoyos, pausa y escenas (spec §8).
+      Recursos: `docs/hardware-snes-por-modulo.md` (CGRAM, `CGWSEL/CGADSUB`).
+- [ ] **Apoyos y sus efectos de pantalla** — `apoyos.c` + `efectos.c`: la
+      gata con **ventanas 1+2 dibujadas por HDMA** en diagonal y suma de
+      color; el monje con **mosaico** pulsante y **scroll por línea** (HDMA
+      sobre el scroll de BG2, ondulación); el bruto con temblor de pantalla
+      (spec §5.4; detalle en `arte-beat-em-up.md` §6). Durante el apoyo la
+      segunda celda de VRAM del protagonista se presta a sus cuadros.
+      Recursos: el motor de escenas y la ventana del brillo del logo de
+      Nintendo (`escena/efectos.c`), que ya usan HDMA indirecto.
+- [ ] **HUD del juego en BG3** — vidas, barras, barra de ataque, apoyo
+      elegido; prioridad alta; retratos en sprites en las líneas de arriba
+      (spec §8). `hud/hud_juego.c`.
+- [ ] **Objetos** — rompibles, comida que cura, armas arrojadizas (shuriken,
+      kunai), vida extra escondida (decisión 25). `objetos/*`.
+- [ ] **Escena del santuario con el motor de escenas** — cuadros de texto
+      en inglés; al terminar, la barra queda activa (decisión 26).
+      `pantallas/pantalla_santuario.c`.
+- [ ] **Intro rehecha** — 3 escenas nuevas con placeholders (decisión 5).
+- [ ] **Pausa** — Start pausa; en pausa, Select vuelve al título
+      (decisión 32).
+- [ ] **Mode 7 en escenas** — _no decidido; la spec no lo pide._ Se dejó
+      fuera de la demo de arranque (Etapa 1.5); queda como técnica a
+      estudiar si alguna escena (santuario, final del jefe, intro) lo
+      necesita.
+      Recursos: `graphics/Backgrounds/Mode7` del SDK.
+- [ ] **Organización de banking de ROM** — con 128 bancos de 32 KB, cada
+      zona, personaje y tira de animación en su sección `superfree`.
+      Recursos: `data.asm` del proyecto; `wiki.superfamicom.org` (sección
+      "Memory Mapping / Banking").
+
+**Pendientes de la spec que tocan esta etapa** (spec §12): nombres del
+villano, del lugarteniente y de los apoyos; el sprite del Señor Pimentón
+(dejarlo en `res/descargas/graficos/` y decir su tamaño); el ataque
+corriendo (propuesto, no decidido); las cifras de combate, que se ajustan
+jugando.
 
 ---
 
 ## Etapa 4 — Producción
 
-**Objetivo:** escalar el vertical slice a la totalidad del contenido del
-juego: todos los niveles, todos los enemigos/objetos, y los sistemas
-restantes que el vertical slice no necesitó cubrir (HUD completo, power-ups,
-IA de enemigos, etc.). En esta etapa se incorporan también los elementos que
-el primer nivel dejó afuera a propósito: Bárbara, el cambio de personaje
-estilo Donkey Kong Country, y las etapas de vida adulta y vieja de Tarou.
+**Objetivo:** escalar la fase 1 a todas las fases del juego: más zonas,
+más enemigos y jefes, el villano, y el contenido que la Revisión 3 dejó fuera
+a propósito. Aquí se decide y, si se hace, se construye el **cooperativo a
+dos mandos**, que hoy es una meta futura, no un requisito (decisión 1).
 
-**Entregable(s):** todos los niveles planeados en el GDD, implementados y
-jugables de principio a fin, con todo el contenido (enemigos, objetos, HUD)
-integrado.
+**Entregable(s):** todas las fases que se decidan, jugables de principio a
+fin, con su contenido (enemigos, jefes, objetos, escenas) integrado.
 
-**Criterio de salida:** el juego se puede jugar de principio a fin (todos
-los niveles) sin crashes ni bloqueos, aunque todavía no esté balanceado ni
+**Criterio de salida:** el juego se puede jugar de principio a fin (todas
+las fases) sin crashes ni bloqueos, aunque todavía no esté balanceado ni
 pulido.
+
+**Pendiente de decidir** (no está en la spec): cuántas fases tiene el juego,
+dónde transcurre cada una, sus enemigos y jefes nuevos; si se hace el
+cooperativo y cómo encaja con el relevo; si hay un mapa de viaje entre fases
+(fuera de alcance de la Revisión 3, spec §11); si vuelven las etapas de vida
+de Tarou (aparcadas, decisión 9).
 
 ### Ítems técnicos a estudiar
 
-- [ ] **Implementación del cambio de personaje (Tarou/Bárbara)** — llevar a
-      código la mecánica diseñada en la Etapa 1 (inspirada en Donkey Kong
-      Country): gestión de dos actores simultáneos en memoria, input para
-      alternar el control, habilidades diferenciadas entre ambos, y
-      recuperación del compañero perdido.
-      Recursos: tu propio GDD (Etapa 1) con el diseño ya resuelto;
-      `systems/objects` del SDK para la gestión de múltiples entidades.
-- [ ] **Progresión de edad de Tarou** (cachorro → adulto → viejo) —
-      implementar el disparador definido en el GDD (por nivel, capítulo o
-      evento) y los cambios mecánicos asociados a cada etapa de vida
-      (sprite, habilidades, velocidad).
-      Recursos: tu propio GDD (Etapa 1) con las reglas de progresión ya
-      resueltas; `graphics/Sprites` del SDK para el manejo de spritesheets
-      alternativos por etapa de vida.
-- [ ] **Diseño e IA básica de enemigos** (patrones de movimiento, máquinas de
-      estado) — escala el concepto de máquina de estados de la Etapa 2 a
-      múltiples entidades simultáneas con comportamientos propios.
-      Recursos: `systems/objects` del SDK (gestión de múltiples entidades);
-      introducciones generales a "patrones de movimiento en juegos 2D".
-- [ ] **Gestión de múltiples entidades y límites de sprites** — la SNES
-      tiene un límite duro de sprites simultáneos en pantalla (32 en total,
-      34 por línea); hay que gestionar activamente qué entidades existen y
-      se muestran.
-      Recursos: `wiki.superfamicom.org` (sección "OAM / Sprite limits");
-      `systems/objects` del SDK.
-- [ ] **Power-ups y objetos coleccionables** — es contenido de gameplay
-      estándar en plataformers; técnicamente reutiliza colisión + máquina de
-      estados ya construidas.
-      Recursos: tu propio GDD (Etapa 1) como referencia de qué power-ups
-      definiste.
-- [ ] **HUD y renderizado de texto/UI** — mostrar vida, puntaje, tiempo
-      requiere una capa de BG dedicada (o consola de texto) separada del
-      gameplay.
-      Recursos: `systems/scoring` y `systems/typeconsole` del SDK;
-      `consoleInitDefaultText` ya usado en `src/main.c` actual.
-- [ ] **Carga de niveles desde ROM (streaming de datos)** — con múltiples
-      niveles, no se puede tener todo en VRAM/RAM a la vez; hay que
-      cargar/descargar datos de nivel según corresponda.
-      Recursos: `wiki.superfamicom.org` (sección "Memory Mapping");
-      `systems/memory_mapping` del SDK.
-- [ ] **Guardado de partida (SRAM)** — si el juego tiene múltiples niveles,
-      probablemente quieras persistir progreso; SNES usa SRAM en el
-      cartucho con batería para esto.
+- [ ] **Producción de fases con el pipeline de Tiled** — repetir el ciclo
+      `.tmj` → `preparar_zona.py` → datos → pruebas en el PC con cada fase
+      nueva; cada zona con su juego de tiles.
+- [ ] **Más tipos de enemigo y jefes** — escalar la IA por turnos y las
+      variantes por paleta; jefes por fases de vida; el villano (que en la
+      fase 1 solo huye).
+- [ ] **Cooperativo a dos mandos (si se decide)** — dos protagonistas a la
+      vez rompe la regla de una sola celda de VRAM y un solo presupuesto de
+      sprites (spec §4, §8): habría que volver a medir con la prueba de
+      carga.
+      Recursos: `input/controller` del SDK (segundo mando).
+- [ ] **Gestión de múltiples entidades y límites de sprites** — con más
+      enemigos, proyectiles y efectos, mantener el caso típico dentro de las
+      34 ranuras por línea y los 512 tiles de sprite.
+- [ ] **Carga de fases desde ROM (streaming de datos)** — no todo cabe en
+      VRAM/RAM; cargar y descargar datos por zona y por fase.
+      Recursos: `wiki.superfamicom.org` (sección "Memory Mapping").
+- [ ] **Guardado de partida (SRAM)** — _pendiente de decidir_: es un juego
+      arcade de vidas y continues (decisión 12); si hay guardado entre
+      fases, va en SRAM.
       Recursos: `systems/sram` del SDK.
 - [ ] **Presupuesto de rendimiento (cycle budget) por frame** — con más
-      entidades y niveles más complejos, hay que empezar a medir cuántos
-      ciclos de CPU consume cada sistema para no caer por debajo de 60 FPS.
-      Recursos: `wiki.superfamicom.org` (sección "CPU Timing"); Mesen tiene
-      profiler/contador de ciclos integrado.
+      entidades, medir cuántos ciclos consume cada sistema para no caer de
+      60 FPS.
+      Recursos: `wiki.superfamicom.org` (sección "CPU Timing"); el profiler
+      de Mesen; el HUD `LIN`.
+- [ ] **Idea aparcada: etapas de vida de Tarou** (cachorro, adulto, viejo)
+      — solo si el autor la recupera: disparador, sprites alternativos y
+      cambios mecánicos.
 
 ---
 
 ## Etapa 5 — Pulido
 
 **Objetivo:** llevar el juego completo (de la Etapa 4) a un estado pulido:
-rendimiento estable, feedback visual/sonoro satisfactorio ("juice"),
-dificultad balanceada, y sin bugs conocidos.
+**audio** (que se pospuso tras la Revisión 3, decisión 27), rendimiento
+estable, feedback visual y sonoro satisfactorio ("juice"), dificultad
+balanceada, y sin bugs conocidos.
 
-**Entregable(s):** una build "candidata a release" sin bugs críticos
-conocidos, con feedback visual/sonoro en las acciones principales del
-jugador.
+**Entregable(s):** una build "candidata a release" con música y efectos de
+sonido, sin bugs críticos conocidos y con feedback en las acciones
+principales del jugador.
 
 **Criterio de salida:** playtesting completo del juego (por vos y, si es
 posible, por alguien más) sin encontrar bugs bloqueantes ni caídas de
-framerate perceptibles.
+framerate perceptibles, con audio en todas las pantallas.
 
 ### Ítems técnicos a estudiar
 
-- [ ] **"Game feel" / juice** (screen shake, partículas, feedback) — la
-      diferencia entre un prototipo funcional y un juego que "se siente
-      bien" suele estar en estos detalles de feedback, no en las mecánicas
-      base.
-      Recursos: charla "Juice it or lose it" (Martin Jonasson & Petri
-      Purho, disponible en YouTube) — el concepto aplica igual aunque no sea
-      específico de SNES.
-- [ ] **Profiling y optimización de rendimiento** — con todo el contenido
-      integrado, es probable que aparezcan cuellos de botella que no
-      existían en el vertical slice; hay que medir antes de optimizar.
-      Recursos: el profiler/debugger de Mesen; foros/wiki de la comunidad
-      SNES homebrew para tips de optimización específicos del 65816.
-- [ ] **Balance de dificultad y playtesting** — sin testeo externo es fácil
-      sobreestimar qué tan fácil/difícil es tu propio juego, porque lo
-      conocés de memoria.
-      Recursos: ninguno técnico específico; es un proceso (conseguir
-      playtesters), no una tecnología.
-- [ ] **Debugging sistemático de bugs remanentes** — esta etapa es donde se
-      cierra la mayoría de bugs conocidos antes de pasar a QA formal.
-      Recursos: práctica general de debugging sistemático; el debugger de
-      Mesen.
-- [ ] **Menús (pausa, game over)** — son parte de la experiencia completa de
-      un juego "terminado" y suelen postergarse hasta esta etapa porque no
-      bloquean el gameplay core. _La pantalla de título se adelantó a la
-      Etapa 1.5 como parte de la demo técnica de arranque._
-      Recursos: `graphics/Backgrounds` y `systems/gastates` del SDK (para
-      las transiciones de estado entre menús y gameplay).
+- [ ] **Pipeline de audio SPC** (`.it` → `smconv` → soundbank;
+      `.wav` → `snesbrr` → `.brr`) — pendiente desde la Etapa 1.5: jingles
+      de logos, música de arranque, título y fases.
+      Recursos: `audio/music` y `audio/effectsandmusic` del SDK;
+      `pvsneslib_snesmod.txt`; la unidad 17 del curso.
+- [ ] **Formato de audio BRR y el SPC700** — efectos de golpe, corte,
+      derribo, relevo y apoyos.
+      Recursos: `wiki.superfamicom.org` (sección "SPC700 / Audio").
+- [ ] **Música con trackers (formato .it)** — una pista por zona o fase, más
+      el jefe.
+      Recursos: documentación de OpenMPT; `audio/music` del SDK.
+- [ ] **"Game feel" / juice** — en un beat 'em up es la parada de impacto,
+      el destello, las chispas, el temblor de pantalla y el sonido de cada
+      golpe; ajustar las cifras de combate jugando (spec §12).
+      Recursos: charla "Juice it or lose it" (Martin Jonasson & Petri Purho).
+- [ ] **Profiling y optimización de rendimiento** — medir antes de
+      optimizar, con todo el contenido integrado.
+      Recursos: el profiler/debugger de Mesen; el HUD de depuración.
+- [ ] **Balance de dificultad y playtesting** — vida y daño por enemigo,
+      tamaño de las oleadas, coste del especial, ritmo de la barra de ataque.
+      Recursos: conseguir playtesters (es un proceso, no una tecnología).
+- [ ] **Debugging sistemático de bugs remanentes** — esta etapa cierra la
+      mayoría de bugs conocidos antes de pasar a QA formal.
+      Recursos: el debugger de Mesen; las ROM con guion.
+- [ ] **Menús y pantallas de fin (game over, continue, puntuación final)** —
+      la pausa y el «STAGE CLEAR» llegan en la Etapa 3; aquí se pulen y se
+      completan. _La pantalla de título se adelantó a la Etapa 1.5._
+      Recursos: `systems/gastates` del SDK.
+- [ ] **Arte final de la intro** — fuera de alcance de la Revisión 3
+      (spec §11); sustituye a los placeholders.
 
 ---
 
 ## Etapa 6 — Alpha/Beta/QA y Lanzamiento
 
 **Objetivo:** validar que el juego funciona correctamente en hardware real
-de SNES (no solo en Mesen), pasar por un proceso de QA formal, y
-empaquetar/distribuir el resultado final.
+de SNES (no solo en Mesen) y pasar por un proceso de QA formal. Por premisa
+(proyecto personal), no hay distribución.
 
 **Entregable(s):** una ROM final validada en al menos un dispositivo de
-hardware real, con un plan de distribución definido (digital y/o físico).
+hardware real.
 
 **Criterio de salida:** el juego corre correctamente en hardware real de
 principio a fin, sin diferencias de comportamiento respecto al emulador que
@@ -629,36 +789,31 @@ afecten la jugabilidad.
 ### Ítems técnicos a estudiar
 
 - [ ] **Diferencias entre emulador y hardware real** — Mesen es muy
-      preciso, pero ningún emulador es 100% idéntico al hardware; timings
-      límite, quirks de PPU/APU no emulados o comportamientos de hardware
-      real solo aparecen al testear en consola de verdad.
-      Recursos: `wiki.superfamicom.org` (secciones que documentan
-      comportamientos "reales" vs supuestos); comunidades de SNES homebrew.
+      preciso, pero ningún emulador es 100% idéntico al hardware. En este
+      género conviene revisar en consola lo que vive al límite: el VBlank
+      lleno de DMA, las bandas de cine (forced blank a mitad de pantalla), las
+      IRQ de línea, el HDMA de ventanas y scroll de los apoyos y el
+      límite de sprites por línea.
+      Recursos: `wiki.superfamicom.org`; comunidades de SNES homebrew.
 - [ ] **Flashcarts para testing en hardware real** (SD2SNES/FXPAK Pro,
-      EverDrive) — es la forma estándar de correr una ROM homebrew en una
-      SNES real sin fabricar un cartucho físico dedicado; es un paso
-      intermedio obligatorio antes de pensar en cartuchos.
+      EverDrive) — la forma estándar de correr una ROM homebrew en una SNES
+      real; comprobar que la ROM FastROM de 4 MB arranca.
       Recursos: documentación oficial de FXPak Pro (`krikzz.com`) y de
       EverDrive.
 - [ ] **Checksum y cabecera de ROM (compatibilidad de hardware)** — la SNES
-      real (y los flashcarts) validan ciertos campos de la cabecera del
-      cartucho (ya generada en `hdr.asm`); errores acá pueden hacer que la
-      ROM no arranque en hardware real aunque funcione perfecto en Mesen.
-      Recursos: `wiki.superfamicom.org` (sección "ROM Header"); tu propio
-      `hdr.asm` generado como caso de estudio.
-- [ ] **QA formal** (test plans, matrices de prueba) — a esta escala de
-      proyecto conviene un mínimo de proceso de QA estructurado (qué se
-      prueba, en qué dispositivos, qué se considera "bug bloqueante") en vez
-      de testeo puramente ad-hoc.
-      Recursos: introducciones generales a "test plans para videojuegos"
-      (no específico de SNES).
+      real (y los flashcarts) validan campos de la cabecera (`hdr.asm`);
+      errores acá pueden hacer que la ROM no arranque en hardware real.
+      Recursos: `wiki.superfamicom.org` (sección "ROM Header").
+- [ ] **QA formal** (test plans, matrices de prueba) — qué se prueba, en
+      qué dispositivos, qué es un bug bloqueante. Las ROM con guion y las
+      pruebas en el PC son la base automática; el plan añade las partidas a
+      mano (relevo en cada estado, apoyos con la pantalla llena, caída de los
+      dos protagonistas, continues).
+      Recursos: introducciones generales a "test plans para videojuegos".
 - [ ] **Empaquetado físico opcional** (PCB de cartucho, carcasas) — si en
-      algún momento querés un cartucho físico real (no solo flashcart), hay
-      un ecosistema de fabricantes de PCBs/carcasas de la escena homebrew a
-      investigar.
-      Recursos: comunidad de `romhacking.net` y foros de homebrew SNES
-      (buscar proveedores de PCB homebrew específicamente al llegar a esta
-      etapa).
+      algún momento querés un cartucho físico real, hay un ecosistema de
+      fabricantes de la escena homebrew a investigar.
+      Recursos: `romhacking.net` y foros de homebrew SNES.
 - [ ] ~~**Distribución y consideraciones legales**~~ — **no aplica** por
       premisa (proyecto personal, sin distribución; ver Premisas). Se deja el
       texto original por si la premisa cambia: publicar un juego

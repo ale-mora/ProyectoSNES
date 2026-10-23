@@ -1,5 +1,9 @@
 # Diseño — Nivel 1 como tutorial de movimiento
 
+> **Documento histórico (2026-10-23).** Describe la Revisión 2 de cuando el juego era un
+> plataformas; el código está en el tag `plataformas-r2`. El juego actual es un beat 'em up:
+> `docs/diseno-beat-em-up.md`.
+
 **Proyecto:** _Tarou: A Dog's Journey_ · **Etapa del plan:** 2 (Prototipo) ·
 **Revisión:** 2 · **Fecha de esta versión:** 2026-10-20 · **Estado:** hecho y
 verificado: el tutorial se juega de principio a fin en Mesen (§8). Arte

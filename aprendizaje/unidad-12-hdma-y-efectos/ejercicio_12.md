@@ -70,7 +70,10 @@ Trabaja en **tu clon** (nunca en `E:\ProyectoSNES`):
 
 ```
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u12
+git -C E:\ProyectoSNES_trabajo\u12 checkout -q plataformas-r2
 ```
+
+(`plataformas-r2` es el tag de la Revisión 2, el código contra el que se verificó esta práctica; el juego actual pasa a ser un beat 'em up.)
 
 - **TODO 1.** Crea `src/escena/escena_publisher.h` y `.c` (con la cabecera
   estándar) con la tabla `ESCENA_PUBLISHER`, que dure **244 frames** (si dura

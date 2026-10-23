@@ -13,7 +13,9 @@ dibuja**. Por eso no se toca `animaciones.c` ni el `enum Estado` (pregunta 3).
 **Desde el 2026-10-22 la guardia ya está en el juego**: el autor adoptó esta
 solución. Para hacer el ejercicio, vuelve en tu clon al commit anterior a
 ese cambio, `6d12030`, en el que la guardia todavía no existe; al terminar,
-compara tu resultado con el juego actual (`git diff 6d12030 HEAD`).
+compara tu resultado con la versión adoptada, la de la Revisión 2
+(`git diff 6d12030 plataformas-r2`; el tag guarda el juego de plataformas, y
+la rama principal pasa a ser un beat 'em up, `docs/diseno-beat-em-up.md`).
 
 Trabaja en un **clon** (los cambios no van a la rama principal; `PLAN.md` §2):
 

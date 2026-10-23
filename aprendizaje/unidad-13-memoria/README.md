@@ -20,6 +20,7 @@ clon (nunca en `E:\ProyectoSNES`):
 
 ```
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u13
+git -C E:\ProyectoSNES_trabajo\u13 checkout -q plataformas-r2
 cd E:\ProyectoSNES_trabajo\u13
 $env:PVSNESLIB_HOME="/e/ProyectoSNES/tools/pvsneslib"; $env:PATH="E:\ProyectoSNES\tools\pvsneslib\devkitsnes\bin;C:\msys64\usr\bin;"+$env:PATH; make
 ```
@@ -27,7 +28,11 @@ $env:PVSNESLIB_HOME="/e/ProyectoSNES/tools/pvsneslib"; $env:PATH="E:\ProyectoSNE
 Deja `ProyectoSNES.sfc`, `ProyectoSNES.sym` y `ProyectoSNES.log`. Todas las
 direcciones de esta unidad salen de esa compilación (2026-10-22, rama
 `demo-secuencia-arranque`). **Cambian** cuando cambia el código: búscalas
-siempre en tu `.sym`.
+siempre en tu `.sym`. El clon se fija en el tag `plataformas-r2` (la
+Revisión 2) porque el ejercicio busca la rejilla de colisión del tutorial
+(`nivel1_colision`, `res/nivel1/colision.bin`), que sale del juego actual, un
+beat 'em up (`docs/diseno-beat-em-up.md`); el resto de la unidad (mapa de
+memoria, bancos, `.sym`, `.log`) vale igual para el juego nuevo.
 
 ## Conceptos
 

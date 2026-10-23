@@ -74,8 +74,9 @@ nivel 1:
 
 ## Parte D (opcional) — La trampa del `tcc__mul`, medida
 
-En un clon propio (`git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio`),
-nunca en el repositorio:
+En un clon propio (`git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio`
+y `git -C E:\ProyectoSNES_trabajo\mio checkout -q plataformas-r2`, el tag de la
+Revisión 2 contra el que se midió), nunca en el repositorio:
 
 1. Quita el campo `u16 libre;` de `CopiaBloque` (`src/juego/metasprite.h`) y
    la línea `salida[copias].libre = 0;` de `metasprite.c`.

@@ -356,7 +356,9 @@ entero (cero o no cero) y dan 0 o 1; `&`, `|` y `~` trabajan bit a bit.
 
 Desplazar a la izquierda n sitios multiplica por 2ⁿ, y a la derecha divide
 (si el número no es negativo): `x >> 4` es `x / 16`. El juego lo usa para
-pasar de píxeles a celdas de 16 px (`src/juego/colision.c:65`). Qué pasa
+pasar de píxeles a celdas de 16 px (`src/juego/colision.c:65`, en el tag
+`plataformas-r2`: la rejilla de colisión era del juego de plataformas y sale
+del beat 'em up). Qué pasa
 cuando los bits se salen por la izquierda, con los negativos y cuánto
 cuestan `/` y `%` en la SNES es tema de la unidad 01.
 
@@ -885,7 +887,7 @@ que **reconocer** es cada pieza del lenguaje.
 | Bits sumados con `\|`: `BOTON_IZQUIERDA 0x01` ... `BOTON_ESPADA 0x40` | `src/juego/guion.h:35-41` |
 | Espejo de un sprite: `\| METASPRITE_HFLIP` (`0x40`) | `src/juego/metasprite.c:40` |
 | Bit de prioridad de un tile: `TILE(c)` con `\| 0x2000` | `src/juego/hud_debug.c:85` |
-| Desplazamientos en vez de multiplicar o dividir: `>> 4`, `<< 7` | `src/juego/colision.c:65` |
+| Desplazamientos en vez de multiplicar o dividir: `>> 4`, `<< 7` | `src/juego/colision.c:65` (tag `plataformas-r2`) |
 | `extern` de una variable de otro archivo | `src/sistema/secuencia.h:29` (definida en `secuencia.c:33`) |
 | Variables `static` de archivo | `src/juego/hud_debug.c:91-95`, `src/pantallas/pantalla_nivel1.c:93-97` |
 | Valor a mano en una función de inicio (las `static` no empiezan a 0 en la SNES) | `src/juego/mando.c:37-42`, `src/sistema/secuencia.c:42` |

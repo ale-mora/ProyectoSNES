@@ -23,6 +23,15 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
 
 ## Diseño (qué hace el juego y por qué)
 
+- **`diseno-beat-em-up.md`** — La especificación de la **Revisión 3** (vigente):
+  el juego pasa a ser un beat 'em up de carril con Tarou y Bárbara, relevo,
+  combate estilo *Final Fight*, 3 apoyos, la fase 1 (aldea, bosque, santuario,
+  dojo) y el presupuesto de hardware que manda (ranuras por línea, VRAM de
+  sprites, VBlank), con la prueba de carga que va primero.
+- **`arte-beat-em-up.md`** — La lista de trabajo del arte de la Revisión 3:
+  animaciones por personaje, enemigos, apoyos, objetos, escenografía por zona,
+  HUD e intro, cada pieza con el truco de la SNES que usa y su estado.
+- *Históricos (plataformas, tag `plataformas-r2`):* los dos siguientes.
 - **`diseno-demo-jugable.md`** — La especificación de la **Revisión 1**:
   Tarou adulto en el nivel 1 con ocho mecánicas, mando, estados, física en
   punto fijo, cámara, metasprites dinámicos, fondos, HUD, pipeline de assets,

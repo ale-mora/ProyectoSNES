@@ -1,5 +1,18 @@
 # Unidad 11 — Animación por estados
 
+> **Lección válida, juego histórico.** Esta unidad enseña sobre el código de
+> la Revisión 2 (plataformas, tag `plataformas-r2`); el juego actual es un
+> beat 'em up ([`docs/diseno-beat-em-up.md`](../../docs/diseno-beat-em-up.md)).
+> El ejercicio se hace en un clon fijado en ese tag (receta en
+> `ejercicio_11.md`): su trampa es el guion del tutorial
+> (`guion_tutorial.c`, `prueba_recorrido`), que sale del juego actual.
+>
+> **Qué se traslada al beat 'em up:** la misma tabla de animaciones indexada
+> por estado, generada por `preparar_personaje.py`, y `anim_terminada` como
+> disparador de transición (el final de un golpe devuelve a `QUIETO` o encadena
+> el combo). Lo nuevo es que cada cuadro llevará además su **caja de daño** y,
+> en los cuadros activos de un golpe, su **caja de golpe** (spec §5.2).
+
 **Objetivo:** que cada estado de Tarou muestre su animación a su ritmo, con
 bucle o sin él; que el cambio de estado reinicie la animación; y que el final
 de una animación pueda **disparar** un cambio de estado. Y afinar ese ritmo

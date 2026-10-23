@@ -7,6 +7,19 @@ lo que el juego decidió **no** usar. Las firmas están copiadas de las cabecera
 del repositorio. La columna «En el juego» se ha comprobado con `grep` sobre
 `src/` sin contar los comentarios (fecha: 2026-10-22).
 
+> **Nota del 2026-10-23: el juego cambia de género.** La columna «En el
+> juego» describe el código de la Revisión 2 (el plataformas), congelado en
+> el tag `plataformas-r2`. Con la Revisión 3, un beat 'em up
+> (`docs/diseno-beat-em-up.md` §10), **salen** del juego `src/juego/colision.c`,
+> `src/juego/partida.c`, `src/juego/guion_tutorial.c`, `res/nivel1/*` del
+> tutorial (y con ellos `scripts/preparar_nivel.py`, al que sucede
+> `preparar_zona.py`) y la física de plataformas de `tarou.c`; **cambian de
+> nombre** `src/pantallas/pantalla_nivel1.c` (→ `pantalla_fase1.c`) y
+> `src/juego/tarou_sprite.c` (→ `protagonista_sprite.c`). Las citas a esos
+> archivos se dejan como están: siguen siendo ciertas en el tag, que es donde
+> las prácticas de las unidades 00–20 se hacen. Se marcan con «(tag)» las de
+> los archivos que salen.
+
 ## 1. Qué es y dónde está
 
 **PVSnesLib** es el SDK en C para la SNES que usa el proyecto: el compilador
@@ -274,7 +287,7 @@ proyecto no los usa (regla de `CLAUDE.md`).
 | `snes_rules`, `buildWithSummary` | — | `tools/pvsneslib/devkitsnes/snes_rules` | la tubería de `make` del SDK | [03](unidad-03-tuberia-de-compilacion/), [18](unidad-18-herramientas/) | `Makefile` |
 | `gfx4snes` | — | `tools/pvsneslib/devkitsnes/tools/` | PNG/BMP → `.pic`, `.pal`, `.map`, `_meta.inc` (`-T`), tabla HDMA (`-n`) | [06](unidad-06-tiles-y-fondos/), [18](unidad-18-herramientas/), [19](unidad-19-del-arte-al-juego/) | `Makefile` |
 | `smconv`, `snesbrr` | — | herramientas del SDK | soundbank desde `.it`; WAV → BRR | [17](unidad-17-audio/) | — |
-| `tmx2snes` | — | `tools/pvsneslib/devkitsnes/tools/tmx2snes.exe` | Tiled → `.m16`/`.b16`/`.o16` del motor de mapas | [20](unidad-20-colision/) | — (el juego tiene `scripts/preparar_nivel.py`) |
+| `tmx2snes` | — | `tools/pvsneslib/devkitsnes/tools/tmx2snes.exe` | Tiled → `.m16`/`.b16`/`.o16` del motor de mapas | [20](unidad-20-colision/) | — (el juego tiene `scripts/preparar_nivel.py`, tag) |
 
 **Registros que el SDK no define** y el juego define él: `REG_DASB6`
 (`$4367`, banco de los datos del HDMA indirecto del canal 6) en
@@ -347,8 +360,8 @@ compilando.
 |---|---|---|---|
 | El **motor dinámico de sprites** (`oamInitDynamicSprite`, `oamMetaDrawDyn32`, `oamVramQueueUpdate`, `oamInitDynamicSpriteEndFrame`) | motor propio desde el 2026-10-21: `oamSet` por pieza, dos celdas de VRAM y los 3 KB del cuadro nuevo repartidos en dos VBlanks por la lista de DMA (`src/juego/tarou_sprite.c`, `metasprite.c`) | su subida costaba 32 líneas; con las columnas del fondo el VBlank pasaba de 37 y Tarou salía «a trozos» | [09](unidad-09-metasprites/) |
 | `dmaCopyVram` para las columnas del fondo y el HUD (y `dmaCopyVram7`) | la **lista de DMA** (`src/juego/dma_lista.c` + `dma_ejecutar.asm`): se apunta durante el frame y en el VBlank solo se escriben registros, con `VMAIN = 0x81` para columnas | `dmaCopyVram` fija `VMAIN = 0x80`; cada llamada desde C cuesta cientos de instrucciones dentro del VBlank (dos columnas: 9 de 37 líneas) | [07](unidad-07-scroll-y-camara/), [20](unidad-20-colision/) |
-| El **motor de mapas** (`mapLoad`, `mapUpdate`, `mapVblank`...) y `tmx2snes` | rejilla propia de 128×14 (`src/juego/colision.c`), streaming de columnas (`fondo_nivel.c`) y `scripts/preparar_nivel.py` desde Tiled | no se puede cambiar el mapa en marcha (el tronco), el arte es de rejilla doble, trae su propia cámara | [20](unidad-20-colision/) |
-| El **motor de objetos** (`objCollidMap`, `objUpdateXY`...) | la física de Tarou (`src/juego/tarou.c`), probada en el PC | habría sustituido una física ya escrita y probada (dos pies, túnel, agacharse) | [20](unidad-20-colision/) |
+| El **motor de mapas** (`mapLoad`, `mapUpdate`, `mapVblank`...) y `tmx2snes` | rejilla propia de 128×14 (`src/juego/colision.c`, tag), streaming de columnas (`fondo_nivel.c`, se queda) y `scripts/preparar_nivel.py` desde Tiled (tag; en el beat 'em up, `preparar_zona.py`) | no se puede cambiar el mapa en marcha (el tronco), el arte es de rejilla doble, trae su propia cámara | [20](unidad-20-colision/) |
+| El **motor de objetos** (`objCollidMap`, `objUpdateXY`...) | la física de Tarou (`src/juego/tarou.c`; la de plataformas, tag), probada en el PC | habría sustituido una física ya escrita y probada (dos pies, túnel, agacharse) | [20](unidad-20-colision/) |
 | `nmiSet` (rutina propia en la NMI) | `secuencia_vblank()` justo después de `WaitForVBlank()` en `src/sistema/main.c` | solo corre en frames buenos, ve los datos del frame terminados y es C normal; el precio es empezar unas líneas más tarde | [04](unidad-04-frame-y-vblank/) |
 | `setFadeEffectEx`/`setMosaicEffect` **para el logo Nintendo** (sí los usa en otras pantallas: `comun.c`, `pantalla_intro.c`) | el motor de escenas (`src/escena/`): brillo con `setBrightness`, mosaico, ventana y luz con `REG_xxx`, un byte por frame | las funciones bloquean 32-48 frames y no se pueden mezclar; la ventana con HDMA indirecto no existe en la librería | [12](unidad-12-hdma-y-efectos/) |
 | `setColorEffect`, `setColorIntensity`, `setModeHdmaWindow` | `REG_CGWSEL`, `REG_CGADSUB`, `REG_COLDATA`, `REG_WOBJSEL`, `REG_WH0/1` y el canal 6 a mano (`src/escena/efectos.c`) | el destello necesita HDMA indirecto movido cambiando 2 bytes | [12](unidad-12-hdma-y-efectos/) |

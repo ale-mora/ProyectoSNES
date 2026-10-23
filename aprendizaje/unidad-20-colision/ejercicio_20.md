@@ -5,9 +5,20 @@ regenerar el nivel, ver cómo las pruebas detectan que el guion ya no llega a la
 salida, y arreglar el guion con una traza de x/y por cuadro hasta que pase.
 Después, verlo en la ROM de prueba que se juega sola.
 
-Trabaja en una rama propia o en un clon (`git clone E:\ProyectoSNES
-E:\ProyectoSNES_trabajo\mio`): los cambios no se confirman en la rama
-principal. En un clon, `res/descargas/` no existe (git la ignora) y
+Trabaja en un clon fijado en el tag de la Revisión 2 (o en una rama propia
+creada desde él, `git switch -c mio plataformas-r2`): los cambios no se
+confirman en la rama principal, que ya no tendrá el tutorial.
+
+```text
+git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio
+git -C E:\ProyectoSNES_trabajo\mio checkout -q plataformas-r2
+```
+
+Los comandos de `gcc` con `../../` se ejecutan desde
+`E:\ProyectoSNES_trabajo\mio\aprendizaje\unidad-20-colision\` (la copia de la
+unidad dentro del clon), para que compilen el código del tag.
+
+En un clon, `res/descargas/` no existe (git la ignora) y
 `preparar_nivel.py` necesita la hoja de Pixellab del suelo: copia
 `E:\ProyectoSNES\res\descargas\graficos\pixellab\suelo\*.png` a la misma ruta del
 clon. Los comandos de compilar van en **PowerShell** (con el entorno de la

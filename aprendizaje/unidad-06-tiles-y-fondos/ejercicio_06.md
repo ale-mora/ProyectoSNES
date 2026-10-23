@@ -101,7 +101,12 @@ en Mesen, abre **Debug → Tilemap Viewer**:
 La capa cercana del tutorial, `res/nivel1/fondo_cerca.png`, mide 2080×256 px:
 260 × 32 = 8320 celdas de 8×8. Convierte una **copia** con tres juegos de
 opciones y compara el tamaño de los `.pic` (bytes / 32 = tiles). En una
-carpeta temporal, nunca en `res/` (allí `make` regenera los suyos):
+carpeta temporal, nunca en `res/` (allí `make` regenera los suyos). La capa
+es del tutorial de la Revisión 2: si ya no está en la rama principal (el
+juego actual es un beat 'em up), cópiala de un clon fijado en el tag
+(`git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u06` y
+`git -C E:\ProyectoSNES_trabajo\u06 checkout -q plataformas-r2`) y cambia la
+ruta del primer `copy`:
 
 ```
 $g="E:\ProyectoSNES\tools\pvsneslib\devkitsnes\tools\gfx4snes.exe"

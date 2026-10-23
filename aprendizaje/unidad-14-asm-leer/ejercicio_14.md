@@ -10,6 +10,7 @@ y un punto de ruptura en Mesen. Antes: haber leído el `README.md` de la unidad 
 
 ```
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mi_u14
+git -C E:\ProyectoSNES_trabajo\mi_u14 checkout -q plataformas-r2
 cd E:\ProyectoSNES_trabajo\mi_u14
 $env:PVSNESLIB_HOME="/e/ProyectoSNES/tools/pvsneslib"; $env:PATH="E:\ProyectoSNES\tools\pvsneslib\devkitsnes\bin;C:\msys64\usr\bin;"+$env:PATH
 make                                   # una vez entera: genera los gráficos que

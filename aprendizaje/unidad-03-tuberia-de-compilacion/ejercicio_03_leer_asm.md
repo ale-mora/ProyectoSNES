@@ -37,6 +37,7 @@ generados no deben ir a parar al repositorio):
 
 ```
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio
+git -C E:\ProyectoSNES_trabajo\mio checkout -q plataformas-r2
 cd E:\ProyectoSNES_trabajo\mio
 $env:PVSNESLIB_HOME="/e/ProyectoSNES/tools/pvsneslib"; $env:PATH="E:\ProyectoSNES\tools\pvsneslib\devkitsnes\bin;C:\msys64\usr\bin;"+$env:PATH
 make src/juego/camara.asm

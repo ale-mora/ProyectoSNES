@@ -9,10 +9,16 @@ de la unidad y la mini-ROM de `rom/` compilada y leída.
 
 ```
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mi_u15
+git -C E:\ProyectoSNES_trabajo\mi_u15 checkout -q plataformas-r2
 cd E:\ProyectoSNES_trabajo\mi_u15
 git apply E:\ProyectoSNES\aprendizaje\unidad-15-asm-escribir\andamio_hud_debug.c.patch
 copy E:\ProyectoSNES\aprendizaje\unidad-15-asm-escribir\ejercicio_15_hud_numero.asm src\juego\hud_numero.asm
 ```
+
+El clon se fija en el tag `plataformas-r2` (la Revisión 2): los parches se
+hicieron contra ese código y la ampliación reescribe `colision_apoyan` de
+`src/juego/colision.c`, que sale del juego actual (un beat 'em up,
+`docs/diseno-beat-em-up.md`). `hud_debug.c` se queda en el juego nuevo.
 
 El **andamio** (`andamio_hud_debug.c.patch`) prepara `src/juego/hud_debug.c`
 para el ejercicio, sin tocar nada si no se pide:

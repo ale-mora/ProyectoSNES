@@ -9,7 +9,11 @@ Trabaja en tu propia copia (nunca en la rama principal):
 
 ```
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio11
+git -C E:\ProyectoSNES_trabajo\mio11 checkout -q plataformas-r2
 ```
+
+(`plataformas-r2` es el tag de la Revisión 2, el código que enseña esta
+unidad.)
 
 ## Parte A — Decidir con la demo (PC)
 

@@ -1,5 +1,17 @@
 # Unidad 02 — Máquinas de estado
 
+> **Lección válida, juego histórico.** Esta unidad enseña sobre el código de
+> la Revisión 2 (plataformas, tag `plataformas-r2`); el juego actual es un
+> beat 'em up ([`docs/diseno-beat-em-up.md`](../../docs/diseno-beat-em-up.md)).
+> La práctica sobre el juego se hace en un clon fijado en ese tag (abajo,
+> «Dónde trabajar»); las cifras (`367 pruebas`) son las de ese tag.
+>
+> **Qué se traslada al beat 'em up:** el mismo patrón, un `switch` por estado
+> y una animación por estado (spec §5.1). Lo nuevo es que **un luchador cambia
+> el estado de otro** (el golpe que conecta pone al objetivo en `RECIBIR` o
+> `DERRIBADO`), y eso lo resolverá `combate.c`. La pantalla de secuencia
+> (`secuencia.c`) se queda tal cual.
+
 **Objetivo:** modelar «qué está haciendo» algo con una variable y un
 `switch`, y leer con soltura las dos máquinas de estado del juego: la de las
 pantallas (`src/sistema/secuencia.c`) y la del protagonista
@@ -272,9 +284,15 @@ si la condición es falsa, imprime `FALLO archivo:línea: condición`). Lee ante
 `prueba_desenvainar` y `prueba_aterrizaje_caminando` en `tests/prueba_tarou.c`:
 tu prueba se parece a las dos juntas.
 
-**Dónde trabajar.** No en `E:\ProyectoSNES` directamente: en una rama propia
-o en un clon (`git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u02`). Los
-cambios del alumno no se confirman en la rama principal.
+**Dónde trabajar.** No en `E:\ProyectoSNES` directamente: en un clon fijado
+en el tag de la Revisión 2 (la rama principal ya no tendrá este código):
+
+```text
+git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u02
+git -C E:\ProyectoSNES_trabajo\u02 checkout -q plataformas-r2
+```
+
+Los cambios del alumno no se confirman en la rama principal.
 
 **Qué escribir** (`ejercicio`: lo que la prueba tiene que comprobar):
 

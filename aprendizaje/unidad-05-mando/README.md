@@ -145,10 +145,13 @@ solo ve la `struct Mando`, da igual de dónde venga:
 
 - `src/juego/guion.c` (`guion_mando`) convierte un guion en una `struct
   Mando`.
-- `src/juego/guion_tutorial.c` es el recorrido completo del nivel 1 (13
-  tramos: caminar, saltar los escalones, agacharse en el túnel, correr y
-  saltar el foso, romper el tronco...).
-- En el PC, `tests/prueba_recorrido.c` juega el nivel entero con ese guion.
+- `src/juego/guion_tutorial.c` era el recorrido completo del nivel 1 del
+  juego de plataformas (13 tramos: caminar, saltar los escalones, agacharse
+  en el túnel, correr y saltar el foso, romper el tronco...). Sale del juego
+  actual, un beat 'em up (`docs/diseno-beat-em-up.md`), y queda en el tag
+  `plataformas-r2`; `guion.c` se queda y servirá para probar el doble toque.
+- En el PC, `tests/prueba_recorrido.c` jugaba el nivel entero con ese guion
+  (también en el tag).
 - En la SNES, la **ROM de prueba** (`-DGUION_PRUEBA`) usa el mismo guion en
   `mando_leer` en vez del mando: Mesen muestra el recorrido sin que nadie
   pulse nada. Del mando real solo escucha SELECT (HUD) y START (salir).
@@ -255,7 +258,7 @@ prioridad: en el frame 220 `ATTACK` gana a `WALK`; en el 350 `SWORD` gana a
 | `guion_mando`: mantenidos de ahora y de antes, `nuevos = ahora & ~antes` | `src/juego/guion.c` |
 | `mantenidos()` recorriendo la tabla con un puntero (y por qué) | `src/juego/guion.c` |
 | `TramoGuion` y las máscaras propias `BOTON_*` (8 bits: el guion no necesita los 16) | `src/juego/guion.h` |
-| El recorrido del tutorial: 13 tramos con el obstáculo que resuelve cada uno | `src/juego/guion_tutorial.c` |
+| El recorrido del tutorial: 13 tramos con el obstáculo que resuelve cada uno | `src/juego/guion_tutorial.c` (tag `plataformas-r2`) |
 | Dónde se llama: `mando_leer(&mando)` al principio de cada frame; START y SELECT antes que la lógica | `src/pantallas/pantalla_nivel1.c` (`pantalla_nivel1_actualizar`, paso 1) |
 | La asignación de botones (tabla «mantenido / pulsado») | `docs/diseno-demo-jugable.md` §3 |
 | La prioridad el mismo frame | `docs/diseno-demo-jugable.md` §4, «Reglas transversales» |
@@ -310,5 +313,5 @@ una copia aparte, con y sin `-DGUION_MANDO`: «No warnings or errors found.»;
   y `saltar` (mantenido) para alargarlo.
 - **Unidad 16:** la ROM de prueba con guion y las capturas automáticas, a
   fondo.
-- **Unidad 20:** el guion del tutorial y cómo se ajusta con una traza de
-  posiciones cuando cambia el nivel.
+- **Unidad 20:** el guion del tutorial (Revisión 2, tag `plataformas-r2`) y
+  cómo se ajusta con una traza de posiciones cuando cambia el nivel.
