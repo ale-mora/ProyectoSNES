@@ -66,7 +66,8 @@ completando.
 El detalle completo está en [`diseno-beat-em-up.md`](diseno-beat-em-up.md);
 aquí va el resumen que orienta el plan.
 
-- **Protagonistas:** Tarou, un husky, y Bárbara, su mejor amiga. Tarou es
+- **Protagonistas:** Tarou, un perro pastor (el husky es Fenrir; ver
+  [`guion-historia.md`](guion-historia.md)), y Bárbara, su hermana mayor. Tarou es
   **adulto todo el juego** (decisión 9).
 - **Historia (decisión 14):** Japón feudal. Un clan de **ninjas kendokas**
   humanos, liderado por el villano, roba el juguete favorito de Tarou, el

@@ -45,7 +45,7 @@ el juego · `♻` se reutiliza lo que ya hay.
 
 ## 1. Protagonistas
 
-### 1.1 Tarou: 96×64, espada corta, rápido
+### 1.1 Tarou: 96×64, katana en la boca, rápido
 
 | Animación | Cuadros | Origen | Estado |
 |---|---|---|---|
@@ -198,6 +198,11 @@ tiles (hasta 8 KB de VRAM por capa en el mapa actual).
 | tallos de bambú en primer plano | BG1 alto | prioridad: el combate pasa entre los tallos | [ ] |
 | rayos de luz | ventana + color | **ventana 1 por HDMA en diagonal** sobre BG1/BG2. El modo del combate es media suma con la secundaria; que convivan con las sombras **se mide en la prueba de carga**. Si no, se pintan en el propio tileset | [ ] |
 | hojas cayendo | sprites de 16×16 | paleta 7, pocas a la vez (cada una gasta 2 ranuras) | [ ] |
+
+> **Nota (guion, 2026-10-23):** Tarou es un perro pastor (pañuelo naranja), no un husky; el
+> husky es Fenrir. El «santuario» es ahora el **monasterio de Rex**. El jefe de la fase 1
+> es Gomasuri-dono (humano gordo, armadura de colores chillones) y los ninjas comunes son
+> kendokas con bogu negro, con paleta distinta por rango. Ver `guion-historia.md`.
 
 ### 5.3 Santuario (noche)
 
