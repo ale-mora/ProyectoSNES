@@ -29,6 +29,9 @@
 #include "sistema/secuencia.h"   /* Nuestra máquina de estados: secuencia_iniciar/actualizar. */
 #include "sistema/comun.h"       /* video_texto_mode1() y el reparto de la VRAM.             */
 #include "pantallas/personajes.h"  /* personajes_ocultar() al arrancar.                        */
+#ifdef PROTOTIPO
+#include "pantallas/prototipo.h"  /* El prototipo de combate (docs/diseno-beat-em-up.md, Etapa 2). */
+#endif
 #ifdef PRUEBA_CARGA
 #include "pantallas/prueba_carga.h"  /* La ROM de prueba de carga (docs/diseno-beat-em-up.md §9). */
 #endif
@@ -52,7 +55,9 @@ int main(void)
 
     /*--- 2. Arranque de la secuencia ----------------------------------------------
         Entra en la primera pantalla (Nintendo): dibuja su contenido y hace fade in. */
-#if defined(PRUEBA_CARGA)
+#if defined(PROTOTIPO)
+    prototipo_ejecutar();             /* ROM del prototipo de combate (make con -DPROTOTIPO): su bucle. */
+#elif defined(PRUEBA_CARGA)
     prueba_carga_ejecutar();          /* ROM de prueba de carga (make con -DPRUEBA_CARGA):
                                          su propio bucle, no vuelve (pantallas/prueba_carga.h). */
 #elif defined(GUION_PRUEBA)
