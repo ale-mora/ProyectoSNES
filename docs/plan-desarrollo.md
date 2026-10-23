@@ -311,7 +311,7 @@ _(Hoy la ROM es LoROM + FastROM de 128 bancos.)_
       _La premisa (el Señor Pimentón robado por el clan de ninjas kendokas)
       y la fase 1 están en `diseno-beat-em-up.md` (decisiones 14, 23 y 24);
       la lista de las 5 fases, el reparto y el final, en `guion-historia.md`
-      (Rev. 2), con jefes y textos en inglés. Falta el arte de los jefes (§10)._
+      (Rev. 3), con jefes, final y textos en inglés. Falta el arte de los jefes (§10)._
       Recursos: "The Art of Game Design: A Book of Lenses" (secciones de
       narrativa y estructura de niveles).
 

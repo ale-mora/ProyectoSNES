@@ -55,7 +55,7 @@ y del truco de hardware que usa cada pieza está en
 | 11 | Relevo | Botón **L**; quien entra da un **golpe de entrada** que empuja a los cercanos; enfriamiento de ~2 s. |
 | 12 | Vidas | Arcade: 3 vidas, 3 continues, comida que cura, puntuación. |
 | 13 | Enemigos en pantalla | **Se mide antes** con una ROM de prueba de carga (§9). |
-| 14 | Historia | Japón feudal. Los **ninjas kendokas** de la federación «Autistas Marciales», liderada por **Nikoraemon**, roban el juguete favorito de Tarou, el **Señor Pimentón** (un pimiento rojo de goma con forma humana; en verdad una reliquia: un dios antiguo). Tarou y Bárbara son **hermanos** (Tarou, perro pastor; no husky). Bárbara quiere venganza; Tarou, su juguete. Guion completo, final incluido, en [`guion-historia.md`](guion-historia.md) (Rev. 2). |
+| 14 | Historia | Japón feudal. Los **ninjas kendokas** de la federación «Autistas Marciales», liderada por **Nikoraemon**, roban el juguete favorito de Tarou, el **Señor Pimentón** (un pimiento rojo de goma con forma humana; en verdad una reliquia: un dios antiguo). Tarou y Bárbara son **hermanos** (Tarou, perro pastor; no husky). Bárbara quiere venganza; Tarou, su juguete. Guion completo, final incluido, en [`guion-historia.md`](guion-historia.md) (Rev. 3). |
 | 15 | Apoyos | **3 apoyos** que lanzan un poder cuando la **barra de ataque** está llena: **Lucinda**, la gata samurái, muy rápida; **Rex**, el perro monje psíquico (levita, nunca golpea); **Fenrir**, el husky bruto, que embiste y derriba a todos. |
 | 16 | Barra de ataque | Se llena **solo golpeando**; compartida por el dúo; el relevo no la vacía. |
 | 17 | Elegir apoyo | **R** cambia el apoyo elegido (se ve en el HUD); **X** lo invoca con la barra llena. |
