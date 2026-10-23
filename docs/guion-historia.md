@@ -1,7 +1,9 @@
 # Guion de la historia — *Tarou: A Dog's Journey*
 
-Estado: **Revisión 1 del guion (2026-10-23)**, cerrado con el autor en una ronda de
-preguntas. Es diseño narrativo, no código. Complementa a
+Estado: **Revisión 2 del guion (2026-10-23)**. La Rev. 1 fijó tono, reparto y final;
+la Rev. 2 cierra jefes, pelea final, flashback, federación nueva y añade los textos en
+inglés (§11–§13). Las escenas de las fases 2 a 4 son **propuesta** del asistente: el autor
+no fijó preferencia y las revisa aquí. Es diseño narrativo, no código. Complementa a
 [`diseno-beat-em-up.md`](diseno-beat-em-up.md) (Revisión 3) y a
 [`arte-beat-em-up.md`](arte-beat-em-up.md). Donde este guion y la spec chocan, manda este
 guion y la spec debe ajustarse (ver §9).
@@ -37,17 +39,33 @@ Todo el texto en pantalla va en **inglés sencillo con honoríficos japoneses**
 | **Gomasuri-dono** | Humano gordo y pomposo, armadura de samurái de colores chillones. | Lugarteniente, jefe de la fase 1. Adulador que dice que sí a todo («gomasuri» = adulador). |
 | **Ninjas genéricos** | Kendokas con armadura bogu negra. | Enemigos comunes. Un mismo sprite base con **paleta distinta según el rango** (cinturón). Usan shinai o bokken. Torpes y cómicos. |
 
-Los jefes de las fases 2 a 4 aún no tienen nombre ni diseño; cada uno encarna un vicio
-distinto de la corte (pendiente, ver §10).
+Jefes de las fases 2 a 4 (Rev. 2), cada uno un vicio de la corte y un juego de
+palabras japonés, como Gomasuri-dono:
+
+| Fase | Jefe | Vicio | Cómo pelea |
+|---|---|---|---|
+| 2 | **Nigeashi-dono** («pies que huyen») | Cobardía | Huye por el camino entre oleadas, se esconde detrás de sus ninjas y solo pelea acorralado al final de la fase. |
+| 3 | **Hankozuki-dono** («amante del sello») | Burocracia | Guarda la puerta del castillo. Exige formularios y sellos antes de pelear; entre sus ataques se para a sellar papeles (ventana para golpearlo). |
+| 4 | **Nebō-dono** («dormilón») | Pereza | Duerme en el trono del castillo interior; sus ninjas pelean por él. Se despierta furioso cuando le quitan la almohada. |
+
+**Rangos de los ninjas** (paleta del cinturón, de débil a fuerte): **blanco → amarillo →
+verde → rojo**. El rojo es el kendoka pesado. Cada rango tiene un título ridículo que
+sale en el HUD al golpearlo (§12).
 
 ## 3. Cómo se cuenta
 
 Escenas cortas entre fases (3 o 4 cuadros con retrato y texto) más frases sueltas durante
-el juego. La noche del robo se cuenta en una escena corta antes de la fase 1.
+el juego. La noche del robo se cuenta en una escena corta antes de la fase 1, precedida
+por el **flashback** del hallazgo (§4).
 
-## 4. Apertura (noche del robo)
+El poder de Tarou crece **solo en lo narrativo**: destellos en las escenas desde la fase 2;
+en el juego no cambia nada hasta la fase 5.
 
-Cuadros: los ninjas entran en la casa, roban el Señor Pimentón y huyen. Bárbara oye ruido,
+## 4. Apertura (flashback y noche del robo)
+
+Primero, el **flashback** (Tarou cachorro): en el bosque, el cachorro encuentra un
+pimiento rojo de goma entre las raíces; Bárbara, niña, lo recoge y se lo da. Presenta el
+vínculo antes de perder el juguete. Después, la noche del robo. Cuadros: los ninjas entran en la casa, roban el Señor Pimentón y huyen. Bárbara oye ruido,
 Tarou despierta y ve que falta su juguete. Ella se lanza a pelear; él llora por el
 juguete. Arranca la fase 1.
 
@@ -68,10 +86,28 @@ Los hermanos habían ido a pedir consejo a Rex al verse sin juguete; la fase 1 e
 
 | Fase | Contenido |
 |---|---|
-| 2. Camino al castillo | Fenrir se une definitivamente al ver al grupo correr hacia el castillo. Primeros destellos del poder de Tarou. Jefe: vicio de la corte (pendiente). |
-| 3. Castillo exterior | Murallas y patio. Jefe: vicio de la corte (pendiente). |
-| 4. Castillo interior | Interior del castillo. Jefe: vicio de la corte (pendiente). |
-| 5. Ritual final | Nikoraemon. El Señor Pimentón despierta. El jefe final se juega con ambos hermanos (cambio con L). |
+| 2. Camino al castillo | Fenrir se une definitivamente al ver al grupo correr hacia el castillo. Primeros destellos del poder de Tarou. Jefe: **Nigeashi-dono**. |
+| 3. Castillo exterior | Murallas y patio. Jefe: **Hankozuki-dono**. |
+| 4. Castillo interior | Interior del castillo. Jefe: **Nebō-dono**. |
+| 5. Ritual final | Nikoraemon, en **dos etapas** (abajo). El Señor Pimentón despierta. |
+
+**Pelea final (Rev. 2).**
+
+1. **Etapa 1**, con relevo normal (L): Tarou y Bárbara contra Nikoraemon. Al vencerlo,
+   escena: Bárbara le da el golpe final, pero cae con la **rodilla lesionada** y ya no
+   puede pelear.
+2. **Etapa 2**, solo Tarou (L desactivado; si Tarou cae, se pierde una vida): Nikoraemon
+   invoca al Señor Pimentón y **se fusiona** con su poder. Bárbara mira desde el borde y
+   anima. Al vencerlo, el dios lo rechaza (§7).
+
+**Escenas entre fases 2 a 4 (propuesta).**
+
+| Antes de | Cuadros |
+|---|---|
+| Fase 2 | 1) Gomasuri-dono, vencido, aplaude a Nikoraemon mientras este huye. 2) El grupo corre hacia el castillo; Fenrir los adelanta y se queda con ellos. 3) Primer destello: el pañuelo de Tarou brilla un instante; Rex sonríe. |
+| Fase 3 | 1) Nigeashi-dono, acorralado, se rinde y entrega un mapa del castillo... al revés. 2) Ante las murallas, Rex propone hablar; un ninja les responde con un formulario. |
+| Fase 4 | 1) Hankozuki-dono sella su propia derrota («DEFEAT: APPROVED»). 2) Lucinda huele la cocina del castillo y quiere entrar ya. 3) Segundo destello de Tarou, más fuerte. |
+| Fase 5 | 1) Nebō-dono despierta, bosteza y señala la sala del ritual. 2) Nikoraemon prepara el ritual con el Señor Pimentón en el altar. 3) Bárbara y Tarou se miran: «Together.» |
 
 ## 7. Final
 
@@ -80,8 +116,8 @@ Los hermanos habían ido a pedir consejo a Rex al verse sin juguete; la fase 1 e
 - El ritual rechaza a Nikoraemon, que queda derrotado y humillado, y elige a Tarou.
 - La ascensión es una **escena sin control**: despedida luminosa, todos sonríen y Bárbara
   lo entiende. No se trata como una muerte, sino como ternura.
-- **Bárbara** pasa a liderar la federación y funda otra de prosperidad y alegría, con otro
-  nombre (el chiste final). Extraña a Tarou pero sabe que está en un lugar mejor.
+- **Bárbara** pasa a liderar la federación y funda otra de prosperidad y alegría: el
+  **Dojo del Pastor** (*Shepherd's Dojo*), en homenaje a Tarou. Extraña a Tarou pero sabe que está en un lugar mejor.
 - **Rex** sabía todo desde el principio y cumplió su misión de guiarlos.
 - **Lucinda** recibe el título de guerrera más mortífera y la federación la adora como a
   un dios entre mortales.
@@ -112,11 +148,160 @@ ya existen. Faltan Gomasuri-dono, los ninjas genéricos y los jefes de las fases
 - CLAUDE.md sigue describiendo el Tarou del plataformas (arte Pixellab actual) hasta que
   llegue el código del beat 'em up.
 
+- **Pelea final (Rev. 2)**: la Rev. 1 decía «ambos hermanos con L» en todo el jefe; ahora
+  la etapa 1 va con relevo y la etapa 2 solo con Tarou (§6). Afecta al código del relevo
+  (desactivar L) cuando llegue la fase 5.
+
 ## 10. Pendiente
 
-- Nombres y diseños de los jefes de las fases 2 a 4 (un vicio de la corte cada uno).
-- Nombre de la nueva federación de Bárbara.
-- Diseño de Gomasuri-dono y de los ninjas genéricos (paletas de rango).
-- Textos exactos en inglés de cada escena.
+- **Diseño visual** (arte) de Gomasuri-dono, de los tres jefes de §2 y de los ninjas con
+  sus 4 paletas de rango.
+- Revisión del autor de las escenas propuestas (§6) y de los textos (§11–§13).
+- Nombre en inglés de la federación «Autistas Marciales» para la pantalla (§13).
 - Hecho: `diseno-beat-em-up.md` (v5–v6), `arte-beat-em-up.md`, `plan-desarrollo.md`,
   `glosario-snes.md`, `README.md` y `aprendizaje/PLAN.md` ajustados a §9.
+
+## 11. Textos en pantalla (inglés)
+
+Inglés sencillo, frases cortas: la consola de 8×8 da 32 columnas; cada cuadro lleva
+**hasta 3 líneas de 26 caracteres** junto al retrato. Todas las líneas de abajo cumplen esa
+medida; `/` separa dos cuadros seguidos.
+
+### 11.1 Flashback
+
+| Quién | Texto |
+|---|---|
+| — | `Long ago, in the forest...` |
+| Bárbara (niña) | `What did you find, pup?` |
+| Bárbara (niña) | `A red pepper? It's yours.` |
+| — | `Tarou never let it go.` |
+
+### 11.2 Noche del robo
+
+| Quién | Texto |
+|---|---|
+| — | `Many years later...` |
+| Ninja | `Shhh! Rule 14: no noise!` |
+| Ninja | `NO NOISE!!` |
+| Bárbara | `Who's there?!` |
+| Tarou | `...Mr. Pimenton?` / `MR. PIMENTON!` |
+| Bárbara | `They'll pay for this.` |
+| Tarou | `*sob* I want him back...` |
+
+### 11.3 Fase 1
+
+| Momento | Quién | Texto |
+|---|---|---|
+| Bosque | Lucinda | `You two. Fight me. Now.` |
+| Bosque | Bárbara | `We don't have time!` |
+| Bosque | Lucinda | `Monastery? Rex's food?` / `I'm coming.` |
+| Bosque (gag) | Fenrir | `WHEEE!` *(cruza y rompe todo)* |
+| Monasterio | Rex | `That is no toy, young one.` |
+| Monasterio | Rex | `It is an ancient god.` / `Nikoraemon wants it.` |
+| Monasterio | Rex | `Not revenge. Words.` / `Let us talk to him.` |
+| Monasterio | Bárbara | `...Talk. Sure.` |
+| Dojo | Gomasuri-dono | `Yes, master! Of course,` / `master! Genius, master!` |
+| Dojo (fin) | Nikoraemon | `Fools! The relic is mine!` |
+
+### 11.4 Fases 2 a 5
+
+| Momento | Quién | Texto |
+|---|---|---|
+| Antes de 2 | Gomasuri-dono | `Bravo, master! Bravo!` |
+| Antes de 2 | Fenrir | `Running? I LOVE running!` |
+| Antes de 2 | Rex | `Hmm. It begins.` |
+| Fase 2 | Nigeashi-dono | `Not today! Bye!` |
+| Fase 2 (acorralado) | Nigeashi-dono | `Okay, okay! I fight...` |
+| Antes de 3 | Nigeashi-dono | `Take this map! ...Wait.` / `It's upside down.` |
+| Antes de 3 | Rex | `Let us talk to them.` |
+| Antes de 3 | Ninja | `Fill in Form 9-C first.` |
+| Fase 3 | Hankozuki-dono | `No fight without a stamp!` |
+| Antes de 4 | Hankozuki-dono | `Defeat... approved.` *(sella)* |
+| Antes de 4 | Lucinda | `I smell dinner. Hurry.` |
+| Fase 4 | Nebō-dono | `Zzz... five more minutes` |
+| Fase 4 (sin almohada) | Nebō-dono | `MY PILLOW!!` |
+| Antes de 5 | Nebō-dono | `*yawn* Ritual's... there.` |
+| Antes de 5 | Nikoraemon | `All dojos will bow to me!` |
+| Antes de 5 | Bárbara | `Together, little brother.` |
+| Etapa 1 (fin) | Bárbara | `My knee...! Tarou, go!` |
+| Etapa 2 | Nikoraemon | `Its power is MINE!` |
+| Etapa 2 | Bárbara | `You can do it, Tarou!` |
+
+### 11.5 Final
+
+| Quién | Texto |
+|---|---|
+| Señor Pimentón | `Tarou. You are so kind.` |
+| Señor Pimentón | `This fool is not worthy.` / `You are.` |
+| Nikoraemon | `No... NOOO!` |
+| Señor Pimentón | `Come. The heavens await.` |
+| Bárbara | `...I understand, Tarou.` |
+| Bárbara | `Go. I'll be fine.` |
+| — | `Barbara founded the` / `SHEPHERD'S DOJO.` |
+| — | `A place of joy for all.` |
+| — | `Rex knew it all along.` |
+| — | `Lucinda: deadliest of all.` / `They pray to her now.` |
+| — | `Fenrir ran away again.` / `Happily.` |
+
+## 12. Frases durante el juego
+
+| Cuándo | Quién | Texto |
+|---|---|---|
+| Inicio de zona | — | `GO! →` |
+| Relevo (L) | Tarou / Bárbara | `My turn!` / `Leave it to me!` |
+| Apoyo Lucinda | Lucinda | `Mine!` |
+| Apoyo Rex | Rex | `Rise.` |
+| Apoyo Fenrir | Fenrir | `WHEEE!` |
+| Comida | Lucinda (si es apoyo elegido) | `Hey! That's mine!` |
+| Vida extra | — | `1UP` |
+| Rangos (HUD) | — | blanco `TRAINEE NINJA` · amarillo `ASSISTANT NINJA` · verde `DEPUTY NINJA` · rojo `SENIOR VICE NINJA` |
+
+## 13. Continue, game over y créditos
+
+**Continue** (cuenta atrás de 9 a 0, Start para seguir): retrato del Señor Pimentón.
+
+| Texto |
+|---|
+| `CONTINUE?` |
+| `Mr. Pimenton is waiting...` |
+
+**Game over** (habla el Señor Pimentón, tono tierno):
+
+| Texto |
+|---|
+| `GAME OVER` |
+| `Don't give up, Tarou.` |
+| `I'll be waiting.` |
+
+**Créditos** (rodillo tras el final):
+
+```
+TAROU: A DOG'S JOURNEY
+
+A DON POLLO STUDIOS GAME
+
+PROGRAMMING - ART - MUSIC
+ALEJANDRO MORA
+
+STARRING
+TAROU ............ HIMSELF
+BARBARA .......... BIG SISTER
+MR. PIMENTON ..... ANCIENT GOD
+REX .............. MONK
+LUCINDA .......... SAMURAI
+FENRIR ........... RUNNING
+
+THE MARTIAL FEDERATION
+NIKORAEMON ....... THE FOOL
+GOMASURI-DONO .... YES-MAN
+NIGEASHI-DONO .... COWARD
+HANKOZUKI-DONO ... CLERK
+NEBO-DONO ........ SLEEPER
+
+IN MEMORY OF TAROU
+```
+
+Los créditos usan su propia medida (hasta 28 columnas, centrados). La última línea
+enlaza con la dedicatoria del arranque («A la memoria de Tarou»). *THE MARTIAL
+FEDERATION* es un título provisional: cómo se traduce «Autistas Marciales» en pantalla
+queda para el autor (§10).

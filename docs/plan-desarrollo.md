@@ -106,8 +106,8 @@ aquí va el resumen que orienta el plan.
 - **Estructura de fases:** la fase 1 es aldea → bosque de bambú →
   monasterio de Rex → dojo con el jefe (decisión 23). El juego completo tiene
   **5 fases** (camino al castillo, castillo exterior, castillo interior y
-  ritual final); sus jefes de las fases 2 a 4 quedan **pendientes**
-  (`guion-historia.md` §6 y §10).
+  ritual final); jefes de las fases 2 a 4: Nigeashi-dono, Hankozuki-dono
+  y Nebō-dono (`guion-historia.md` §2 y §6).
 - **Plan de producción incremental:** la primera entrega (Etapa 3, Revisión
   3) es la **fase 1 completa**, ya con Bárbara, el relevo y los apoyos;
   antes, en la Etapa 2, una ROM de prueba de carga mide cuántos enemigos
@@ -311,7 +311,7 @@ _(Hoy la ROM es LoROM + FastROM de 128 bancos.)_
       _La premisa (el Señor Pimentón robado por el clan de ninjas kendokas)
       y la fase 1 están en `diseno-beat-em-up.md` (decisiones 14, 23 y 24);
       la lista de las 5 fases, el reparto y el final, en `guion-historia.md`
-      (Rev. 1). Faltan los jefes de las fases 2 a 4 y los textos (§10)._
+      (Rev. 2), con jefes y textos en inglés. Falta el arte de los jefes (§10)._
       Recursos: "The Art of Game Design: A Book of Lenses" (secciones de
       narrativa y estructura de niveles).
 

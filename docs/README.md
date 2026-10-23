@@ -28,8 +28,8 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
   combate estilo *Final Fight*, 3 apoyos, la fase 1 (aldea, bosque, monasterio,
   dojo) y el presupuesto de hardware que manda (ranuras por línea, VRAM de
   sprites, VBlank), con la prueba de carga que va primero.
-- **`guion-historia.md`** — El guion de la historia (Rev. 1): tono, reparto,
-  apertura, las 5 fases, el final y lo pendiente. Donde choca con la spec,
+- **`guion-historia.md`** — El guion de la historia (Rev. 2): tono, reparto,
+  apertura, las 5 fases con sus jefes, el final, los textos en inglés y lo pendiente. Donde choca con la spec,
   manda el guion.
 - **`arte-beat-em-up.md`** — La lista de trabajo del arte de la Revisión 3:
   animaciones por personaje, enemigos, apoyos, objetos, escenografía por zona,
