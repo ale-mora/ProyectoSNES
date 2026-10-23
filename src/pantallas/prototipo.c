@@ -1,27 +1,28 @@
 /*---------------------------------------------------------------------------------
-    prototipo.c — El prototipo de combate: Tarou y un ninja de prueba en un carril
+    prototipo.c — El prototipo de combate: Tarou y dos ninjas en un carril
     (docs/diseno-beat-em-up.md, Etapa 2, entregable 3). Ver prototipo.h.
 
     PROPÓSITO
-      Une la lógica pura (luchador, ninja, combate, mundo, doble toque) con la
-      capa de sprites de la prueba de carga y el fondo del nivel 1. Cada frame:
-        1. El mando dice qué quiere Tarou; el luchador decide su estado.
-        2. El ninja se acerca o ataca; tiene permiso siempre (es el único).
-        3. Si hay caja de golpe activa, se pasa al mundo y se resuelve con
-           combate_golpear: el golpe conecta o no; si conecta, cambia el estado
-           del que recibe (reaccionar) y el atacante marca el conecto.
-        4. Las entradas de la OAM se rellenan con su posición, y sprites_ordenar y
-           sprites_dibujar las escriben.
-      Tarou y el ninja usan, por ahora, la pose de andar (no hay arte de combate):
-      la animación de verdad vendrá con Pixellab. Sin HUD de texto: la vida se
-      mira en Mesen (las variables del luchador y el ninja).
+      Une la lógica pura (luchador, ninja, combate, marcador) con la capa de
+      sprites de la prueba de carga y el fondo del nivel 1. Cada frame:
+        1. START alterna la pausa (en pausa no hay lógica, sí dibujo).
+        2. El mando dice qué quiere Tarou; el luchador decide su estado.
+        3. Cada ninja se acerca o ataca. Tienen permiso los dos: son 2, el máximo
+           de ataques a la vez (§6).
+        4. Los golpes se resuelven con combate_golpear en los dos sentidos. Un
+           ataque solo le da una vez a cada uno. Cada golpe que conecta suma sus
+           puntos; cada ninja vencido, los suyos (una sola vez).
+        5. Si Tarou cae, pierde una vida; sin vidas, la escena vuelve a empezar.
+        6. Las entradas de la OAM se rellenan y sprites_dibujar las escribe.
+      Tarou y los ninjas usan, por ahora, la pose de andar (no hay arte de
+      combate). Sin HUD de texto: el marcador y la vida se miran en Mesen.
 
     SE CONECTA CON
       Incluye:  <snes.h>, pantallas/prototipo.h, sistema/comun.h, juego/mando.h,
                 juego/luchador.h, enemigos/ninja.h, juego/combate.h,
-                juego/cifras.h, juego/mundo.h, juego/sprites.h, juego/subida.h,
-                juego/p16.h, juego/dma_lista.h, juego/fondo_nivel.h,
-                juego/animaciones.h, tarou_anim.h.
+                juego/cifras.h, juego/mundo.h, juego/marcador.h, juego/sprites.h,
+                juego/subida.h, juego/p16.h, juego/dma_lista.h,
+                juego/fondo_nivel.h, juego/animaciones.h, tarou_anim.h.
       Lee de la ROM: tarou_caminar_p16, tarou_pal, tarou_p16_bancos (data.asm);
                 ninja64_andar, ninja_pal, ninja_bancos (data.asm).
       Lo usan:  sistema/main.c (con -DPROTOTIPO).
@@ -29,17 +30,20 @@
     HARDWARE QUE TOCA
       PPU: Mode 1 con el fondo del nivel 1 (fondo_nivel, fondo16_cargar) y BG3 de
       texto. OAM: sprites_dibujar (16x16, OBSEL 16/32). VRAM: tiles de los sprites
-      por la lista de DMA, en VBlank. CGRAM: paleta 0 (Tarou) y 1 (el ninja).
+      por la lista de DMA, en VBlank. CGRAM: paleta 0 (Tarou) y 1 (los ninjas).
 
     VARIABLES (estáticas de este archivo)
-      tarou, enemigo        Luchador, Ninja  los dos protagonistas de la escena
+      tarou, enemigos[2]    Luchador, Ninja[2]  los protagonistas de la escena
       carril                Carril           por dónde se puede andar (x 48..200)
       mando                 Mando            lo que pide el jugador este frame
+      pausado               u8               1 mientras dura la pausa (START)
+      marcador              Marcador         puntos, vidas y continues
       caja_dano_tarou, caja_dano_ninja  CajaCuadro  dónde pueden golpear a cada uno
-      golpeados_tarou, golpeados_ninja  u8   a quién ya le dio cada ataque
+      golpeados_tarou[2], golpeados_ninja[2]  u8  a quién ya le dio cada ataque
+      contado[2]            u8               1 cuando el ninja ya dio sus puntos
       sub_tarou, sub_ninja  Subida           la subida de sus tiles (una vez, al empezar)
       listo_tarou, listo_ninja  u8           1 cuando sus tiles están en la VRAM
-    → glosario: Prototipo de combate, Caja de golpe, Caja de daño, OAM
+    → glosario: Prototipo de combate, Caja de golpe, Caja de daño, OAM, Marcador
 ---------------------------------------------------------------------------------*/
 #ifdef PROTOTIPO
 
@@ -52,6 +56,7 @@
 #include "juego/combate.h"
 #include "juego/cifras.h"
 #include "juego/mundo.h"
+#include "juego/marcador.h"
 #include "juego/sprites.h"
 #include "juego/subida.h"
 #include "juego/p16.h"
@@ -70,25 +75,29 @@ extern u8 ninja_bancos[];            /* Andar, ataque.                          
 /*--- Constantes de la escena -----------------------------------------------------------*/
 #define SUELO_Y_PROTO 180            /* Profundidad de los pies en el carril.              */
 #define TILE_TAROU_PROTO 0           /* Los tiles de Tarou: pares 0-2 (96x64 = 3 KB).       */
-#define TILE_NINJA_PROTO 192         /* Los tiles del ninja: el hueco 6-8.                 */
+#define TILE_NINJA_PROTO 192         /* Los tiles de los ninjas: el hueco 6-8 (los dos).   */
 #define TOPE_SUBIDA_PROTO 1536       /* Bytes por VBlank al subir (3 copias de 512).       */
 #define PRIORIDAD_PROTO 3            /* Prioridad de los sprites (en BG1 alto, por encima). */
 #define ALTO_CELDA_TAROU 64
 #define ANCHO_CELDA_TAROU 96
 #define CENTRO_TAROU 48              /* x de los pies dentro de la celda de Tarou.         */
+#define NINJAS_PROTO 2               /* Dos ninjas: el máximo de ataques a la vez (§6).    */
 #define VRAM_TILE_PROTO(t) ((u16)(VRAM_SPRITES + ((u16)(t) << 4)))  /* 16 palabras por tile. */
 
 /*--- Estado de la escena ---------------------------------------------------------------*/
 static Luchador tarou;
-static Ninja enemigo;
+static Ninja enemigos[NINJAS_PROTO];
 static Carril carril;
 static Mando mando;
-static CajaCuadro caja_dano_tarou;     /* Cuerpo de Tarou: dónde le pueden pegar.           */
-static CajaCuadro caja_dano_ninja;      /* Cuerpo del ninja: dónde le pueden pegar.          */
+static u8 pausado;
+static Marcador marcador;
+static CajaCuadro caja_dano_tarou;
+static CajaCuadro caja_dano_ninja;
 static Celda celda_tarou;
 static Celda celda_ninja;
-static u8 golpeados_tarou;
-static u8 golpeados_ninja;
+static u8 golpeados_tarou[NINJAS_PROTO];
+static u8 golpeados_ninja[NINJAS_PROTO];
+static u8 contado[NINJAS_PROTO];
 static Subida sub_tarou;
 static Subida sub_ninja;
 static u8 listo_tarou;
@@ -138,83 +147,131 @@ static void poner_tarou(void)
         s->n = 0;
 }
 
-/* Dibuja el ninja: su celda 64x96 y su pose, mirando hacia Tarou. */
-static void poner_ninja(void)
+/* Dibuja el ninja `i`: su celda 64x96 y su pose, mirando hacia Tarou. */
+static void poner_ninja(u8 i)
 {
     SpriteEnt *s;
+    Ninja *n;
     P16Cuadro c;
 
-    s = sprites_ent + 1;
+    n = enemigos + i;
+    s = sprites_ent + 1 + i;
     p16_cuadro((const u8 *)&ninja64_andar, 0, &c);
-    s->x0 = (u16)(PF_ENTERO(enemigo.c.x_fp) - NINJA_MITAD);
-    s->y0 = (u16)(mundo_y_dibujo(&enemigo.c) - NINJA_ALTO);
+    s->x0 = (u16)(PF_ENTERO(n->c.x_fp) - NINJA_MITAD);
+    s->y0 = (u16)(mundo_y_dibujo(&n->c) - NINJA_ALTO);
     s->tile = TILE_NINJA_PROTO;
     s->atrib = (u8)(SPRITE_PRIORIDAD(PRIORIDAD_PROTO) | SPRITE_PALETA(1) |
-                    (enemigo.mira_izquierda ? SPRITE_HFLIP : 0));
-    s->piezas = (u16)((u16)&ninja64_andar + (enemigo.mira_izquierda ? c.espejo : c.piezas));
+                    (n->mira_izquierda ? SPRITE_HFLIP : 0));
+    s->piezas = (u16)((u16)&ninja64_andar + (n->mira_izquierda ? c.espejo : c.piezas));
     s->banco = ninja_bancos[0];
     s->n = listo_ninja ? c.n : 0;
     s->borde = sprites_borde(s->x0, s->y0, NINJA_ANCHO, NINJA_ALTO);
-    sprites_y[1] = PF_ENTERO(enemigo.c.y_fp);
-    if (enemigo.vencido)
+    sprites_y[1 + i] = PF_ENTERO(n->c.y_fp);
+    if (n->vencido)
         s->n = 0;
 }
 
-/* Un frame de la lógica: mando, luchador, ninja y los golpes entre los dos. */
+/* Tarou pega a un ninja (el `i`): resuelve el golpe y, si conecta, suma y reacciona. */
+static void golpe_de_tarou(const CajaCuadro *caja, u8 i)
+{
+    CajaMundo golpe;
+    CajaMundo cuerpo;
+    u8 r;
+
+    combate_caja_mundo(caja, &celda_tarou, &tarou.c, tarou.mira_izquierda, &golpe);
+    combate_caja_mundo(&caja_dano_ninja, &celda_ninja, &enemigos[i].c,
+                       enemigos[i].mira_izquierda, &cuerpo);
+    r = combate_golpear(&golpe, caja, &tarou.c, &tarou.g, &cuerpo, &enemigos[i].c,
+                        &enemigos[i].g, &golpeados_tarou[i], 1);
+    if (r != GOLPE_FALLA)
+    {
+        luchador_marcar_conecto(&tarou);
+        marcador_sumar(&marcador, PUNTOS_GOLPE);
+        ninja_reaccionar(&enemigos[i], r);
+    }
+}
+
+/* El ninja `i` pega a Tarou con su shinai, si le toca. */
+static void golpe_del_ninja(u8 i)
+{
+    CajaCuadro ataque;
+    CajaMundo golpe;
+    CajaMundo cuerpo;
+    u8 r;
+
+    if (!ninja_caja_golpe(&enemigos[i], &ataque))
+    {
+        golpeados_ninja[i] = 0;              /* Fuera de la caja: el ataque ya acabó.     */
+        return;
+    }
+    combate_caja_mundo(&ataque, &celda_ninja, &enemigos[i].c, enemigos[i].mira_izquierda, &golpe);
+    combate_caja_mundo(&caja_dano_tarou, &celda_tarou, &tarou.c, tarou.mira_izquierda, &cuerpo);
+    r = combate_golpear(&golpe, &ataque, &enemigos[i].c, &enemigos[i].g, &cuerpo, &tarou.c,
+                        &tarou.g, &golpeados_ninja[i], 1);
+    if (r != GOLPE_FALLA)
+        luchador_reaccionar(&tarou, r);
+}
+
+/* Un frame de la lógica: luchador, ninjas y los golpes entre ellos. */
 static void logica(void)
 {
     const CajaCuadro *caja;
-    CajaCuadro ataque;
-    CajaMundo golpe;
-    CajaMundo cuerpo_ninja;
-    CajaMundo cuerpo_tarou;
-    CajaMundo golpe_ninja;
-    u8 r;
+    u8 i;
 
-    mando_leer(&mando);
     luchador_actualizar(&tarou, &mando, &carril);
-    ninja_actualizar(&enemigo, &tarou.c, 1, &carril);   /* Permiso siempre: es el único.   */
+    for (i = 0; i < NINJAS_PROTO; i++)
+        ninja_actualizar(&enemigos[i], &tarou.c, 1, &carril);
 
-    /* Tarou pega al ninja. Un ataque solo le da una vez: se olvida al acabar la caja. */
     caja = luchador_caja_golpe(&tarou);
-    if (caja == 0)
+    for (i = 0; i < NINJAS_PROTO; i++)
     {
-        golpeados_tarou = 0;
-    }
-    else
-    {
-        combate_caja_mundo(caja, &celda_tarou, &tarou.c, tarou.mira_izquierda, &golpe);
-        ninja_caja_dano(&enemigo, &caja_dano_ninja);     /* Cuerpo del ninja.                */
-        combate_caja_mundo(&caja_dano_ninja, &celda_ninja, &enemigo.c, enemigo.mira_izquierda,
-                           &cuerpo_ninja);
-        r = combate_golpear(&golpe, caja, &tarou.c, &tarou.g, &cuerpo_ninja, &enemigo.c,
-                            &enemigo.g, &golpeados_tarou, 1);
-        if (r != GOLPE_FALLA)
+        if (caja == 0)
+            golpeados_tarou[i] = 0;          /* Sin caja activa: el próximo ataque cuenta. */
+        else
+            golpe_de_tarou(caja, i);
+        golpe_del_ninja(i);
+        if (enemigos[i].vencido == 0 && enemigos[i].g.vida == 0 && contado[i] == 0)
         {
-            luchador_marcar_conecto(&tarou);
-            ninja_reaccionar(&enemigo, r);
+            contado[i] = 1;                  /* Sus puntos, una sola vez.                  */
+            marcador_sumar(&marcador, cifras_puntos_ninja(enemigos[i].rango));
         }
     }
+}
 
-    /* El ninja pega a Tarou con su shinai. */
-    if (ninja_caja_golpe(&enemigo, &ataque))
+/* Empieza la escena de cero: Tarou con vida, dos ninjas en su sitio, marcador a cero. */
+static void empezar(void)
+{
+    u8 i;
+
+    luchador_iniciar(&tarou, 120, SUELO_Y_PROTO, VIDA_PROTAGONISTA);
+    ninja_iniciar(&enemigos[0], 180, SUELO_Y_PROTO, RANGO_BLANCO);
+    ninja_iniciar(&enemigos[1], 150, SUELO_Y_PROTO - 12, RANGO_AMARILLO);
+    for (i = 0; i < NINJAS_PROTO; i++)
     {
-        combate_caja_mundo(&ataque, &celda_ninja, &enemigo.c, enemigo.mira_izquierda, &golpe_ninja);
-        combate_caja_mundo(&caja_dano_tarou, &celda_tarou, &tarou.c, tarou.mira_izquierda,
-                           &cuerpo_tarou);
-        r = combate_golpear(&golpe_ninja, &ataque, &enemigo.c, &enemigo.g, &cuerpo_tarou,
-                            &tarou.c, &tarou.g, &golpeados_ninja, 1);
-        if (r != GOLPE_FALLA)
-            luchador_reaccionar(&tarou, r);
+        golpeados_tarou[i] = 0;
+        golpeados_ninja[i] = 0;
+        contado[i] = 0;
+    }
+}
+
+/* Tarou ha caído: pierde una vida. Sin vidas, vuelve la partida entera; si no, reaparece. */
+static void tarou_cae(void)
+{
+    if (marcador_perder_vida(&marcador))
+    {
+        marcador_iniciar(&marcador);         /* Se acabó la partida: de nuevo desde cero.  */
+        empezar();
     }
     else
     {
-        golpeados_ninja = 0;
+        luchador_iniciar(&tarou, 120, SUELO_Y_PROTO, VIDA_PROTAGONISTA);  /* Reaparece.    */
     }
 }
 
 void prototipo_ejecutar(void)
 {
+    u8 i;
+
     /*--- Carga, con la pantalla apagada (main la deja así) --------------------------*/
     setMode(BG_MODE1, BG3_MODE1_PRIORITY_HIGH);
     fondo_nivel_cargar(0);                           /* La capa cercana del nivel 1.       */
@@ -225,11 +282,11 @@ void prototipo_ejecutar(void)
 
     oamInitGfxAttr(VRAM_SPRITES, OBJ_SIZE16_L32);    /* Piezas pequeñas de 16x16.          */
     sprites_iniciar();
-    sprites_usar(2);                                 /* Tarou y el ninja.                  */
+    sprites_usar(1 + NINJAS_PROTO);                  /* Tarou y los ninjas.                */
     dmaCopyCGram((u8 *)&tarou_pal, 128, 32);         /* Paleta de sprites 0: Tarou.        */
-    dmaCopyCGram((u8 *)&ninja_pal, 128 + 16, 32);    /* Paleta 1: el ninja.                */
+    dmaCopyCGram((u8 *)&ninja_pal, 128 + 16, 32);    /* Paleta 1: los ninjas.              */
 
-    /* El carril y la posición de partida. Los límites dejan a Tarou entero en pantalla. */
+    /* El carril y las celdas. Los límites dejan a Tarou entero en pantalla. */
     carril.x_min_fp = PF(48);
     carril.x_max_fp = PF(200);
     carril.y_arriba_fp = PF(150);
@@ -249,10 +306,9 @@ void prototipo_ejecutar(void)
     caja_dano_tarou.relleno[0] = 0;
     caja_dano_tarou.relleno[1] = 0;
 
-    luchador_iniciar(&tarou, 120, SUELO_Y_PROTO, VIDA_PROTAGONISTA);
-    ninja_iniciar(&enemigo, 180, SUELO_Y_PROTO, RANGO_BLANCO);
-    golpeados_tarou = 0;
-    golpeados_ninja = 0;
+    marcador_iniciar(&marcador);
+    pausado = 0;
+    empezar();
 
     listo_tarou = 0;
     listo_ninja = 0;
@@ -263,16 +319,27 @@ void prototipo_ejecutar(void)
 
     setBrightness(15);
 
-    /*--- El bucle: un frame, esperar al VBlank, copias de la VRAM -------------------*/
+    /*--- El bucle: un frame, dibujo, esperar al VBlank, copias de la VRAM ----------*/
     while (1)
     {
         dma_lista_vaciar();
+        mando_leer(&mando);
+        if (mando.salir_pulsado)
+            pausado = (u8)(1 - pausado);     /* START: pausa o sigue.                      */
+
         subir(&sub_tarou, &listo_tarou, (const u8 *)&tarou_caminar_p16,
               tarou_p16_bancos[ESTADO_CAMINANDO], 0, 0);
         subir(&sub_ninja, &listo_ninja, (const u8 *)&ninja64_andar, ninja_bancos[0], 0, 0);
-        logica();
+
+        if (!pausado)
+        {
+            logica();
+            if (tarou.vencido)
+                tarou_cae();
+        }
         poner_tarou();
-        poner_ninja();
+        for (i = 0; i < NINJAS_PROTO; i++)
+            poner_ninja(i);
         sprites_ordenar();                           /* Por la y de los pies.              */
         sprites_dibujar();                           /* UNA llamada: toda la OAM.          */
         WaitForVBlank();
