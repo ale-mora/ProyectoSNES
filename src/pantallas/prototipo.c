@@ -15,7 +15,8 @@
         5. Si Tarou cae, pierde una vida; sin vidas, la escena vuelve a empezar.
         6. Las entradas de la OAM se rellenan y sprites_dibujar las escribe.
       Tarou y los ninjas usan, por ahora, la pose de andar (no hay arte de
-      combate). Sin HUD de texto: el marcador y la vida se miran en Mesen.
+      combate). HUD de texto (BG3): fila 0 con vida, puntos y vidas; fila 1 con la vida
+      de cada ninja y PAUSA. Una fila por frame, por la lista de DMA.
 
     SE CONECTA CON
       Incluye:  <snes.h>, pantallas/prototipo.h, sistema/comun.h, juego/mando.h,
