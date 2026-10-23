@@ -474,8 +474,9 @@ Mesen sin crashear y sus pruebas en el PC pasan.
 **Estado (2026-10-23):** entregables 1 y 2 **hechos** (prueba de carga y
 capa de sprites, spec §9.1 y §9.2). Entregable 3 empezado: la lógica pura
 del prototipo de combate (`doble_toque.c`, `mundo.c`, `combate.c`, con las
-cifras de `cifras.h`) ya tiene pruebas en el PC. Falta el luchador (estados,
-combo, derribo) y la pantalla, que **sustituye al nivel 1** al pulsar Start
+cifras de `cifras.h`) ya tiene pruebas en el PC. El luchador de Tarou
+(`luchador.c`: 21 estados, combo, aire, especial, derribo, KO y agarre) también
+tiene pruebas. Falta el enemigo de prueba y la pantalla, que **sustituye al nivel 1** al pulsar Start
 (decisión del autor); el código de plataformas se queda hasta la fase 1.
 
 ### Heredado de las Revisiones 1–2 (plataformas, tag plataformas-r2)

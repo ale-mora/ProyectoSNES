@@ -21,6 +21,7 @@
 
     VARIABLES (campos de Mando; todos valen 0 o 1)
       izquierda, derecha  mantenidos  cruceta
+      arriba              mantenido   cruceta (profundidad del beat 'em up)
       abajo               mantenido   agacharse
       correr              mantenido   Y
       saltar              mantenido   B (alarga el salto mientras se mantiene)
@@ -40,7 +41,7 @@
 
 typedef struct
 {
-    u8 izquierda, derecha, abajo, correr, saltar;                                /* mantenidos     */
+    u8 izquierda, derecha, arriba, abajo, correr, saltar;                        /* mantenidos     */
     u8 saltar_pulsado, atacar_pulsado, espada_pulsado, hud_pulsado, salir_pulsado; /* recién pulsados*/
     u8 actividad;                                                                /* algo tocado    */
 } Mando;

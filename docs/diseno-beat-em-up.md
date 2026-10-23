@@ -262,6 +262,12 @@ El lanzamiento también hace su daño a quien choque con el lanzado.
 | Comida (solo al activo) | onigiri +16, pescado asado +64 |
 | Vidas / continues | 3 / 3 (decisión 12) |
 
+**Tiempos propuestos en el código** (no estaban en la spec; se ajustan jugando, en
+`src/juego/luchador.c` y `luchador.h`): recibir un golpe 12 frames; caer derribado a
+3 px/frame hacia arriba; estar en el suelo 30 frames; levantarse 36; KO 40 frames
+antes de salir de la pelea; el especial es invulnerable toda su animación (24 frames); un
+golpe en el aire derriba.
+
 **Enemigos por rango** (paleta del cinturón, `guion-historia.md` §2). La vida y el daño
 salen de la tabla del rango; el pesado es siempre rojo.
 

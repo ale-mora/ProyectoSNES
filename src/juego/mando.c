@@ -50,6 +50,7 @@ void mando_leer(Mando *m)
        real solo cuentan SELECT (HUD) y START (salir). Ver juego/guion.h. */
     guion_mando(GUION_TUTORIAL, GUION_TUTORIAL_TRAMOS, cuadro_guion, m);
     cuadro_guion++;
+    m->arriba = 0;                 /* El guion del tutorial no tiene profundidad.          */
     m->hud_pulsado = (u8)((pulsados & KEY_SELECT) != 0);
     m->salir_pulsado = (u8)((pulsados & KEY_START) != 0);
     return;
@@ -58,6 +59,7 @@ void mando_leer(Mando *m)
     /* Mantenidos: dirección, agacharse, correr y el B que alarga el salto. */
     m->izquierda = (u8)((mantenidos & KEY_LEFT) != 0);
     m->derecha = (u8)((mantenidos & KEY_RIGHT) != 0);
+    m->arriba = (u8)((mantenidos & KEY_UP) != 0);
     m->abajo = (u8)((mantenidos & KEY_DOWN) != 0);
     m->correr = (u8)((mantenidos & KEY_Y) != 0);
     m->saltar = (u8)((mantenidos & KEY_B) != 0);
