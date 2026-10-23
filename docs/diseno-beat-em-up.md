@@ -141,7 +141,7 @@ el protagonista corre hasta que suelta la dirección. Se prueba en el PC con
 | Agarre | zarpazos y lanzamiento corto | golpes de empuñadura y lanzamiento de judo largo |
 | Especial A+B | giro con la espada (360°) | corte circular amplio |
 
-Las cifras están en §5.5; van como constantes en `tarou.h` / `barbara.h`.
+Las cifras están en §5.5; van como constantes en `src/juego/cifras.h`.
 
 **Relevo (L):**
 1. Solo si el enfriamiento ha terminado, el que sale no está en un estado
@@ -224,7 +224,7 @@ segunda celda de VRAM queda libre y se presta a los cuadros del apoyo (§8).
 
 ### 5.5 Cifras de combate (v9, decididas con el autor)
 
-Valores iniciales: van como constantes en `tarou.h` / `barbara.h` / `combate.h` y se
+Valores iniciales: van como constantes en **`src/juego/cifras.h`** (todas juntas) y se
 ajustan jugando, pero el punto de partida ya no se discute. Unidades: puntos de vida,
 **frames** (60 por segundo) y **px por frame** en punto fijo 12.4. Todo cabe en `u8`
 salvo la puntuación. Los multiplicadores por rango van en **tablas** de 4 entradas,

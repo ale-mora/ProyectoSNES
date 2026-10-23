@@ -471,8 +471,12 @@ trozos perdidos en el caso típico (2–3 enemigos), con el VBlank por debajo de
 la línea 37 en el peor frame (spec §9). El prototipo de combate se juega en
 Mesen sin crashear y sus pruebas en el PC pasan.
 
-**Estado (2026-10-23):** diseño acordado, sin código. Lo primero que se
-construye es la ROM de prueba de carga.
+**Estado (2026-10-23):** entregables 1 y 2 **hechos** (prueba de carga y
+capa de sprites, spec §9.1 y §9.2). Entregable 3 empezado: la lógica pura
+del prototipo de combate (`doble_toque.c`, `mundo.c`, `combate.c`, con las
+cifras de `cifras.h`) ya tiene pruebas en el PC. Falta el luchador (estados,
+combo, derribo) y la pantalla, que **sustituye al nivel 1** al pulsar Start
+(decisión del autor); el código de plataformas se queda hasta la fase 1.
 
 ### Heredado de las Revisiones 1–2 (plataformas, tag plataformas-r2)
 

@@ -410,6 +410,11 @@ del plataformas (tag `plataformas-r2`).
 - **Profundidad (y) y altura (z)** — en el carril, x es el avance, y la
   profundidad (la línea de pantalla de los pies) y z la altura sobre el suelo.
   Se dibuja en `y − z`; la sombra, siempre en y.
+- **Doble toque** — pulsar dos veces seguidas la misma dirección horizontal
+  (en `VENTANA_DOBLE_TOQUE` frames) para correr; se corre hasta soltarla
+  (`juego/doble_toque.c`).
+- **Rango** — el color del cinturón de un ninja (blanco, amarillo, verde,
+  rojo); fija su vida, su daño extra y sus puntos por tabla (`juego/cifras.h`).
 - **Orden por profundidad** — cada frame las entidades se ordenan por y y se
   escriben en la OAM en ese orden: el de más abajo tapa al de más arriba.
 - **Oleada** — grupo de enemigos que aparece en una zona. Mientras vive, la
