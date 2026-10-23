@@ -9,7 +9,7 @@ El juego deja de ser un plataformas de scroll lateral y pasa a ser un **beat
 'em up clásico de carril en profundidad** (*belt-scroll*: *Final Fight*,
 *Streets of Rage*), con los dos protagonistas, Tarou y Bárbara, y un relevo
 entre ellos al estilo de *Donkey Kong Country*. La Revisión 3 entrega la
-**fase 1 completa**: aldea → bosque → santuario → dojo, con el jefe.
+**fase 1 completa**: aldea → bosque → monasterio de Rex → dojo, con el jefe.
 
 La Revisión 2 (el tutorial de plataformas) queda congelada en el tag
 **`plataformas-r2`** (commit `480f373`). Sus documentos (`diseno-demo-jugable.md`,
@@ -29,6 +29,7 @@ y del truco de hardware que usa cada pieza está en
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v6 | 2026-10-23 | Restos de «santuario» → monasterio (decisión 26, barra de ataque, objetos de Tiled, modos de color, archivos de §10: `pantalla_monasterio.c`); §12 sin los nombres ya decididos. |
 | v5 | 2026-10-23 | Ajuste al guion (`guion-historia.md`): hermanos, Tarou pastor, nombres de villano y apoyos, santuario → monasterio, jefe Gomasuri-dono. Decisiones 14, 15, 23, 24. |
 | v4 | 2026-10-23 | La capa de sprites (piezas de 16×16 `.p16`, plan de subidas por número de piezas, OAM en ensamblador con camino rápido) y la prueba de carga rehecha con ninjas de 64×96: 3 ninjas + Tarou + sombras caben (§9.2). |
 | v3 | 2026-10-23 | Reparto de la VRAM de sprites en pares de filas y subidas en trozos de 512 B (§8); decisiones 35–38. |
@@ -64,7 +65,7 @@ y del truco de hardware que usa cada pieza está en
 | 23 | Fase 1 | Aldea → bosque (se une Lucinda; Fenrir cruza como gag) → **monasterio de Rex** (antes «santuario»; se une Rex y se activa la barra) → dojo, con un jefe. Fenrir se une del todo en la fase 2. |
 | 24 | Jefe de la fase 1 | **Gomasuri-dono**, lugarteniente adulador, gordo y pomposo; al vencerlo, Nikoraemon huye con el juguete. La historia completa tiene 5 fases y cierre en la fase 5 (`guion-historia.md`). |
 | 25 | Objetos | Comida que cura, **armas arrojadizas** (shuriken, kunai; las usan los dos) y vida extra escondida. |
-| 26 | Santuario | Una **escena con el motor de escenas** y cuadros de texto en inglés; al terminar, la barra queda activa. |
+| 26 | Monasterio | Una **escena con el motor de escenas** con Rex y cuadros de texto en inglés; al terminar, la barra queda activa. |
 | 27 | Audio | Después de la R3. |
 | 28 | Editor | **Tiled** para zonas y oleadas. |
 | 29 | Documentos | Esta spec + `plan-desarrollo.md` reescrito; las specs de plataformas, históricas. |
@@ -202,7 +203,7 @@ desplazamiento y no una llamada a `tcc__mul`.
 - **Destello**: el objetivo golpeado parpadea en blanco 2 frames
   (copia de una paleta blanca a su entrada de CGRAM por la lista de DMA).
 - **Barra de ataque**: cada golpe que conecta suma; recibir daño no suma.
-  Bloqueada hasta el santuario.
+  Bloqueada hasta el monasterio de Rex.
 
 ### 5.4 Apoyos
 
@@ -255,7 +256,7 @@ puede tener su propio juego de tiles). Al vencer al jefe:
 - Objetos: `inicio`, `limite_zona` (x donde se bloquea la cámara), `oleada`
   (propiedades: `tipos`, `cantidad`, `lado`, `retardo`, `zona`), `rompible`
   (propiedad `contiene`: `comida_chica`, `comida_grande`, `shuriken`, `kunai`,
-  `vida`), `escena` (el santuario), `jefe`, `salida`.
+  `vida`), `escena` (el monasterio), `jefe`, `salida`.
 - `scripts/preparar_zona.py` (sucesor de `preparar_nivel.py`) viste la lógica
   con el tileset de Pixellab y genera `fondo_cerca.png`, `zonaN_datos.h`
   (carril, oleadas, objetos) y las pruebas en el PC recorren los datos
@@ -364,7 +365,7 @@ vez; como mucho se cambian **por línea** con HDMA, nunca por sprite. Por eso:
   (luz mezclada), no brillantes. Los objetos que deban verse opacos van en
   0–3 cuando haya hueco o se dibujan con colores claros.
 - **Modos especiales**, solo en los momentos congelados (apoyos, pausa,
-  escenas, el halo del santuario): suma con el **color fijo** (destellos,
+  escenas, el halo del monasterio): suma con el **color fijo** (destellos,
   tajos de luz) o resta (pausa). En esos momentos las sombras se esconden.
 - Si una zona necesita luz fija en el decorado (rayos del bosque, halo de los
   faroles), se aplica por **ventana** sobre las capas BG, no sobre los sprites,
@@ -576,7 +577,7 @@ de su tabla de piezas. El HUD no lo veía: la escena hay que mirarla.)
 
 | Se queda | Cambia | Sale | Nuevo |
 |---|---|---|---|
-| `sistema/*`, `escena/*`, `dma_lista` + `dma_ejecutar.asm`, `metasprite`, `fondo_nivel` (columnas al anillo), `camara` (+ bloqueo de zona), `hud_debug`, `mando`, `guion` | `tarou.c` (estados de combate), `animaciones.c` (cajas), `tarou_sprite.c` → `protagonista_sprite.c` (celda compartida, dos paletas), `pantalla_nivel1.c` → `pantalla_fase1.c`, `pantalla_intro.c` (3 escenas nuevas), `barbara.c` y `cambio_protagonista.c` (de stub a código) | `colision.c` (rejilla de plataformas), `partida.c` (reglas del tutorial), `guion_tutorial.c`, `res/nivel1/*` del tutorial y sus pruebas (quedan en el tag) | `mundo.c` (x/y/z, carril, orden por y), `combate.c` (cajas, daño, agarre, turnos), `enemigos/ninja.c` y `enemigos/jefe.c`, `oleadas.c` (zonas y bloqueo de cámara), `objetos/*` (rompibles, comida, armas), `apoyos.c` + efectos de pantalla en `efectos.c`, `hud/hud_juego.c`, `pantallas/pantalla_santuario.c` |
+| `sistema/*`, `escena/*`, `dma_lista` + `dma_ejecutar.asm`, `metasprite`, `fondo_nivel` (columnas al anillo), `camara` (+ bloqueo de zona), `hud_debug`, `mando`, `guion` | `tarou.c` (estados de combate), `animaciones.c` (cajas), `tarou_sprite.c` → `protagonista_sprite.c` (celda compartida, dos paletas), `pantalla_nivel1.c` → `pantalla_fase1.c`, `pantalla_intro.c` (3 escenas nuevas), `barbara.c` y `cambio_protagonista.c` (de stub a código) | `colision.c` (rejilla de plataformas), `partida.c` (reglas del tutorial), `guion_tutorial.c`, `res/nivel1/*` del tutorial y sus pruebas (quedan en el tag) | `mundo.c` (x/y/z, carril, orden por y), `combate.c` (cajas, daño, agarre, turnos), `enemigos/ninja.c` y `enemigos/jefe.c`, `oleadas.c` (zonas y bloqueo de cámara), `objetos/*` (rompibles, comida, armas), `apoyos.c` + efectos de pantalla en `efectos.c`, `hud/hud_juego.c`, `pantallas/pantalla_monasterio.c` |
 
 Las reglas de la casa siguen igual: lógica pura sin `snes.h` y probada en el
 PC (ahora también `mundo`, `combate`, `oleadas`, IA, apoyos y doble toque),
@@ -591,7 +592,8 @@ final de la intro (placeholders) · un mapa de viaje entre fases.
 
 ## 12. Pendientes que no bloquean el diseño
 
-- Nombre del villano, del lugarteniente y de los 3 apoyos.
+- Nombres y diseños de los jefes de las fases 2 a 4 y el resto de pendientes del guion
+  (`guion-historia.md` §10).
 - El sprite del **Señor Pimentón**: el autor lo tiene y lo aporta cuando toque; falta dejarlo en
   `res/descargas/graficos/` y decir su tamaño.
 - **Ataque corriendo** (A mientras se corre): propuesta, no decidida.

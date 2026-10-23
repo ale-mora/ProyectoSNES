@@ -204,7 +204,7 @@ tiles (hasta 8 KB de VRAM por capa en el mapa actual).
 > es Gomasuri-dono (humano gordo, armadura de colores chillones) y los ninjas comunes son
 > kendokas con bogu negro, con paleta distinta por rango. Ver `guion-historia.md`.
 
-### 5.3 Santuario (noche)
+### 5.3 Monasterio de Rex (noche)
 
 | Pieza | Capa | Truco | Estado |
 |---|---|---|---|
@@ -244,7 +244,7 @@ tiles (hasta 8 KB de VRAM por capa en el mapa actual).
 
 | Pieza | Estado |
 |---|---|
-| marco superior, barras de vida de Tarou y Bárbara (la activa resaltada), barra de ataque (con candado hasta el santuario) | [ ] |
+| marco superior, barras de vida de Tarou y Bárbara (la activa resaltada), barra de ataque (con candado hasta el monasterio) | [ ] |
 | icono del apoyo elegido (sprite 16×16, §3), vidas, continues, puntuación (la fuente actual ♻) | [ ] |
 | nombre y barra del enemigo golpeado (como *Final Fight*) | [ ] |
 | textos: «PAUSE», «GO», «STAGE CLEAR», «CONTINUE?», «GAME OVER», «STAGE 2 / COMING SOON» (en inglés) | [ ] |
@@ -271,7 +271,7 @@ Placeholders en la Revisión 3 y arte final después.
 | Lugarteniente + villano | ~70 | ≤ 4,5 KB | ~280 KB |
 | Apoyos | ~70 | 2–3 KB | ~180 KB |
 | 4 zonas (tiles + mapas) | — | — | ~250 KB |
-| Intro (3 imágenes de 256 colores) + Mode 7 del santuario | — | — | ~220 KB |
+| Intro (3 imágenes de 256 colores) + Mode 7 del monasterio | — | — | ~220 KB |
 | **Total** | | | **~2,2 MB** de los ~3,7 MB libres |
 
 Cabe en la ROM de 4 MB. Lo que aprieta no es la ROM sino la VRAM y el VBlank

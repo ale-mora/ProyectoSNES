@@ -71,11 +71,12 @@ aquí va el resumen que orienta el plan.
   **adulto todo el juego** (decisión 9).
 - **Historia (decisión 14):** Japón feudal. Un clan de **ninjas kendokas**
   humanos, liderado por el villano, roba el juguete favorito de Tarou, el
-  **Señor Pimentón**, un pimiento rojo de goma con forma humana. Bárbara jura
-  venganza; Tarou quiere recuperar su juguete. Al final de la fase 1 el
-  villano huye con el juguete, que es el gancho para la fase 2 (decisión 24).
-  Los nombres del villano, del lugarteniente y de los apoyos están
-  **pendientes** (spec §12).
+  **Señor Pimentón**, un pimiento rojo de goma con forma humana (en verdad,
+  un dios antiguo). Bárbara jura venganza; Tarou quiere recuperar su juguete.
+  El villano es **Nikoraemon**; el jefe de la fase 1, su lugarteniente
+  **Gomasuri-dono**. Al vencerlo, Nikoraemon huye con el juguete, que es el
+  gancho para la fase 2 (decisión 24). La historia completa tiene 5 fases y
+  cierre en la última ([`guion-historia.md`](guion-historia.md)).
 - **Perspectiva:** belt-scroll en x (avance), y (profundidad en el carril) y
   z (altura del salto), con sombra bajo los pies y orden de dibujo por y
   (decisión 2). El avance es por **zonas con oleadas**: la cámara se bloquea
@@ -87,23 +88,26 @@ aquí va el resumen que orienta el plan.
   el activo entra el otro; si caen los dos, se pierde una vida.
 - **Dos estilos de lucha (decisiones 6–8):** combate a lo _Final Fight_
   (combo A-A-A con derribo al final, ataque aéreo, agarre con golpe o
-  lanzamiento, especial A+B que cuesta vida). **Tarou**: espada corta y
-  mordisco, rápido, combos largos; envaina solo fuera de combate.
-  **Bárbara**: katana lenta, mucho alcance y daño, buenos agarres.
-- **Tres apoyos (decisiones 15–18):** la **gata samurái** (muy rápida, ráfaga
-  de cortes), el **perro monje** telepático (levanta a todos los enemigos y
-  los suelta) y el **perro bruto** (embestida que derriba a todos). Se
+  lanzamiento, especial A+B que cuesta vida). **Tarou**: katana en la boca
+  y mordisco, rápido, combos largos; envaina solo fuera de combate.
+  **Bárbara**: katana en la mano, lenta, mucho alcance y daño, buenos agarres.
+- **Tres apoyos (decisiones 15–18):** **Lucinda**, la gata samurái (muy
+  rápida, ráfaga de cortes), **Rex**, el perro monje telepático (levanta a
+  todos los enemigos y los suelta) y **Fenrir**, el husky bruto (embestida que
+  derriba a todos). Se
   invocan con X cuando la **barra de ataque**, compartida por el dúo y que se
-  llena solo golpeando, está llena; R cambia el apoyo elegido. Se conocen en
-  el santuario de la fase 1 (decisión 26).
+  llena solo golpeando, está llena; R cambia el apoyo elegido. Lucinda se une en
+  el bosque y Rex en su monasterio (fase 1, decisión 26); Fenrir, en la fase 2.
 - **Enemigos (decisión 21):** ninja básico (shinai), ninja rápido (shuriken),
   kendoka pesado (agarra, bloquea) y, en la fase 1, un lugarteniente kendoka
   como jefe. Todos humanos (decisión 34).
 - **Arcade (decisión 12):** 3 vidas, 3 continues, comida que cura y
   puntuación; armas arrojadizas y vida extra escondida (decisión 25).
-- **Estructura de fases:** la fase 1 es aldea → bosque de bambú → santuario
-  → dojo con el jefe (decisión 23). Cuántas fases tiene el juego completo y
-  qué pasa en cada una queda **pendiente**.
+- **Estructura de fases:** la fase 1 es aldea → bosque de bambú →
+  monasterio de Rex → dojo con el jefe (decisión 23). El juego completo tiene
+  **5 fases** (camino al castillo, castillo exterior, castillo interior y
+  ritual final); sus jefes de las fases 2 a 4 quedan **pendientes**
+  (`guion-historia.md` §6 y §10).
 - **Plan de producción incremental:** la primera entrega (Etapa 3, Revisión
   3) es la **fase 1 completa**, ya con Bárbara, el relevo y los apoyos;
   antes, en la Etapa 2, una ROM de prueba de carga mide cuántos enemigos
@@ -306,7 +310,8 @@ _(Hoy la ROM es LoROM + FastROM de 128 bancos.)_
       Producción.
       _La premisa (el Señor Pimentón robado por el clan de ninjas kendokas)
       y la fase 1 están en `diseno-beat-em-up.md` (decisiones 14, 23 y 24);
-      la lista de fases del juego completo sigue pendiente._
+      la lista de las 5 fases, el reparto y el final, en `guion-historia.md`
+      (Rev. 1). Faltan los jefes de las fases 2 a 4 y los textos (§10)._
       Recursos: "The Art of Game Design: A Book of Lenses" (secciones de
       narrativa y estructura de niveles).
 
@@ -576,15 +581,15 @@ Lo que ya se aprendió y se sigue usando:
 ## Etapa 3 — Vertical Slice
 
 **Objetivo:** construir la **fase 1 completa** de _Tarou: A Dog's Journey_
-como Revisión 3 (decisión 20): aldea → bosque de bambú → santuario → dojo,
-con el lugarteniente como jefe. Ya con los dos protagonistas, el relevo, los
+como Revisión 3 (decisión 20): aldea → bosque de bambú → monasterio de Rex →
+dojo, con Gomasuri-dono como jefe. Ya con los dos protagonistas, el relevo, los
 tres apoyos, los tres tipos de enemigo, objetos, HUD del juego, pausa y la
 intro rehecha. Es la prueba de que todos los sistemas del beat 'em up
 funcionan juntos de punta a punta.
 
 **Entregable(s):** una ROM donde se juega la fase 1 de principio a fin:
 Start en el título → zona 1 (aldea, 3 oleadas) → zona 2 (bosque, 3 oleadas)
-→ zona 3 (santuario: escena con los 3 apoyos, la barra se activa, una oleada
+→ zona 3 (monasterio: escena con Rex, la barra se activa, una oleada
 corta) → zona 4 (dojo: 1 oleada y el jefe) → escena del villano huyendo con
 el Señor Pimentón → «STAGE CLEAR», puntuación → «STAGE 2 / COMING SOON»
 (spec §7). Arte de Pixellab donde lo haya y placeholders numerados donde no
@@ -646,15 +651,15 @@ una ROM con guion juega la fase sin manos.
       (spec §8). `hud/hud_juego.c`.
 - [ ] **Objetos** — rompibles, comida que cura, armas arrojadizas (shuriken,
       kunai), vida extra escondida (decisión 25). `objetos/*`.
-- [ ] **Escena del santuario con el motor de escenas** — cuadros de texto
+- [ ] **Escena del monasterio con el motor de escenas** — cuadros de texto
       en inglés; al terminar, la barra queda activa (decisión 26).
-      `pantallas/pantalla_santuario.c`.
+      `pantallas/pantalla_monasterio.c`.
 - [ ] **Intro rehecha** — 3 escenas nuevas con placeholders (decisión 5).
 - [ ] **Pausa** — Start pausa; en pausa, Select vuelve al título
       (decisión 32).
 - [ ] **Mode 7 en escenas** — _no decidido; la spec no lo pide._ Se dejó
       fuera de la demo de arranque (Etapa 1.5); queda como técnica a
-      estudiar si alguna escena (santuario, final del jefe, intro) lo
+      estudiar si alguna escena (monasterio, final del jefe, intro) lo
       necesita.
       Recursos: `graphics/Backgrounds/Mode7` del SDK.
 - [ ] **Organización de banking de ROM** — con 128 bancos de 32 KB, cada

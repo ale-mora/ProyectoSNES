@@ -25,9 +25,12 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
 
 - **`diseno-beat-em-up.md`** — La especificación de la **Revisión 3** (vigente):
   el juego pasa a ser un beat 'em up de carril con Tarou y Bárbara, relevo,
-  combate estilo *Final Fight*, 3 apoyos, la fase 1 (aldea, bosque, santuario,
+  combate estilo *Final Fight*, 3 apoyos, la fase 1 (aldea, bosque, monasterio,
   dojo) y el presupuesto de hardware que manda (ranuras por línea, VRAM de
   sprites, VBlank), con la prueba de carga que va primero.
+- **`guion-historia.md`** — El guion de la historia (Rev. 1): tono, reparto,
+  apertura, las 5 fases, el final y lo pendiente. Donde choca con la spec,
+  manda el guion.
 - **`arte-beat-em-up.md`** — La lista de trabajo del arte de la Revisión 3:
   animaciones por personaje, enemigos, apoyos, objetos, escenografía por zona,
   HUD e intro, cada pieza con el truco de la SNES que usa y su estado.

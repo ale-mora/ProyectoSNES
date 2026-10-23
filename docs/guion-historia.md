@@ -118,4 +118,5 @@ ya existen. Faltan Gomasuri-dono, los ninjas genéricos y los jefes de las fases
 - Nombre de la nueva federación de Bárbara.
 - Diseño de Gomasuri-dono y de los ninjas genéricos (paletas de rango).
 - Textos exactos en inglés de cada escena.
-- Hecho: `diseno-beat-em-up.md` (v5) y `arte-beat-em-up.md` ajustados a §9.
+- Hecho: `diseno-beat-em-up.md` (v5–v6), `arte-beat-em-up.md`, `plan-desarrollo.md`,
+  `glosario-snes.md`, `README.md` y `aprendizaje/PLAN.md` ajustados a §9.

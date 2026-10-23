@@ -898,14 +898,14 @@ final difiere, manda el código y se corrige la ficha.
   (`efectos.c`) a estos efectos; el HUD del juego en BG3 con prioridad alta.
   **Ampliación opcional, fuera de la spec:** Mode 7 en una escena (rotación y
   escala de un fondo de 8bpp, matriz por HDMA), por ejemplo para la escena
-  del santuario; solo si el autor la decide.
+  del monasterio; solo si el autor la decide.
 - **Archivos (por escribir):** `README.md`, mini-ROM (una sombra con media
   suma sobre un fondo y una diagonal de luz por HDMA), ejercicio sobre el
   juego.
 - **Código del juego (previsto, spec §5.4, §8 y §10; no existe):**
   `src/juego/apoyos.c`, `src/escena/efectos.c` (**existe**; se amplía con los
   efectos de pantalla), `src/hud/hud_juego.c`,
-  `src/pantallas/pantalla_santuario.c`; `docs/arte-beat-em-up.md` §6.
+  `src/pantallas/pantalla_monasterio.c`; `docs/arte-beat-em-up.md` §6.
 - **Prerrequisitos:** 12, 21, 22. **Práctica:** mini-ROM + juego real
   (prevista).
 - **Aprobación:** por definir cuando exista el código.

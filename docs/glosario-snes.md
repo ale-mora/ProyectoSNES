@@ -401,7 +401,7 @@ del plataformas (tag `plataformas-r2`).
 - **Beat 'em up / belt-scroll** — juego de lucha a pie contra oleadas de
   enemigos, avanzando por un suelo con profundidad (*Final Fight*, *Streets
   of Rage*). «Belt» (cinta) por la franja de suelo por la que se avanza.
-- **Fase** — el nivel del beat 'em up (fase 1: aldea → bosque → santuario →
+- **Fase** — el nivel del beat 'em up (fase 1: aldea → bosque → monasterio →
   dojo). Desde la Revisión 3 sustituye a **nivel**.
 - **Zona** — un tramo de la fase con su escenario (la aldea, el bosque...);
   se carga con la pantalla apagada.
@@ -417,10 +417,10 @@ del plataformas (tag `plataformas-r2`).
 - **Relevo** — cambiar de protagonista con L: el que sale desaparece en una
   nube y el que entra da un **golpe de entrada**. Nunca están los dos en
   pantalla.
-- **Apoyo** — uno de los 3 aliados (la gata samurái, el perro monje y el perro
-  bruto) que hace un ataque a toda la pantalla con la barra llena.
+- **Apoyo** — uno de los 3 aliados (Lucinda, la gata samurái; Rex, el perro
+  monje, y Fenrir, el husky bruto) que hace un ataque a toda la pantalla con la barra llena.
 - **Barra de ataque** — se llena al conectar golpes y gasta su carga en un
-  apoyo. Se activa en el santuario.
+  apoyo. Se activa en el monasterio de Rex.
 - **Caja de golpe / caja de daño** — rectángulos por cuadro de animación: la
   de golpe dice dónde hace daño un ataque; la de daño, dónde se puede recibir.
   Un golpe conecta si se cruzan en x e y de pantalla y las profundidades
