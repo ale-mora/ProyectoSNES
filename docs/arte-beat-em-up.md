@@ -61,6 +61,7 @@ el juego · `♻` se reutiliza lo que ya hay.
 | golpe 1 / 2 / 3 (cortes) | 4 / 4 / 5 | hoy solo hay poses fijas (Attack_1, Attack_2) | [ ] |
 | golpe 4: mordisco (derriba) | 6 | | [ ] |
 | ataque aéreo | 4 | | [ ] |
+| ataque corriendo: tajo en carrera (derriba) | 5 | decisión 39 | [ ] |
 | agarre (sujetar) | 2 | | [ ] |
 | golpe de agarre (zarpazo) | 3 | | [ ] |
 | lanzamiento | 6 | | [ ] |
@@ -88,6 +89,7 @@ para la intro y el título. Necesita el **juego completo** en Pixellab
 | golpe 1 / 2 (cortes de katana, lentos) | 5 / 5 | [ ] |
 | golpe 3: tajo descendente (derriba) | 7 | [ ] |
 | ataque aéreo (estocada hacia abajo) | 4 | [ ] |
+| ataque corriendo: embestida con el hombro (derriba) | 5 | [ ] |
 | agarre / golpe de empuñadura / lanzamiento de judo | 2 / 3 / 7 | [ ] |
 | agarrada / recibir / derribada / en el suelo / levantarse | 2 / 2 / 5 / 1 / 6 | [ ] |
 | especial A+B: corte circular | 8 | [ ] |
@@ -129,16 +131,18 @@ x, y, ancho, alto en píxeles dentro de la celda, mirando al este.
 | KO (cae y parpadea) | 4 | 4 | 4 |
 | **Total aprox.** | 39 cuadros | 43 | 47 |
 
-**Variantes por paleta** (gratis en arte): cada tipo tiene 2–3 paletas; la
-oscura tiene más vida y es más rápida. Solo cuesta copiar 32 bytes a la
+**Variantes por paleta** (gratis en arte): el color del cinturón marca el
+**rango** (guion §2): blanco → amarillo → verde → rojo, de débil a fuerte; el
+rojo queda para el pesado. Más rango, más vida y más velocidad. Solo cuesta copiar 32 bytes a la
 CGRAM al aparecer.
 
 ### 2.1 Jefe y villano
 
 | Personaje | Celda | Animaciones | Estado |
 |---|---|---|---|
-| Lugarteniente (jefe de la fase 1) | 96×96 a medir en la prueba de carga (sale con como mucho 1 ninja básico, que deja VRAM libre) | guardia 4, caminar 8, carga 6, tajo de alcance 6, convocar 4, recibir 2, derribado 5, levantarse 6, derrota 8, entrada 6 | [ ] |
-| Villano | 64×96 | solo en escenas: aparece 4, coge el juguete 4, huye 6 | [ ] |
+| Gomasuri-dono (jefe de la fase 1; gordo, armadura de colores chillones) | 96×96 a medir en la prueba de carga (sale con como mucho 1 ninja básico, que deja VRAM libre) | guardia 4, caminar 8, carga 6, tajo de alcance 6, convocar 4, recibir 2, derribado 5, levantarse 6, derrota 8, entrada 6 | [ ] |
+| Nigeashi-dono, Hankozuki-dono, Nebō-dono (jefes de las fases 2–4; aspecto en guion §2) | a medir | fuera de la Revisión 3 | [ ] |
+| Nikoraemon (villano) | 64×96 | solo en escenas: aparece 4, coge el juguete 4, huye 6 | [ ] |
 
 ## 3. Apoyos
 

@@ -2,8 +2,8 @@
 
 Estado: **Revisión 2 del guion (2026-10-23)**. La Rev. 1 fijó tono, reparto y final;
 la Rev. 2 cierra jefes, pelea final, flashback, federación nueva y añade los textos en
-inglés (§11–§13). Las escenas de las fases 2 a 4 son **propuesta** del asistente: el autor
-no fijó preferencia y las revisa aquí. Es diseño narrativo, no código. Complementa a
+inglés (§11–§13). Las escenas de las fases 2 a 4 las propuso el asistente y el autor las
+aprobó tal cual. En pantalla la federación se llama **MARTIAL AUTISTS**. Es diseño narrativo, no código. Complementa a
 [`diseno-beat-em-up.md`](diseno-beat-em-up.md) (Revisión 3) y a
 [`arte-beat-em-up.md`](arte-beat-em-up.md). Donde este guion y la spec chocan, manda este
 guion y la spec debe ajustarse (ver §9).
@@ -47,6 +47,12 @@ palabras japonés, como Gomasuri-dono:
 | 2 | **Nigeashi-dono** («pies que huyen») | Cobardía | Huye por el camino entre oleadas, se esconde detrás de sus ninjas y solo pelea acorralado al final de la fase. |
 | 3 | **Hankozuki-dono** («amante del sello») | Burocracia | Guarda la puerta del castillo. Exige formularios y sellos antes de pelear; entre sus ataques se para a sellar papeles (ventana para golpearlo). |
 | 4 | **Nebō-dono** («dormilón») | Pereza | Duerme en el trono del castillo interior; sus ninjas pelean por él. Se despierta furioso cuando le quitan la almohada. |
+
+Aspecto (para el arte):
+
+- **Nigeashi-dono**: flaco, con una armadura enorme que le baila; casi siempre de espaldas, huyendo.
+- **Hankozuki-dono**: gafas, una pila de papeles bajo el brazo y un **sello gigante** que usa como maza.
+- **Nebō-dono**: kimono de dormir, gorro de dormir con cuernos de casco samurái y la **almohada** como arma.
 
 **Rangos de los ninjas** (paleta del cinturón, de débil a fuerte): **blanco → amarillo →
 verde → rojo**. El rojo es el kendoka pesado. Cada rango tiene un título ridículo que
@@ -100,7 +106,7 @@ Los hermanos habían ido a pedir consejo a Rex al verse sin juguete; la fase 1 e
    invoca al Señor Pimentón y **se fusiona** con su poder. Bárbara mira desde el borde y
    anima. Al vencerlo, el dios lo rechaza (§7).
 
-**Escenas entre fases 2 a 4 (propuesta).**
+**Escenas entre fases 2 a 4.**
 
 | Antes de | Cuadros |
 |---|---|
@@ -156,8 +162,7 @@ ya existen. Faltan Gomasuri-dono, los ninjas genéricos y los jefes de las fases
 
 - **Diseño visual** (arte) de Gomasuri-dono, de los tres jefes de §2 y de los ninjas con
   sus 4 paletas de rango.
-- Revisión del autor de las escenas propuestas (§6) y de los textos (§11–§13).
-- Nombre en inglés de la federación «Autistas Marciales» para la pantalla (§13).
+- Revisión del autor de los textos en inglés (§11–§13).
 - Hecho: `diseno-beat-em-up.md` (v5–v6), `arte-beat-em-up.md`, `plan-desarrollo.md`,
   `glosario-snes.md`, `README.md` y `aprendizaje/PLAN.md` ajustados a §9.
 
@@ -291,7 +296,7 @@ REX .............. MONK
 LUCINDA .......... SAMURAI
 FENRIR ........... RUNNING
 
-THE MARTIAL FEDERATION
+THE MARTIAL AUTISTS
 NIKORAEMON ....... THE FOOL
 GOMASURI-DONO .... YES-MAN
 NIGEASHI-DONO .... COWARD
@@ -302,6 +307,5 @@ IN MEMORY OF TAROU
 ```
 
 Los créditos usan su propia medida (hasta 28 columnas, centrados). La última línea
-enlaza con la dedicatoria del arranque («A la memoria de Tarou»). *THE MARTIAL
-FEDERATION* es un título provisional: cómo se traduce «Autistas Marciales» en pantalla
-queda para el autor (§10).
+enlaza con la dedicatoria del arranque («A la memoria de Tarou»). En pantalla la
+federación es *MARTIAL AUTISTS* (traducción literal; decisión del autor).

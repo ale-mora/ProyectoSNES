@@ -29,6 +29,7 @@ y del truco de hardware que usa cada pieza está en
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v7 | 2026-10-23 | Decisión 39: ataque corriendo para los dos protagonistas (sale de §12). |
 | v6 | 2026-10-23 | Restos de «santuario» → monasterio (decisión 26, barra de ataque, objetos de Tiled, modos de color, archivos de §10: `pantalla_monasterio.c`); §12 sin los nombres ya decididos. |
 | v5 | 2026-10-23 | Ajuste al guion (`guion-historia.md`): hermanos, Tarou pastor, nombres de villano y apoyos, santuario → monasterio, jefe Gomasuri-dono. Decisiones 14, 15, 23, 24. |
 | v4 | 2026-10-23 | La capa de sprites (piezas de 16×16 `.p16`, plan de subidas por número de piezas, OAM en ensamblador con camino rápido) y la prueba de carga rehecha con ninjas de 64×96: 3 ninjas + Tarou + sombras caben (§9.2). |
@@ -78,6 +79,7 @@ y del truco de hardware que usa cada pieza está en
 | 36 | Enemigos a la vez | **3 como máximo**, que la IA reparte en profundidad (nunca 3 a la misma altura) para no pasar de 34 ranuras por línea. |
 | 37 | Siguiente paso técnico | La **capa de sprites en ensamblador** (orden, OAM y plan de subidas, una llamada por frame) con los planes de copia precalculados por script; después se repite la prueba de carga. |
 | 38 | Piezas de Tarou | Tarou también se corta en **piezas de 16×16 sin las vacías**, como los enemigos y Bárbara. |
+| 39 | Ataque corriendo | A mientras se corre. **Tarou**: tajo en carrera; **Bárbara**: embestida con el hombro. Los dos derriban. |
 
 ## 2. Mando
 
@@ -596,5 +598,4 @@ final de la intro (placeholders) · un mapa de viaje entre fases.
   guion (`guion-historia.md` §10).
 - El sprite del **Señor Pimentón**: el autor lo tiene y lo aporta cuando toque; falta dejarlo en
   `res/descargas/graficos/` y decir su tamaño.
-- **Ataque corriendo** (A mientras se corre): propuesta, no decidida.
 - Cifras de combate (daño, velocidades, ventanas): se ajustan jugando.
