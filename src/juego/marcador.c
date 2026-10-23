@@ -57,6 +57,56 @@ u8 marcador_sumar(Marcador *m, u16 puntos)
     return dadas;
 }
 
+/* Potencias de diez de 10 000 a 1, para restar en vez de dividir. */
+static const u16 POTENCIAS[5] = {10000, 1000, 100, 10, 1};
+
+/* Escribe `v` en `s` con al menos `minimo` dígitos (0 y 1 cuentan como 1); devuelve
+   cuántos escribió. No termina la cadena: lo hace quien llama. */
+static u8 escribir(char *s, u16 v, u8 minimo)
+{
+    u8 n;                            /* Dígitos escritos hasta ahora.                       */
+    u8 empezado;                     /* 1 cuando ya salió un dígito distinto de cero.       */
+    u8 k;                            /* Potencia actual (0 = las diez mil).                 */
+    u8 d;                            /* Dígito de esta potencia.                            */
+    u8 forzar;                       /* Desde qué potencia hay que escribir siempre.        */
+
+    n = 0;
+    empezado = 0;
+    forzar = (u8)(5 - (minimo > 1 ? minimo : 1));  /* 5 - 1 = 4: la última siempre sale.    */
+    for (k = 0; k < 5; k++)
+    {
+        d = 0;
+        while (v >= POTENCIAS[k])    /* Cuántas veces cabe la potencia.                     */
+        {
+            v = v - POTENCIAS[k];
+            d++;
+        }
+        if (d > 0 || empezado || k >= forzar)
+        {
+            s[n] = (char)('0' + d);
+            n++;
+            empezado = 1;
+        }
+    }
+    return n;
+}
+
+void marcador_texto(const Marcador *m, char *salida)
+{
+    u8 n;
+
+    if (m->miles > 0)
+    {
+        n = escribir(salida, m->miles, 1);
+        n = (u8)(n + escribir(salida + n, m->resto, 4));   /* Con 4 dígitos fijos.         */
+    }
+    else
+    {
+        n = escribir(salida, m->resto, 1);
+    }
+    salida[n] = 0;
+}
+
 u8 marcador_perder_vida(Marcador *m)
 {
     if (m->vidas > 0)

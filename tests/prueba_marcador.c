@@ -24,6 +24,7 @@
 void pruebas_marcador(void)
 {
     Marcador m;
+    char txt[12];
     u8 dadas;
     u16 i;
 
@@ -76,6 +77,30 @@ void pruebas_marcador(void)
     dadas = marcador_sumar(&m, 9000);
     COMPROBAR(dadas == 2 && m.vidas == VIDAS_INICIALES + 2);
     COMPROBAR(m.miles == 15 && m.resto == 8000);
+
+    /* Texto de los puntos: sin ceros delante; con miles, el resto va a 4 dígitos. */
+    marcador_iniciar(&m);
+    marcador_texto(&m, txt);
+    COMPROBAR(txt[0] == '0' && txt[1] == 0);
+    marcador_sumar(&m, 5);
+    marcador_texto(&m, txt);
+    COMPROBAR(txt[0] == '5' && txt[1] == 0);
+    marcador_sumar(&m, 1229);
+    marcador_texto(&m, txt);
+    COMPROBAR(txt[0] == '1' && txt[1] == '2' && txt[2] == '3' && txt[3] == '4' && txt[4] == 0);
+    marcador_iniciar(&m);
+    marcador_sumar(&m, 9999);
+    marcador_texto(&m, txt);
+    COMPROBAR(txt[0] == '9' && txt[3] == '9' && txt[4] == 0);
+    marcador_iniciar(&m);
+    m.miles = 1;
+    m.resto = 5;
+    marcador_texto(&m, txt);
+    COMPROBAR(txt[0] == '1' && txt[1] == '0' && txt[2] == '0' && txt[3] == '0' && txt[4] == '5' && txt[5] == 0);
+    m.miles = 15;
+    m.resto = 8000;
+    marcador_texto(&m, txt);
+    COMPROBAR(txt[0] == '1' && txt[1] == '5' && txt[2] == '8' && txt[3] == '0' && txt[4] == '0' && txt[5] == '0' && txt[6] == 0);
 
     /* Perder vidas: la última acaba la partida. */
     marcador_iniciar(&m);

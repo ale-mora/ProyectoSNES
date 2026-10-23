@@ -57,6 +57,11 @@ void marcador_iniciar(Marcador *m);
    cuántas vidas extra ha dado esta suma (0, 1 o 2). */
 u8 marcador_sumar(Marcador *m, u16 puntos);
 
+/* Escribe los puntos en decimal, sin ceros delante, terminados en 0 (`salida` de 12
+   caracteres como mínimo). Si hay miles, los 4 dígitos del resto van con ceros
+   (151234, no 15 1234). Sin divisiones: resta por potencias de diez. */
+void marcador_texto(const Marcador *m, char *salida);
+
 /* Pierde una vida. Devuelve 1 si se acabó la partida (sin vidas), 0 si sigue. */
 u8 marcador_perder_vida(Marcador *m);
 

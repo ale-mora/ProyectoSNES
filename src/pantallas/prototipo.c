@@ -37,7 +37,7 @@
       carril                Carril           por dónde se puede andar (x 48..200)
       mando                 Mando            lo que pide el jugador este frame
       pausado               u8               1 mientras dura la pausa (START)
-      marcador              Marcador         puntos, vidas y continues
+      marcador              Marcador         puntos, vidas y continues (texto del HUD)
       caja_dano_tarou, caja_dano_ninja  CajaCuadro  dónde pueden golpear a cada uno
       golpeados_tarou[2], golpeados_ninja[2]  u8  a quién ya le dio cada ataque
       contado[2]            u8               1 cuando el ninja ya dio sus puntos
@@ -57,6 +57,7 @@
 #include "juego/cifras.h"
 #include "juego/mundo.h"
 #include "juego/marcador.h"
+#include "juego/hud_debug.h"
 #include "juego/sprites.h"
 #include "juego/subida.h"
 #include "juego/p16.h"
@@ -238,6 +239,53 @@ static void logica(void)
     }
 }
 
+/*--- hud_prototipo: el HUD de juego en la capa de texto, una fila por frame ----------
+    Fila 0: vida de Tarou, puntos y vidas. Fila 1: vida de cada ninja y PAUSA.
+    Se usan las funciones de hud_debug para escribir filas (la capa de texto y su
+    DMA ya son suyas); el HUD de depuración NO se enciende en el prototipo, así que
+    no pisa estas filas. Una fila por frame, como el HUD de depuración, para no
+    cargar el VBlank de golpe. */
+static u8 turno_hud;
+
+static void hud_fila0(void)
+{
+    u16 *p;
+    char puntos[12];
+
+    p = hud_debug_empezar(0);
+    p = hud_debug_texto(p, "VIDA ");
+    p = hud_debug_numero(p, (s16)tarou.g.vida);
+    p = hud_debug_texto(p, " PUNTOS ");
+    marcador_texto(&marcador, puntos);               /* Con miles: 6 cifras, sin pasarse.  */
+    p = hud_debug_texto(p, puntos);
+    p = hud_debug_texto(p, " VIDAS ");
+    p = hud_debug_numero(p, (s16)marcador.vidas);
+    hud_debug_enviar(0);
+}
+
+static void hud_fila1(void)
+{
+    u16 *p;
+
+    p = hud_debug_empezar(1);
+    p = hud_debug_texto(p, "NINJA ");
+    p = hud_debug_numero(p, (s16)enemigos[0].g.vida);
+    p = hud_debug_texto(p, "  NINJA ");
+    p = hud_debug_numero(p, (s16)enemigos[1].g.vida);
+    if (pausado)
+        p = hud_debug_texto(p, "  PAUSA");
+    hud_debug_enviar(1);
+}
+
+static void hud_prototipo(void)
+{
+    if (turno_hud == 0)
+        hud_fila0();
+    else
+        hud_fila1();
+    turno_hud = (u8)(1 - turno_hud);
+}
+
 /* Empieza la escena de cero: Tarou con vida, dos ninjas en su sitio, marcador a cero. */
 static void empezar(void)
 {
@@ -310,6 +358,9 @@ void prototipo_ejecutar(void)
     pausado = 0;
     empezar();
 
+    hud_debug_iniciar();                             /* Filas de texto en blanco; BG3 apagado. */
+    bgSetEnable(2);                                  /* BG3 (la capa de texto) encendida.       */
+
     listo_tarou = 0;
     listo_ninja = 0;
     subir(&sub_tarou, &listo_tarou, (const u8 *)&tarou_caminar_p16, tarou_p16_bancos[ESTADO_CAMINANDO],
@@ -340,6 +391,7 @@ void prototipo_ejecutar(void)
         poner_tarou();
         for (i = 0; i < NINJAS_PROTO; i++)
             poner_ninja(i);
+        hud_prototipo();                             /* Una fila de texto, a la lista de DMA. */
         sprites_ordenar();                           /* Por la y de los pies.              */
         sprites_dibujar();                           /* UNA llamada: toda la OAM.          */
         WaitForVBlank();
