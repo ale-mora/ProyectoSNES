@@ -37,8 +37,11 @@ el juego · `♻` se reutiliza lo que ya hay.
   ellas (sombras, chispas, objetos) sale mezclado con el fondo. El brillo
   fuerte (suma con el color fijo) solo existe en los momentos congelados:
   apoyos, pausa y escenas.
-- Los tamaños de los **ninjas** dependen de la prueba de carga
-  (`diseno-beat-em-up.md` §9). Las cifras de aquí suponen 64×96.
+- **Ninjas: 64×96** (decidido tras la prueba de carga, `diseno-beat-em-up.md`
+  §9.1). Un cuadro de enemigo tiene que quedarse en **≤ 21 piezas de 16×16 no
+  vacías (≤ 2,7 KB)**: la espada de los ataques se dibuja dentro de la celda,
+  sin salirse. Tarou, Bárbara y los enemigos se cortan en piezas de 16×16 sin las
+  vacías (decisión 38).
 
 ## 1. Protagonistas
 

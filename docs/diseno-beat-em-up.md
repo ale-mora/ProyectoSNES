@@ -29,6 +29,7 @@ y del truco de hardware que usa cada pieza está en
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v2 | 2026-10-23 | Resultados de la prueba de carga (§9.1): ≤ 2 KB por cuadro de enemigo, el límite de ranuras borra primero al protagonista, la capa de sprites tiene que ir en ensamblador. Correcciones de hardware en §8 (matemática de color global, `OBSEL`, CGRAM de fondos). |
 | v1 | 2026-10-23 | Cambio de género acordado con el autor en una sesión de preguntas. Tag `plataformas-r2`. |
 
 ## 1. Decisiones del autor (sesión del 2026-10-23)
@@ -69,6 +70,10 @@ y del truco de hardware que usa cada pieza está en
 | 32 | Start | **Pausa**; en pausa, Select vuelve al título. |
 | 33 | Celdas | **Bárbara: 64×96** (vertical). Tarou sigue en 96×64. Los dos son 6 piezas de 32×32: mismos 3 KB por cuadro, misma celda de VRAM. |
 | 34 | Especies | Los ninjas son **humanos** (celdas de 64×96); el lugarteniente y el villano, también (más grandes). |
+| 35 | Tamaño de los ninjas (tras la prueba de carga) | Se mantiene **64×96**, con subida de tamaño exacto y **bandas de cine** si hace falta margen en el VBlank (§9.1). |
+| 36 | Enemigos a la vez | **3 como máximo**, que la IA reparte en profundidad (nunca 3 a la misma altura) para no pasar de 34 ranuras por línea. |
+| 37 | Siguiente paso técnico | La **capa de sprites en ensamblador** (orden, OAM y plan de subidas, una llamada por frame) con los planes de copia precalculados por script; después se repite la prueba de carga. |
+| 38 | Piezas de Tarou | Tarou también se corta en **piezas de 16×16 sin las vacías**, como los enemigos y Bárbara. |
 
 ## 2. Mando
 
@@ -275,9 +280,13 @@ Tarou + 3 ninjas a la misma altura = 12 + 24 = **36 > 34**: se pierde un trozo.
 Bárbara + 3 = 32: cabe justo. Las sombras van en las líneas de los pies, que
 son las mismas. Medidas posibles, a decidir con la prueba de carga:
 recortar piezas vacías (el metasprite ya se las salta), sombras de 16 px,
-sombras a 30 Hz (frames alternos) y, si se pasa, **rotar el orden** de las
-entidades cada frame para que el corte vaya cambiando (parpadeo en lugar de
-un agujero fijo).
+sombras a 30 Hz (frames alternos). **Medido (§9.1): cuando una línea pasa de
+34 ranuras, la PPU descarta primero los sprites de índice MÁS BAJO de la OAM,
+es decir, los de delante, y el protagonista el primero.** Rotar el orden no
+sirve: chocaría con el orden por profundidad, que usa ese mismo orden de la
+OAM para decidir quién tapa a quién. Así que **34 ranuras por línea es un
+límite duro**, que se respeta con el diseño (cuántos enemigos, su ancho y su
+reparto en profundidad). Las sombras, al final de la OAM, sobreviven igual.
 
 **VRAM de sprites (512 tiles).** El protagonista activo usa **256** (doble
 búfer de 2 celdas de 128). Quedan 256 para enemigos, sombras, efectos y
@@ -384,6 +393,93 @@ carril con sombras, animando y subiendo cuadros por la lista de DMA.
 trozos perdidos en el caso típico (2–3 enemigos), con el VBlank por debajo de
 la línea 37 en el peor frame. El resultado se escribe en esta spec (v2) y fija
 el tamaño de los ninjas para pedirlos a Pixellab.
+
+### 9.1 Resultados (2026-10-23, Mesen, ROM FastROM)
+
+Cómo se hizo: `src/pantallas/prueba_carga.c` (ROM con `-DPRUEBA_CARGA`) recorre
+10 configuraciones de 6 s sin tocar el mando. El enemigo provisional es el
+samurái humano del pack *FULL_Samurai* ampliado ×3 (93 px de alto) o ×2 (62 px),
+en piezas de 16×16 recortadas (`scripts/preparar_prueba_carga.py`, que además
+imprime la predicción de ranuras por línea). Tarou cambia de cuadro cada 2
+frames, así que su medio cuadro (1,5 KB) sube en **todos** los VBlanks: es el
+peor caso. Las cifras CPU son líneas contadas desde el VBlank en que empieza el
+frame (262 = el frame no cupo); el HUD de depuración cuesta además ~25–60 líneas
+por frame, que no entran en CPU pero sí en los frames perdidos.
+
+**Tamaño de un cuadro de enemigo (piezas de 16×16 no vacías):**
+
+| Escala | Andar | Atacar (espada fuera) | Bytes por cuadro |
+|---|---|---|---|
+| ×3 (93 px; ~75 px de ancho andando) | 21–25 piezas | 21–38 piezas | 3–5 KB |
+| ×2 (62 px; ~50 px de ancho) | 11–13 piezas | 12–23 piezas | 2–3 KB |
+| **×3 recortado a una celda de 64×96** (solo cálculo del script) | 18–21 piezas | 15–19 piezas | **1,9–2,7 KB exactos** |
+
+Las dos primeras filas usan un lienzo de 128 px de ancho, más ancho que la
+celda de 64×96 decidida (34), y en la ROM cada subida se redondea a pares de
+filas de 1 KB. La tercera es lo que importa para la decisión: un humano en
+64×96, con la espada cortada en el borde de la celda, como saldría pedido a
+Pixellab. Bytes exactos = piezas × 128. Pide 84 tiles por hueco, así que caben
+**3 huecos** en los 256 tiles libres.
+
+**Medidas** (VMAX: última línea del VBlank usada, el límite es 37):
+
+| # | Configuración | VMAX | CPU típica / máx | Resultado |
+|---|---|---|---|---|
+| 0 | Tarou solo | 19 | 110 / 189 | cabe |
+| 1 | ×3, 1 ninja andando y atacando (5 KB) | **51** | — | se sale del VBlank: trozos con tiles viejos |
+| 2 | ×3, 2 ninjas andando (3–4 KB) | **45** | — | se sale del VBlank |
+| 3 | ×2, 2 ninjas andando y atacando (≤ 3 KB) | **39** | 178 / 325 | se sale en los cuadros de 3 KB |
+| 4 | ×2, 3 ninjas, misma y, sombras | 32 | 215 / 326 | VBlank bien; CPU justa |
+| 5 | ×2, 3 repartidos | 32 | 218 / 328 | ídem |
+| 6 | ×2, 4 repartidos | 32 | 242 / 361 | CPU no cabe |
+| 8, 9 | 2 subidas de enemigo por VBlank | **44** | — | se sale: el techo es 1 subida de ≤ 2 KB |
+
+**Lo que se aprendió:**
+
+1. **VBlank:** junto al medio cuadro de Tarou cabe **una subida de enemigo por
+   VBlank**. Medido: 2 KB acaba en la línea 32 y 3 KB en la 39, unas 7 líneas
+   por KB, así que el techo real está en **~2,7 KB** (interpolado, no medido).
+   Un humano de 64×96 (hasta 2,7 KB exactos) queda **justo en el borde**: hace
+   falta subir el tamaño exacto (2 entradas de DMA para el último par de filas a
+   medias) y probablemente las **bandas de cine** (§8: ~16 líneas más de DMA).
+   Con eso, 2–3 enemigos de 64×96 son viables por VBlank. Dos subidas de enemigo
+   en el mismo VBlank no caben nunca (44).
+2. **Ranuras por línea:** lo que se ve es coherente con la predicción del
+   script: el corte cae dentro de la franja predicha (128–175), aunque es más
+   estrecho (~160–176), porque los ninjas van en cuadros distintos y la
+   predicción usa el peor cuadro para todos. Con Tarou
+   (12 ranuras) y 3 ninjas ×2 a la misma altura se pasa de 34 en la franja de
+   los pies, y lo que desaparece es **Tarou**. El SNESdev Wiki lo confirma:
+   cuando hay demasiadas ranuras, la PPU recorre los sprites al revés y descarta
+   primero los de **índice más bajo** de la OAM, que son los que están delante.
+   Cuando hay demasiados sprites (32), en cambio, descarta los de índice alto.
+   Las sombras, que están al final de la OAM, se ven aunque el protagonista
+   pierda trozos. La configuración 7 (orden rotando) no demostró nada: Tarou
+   está fijo en las entradas 0..5 y siempre es el de índice más bajo. En la
+   celda de 64×96 (cálculo): Tarou + 2 enemigos caben (32); 3 a la misma altura
+   no (40); 3 repartidos en profundidad se pasan solo en 12 líneas. Tarou, con
+   sus 12 ranuras en piezas de 32×32, es lo que más gasta por línea: cortado en
+   piezas de 16×16 sin las vacías bajaría.
+3. **CPU (lo que de verdad manda):**
+   - Dibujar a Tarou desde C (planificar su cuadro con `metasprite_copias` y
+     escribir su OAM) cuesta **~88 líneas** por frame.
+   - Llenar la OAM con `oamSet` + `oamSetEx` del SDK cuesta **~5,4 líneas por
+     pieza**. Con 3 ninjas (37 piezas) el frame no cabe (CPU 360–440).
+   - Con la rutina en ensamblador `juego/oam_piezas.asm` baja a ~2,2 líneas por
+     pieza, pero esa cifra es sobre todo la sobrecarga de las 8–9 llamadas desde C
+     (8 parámetros cada una), no el bucle de ensamblador. Son lecturas del HUD de
+     un solo frame, no promedios. Con 3 ninjas ×2, CPU
+     215 típico, pero los picos (326) y el HUD siguen perdiendo frames.
+   - Conclusión: la capa de sprites (orden, OAM y plan de subidas) tiene que
+     ir entera en ensamblador, con una llamada por frame, y el plan de copias
+     de cada cuadro precalculado por script en la ROM, no en tiempo de
+     ejecución.
+4. **VRAM:** con cuadros ≤ 2 KB caben 4 huecos de 64 tiles (andar). Los de
+   ataque de 3 KB solo dejan 2.
+5. **Sombras con media suma:** se ven bien sobre la tierra y la hierba (oscurecen
+   al 50 %), con `OBSEL` 16/32 y piezas de 16×16. No hacen falta sprites de 8×8.
+6. **Orden por profundidad** (`juego/profundidad.c`, probado en el PC): funciona
+   (el ninja de más abajo tapa a los de arriba).
 
 ## 10. Arquitectura (qué cambia en `src/`)
 

@@ -33,6 +33,8 @@
 ;     .rodata_nivel1_cerca  nivel1_cerca_til/_til_end/_pal/_col/_col_end (capa cercana, por columnas)
 ;     .rodata_nivel1_banco  nivel1_cerca_col_banco (1 byte: el banco del mapa por columnas)
 ;     .rodata_nivel1_colision  nivel1_colision (rejilla de 128x14 bytes)
+;     .rodata_prueba_*   ninja3_*_til, ninja2_*_til, ninja_pal, sombra_til, ninja_bancos
+;                        (solo la ROM de prueba de carga, -DPRUEBA_CARGA)
 ;
 ;   Extensiones que genera gfx4snes: .pic tiles, .pal paleta, .map mapa;
 ;   en Mode 7: .pc7 tiles y .mp7 mapa. Todo se regenera con `make`.
@@ -256,4 +258,29 @@ tarou_til_bancos: .db :tarou_reposo_til, :tarou_caminar_til, :tarou_correr_til
                   .db :tarou_atacar_til, :tarou_echarse_til, :tarou_dormido_til
                   .db :tarou_despertar_til
                   .db :tarou_guardia_til     ; índice 13 = DIBUJO_GUARDIA (no es un estado)
+.ends
+
+; --- ROM de prueba de carga (docs/diseno-beat-em-up.md §9) ---------------------------
+; El ninja provisional en dos escalas (×3: 93 px de alto; ×2: 62 px), cortado en piezas
+; de 16x16 empaquetadas en pares de filas de 1 KB, su paleta (3 variantes + la sombra)
+; y la sombra (2 piezas). Los genera scripts/preparar_prueba_carga.py (.bin versionados:
+; el pack de origen no se versiona). Solo los usa src/pantallas/prueba_carga.c, que se
+; compila con -DPRUEBA_CARGA: en la ROM normal nadie los nombra y wlalink -d los descarta.
+.section ".rodata_prueba_n3_andar" superfree
+ninja3_andar_til:     .incbin "res/prueba_carga/ninja3_andar.bin"
+.ends
+.section ".rodata_prueba_n3_ataque" superfree
+ninja3_ataque_til:    .incbin "res/prueba_carga/ninja3_ataque.bin"
+.ends
+.section ".rodata_prueba_n2_andar" superfree
+ninja2_andar_til:     .incbin "res/prueba_carga/ninja2_andar.bin"
+.ends
+.section ".rodata_prueba_n2_ataque" superfree
+ninja2_ataque_til:    .incbin "res/prueba_carga/ninja2_ataque.bin"
+.ends
+.section ".rodata_prueba_varios" superfree
+ninja_pal:            .incbin "res/prueba_carga/ninja_pal.bin"
+sombra_til:           .incbin "res/prueba_carga/sombra.bin"
+; El banco de cada tira, en este orden: ×3 andar, ×3 ataque, ×2 andar, ×2 ataque.
+ninja_bancos:         .db :ninja3_andar_til, :ninja3_ataque_til, :ninja2_andar_til, :ninja2_ataque_til
 .ends

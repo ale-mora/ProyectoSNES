@@ -37,5 +37,13 @@ void hud_debug_alternar(void);
 /* Prepara en RAM las seis filas de §9 si el HUD está encendido. Una vez por frame. */
 void hud_debug_dibujar(const Tarou *t, u16 camara);
 
+/*--- Filas propias (las usa la ROM de prueba de carga, pantallas/prueba_carga.c) ---
+    Para escribir otras filas con el mismo método barato: empezar (la deja en blanco
+    y da un puntero a su primera celda), texto/numero (escriben y devuelven dónde
+    sigue) y enviar (apunta la fila, 64 bytes, en la lista de DMA). Filas 0..7. */
+u16 *hud_debug_empezar(u8 fila);
+u16 *hud_debug_texto(u16 *p, const char *s);
+u16 *hud_debug_numero(u16 *p, s16 valor);
+void hud_debug_enviar(u8 fila);
 
 #endif /* HUD_DEBUG_H */

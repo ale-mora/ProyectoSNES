@@ -35,6 +35,7 @@ void pruebas_colision(void);
 void pruebas_partida(void);
 void pruebas_recorrido(void);
 void pruebas_escena(void);
+void pruebas_profundidad(void);
 
 int main(void)
 {
@@ -47,6 +48,7 @@ int main(void)
     pruebas_partida();
     pruebas_recorrido();
     pruebas_escena();
+    pruebas_profundidad();
 
     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
     return pruebas_fallidas != 0;

@@ -36,7 +36,8 @@
       Incluye:  <snes.h> (bgSetEnable), <string.h> (memset), juego/hud_debug.h,
                 juego/animaciones.h (NOMBRES_ESTADO), sistema/comun.h
                 (VRAM_MAPA_TEXTO, limpiar_texto), sistema/puntofijo.h.
-      Lo usan:  pantallas/pantalla_nivel1.c (iniciar, alternar, dibujar, vblank).
+      Lo usan:  pantallas/pantalla_nivel1.c (iniciar, alternar, dibujar, vblank) y
+                pantallas/prueba_carga.c (filas propias: hud_debug_empezar/texto/numero/enviar).
 
     HARDWARE QUE TOCA
       PPU: bgSetEnable(2) / bgSetDisable(2). VRAM: filas 1..8 del mapa de texto
@@ -312,4 +313,25 @@ void hud_debug_dibujar(const Tarou *t, u16 camara)
     {
         turno = 0;
     }
+}
+
+/*--- Filas propias: lo mismo de arriba, para otra pantalla (ver hud_debug.h) -------*/
+u16 *hud_debug_empezar(u8 fila)
+{
+    return empezar_fila(fila);                       /* En blanco con memset.               */
+}
+
+u16 *hud_debug_texto(u16 *p, const char *s)
+{
+    return texto(p, s);
+}
+
+u16 *hud_debug_numero(u16 *p, s16 valor)
+{
+    return numero(p, valor);                         /* Sin divisiones.                     */
+}
+
+void hud_debug_enviar(u8 fila)
+{
+    apuntar_fila(fila);                              /* 64 bytes a la lista de DMA.         */
 }
