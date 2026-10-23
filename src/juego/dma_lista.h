@@ -56,6 +56,11 @@ void dma_lista_vaciar(void);
    como estaba: mejor que escribir fuera de la lista). */
 void dma_lista_anadir(u16 origen, u16 vram, u16 bytes, u8 banco, u8 vmain);
 
+/* Apunta n copias seguidas de 8 bytes cuyos 6 primeros son origen, vram y bytes (las
+   Copia de juego/subida.h), todas del banco `banco` y de tiles (VMAIN $80), en un
+   bucle de ensamblador (dma_copias.asm): mucho más barato que n llamadas desde C. */
+void dma_lista_copias(const void *copias, u8 n, u8 banco);
+
 /* Dispara todas las copias de la lista, en orden (dma_ejecutar.asm). Solo en el
    VBlank o con la pantalla apagada. NO vacía la lista: eso lo hace el frame. */
 void dma_lista_ejecutar(void);

@@ -9,7 +9,7 @@
 
     SE CONECTA CON
       Incluye:  juego/profundidad.h.
-      Lo usan:  pantallas/prueba_carga.c y tests/prueba_profundidad.c.
+      Lo usan:  juego/sprites.c y tests/prueba_profundidad.c.
 
     HARDWARE QUE TOCA
       ninguno.

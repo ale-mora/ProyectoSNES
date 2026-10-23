@@ -35,6 +35,7 @@ res/**/*_data.as
 res/**/*.brr
 res/**/*.pc7
 res/**/*.mp7
+res/**/*.p16
 res/musica/soundbank.*
 
 # Descargas crudas de terceros (material con copyright, uso privado): no se versionan

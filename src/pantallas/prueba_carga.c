@@ -2,38 +2,38 @@
     prueba_carga.c — ROM de prueba de carga del beat 'em up (ver prueba_carga.h).
 
     PROPÓSITO
-      Una escena fija con la mayor carga que tendrá el juego, para medirla:
-        - Tarou andando con su sprite real (6 piezas de 32x32), cambiando de
-          cuadro cada 2 frames: su subida de medio cuadro (1,5 KB) va en TODOS
-          los VBlanks, el peor caso.
-        - N ninjas provisionales (el samurái humano del pack, ampliado ×3 o ×2:
-          scripts/preparar_prueba_carga.py) en piezas de 16x16 recortadas, cada
-          uno en su «hueco» de la VRAM con UN solo búfer: el cuadro nuevo sube en
-          un único VBlank y la OAM pasa a él en ese mismo frame. Como mucho
-          `subidas` enemigos suben cuadro por VBlank, por turnos.
-        - Sombras: óvalos negros en la paleta de sprites 4 con MEDIA SUMA de
-          color sobre BG1+BG2 (oscurecen el 50 % del suelo).
-        - Orden por profundidad (juego/profundidad.c) en la OAM, y una
-          configuración que invierte el orden en frames alternos (parpadeo en
-          lugar de un agujero fijo cuando una línea se pasa de 34 ranuras).
-      Tarou ocupa siempre las entradas 0..5 de la OAM: tapa a todos y no entra en
-      el orden ni en la rotación (limitación aceptada de la prueba).
-      Las 10 configuraciones (CONFIGS) se recorren solas, 360 frames cada una; el
-      HUD enseña la configuración y, para cada una, el MÁXIMO de lo que tarda la
-      CPU (CPU: líneas desde el VBlank en que empezó el frame, tras Tarou y las
-      subidas y tras la OAM; 262 o más = el frame no cupo), de la línea del VBlank al acabar las copias (V;
-      el límite es 37), los frames perdidos (PERD) y lo que más esperó un enemigo
-      su turno de subida (ESP). Las predicciones de ranuras por línea las imprime
-      el script: la captura de Mesen tiene que coincidir con ellas.
+      Una escena fija con la mayor carga que tendrá el juego, para medirla, ya con
+      la capa de sprites del beat 'em up (docs/diseno-beat-em-up.md §8 v3):
+        - Tarou andando, en piezas de 16x16 (tarou_caminar.p16), cambiando de
+          cuadro cada 2 frames: su subida (≤ 1,5 KB por VBlank en trozos de 512 B,
+          juego/subida.c) va en todos los VBlanks, el peor caso. Doble búfer:
+          pares de filas 0-2 y 3-5. Se pasea de lado a lado, así que pasa por
+          delante y por detrás de los ninjas (entra en el orden por profundidad).
+        - Hasta 3 ninjas provisionales (el samurái humano del pack recortado a la
+          celda de 64x96, ninja64_*.bin) en sus huecos de la VRAM (pares 6-8, 9-11
+          y 12-14) con UN solo búfer: el cuadro nuevo sube entero en un VBlank y
+          la OAM pasa a él en ese mismo frame; como mucho `subidas` por VBlank.
+        - Sombras (par 15): óvalos negros en la paleta 4 con MEDIA SUMA de color
+          sobre BG1+BG2; van al final del orden (detrás de todo).
+        - Todo a la OAM con UNA llamada: sprites_dibujar() (juego/sprites_oam.asm),
+          con entradas FIJAS: cada frame solo se tocan Tarou y su sombra; las piezas
+          de un ninja, solo cuando cambia de cuadro.
+      Las configuraciones (CONFIGS) se recorren solas, 360 frames cada una; el HUD
+      enseña la configuración y, para cada una, el MÁXIMO de lo que tarda la CPU
+      (CPU: líneas desde el VBlank en que empezó el frame, tras las subidas, tras
+      rellenar la tabla de entidades y tras la OAM; 262 o más = el frame no cupo), de la línea del VBlank al acabar las
+      copias (V; el límite es 37), los frames perdidos (PERD) y lo que más esperó
+      un ninja su turno de subida (ESP). La predicción de ranuras por línea la
+      imprime scripts/preparar_prueba_carga.py.
 
     SE CONECTA CON
-      Incluye:  <snes.h>, pantallas/prueba_carga.h, sistema/comun.h,
-                juego/tarou.h, juego/tarou_sprite.h, juego/fondo_nivel.h,
-                juego/dma_lista.h, juego/hud_debug.h, juego/profundidad.h,
-                juego/nivel.h, nivel1_datos.h (el tronco), tarou_anim.h y
-                ninja_datos.h (generado por el script).
-      Lee de la ROM: ninja3_*_til, ninja2_*_til, ninja_pal, sombra_til,
-                ninja_bancos (data.asm) y los fondos del nivel 1.
+      Incluye:  <snes.h>, pantallas/prueba_carga.h, sistema/comun.h, juego/nivel.h,
+                juego/animaciones.h, juego/fondo_nivel.h, juego/dma_lista.h,
+                juego/hud_debug.h, juego/sprites.h, juego/subida.h, juego/p16.h,
+                nivel1_datos.h (el tronco) y tarou_anim.h.
+      Lee de la ROM: tarou_caminar_p16, tarou_p16_bancos, tarou_pal, ninja64_andar,
+                ninja64_ataque, ninja_bancos, ninja_pal, sombra_til, sombra_piezas,
+                sombra_banco (data.asm) y los fondos del nivel 1.
       Lo usan:  sistema/main.c (con -DPRUEBA_CARGA).
 
     HARDWARE QUE TOCA
@@ -41,21 +41,21 @@
       Matemática de color: TS $212D (BG1+BG2 a la pantalla secundaria), CGWSEL
       $2130 = 0x02 (el segundo operando es la secundaria), CGADSUB $2131 = 0x50
       (sumar a la mitad, solo los sprites de las paletas 4..7). OAM: el búfer del
-      SDK por juego/oam_piezas.asm (piezas pequeñas de 16x16) y oamSet en Tarou (32x32). VRAM: tiles
-      de sprites 256..511 para los ninjas y las columnas 12..15 de la celda 0 de
-      Tarou (que su cuadro no usa) para la sombra. CGRAM: paletas de sprites 1..4.
+      SDK por juego/sprites_oam.asm (piezas de 16x16; OBSEL 16/32). VRAM: los 512
+      tiles de sprites por la lista de DMA. CGRAM: paletas de sprites 0..4.
       HDMA: el cielo (canal 6). Contadores del haz ($2137/$213D).
 
     VARIABLES (estáticas de este archivo)
-      tarou            Tarou    el protagonista (solo dibujo: no hay lógica)
-      cfg              Config   la configuración en curso (copia de CONFIGS[n_cfg])
-      n_cfg            u8       0..CONFIGS_N-1
-      ex, pies         u16[4]   x del cuerpo y y de los pies de cada ninja (pantalla)
-      quiere, muestra  u8[4]    cuadro que toca / cuadro que enseña la OAM (0xFF: ninguno)
-      reloj, espera    u8[4]    frames en el cuadro / frames esperando turno de subida
-      orden            u8[4]    ninjas en orden de dibujo (juego/profundidad.c)
-      base_hueco       u16[4]   primer tile de la VRAM del hueco de cada ninja
-      lin_max, v_max, espera_max, perdidos  u16  máximos de la configuración
+      cfg, n_cfg       Config, u8   la configuración en curso
+      tarou_x          u16          x de la celda de Tarou en pantalla; tarou_vx su paso
+      t_cuadro, t_muestra, t_bufer, t_subiendo  u8  cuadro que toca / el que enseña la
+                                    OAM / en qué búfer está / el que se sube (0xFF: nada)
+      t_sub            Subida       la subida en marcha de Tarou
+      ex, pies         u16[3]       x del cuerpo y y de los pies de cada ninja
+      quiere, muestra  u8[3]        cuadro que toca / el que enseña (0xFF: ninguno)
+      reloj, espera    u8[3]        frames en el cuadro / frames esperando turno
+      e_sub            Subida       subida de un ninja (se toma entera en un VBlank)
+      cpu_a, cpu_b, v_ini, v_fin  u16  medidas del frame; *_max y perdidos: de la config
     → glosario: Prueba de carga, Ranura por línea, Orden por profundidad, OAM, VBlank
 ---------------------------------------------------------------------------------*/
 #ifdef PRUEBA_CARGA
@@ -63,109 +63,97 @@
 #include <snes.h>
 #include "pantallas/prueba_carga.h"
 #include "sistema/comun.h"
-#include "sistema/puntofijo.h"
 #include "juego/nivel.h"
-#include "juego/tarou.h"
-#include "juego/tarou_sprite.h"
+#include "juego/animaciones.h"
 #include "juego/fondo_nivel.h"
 #include "juego/dma_lista.h"
 #include "juego/hud_debug.h"
-#include "juego/profundidad.h"
-#include "juego/oam_piezas.h"
+#include "juego/sprites.h"
+#include "juego/subida.h"
+#include "juego/p16.h"
 #include "nivel1_datos.h"
 #include "tarou_anim.h"
-#include "ninja_datos.h"
 
 extern char nivel1_lejos_til, nivel1_lejos_til_end, nivel1_lejos_pal;
 extern char nivel1_lejos_map, nivel1_lejos_map_end;
 extern const unsigned char hdmaGradcieloList[];
-extern char ninja3_andar_til, ninja3_ataque_til, ninja2_andar_til, ninja2_ataque_til;
-extern char ninja_pal, sombra_til;
-extern u8 ninja_bancos[];            /* ×3 andar, ×3 ataque, ×2 andar, ×2 ataque.         */
+extern char tarou_caminar_p16, tarou_pal;
+extern u8 tarou_p16_bancos[];        /* Banco de cada tira .p16 de Tarou (enum Estado).   */
+extern char ninja64_andar, ninja64_ataque, ninja_pal, sombra_til, sombra_piezas;
+extern u8 ninja_bancos[];            /* Andar, ataque.                                    */
+extern u8 sombra_banco;
 extern u16 diag_linea[3];            /* pantalla_nivel1.c: los usa también el HUD.        */
 
 /*--- Configuraciones: 8 bytes cada una (CONFIGS[n] es un desplazamiento, no tcc__mul) ---*/
 typedef struct
 {
-    u8 escala;                       /* 3 (93 px de alto) o 2 (62 px).                    */
-    u8 n;                            /* Cuántos ninjas (0..4).                            */
-    u8 pares;                        /* Pares de filas (1 KB) por hueco de la VRAM.       */
-    u8 ataque;                       /* 0 = solo andar (8 cuadros); 1 = andar + ataque.   */
+    u8 n;                            /* Cuántos ninjas (0..3).                            */
+    u8 ataque;                       /* 0 = solo andar (8 cuadros); 1 = andar + ataque (15). */
     u8 reparto;                      /* 0 = todos los pies en la misma y; 1 = repartidos. */
     u8 sombras;                      /* 1 = una sombra bajo cada uno (y bajo Tarou).      */
     u8 subidas;                      /* Ninjas que pueden subir cuadro en un VBlank.      */
-    u8 rotar;                        /* 1 = invertir el orden de la OAM en frames impares.*/
+    u8 libre[3];
 } Config;
 
-/* Los huecos caben en los 8 pares de filas de los tiles 256..511: con 2 pares, 4
-   huecos; con 3 o 4, 2; con 5, 1. Un ninja sin hueco propio enseña el cuadro del
-   que lo comparte (no sube nada). */
 static const Config CONFIGS[] = {
-    {2, 0, 2, 0, 0, 0, 1, 0},        /* 0: Tarou solo (la base).                          */
-    {3, 1, 5, 1, 0, 1, 1, 0},        /* 1: ×3, 1 ninja andando y atacando, sombras.        */
-    {3, 2, 4, 0, 0, 1, 1, 0},        /* 2: ×3, 2 ninjas andando, misma y, sombras.         */
-    {2, 2, 3, 1, 0, 1, 1, 0},        /* 3: ×2, 2 ninjas andando y atacando, sombras.       */
-    {2, 3, 2, 0, 0, 1, 1, 0},        /* 4: ×2, 3 ninjas, misma y, sombras.                 */
-    {2, 3, 2, 0, 1, 1, 1, 0},        /* 5: ×2, 3 ninjas repartidos, sombras.               */
-    {2, 4, 2, 0, 1, 1, 1, 0},        /* 6: ×2, 4 ninjas repartidos, sombras.               */
-    {2, 3, 2, 0, 0, 1, 1, 1},        /* 7: como la 4, con el orden rotando (parpadeo).     */
-    {2, 4, 2, 0, 1, 1, 2, 0},        /* 8: como la 6, con 2 subidas por VBlank (el techo). */
-    {3, 2, 4, 0, 0, 1, 2, 0},        /* 9: como la 2, con 2 subidas por VBlank.            */
+    {0, 0, 0, 0, 1, {0, 0, 0}},      /* 0: Tarou solo (la base).                          */
+    {1, 1, 0, 1, 1, {0, 0, 0}},      /* 1: 1 ninja andando y atacando, sombras.           */
+    {2, 1, 0, 1, 1, {0, 0, 0}},      /* 2: 2 ninjas, misma y, sombras.                    */
+    {3, 1, 0, 1, 1, {0, 0, 0}},      /* 3: 3 ninjas, misma y, sombras.                    */
+    {3, 1, 1, 1, 1, {0, 0, 0}},      /* 4: 3 ninjas repartidos, sombras.                  */
+    {3, 0, 1, 1, 1, {0, 0, 0}},      /* 5: 3 repartidos, solo andando, sombras.           */
+    {3, 1, 1, 0, 1, {0, 0, 0}},      /* 6: 3 repartidos, sin sombras.                     */
+    {3, 1, 1, 1, 2, {0, 0, 0}},      /* 7: como la 4, con 2 subidas por VBlank (el techo). */
 };
-#define CONFIGS_N 10
+#define CONFIGS_N 8
 #define FRAMES_POR_CONFIG 360        /* 6 s: tres capturas de Mesen cada 2 s.             */
-#define NINJAS_MAX 4
+#define NINJAS_MAX 3
+#define NINJA_ANDAR 8                /* Cuadros de cada tira del ninja.                   */
+#define NINJA_CUADROS 15             /* Andar (8) + atacar (7).                           */
+#define NINJA_ALTO 96
+#define NINJA_ANCHO 64
+#define NINJA_CENTRO 32              /* x del cuerpo dentro de la celda.                  */
 
 #define REG_SLHV (*(volatile u8 *)0x2137)
 #define REG_OPVCT (*(volatile u8 *)0x213D)
 
-#define OAM_PRIMERA 6                /* Tarou usa las entradas 0..5.                      */
-#define PRIORIDAD 3                  /* Delante de todos los fondos, como Tarou.          */
-#define TILE_ENEMIGOS 256            /* Primer tile de los huecos (la 2.ª tabla de nombres).*/
-#define TILE_SOMBRA 12               /* Columnas 12..15 de la celda 0 de Tarou: libres.   */
+#define TILE_TAROU_A 0               /* Pares 0-2.                                        */
+#define TILE_TAROU_B 96              /* Pares 3-5.                                        */
+#define TILE_SOMBRA 480              /* Par 15: lo compartido.                            */
 #define PALETA_SOMBRA 4              /* Paletas 4..7: las que entran en la matemática de color.*/
-#define TAROU_X 8                    /* Celda de Tarou (96 px) en la pantalla.            */
+#define PRIORIDAD 3
+#define TOPE_TAROU 1536              /* Bytes de Tarou por VBlank (3 copias de 512).      */
 #define FRAMES_TAROU 2               /* Tarou cambia de cuadro cada 2 frames.             */
 #define FRAMES_NINJA 4               /* Cada ninja quiere cambiar de cuadro cada 4.       */
-#define ESPEJO_X (NINJA_CENTRO_X + 1 - 16)  /* Mirando a la izquierda: x = ex + 25 - dx.  */
-#define SOMBRA_ALTO 10               /* La sombra se dibuja 10 px por encima de los pies. */
+#define TAROU_X_MIN 8
+#define TAROU_X_MAX 152
+#define SOMBRA_ALTO 10               /* La sombra, 10 px por encima de los pies.          */
 #define SIN_CUADRO 0xFF
-static const u8 PALETAS[NINJAS_MAX] = {1, 2, 3, 1};  /* Paleta de sprites de cada ninja. */
+#define VRAM_TILE(t) ((u16)(VRAM_SPRITES + ((u16)(t) << 4)))  /* 16 palabras por tile.   */
+
+static const u8 PALETAS[NINJAS_MAX] = {1, 2, 3};     /* Paleta de sprites de cada ninja. */
+static const u16 HUECOS[NINJAS_MAX] = {192, 288, 384};  /* Primer tile de cada hueco.   */
 
 /*--- Estado ----------------------------------------------------------------------------*/
-static Tarou tarou;
 static Config cfg;
 static u8 n_cfg;
-static u16 frames_cfg;               /* VBlanks desde que empezó la configuración.        */
-static u16 vueltas_cfg;              /* Vueltas del bucle en ese tiempo.                  */
-static u16 vb_antes;                 /* snes_vblank_count de la vuelta anterior.          */
-static u8 reloj_tarou;
-static u16 ex[NINJAS_MAX], pies[NINJAS_MAX], base_hueco[NINJAS_MAX];
+static u16 frames_cfg, vueltas_cfg, vb_antes, vb_frame;
+static u16 tarou_x;
+static s16 tarou_vx;
+static u8 reloj_tarou, t_cuadro, t_muestra, t_bufer, t_subiendo;
+static Subida t_sub;
+static u16 ex[NINJAS_MAX], pies[NINJAS_MAX];
 static u8 quiere[NINJAS_MAX], muestra[NINJAS_MAX], reloj[NINJAS_MAX], espera[NINJAS_MAX];
-static u8 dueno[NINJAS_MAX];         /* El ninja cuyo hueco usa (él mismo si tiene uno).  */
-static u8 orden[NINJAS_MAX];
-static u8 turno;                     /* Por qué ninja empieza la ronda de subidas.        */
-static u8 huecos;                    /* Cuántos huecos caben con cfg.pares.               */
-static u8 oam_usadas;                /* Entradas de la OAM escritas el frame anterior.    */
-static u8 fila_hud;
-static u8 piezas_frame;              /* Piezas de ninja dibujadas este frame.             */
-static u16 bytes_frame;              /* Bytes de ninja apuntados en la lista este frame.  */
-static u16 lin, v_ini, v_fin;
-static u16 cpu_a, cpu_b;              /* Líneas desde el VBlank en que empezó el frame: tras
-                                        Tarou + subidas y tras la OAM (+262 si el frame ya
-                                        pisó el VBlank siguiente: frame perdido).          */
-static u16 vb_frame;                 /* snes_vblank_count al empezar el frame.            */
-static u16 lin_max, v_max, espera_max, perdidos, bytes_max, cpu_max;
+static Subida e_sub;
+static u8 turno, fila_hud, oam_usadas;
+static u8 e_sombras;                 /* Entrada de la primera sombra.                     */
+static u16 bytes_frame, cpu_a, cpu_b, cpu_c, v_ini, v_fin;
+static u16 v_max, espera_max, perdidos, bytes_max, cpu_max;
 
-/* Tablas de la escala en curso (ninja3_* o ninja2_*, de ninja_datos.h). */
-static const u8 *t_n_piezas, *t_tira, *t_piezas;
-static const u16 *t_desp, *t_bytes;
-static u8 t_paso_bits, t_cuadros;
-static u16 t_alto;
-static u16 t_tiles[2];               /* Dirección de la tira de andar y la de ataque.     */
-static u8 t_banco[2];
+static void preparar_entidades(void);
+static void poner_cuadro(u8 e, const u8 *tira, u8 f, u8 banco);
 
-/*--- leer_linea / desde_vblank: como en pantalla_nivel1.c --------------------------*/
+/*--- leer_linea / desde_vblank / medir_cpu: como en pantalla_nivel1.c ----------------*/
 static u16 leer_linea(void)
 {
     u8 bajo, alto;
@@ -184,117 +172,104 @@ static u16 desde_vblank(u16 linea)
     return (u16)(linea + 37);                        /* 0 → 37: ya se dibuja.               */
 }
 
-/*--- medir_cpu: dónde va el frame, contado desde el VBlank en que empezó ------------
-    desde_vblank() de la línea actual, más 262 si desde entonces llegó otro VBlank:
-    un valor >= 262 es un frame que no cupo (la lógica pisó el VBlank siguiente). */
+/* Líneas desde el VBlank en que empezó el frame; +262 si llegó otro (frame perdido). */
 static u16 medir_cpu(void)
 {
     u16 l = desde_vblank(leer_linea());
     if (snes_vblank_count != vb_frame)
     {
-        l = (u16)(l + 262);                          /* Ya pasó un VBlank: frame perdido.   */
+        l = (u16)(l + 262);
     }
     return l;
-}
-
-/*--- esconder: una entrada de la OAM fuera de la pantalla (como tarou_sprite.c) -----*/
-static void esconder(u8 entrada)
-{
-    oamSetEx((u16)entrada * 4, OBJ_SMALL, OBJ_HIDE);
-    oamSetXY((u16)entrada * 4, 256, 224);
 }
 
 /*--- empezar_config: prepara la configuración n -------------------------------------*/
 static void empezar_config(u8 n)
 {
     u8 k;
-    u16 tile;
 
     n_cfg = n;
     cfg = CONFIGS[n];
-    if (cfg.escala == 3)                             /* Las tablas de la escala elegida.    */
-    {
-        t_n_piezas = ninja3_n_piezas; t_tira = ninja3_tira; t_piezas = ninja3_piezas;
-        t_desp = ninja3_desp; t_bytes = ninja3_bytes; t_paso_bits = NINJA3_PIEZAS_PASO_BITS;
-        t_cuadros = NINJA3_CUADROS; t_alto = NINJA3_ALTO;
-        t_tiles[0] = (u16)&ninja3_andar_til; t_tiles[1] = (u16)&ninja3_ataque_til;
-        t_banco[0] = ninja_bancos[0]; t_banco[1] = ninja_bancos[1];
-    }
-    else
-    {
-        t_n_piezas = ninja2_n_piezas; t_tira = ninja2_tira; t_piezas = ninja2_piezas;
-        t_desp = ninja2_desp; t_bytes = ninja2_bytes; t_paso_bits = NINJA2_PIEZAS_PASO_BITS;
-        t_cuadros = NINJA2_CUADROS; t_alto = NINJA2_ALTO;
-        t_tiles[0] = (u16)&ninja2_andar_til; t_tiles[1] = (u16)&ninja2_ataque_til;
-        t_banco[0] = ninja_bancos[2]; t_banco[1] = ninja_bancos[3];
-    }
-    if (!cfg.ataque)
-    {
-        t_cuadros = 8;                               /* Solo los 8 cuadros de andar.        */
-    }
-
-    /* Huecos: cuántos caben en 8 pares de filas, sin dividir; y su primer tile. */
-    huecos = 0;
-    tile = TILE_ENEMIGOS;
-    for (k = cfg.pares; k <= 8; k = (u8)(k + cfg.pares))
-    {
-        if (huecos < NINJAS_MAX)
-        {
-            base_hueco[huecos] = tile;
-        }
-        huecos++;
-        tile = (u16)(tile + ((u16)cfg.pares << 5)); /* pares * 32 tiles.                   */
-    }
-
     for (k = 0; k < NINJAS_MAX; k++)
     {
-        ex[k] = (u16)(104 + (k * 24));               /* Apiñados delante de Tarou.          */
-        pies[k] = (u16)(SUELO_Y + (cfg.reparto ? (k * 12) : 0));
-        quiere[k] = (u8)(k * 3);                     /* Cada uno en un punto del ciclo.     */
-        if (quiere[k] >= t_cuadros)
-        {
-            quiere[k] = 0;
-        }
+        ex[k] = (u16)(112 + (k << 5));               /* 112, 144, 176: apiñados.            */
+        pies[k] = (u16)(SUELO_Y + (cfg.reparto ? ((u16)k * 12) : 0));
+        quiere[k] = (u8)(k * 5);                     /* Cada uno en un punto del ciclo.     */
         muestra[k] = SIN_CUADRO;                     /* Nada en la VRAM todavía.            */
-        reloj[k] = (u8)k;                            /* Escalonados.                        */
+        reloj[k] = k;
         espera[k] = 0;
-        orden[k] = k;
-        dueno[k] = (k < huecos) ? k : (u8)(k - huecos); /* Sin hueco: comparte uno.        */
     }
     turno = 0;
-    frames_cfg = 0;
-    vueltas_cfg = 0;
-    lin_max = v_max = espera_max = perdidos = bytes_max = cpu_max = 0;
-    for (k = OAM_PRIMERA; k < oam_usadas; k++)
-    {
-        esconder(k);                                 /* Lo de la configuración anterior.    */
-    }
-    oam_usadas = OAM_PRIMERA;
+    frames_cfg = vueltas_cfg = 0;
+    v_max = espera_max = perdidos = bytes_max = cpu_max = 0;
+    preparar_entidades();
 }
 
-/*--- subir_cuadros: los ninjas que cambiaron de cuadro, como mucho cfg.subidas --------
-    Cada uno apunta en la lista de DMA el cuadro entero (sus pares de filas, de un
-    tirón) hacia su hueco, y desde este mismo frame la OAM lo enseña: tiles y OAM
-    llegan en el mismo VBlank. */
-static void subir_cuadros(void)
+/*--- subir_tarou: sigue su subida o empieza la del cuadro nuevo ----------------------*/
+static void subir_tarou(void)
 {
-    u8 i, k, f, cupo;
+    P16Cuadro c;
+    const Copia *copias;
+    u8 n;
+
+    if (t_subiendo == SIN_CUADRO && t_cuadro != t_muestra)
+    {
+        p16_cuadro((const u8 *)&tarou_caminar_p16, t_cuadro, &c);
+        subida_empezar(&t_sub, c.n, (u16)((u16)&tarou_caminar_p16 + c.tiles),
+                       VRAM_TILE(t_bufer ? TILE_TAROU_A : TILE_TAROU_B),   /* El búfer oculto. */
+                       tarou_p16_bancos[ESTADO_CAMINANDO]);
+        t_subiendo = t_cuadro;
+    }
+    if (t_subiendo != SIN_CUADRO)
+    {
+        bytes_frame = (u16)(bytes_frame + subida_tomar(&t_sub, TOPE_TAROU, &copias, &n));
+        dma_lista_copias(copias, n, t_sub.banco);   /* En ensamblador: dma_copias.asm. */
+        if (subida_terminada(&t_sub))
+        {
+            t_muestra = t_subiendo;                  /* Tras este VBlank está entero.       */
+            t_bufer ^= 1;
+            sprites_ent[0].atrib = (u8)(SPRITE_PRIORIDAD(PRIORIDAD) | SPRITE_PALETA(0) |
+                                        (tarou_vx < 0 ? SPRITE_HFLIP : 0));  /* Hacia donde anda. */
+            poner_cuadro(0, (const u8 *)&tarou_caminar_p16, t_muestra, tarou_p16_bancos[ESTADO_CAMINANDO]);
+            t_subiendo = SIN_CUADRO;
+        }
+    }
+}
+
+/*--- subir_ninjas: como mucho cfg.subidas ninjas suben su cuadro ENTERO ---------------*/
+static void subir_ninjas(void)
+{
+    P16Cuadro c;
+    const Copia *copias;
+    const u8 *tira;
+    u8 i, k, f, cupo, n, banco;
 
     cupo = cfg.subidas;
-    bytes_frame = 0;
     k = turno;
     for (i = 0; i < cfg.n; i++)
     {
-        if (dueno[k] == k && quiere[k] != muestra[k])
+        if (quiere[k] != muestra[k])
         {
             if (cupo != 0)
             {
                 f = quiere[k];
-                dma_lista_anadir((u16)(t_tiles[t_tira[f]] + t_desp[f]),
-                                 (u16)(VRAM_SPRITES + (base_hueco[k] << 4)),  /* tile * 16 palabras. */
-                                 t_bytes[f], t_banco[t_tira[f]], DMA_VMAIN_TILES);
-                bytes_frame = (u16)(bytes_frame + t_bytes[f]);
-                muestra[k] = f;
+                if (f < NINJA_ANDAR)
+                {
+                    tira = (const u8 *)&ninja64_andar;
+                    banco = ninja_bancos[0];
+                }
+                else
+                {
+                    tira = (const u8 *)&ninja64_ataque;
+                    banco = ninja_bancos[1];
+                    f = (u8)(f - NINJA_ANDAR);
+                }
+                p16_cuadro(tira, f, &c);
+                subida_empezar(&e_sub, c.n, (u16)((u16)tira + c.tiles), VRAM_TILE(HUECOS[k]), banco);
+                bytes_frame = (u16)(bytes_frame + subida_tomar(&e_sub, 0xFFFF, &copias, &n));
+                dma_lista_copias(copias, n, banco);
+                muestra[k] = quiere[k];
+                poner_cuadro((u8)(1 + k), tira, f, banco);  /* Su entrada, al cuadro nuevo. */
                 espera[k] = 0;
                 cupo--;
             }
@@ -313,92 +288,125 @@ static void subir_cuadros(void)
             k = 0;
         }
     }
-    turno++;                                         /* La ronda siguiente empieza por otro. */
+    turno++;
     if (turno >= cfg.n)
     {
         turno = 0;
     }
-    if (bytes_frame > bytes_max)
+}
+
+/*--- poner_cuadro: la entrada `e` enseña el cuadro `f` de la tira (solo al cambiar) ---
+    La tabla de piezas está en el banco de la tira: hay que guardarlo con ella (sin él,
+    sprites_oam.asm leía los dx, dy de otro banco y el ninja salía a trozos). */
+static void poner_cuadro(u8 e, const u8 *tira, u8 f, u8 banco)
+{
+    P16Cuadro c;
+    SpriteEnt *s = sprites_ent + e;                  /* 16 bytes por entrada: sin tcc__mul. */
+
+    p16_cuadro(tira, f, &c);
+    s->piezas = (u16)((u16)tira + ((s->atrib & SPRITE_HFLIP) ? c.espejo : c.piezas));
+    s->banco = banco;
+    s->n = c.n;
+}
+
+/*--- preparar_entidades: las entradas FIJAS de esta configuración ---------------------
+    0 = Tarou; 1..n = los ninjas; detrás, las sombras (Tarou y cada ninja). Lo que no
+    cambia (tile, atributos, banco, la posición de los ninjas, que están quietos) se
+    escribe aquí una vez; n = 0 hasta que su primer cuadro esté en la VRAM. */
+static void preparar_entidades(void)
+{
+    SpriteEnt *s;
+    u8 k, e;
+
+    e_sombras = (u8)(1 + cfg.n);                     /* Primera sombra.                     */
+    sprites_usar((u8)(cfg.sombras ? (e_sombras + 1 + cfg.n) : e_sombras));
+    s = sprites_ent;                                 /* Tarou.                              */
+    s->n = 0;
+    s->banco = tarou_p16_bancos[ESTADO_CAMINANDO];
+    s->y0 = (u16)(SUELO_Y - ALTO_CELDA + 2);         /* 2 px hundido, como en el nivel.    */
+    sprites_y[0] = SUELO_Y;
+    for (k = 0; k < cfg.n; k++)                      /* Los ninjas, mirando a la izquierda. */
     {
-        bytes_max = bytes_frame;
+        e = (u8)(1 + k);
+        s = sprites_ent + e;
+        s->n = 0;
+        s->x0 = (u16)(ex[k] - NINJA_CENTRO);         /* Borde izquierdo de la celda.        */
+        s->y0 = (u16)(pies[k] - NINJA_ALTO);
+        s->tile = HUECOS[k];
+        s->atrib = (u8)(SPRITE_PRIORIDAD(PRIORIDAD) | SPRITE_PALETA(PALETAS[k]) | SPRITE_HFLIP);
+        s->borde = sprites_borde(s->x0, s->y0, NINJA_ANCHO, NINJA_ALTO);
+        sprites_y[e] = pies[k];
+    }
+    if (cfg.sombras)                                 /* Las sombras: y = 0, detrás de todo. */
+    {
+        for (k = 0; k <= cfg.n; k++)
+        {
+            e = (u8)(e_sombras + k);
+            s = sprites_ent + e;
+            s->x0 = k ? (u16)(ex[k - 1] - 16) : 0;   /* La de Tarou se mueve con él.        */
+            s->y0 = (u16)((k ? pies[k - 1] : SUELO_Y) - SOMBRA_ALTO);
+            s->piezas = (u16)&sombra_piezas;
+            s->banco = sombra_banco;
+            s->n = 2;
+            s->tile = TILE_SOMBRA;
+            s->atrib = (u8)(SPRITE_PRIORIDAD(PRIORIDAD) | SPRITE_PALETA(PALETA_SOMBRA));
+            s->borde = sprites_borde(s->x0, s->y0, 32, 16);
+            sprites_y[e] = 0;
+        }
     }
 }
 
-/*--- dibujar_ninja: las piezas del ninja k desde la entrada `e`; devuelve la siguiente --
-    Con juego/oam_piezas.asm: un bucle en ensamblador escribe todas sus piezas en el
-    búfer de la OAM (con oamSet + oamSetEx desde C costaban ~5 líneas por pieza). */
-static u8 dibujar_ninja(u8 k, u8 e)
+/*--- mover_entidades: lo que cambia cada frame (Tarou y su sombra) -------------------*/
+static void mover_entidades(void)
 {
-    u8 f, n;
-    u16 tile;
+    SpriteEnt *s = sprites_ent;                      /* Tarou.                              */
 
-    f = muestra[dueno[k]];
-    if (f == SIN_CUADRO)
+    s->x0 = tarou_x;                                 /* Borde izquierdo de la celda.        */
+    s->borde = sprites_borde(s->x0, s->y0, ANCHO_CELDA, ALTO_CELDA);
+    s->tile = t_bufer ? TILE_TAROU_B : TILE_TAROU_A;
+    if (cfg.sombras)
     {
-        return e;                                    /* Aún sin tiles: no se dibuja.        */
+        s = sprites_ent + e_sombras;                 /* Su sombra, bajo su centro.          */
+        s->x0 = (u16)(tarou_x + ANCHO_CELDA / 2 - 16);
+        s->borde = sprites_borde(s->x0, s->y0, 32, 16);
     }
-    n = t_n_piezas[f];
-    tile = base_hueco[dueno[k]];
-    /* Atributos vhoopppN: espejo (0x40, mira a la izquierda, hacia Tarou), prioridad 3
-       (0x30), su paleta y el bit 8 del tile (los huecos están en 256..511). */
-    oam_piezas((u16)e << 2, (u16)(ex[k] + ESPEJO_X), (u16)(pies[k] - t_alto), tile & 0xFF,
-               (u16)(0x40 | (PRIORIDAD << 4) | (PALETAS[k] << 1) | (tile >> 8)),
-               t_piezas + ((u16)f << (t_paso_bits + 1)), n, 1);
-    piezas_frame = (u8)(piezas_frame + n);
-    return (u8)(e + n);
-}
-
-/*--- dibujar_sombra: 2 piezas de 16x16 con el centro en x, a la altura de los pies ---*/
-static const u8 SOMBRA_PIEZAS[4] = {0, 0, 16, 0};  /* (dx, dy) de sus dos mitades.     */
-static u8 dibujar_sombra(u16 x, u16 y_pies, u8 e)
-{
-    oam_piezas((u16)e << 2, (u16)(x - 16), (u16)(y_pies - SOMBRA_ALTO), TILE_SOMBRA,
-               (u16)((PRIORIDAD << 4) | (PALETA_SOMBRA << 1)), SOMBRA_PIEZAS, 2, 0);
-    return (u8)(e + 2);
+    sprites_ordenar();                               /* Por la y de los pies.               */
 }
 
 /*--- hud: una fila por frame (8 filas) ---------------------------------------------*/
 static void hud(void)
 {
-    u16 *p;
+    u16 *p = hud_debug_empezar(fila_hud);
 
-    /* Siempre, aunque el frame vaya cargado: con un tope (como el HUD del nivel), en
-       las configuraciones pesadas las filas se quedaban con datos de la anterior. Su
-       coste va DESPUÉS de las medidas CPU (pero cuenta en PERD). */
-    p = hud_debug_empezar(fila_hud);
     switch (fila_hud)
     {
-        case 0:                                      /* CFG 4  X2  N3                       */
+        case 0:                                      /* CFG 4  N3                           */
             p = hud_debug_texto(p, "CFG ");
             p = hud_debug_numero(p, n_cfg);
-            p = hud_debug_texto(p, "  X");
-            p = hud_debug_numero(p, cfg.escala);
             p = hud_debug_texto(p, "  N");
             hud_debug_numero(p, cfg.n);
             break;
-        case 1:                                      /* SOMB 1 REP 0 SUB 1 ROT 0 ATQ 0      */
+        case 1:                                      /* SOMB 1 REP 1 SUB 1 ATQ 1            */
             p = hud_debug_texto(p, "SOMB ");
             p = hud_debug_numero(p, cfg.sombras);
             p = hud_debug_texto(p, " REP ");
             p = hud_debug_numero(p, cfg.reparto);
             p = hud_debug_texto(p, " SUB ");
             p = hud_debug_numero(p, cfg.subidas);
-            p = hud_debug_texto(p, " ROT ");
-            p = hud_debug_numero(p, cfg.rotar);
             p = hud_debug_texto(p, " ATQ ");
             hud_debug_numero(p, cfg.ataque);
             break;
-        case 2:                                      /* OAM 45  PIEZAS 39  HUECOS 4         */
+        case 2:                                      /* OAM 70  ENT 8                       */
             p = hud_debug_texto(p, "OAM ");
             p = hud_debug_numero(p, oam_usadas);
-            p = hud_debug_texto(p, "  PIEZAS ");
-            p = hud_debug_numero(p, piezas_frame);
-            p = hud_debug_texto(p, "  HUECOS ");
-            hud_debug_numero(p, huecos);
+            p = hud_debug_texto(p, "  ENT ");
+            hud_debug_numero(p, sprites_n);
             break;
-        case 3:                                      /* CPU 60 140  MAX 300 (>= 262: no cupo) */
+        case 3:                                      /* CPU 60 80 90  MAX 120               */
             p = hud_debug_texto(p, "CPU ");
             p = hud_debug_numero(p, (s16)cpu_a);
+            p = hud_debug_texto(p, " ");
+            p = hud_debug_numero(p, (s16)cpu_c);
             p = hud_debug_texto(p, " ");
             p = hud_debug_numero(p, (s16)cpu_b);
             p = hud_debug_texto(p, "  MAX ");
@@ -424,7 +432,7 @@ static void hud(void)
             p = hud_debug_texto(p, "  MAX ");
             hud_debug_numero(p, (s16)bytes_max);
             break;
-        default:                                     /* T 120 (segundos en la config ×6)    */
+        default:                                     /* T 120                               */
             p = hud_debug_texto(p, "T ");
             hud_debug_numero(p, (s16)frames_cfg);
             break;
@@ -436,25 +444,31 @@ static void hud(void)
 /*--- frame: un frame de la escena de prueba -----------------------------------------*/
 static void frame(void)
 {
-    u8 i, k, e;
+    u8 k;
 
     vb_frame = snes_vblank_count;
     dma_lista_vaciar();
+    bytes_frame = 0;
 
-    /* Tarou: cambia de cuadro cada FRAMES_TAROU frames (subida en todos los VBlanks). */
+    /* Tarou: anda de lado a lado y cambia de cuadro cada FRAMES_TAROU frames. */
+    tarou_x = (u16)(tarou_x + tarou_vx);
+    if (tarou_x <= TAROU_X_MIN || tarou_x >= TAROU_X_MAX)
+    {
+        tarou_vx = (s16)(-tarou_vx);                 /* Media vuelta en los bordes.         */
+    }
     reloj_tarou++;
     if (reloj_tarou >= FRAMES_TAROU)
     {
         reloj_tarou = 0;
-        tarou.cuadro++;
-        if (tarou.cuadro >= TAROU_CAMINAR_CUADROS)
+        t_cuadro++;
+        if (t_cuadro >= TAROU_CAMINAR_CUADROS)
         {
-            tarou.cuadro = 0;
+            t_cuadro = 0;
         }
     }
-    tarou_sprite_dibujar(&tarou, 0);                 /* Primero: sus copias van delante.    */
+    subir_tarou();                                   /* Primero: sus copias van delante.    */
 
-    /* Ninjas: avanzan su cuadro (lo que «quieren» enseñar) y suben por turnos. */
+    /* Ninjas: avanzan su cuadro y suben por turnos. */
     for (k = 0; k < cfg.n; k++)
     {
         reloj[k]++;
@@ -462,60 +476,29 @@ static void frame(void)
         {
             reloj[k] = 0;
             quiere[k]++;
-            if (quiere[k] >= t_cuadros)
+            if (quiere[k] >= (cfg.ataque ? NINJA_CUADROS : NINJA_ANDAR))
             {
                 quiere[k] = 0;
             }
         }
     }
-    subir_cuadros();
-    cpu_a = medir_cpu();                             /* Medida: Tarou + subidas.            */
+    subir_ninjas();
+    if (bytes_frame > bytes_max)
+    {
+        bytes_max = bytes_frame;
+    }
+    cpu_a = medir_cpu();                             /* Medida: las subidas.                */
 
-    /* OAM: ninjas por profundidad (los pies más abajo, primero = delante), y detrás
-       las sombras. En la configuración con rotación, los frames impares al revés. */
-    profundidad_ordenar(orden, pies, cfg.n);
-    e = OAM_PRIMERA;
-    piezas_frame = 0;
-    if (cfg.rotar && (frames_cfg & 1))
-    {
-        for (i = cfg.n; i != 0; i--)
-        {
-            e = dibujar_ninja(orden[i - 1], e);
-        }
-    }
-    else
-    {
-        for (i = 0; i < cfg.n; i++)
-        {
-            e = dibujar_ninja(orden[i], e);
-        }
-    }
-    if (cfg.sombras)
-    {
-        e = dibujar_sombra(TAROU_X + 48, SUELO_Y, e);   /* La de Tarou, bajo su centro.     */
-        for (k = 0; k < cfg.n; k++)
-        {
-            e = dibujar_sombra(ex[k], pies[k], e);
-        }
-    }
-    for (k = e; k < oam_usadas; k++)
-    {
-        esconder(k);                                 /* Lo que sobró del frame anterior.    */
-    }
-    oam_usadas = e;
-    cpu_b = medir_cpu();                             /* Medida: + orden y OAM.              */
+    mover_entidades();
+    cpu_c = medir_cpu();                             /* Medida: + la tabla de entidades (C). */
+    oam_usadas = sprites_dibujar();                  /* UNA llamada: toda la OAM.           */
+    cpu_b = medir_cpu();                             /* Medida: + la OAM (ensamblador).     */
     if (cpu_b > cpu_max)
     {
         cpu_max = cpu_b;
     }
-
-    lin = leer_linea();                              /* Medida: lógica + OAM (sin el HUD).  */
-    diag_linea[1] = lin;
-    if (lin < 225 && lin > lin_max)
-    {
-        lin_max = lin;
-    }
-    hud();
+    diag_linea[1] = cpu_b;
+    hud();                                           /* Su coste, fuera de CPU (en PERD sí). */
 }
 
 void prueba_carga_ejecutar(void)
@@ -532,21 +515,27 @@ void prueba_carga_ejecutar(void)
     hud_debug_iniciar();
     hud_debug_alternar();                            /* El HUD, encendido desde el principio. */
 
-    tarou_sprite_cargar();                           /* OBSEL 16/32 y la paleta 0.          */
-    dmaCopyCGram((u8 *)&ninja_pal, 128 + 16 * 1, 32 * 4);   /* Paletas de sprites 1..4.      */
-    dmaCopyVram((u8 *)&sombra_til, VRAM_SPRITES + TILE_SOMBRA * 16, 128);         /* Fila de arriba. */
-    dmaCopyVram((u8 *)&sombra_til + 128, VRAM_SPRITES + (TILE_SOMBRA + 16) * 16, 128); /* Y la de abajo. */
+    oamInitGfxAttr(VRAM_SPRITES, OBJ_SIZE16_L32);    /* Piezas pequeñas de 16x16.           */
+    sprites_iniciar();                               /* Las 128 entradas, escondidas.       */
+    dmaCopyCGram((u8 *)&tarou_pal, 128, 32);         /* Paleta de sprites 0: Tarou.         */
+    dmaCopyCGram((u8 *)&ninja_pal, 128 + 16, 32 * 4);   /* Paletas 1..4: ninjas y sombra.   */
+    dmaCopyVram((u8 *)&sombra_til, VRAM_TILE(TILE_SOMBRA), 128);            /* Fila de arriba. */
+    dmaCopyVram((u8 *)&sombra_til + 128, VRAM_TILE(TILE_SOMBRA + 16), 128); /* Y la de abajo.  */
 
     /* Sombras: media suma con la pantalla secundaria (BG1 + BG2), solo sprites 4..7. */
     REG_TS = 0x03;                                   /* BG1 y BG2 también en la secundaria. */
     REG_CGWSEL = 0x02;                               /* Operando: la pantalla secundaria.   */
     REG_CGADSUB = 0x50;                              /* Sumar a la mitad (0x40) los sprites (0x10). */
 
-    tarou_iniciar(&tarou, TAROU_X, SUELO_Y);
-    tarou.estado = ESTADO_CAMINANDO;                 /* Solo dibujo: no hay física.         */
+    tarou_x = 40;
+    tarou_vx = 1;
     reloj_tarou = 0;
+    t_cuadro = 0;
+    t_muestra = SIN_CUADRO;
+    t_subiendo = SIN_CUADRO;
+    t_bufer = 1;                                     /* El primer cuadro va al búfer A.     */
     fila_hud = 0;
-    oam_usadas = OAM_PRIMERA;
+    oam_usadas = 0;
     empezar_config(0);
 
     setModeHdmaColor(HDMA_CHANNEL6, (u8 *)&hdmaGradcieloList);
@@ -565,7 +554,6 @@ void prueba_carga_ejecutar(void)
         {
             v_max = v_fin;
         }
-        /* Frames perdidos: VBlanks que pasaron menos vueltas del bucle. */
         frames_cfg = (u16)(frames_cfg + (u16)(snes_vblank_count - vb_antes));
         vb_antes = snes_vblank_count;
         vueltas_cfg++;

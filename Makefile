@@ -40,7 +40,7 @@ include ${PVSNESLIB_HOME}/devkitsnes/snes_rules
 # CFLAGS al ejecutarse, no al definirse. Decisión 13 de docs/diseno-demo-jugable.md.
 CFLAGS += -Isrc
 # tarou_anim.h (cuántos cuadros tiene cada animación) lo genera el pipeline en res/.
-CFLAGS += -Ires/personajes/tarou -Ires/nivel1 -Ires/prueba_carga
+CFLAGS += -Ires/personajes/tarou -Ires/nivel1
 
 .PHONY: all clean
 
@@ -137,7 +137,15 @@ res/personajes/tarou/%.pic: res/personajes/tarou/%.png
 	@echo convert metasprite ... $(notdir $<)
 	$(GFXCONV) -s 32 -o 16 -u 16 -p -T -X 96 -Y 64 -P 3 -i $<
 
-ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin $(TAROU_PICS)
+# Las mismas tiras de Tarou en piezas de 16x16 sin las vacías (formato .p16, para la capa
+# de sprites del beat 'em up: docs/diseno-beat-em-up.md §8 v3). Las genera
+# scripts/piezas16.py desde los PNG versionados; data.asm las incluye con .incbin.
+TAROU_P16 := $(foreach a,$(TAROU_ANIMS),res/personajes/tarou/tarou_$(a).p16)
+res/personajes/tarou/%.p16: res/personajes/tarou/%.png scripts/piezas16.py
+	@echo convert pieces16 ... $(notdir $<)
+	python scripts/piezas16.py $< $@ --celda 96x64
+
+ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin $(TAROU_PICS) $(TAROU_P16)
 
 .PHONY: bitmaps cleanGfxRes
 bitmaps: $(ASSETS)
@@ -158,12 +166,11 @@ src/pantallas/pantalla_nivel1.obj: res/nivel1/nivel1_datos.h
 # versionados (el pack de origen no se versiona), así que make no los regenera.
 PRUEBA_BINS := $(wildcard res/prueba_carga/*.bin)
 data.obj: $(PRUEBA_BINS)
-src/pantallas/prueba_carga.obj: res/prueba_carga/ninja_datos.h
 
 # Borra las salidas de conversión que viven dentro de res/ (cleanGfx solo mira la raíz).
 cleanGfxRes:
 	@echo clean res graphics data
-	@find res -type f \( -name "*.pic" -o -name "*.pal" -o -name "*.map" -o -name "*.col" -o -name "*.inc" -o -name "*_data.as" -o -name "*.pc7" -o -name "*.mp7" -o -name "*_grad_data.as" \) -not -path "res/descargas/*" -delete
+	@find res -type f \( -name "*.pic" -o -name "*.pal" -o -name "*.map" -o -name "*.col" -o -name "*.inc" -o -name "*_data.as" -o -name "*.pc7" -o -name "*.mp7" -o -name "*.p16" -o -name "*_grad_data.as" \) -not -path "res/descargas/*" -delete
 
 # Regla para limpiar los binarios y recursos
 clean: cleanBuildRes cleanRom cleanGfx cleanGfxRes

@@ -15,7 +15,7 @@
 
     SE CONECTA CON
       Incluye:  sistema/tipos.h.
-      Lo usan:  pantallas/prueba_carga.c (ROM de prueba de carga) y
+      Lo usan:  juego/sprites.c (sprites_ordenar) y
                 tests/prueba_profundidad.c.
 
     HARDWARE QUE TOCA

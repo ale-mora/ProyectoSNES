@@ -29,6 +29,9 @@ y del truco de hardware que usa cada pieza está en
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v5 | 2026-10-23 | Ajuste al guion (`guion-historia.md`): hermanos, Tarou pastor, nombres de villano y apoyos, santuario → monasterio, jefe Gomasuri-dono. Decisiones 14, 15, 23, 24. |
+| v4 | 2026-10-23 | La capa de sprites (piezas de 16×16 `.p16`, plan de subidas por número de piezas, OAM en ensamblador con camino rápido) y la prueba de carga rehecha con ninjas de 64×96: 3 ninjas + Tarou + sombras caben (§9.2). |
+| v3 | 2026-10-23 | Reparto de la VRAM de sprites en pares de filas y subidas en trozos de 512 B (§8); decisiones 35–38. |
 | v2 | 2026-10-23 | Resultados de la prueba de carga (§9.1): ≤ 2 KB por cuadro de enemigo, el límite de ranuras borra primero al protagonista, la capa de sprites tiene que ir en ensamblador. Correcciones de hardware en §8 (matemática de color global, `OBSEL`, CGRAM de fondos). |
 | v1 | 2026-10-23 | Cambio de género acordado con el autor en una sesión de preguntas. Tag `plataformas-r2`. |
 
@@ -42,15 +45,15 @@ y del truco de hardware que usa cada pieza está en
 | 4 | Código de plataformas | Tag `plataformas-r2`; se **reutilizan los motores** (lista de DMA, metasprite, fondo por columnas, cámara, motor de escenas, HUD de depuración); se **retiran** la física de plataformas, la rejilla de colisión, el tutorial y sus pruebas. Se sigue en la rama `demo-secuencia-arranque`. |
 | 5 | Arranque | La secuencia se queda; la **intro se rehace** (3 escenas, con placeholders en la R3). |
 | 6 | Combate | Estilo *Final Fight*: combo A-A-A (el último derriba), ataque aéreo, agarre caminando contra el enemigo (golpe o lanzamiento), especial A+B que cuesta vida. |
-| 7 | Estilos | Distintos. **Tarou**: espada corta y rápida + mordisco, combos largos, se mueve rápido. **Bárbara**: katana lenta, mucho alcance y daño, buenos agarres. |
-| 8 | Espada de Tarou | La conserva. **Envaina sola fuera de combate** (al acabar la oleada) y desenvaina al aparecer enemigos; sin botón. |
+| 7 | Estilos | Distintos. **Tarou**: katana sujeta con la boca (rápida, de alcance corto) + mordisco, combos largos, se mueve rápido. **Bárbara**: katana lenta, mucho alcance y daño, buenos agarres. |
+| 8 | Katana de Tarou | La conserva (es una katana, como la de Bárbara; él la lleva en la boca, como en la portada). **Envaina sola fuera de combate** (al acabar la oleada) y desenvaina al aparecer enemigos; sin botón. |
 | 9 | Etapas de vida | Aparcadas: Tarou adulto todo el juego. |
 | 10 | Vida y relevo | Barras **separadas**; quien espera fuera se cura poco a poco. Si cae el activo, entra el otro; si caen los dos, se pierde una vida. |
 | 11 | Relevo | Botón **L**; quien entra da un **golpe de entrada** que empuja a los cercanos; enfriamiento de ~2 s. |
 | 12 | Vidas | Arcade: 3 vidas, 3 continues, comida que cura, puntuación. |
 | 13 | Enemigos en pantalla | **Se mide antes** con una ROM de prueba de carga (§9). |
-| 14 | Historia | Japón feudal. Un clan de **ninjas kendokas** liderado por el villano roba el juguete favorito de Tarou, el **Señor Pimentón** (un pimiento rojo de goma con forma humana; el autor ya tiene su sprite). Bárbara jura venganza; Tarou quiere recuperar su juguete. |
-| 15 | Apoyos | **3 apoyos** que lanzan un poder cuando la **barra de ataque** está llena: la **gata samurái**, muy rápida; el **perro monje** telepático; el **perro bruto**, que embiste y derriba a todos. |
+| 14 | Historia | Japón feudal. Los **ninjas kendokas** de la federación «Autistas Marciales», liderada por **Nikoraemon**, roban el juguete favorito de Tarou, el **Señor Pimentón** (un pimiento rojo de goma con forma humana; en verdad una reliquia: un dios antiguo). Tarou y Bárbara son **hermanos** (Tarou, perro pastor; no husky). Bárbara quiere venganza; Tarou, su juguete. Guion completo, final incluido, en [`guion-historia.md`](guion-historia.md) (Rev. 1). |
+| 15 | Apoyos | **3 apoyos** que lanzan un poder cuando la **barra de ataque** está llena: **Lucinda**, la gata samurái, muy rápida; **Rex**, el perro monje psíquico (levita, nunca golpea); **Fenrir**, el husky bruto, que embiste y derriba a todos. |
 | 16 | Barra de ataque | Se llena **solo golpeando**; compartida por el dúo; el relevo no la vacía. |
 | 17 | Elegir apoyo | **R** cambia el apoyo elegido (se ve en el HUD); **X** lo invoca con la barra llena. |
 | 18 | Efecto de un apoyo | Ataque a toda la pantalla: entra, hace su golpe y se va. Gata: ráfaga de cortes; monje: **levanta a todos y los suelta**; bruto: embestida que derriba. |
@@ -58,8 +61,8 @@ y del truco de hardware que usa cada pieza está en
 | 20 | Primera entrega | La **fase 1 completa** (con la prueba de carga antes, por la decisión 13). |
 | 21 | Enemigos | 3 tipos + jefe: **ninja básico** (shinai), **ninja rápido** (lanza shuriken), **kendoka pesado** (agarra, bloquea). |
 | 22 | Arte | Pixellab con el mismo pipeline que Tarou; placeholders numerados mientras tanto. Tarou reutiliza su arte de 96×64 y se amplía. |
-| 23 | Fase 1 | Aldea → bosque → **santuario** (allí se conoce a los 3 apoyos y se activa la barra) → dojo, con un jefe. |
-| 24 | Jefe de la fase 1 | Un **lugarteniente** kendoka; al final el villano huye con el juguete (gancho para la fase 2). |
+| 23 | Fase 1 | Aldea → bosque (se une Lucinda; Fenrir cruza como gag) → **monasterio de Rex** (antes «santuario»; se une Rex y se activa la barra) → dojo, con un jefe. Fenrir se une del todo en la fase 2. |
+| 24 | Jefe de la fase 1 | **Gomasuri-dono**, lugarteniente adulador, gordo y pomposo; al vencerlo, Nikoraemon huye con el juguete. La historia completa tiene 5 fases y cierre en la fase 5 (`guion-historia.md`). |
 | 25 | Objetos | Comida que cura, **armas arrojadizas** (shuriken, kunai; las usan los dos) y vida extra escondida. |
 | 26 | Santuario | Una **escena con el motor de escenas** y cuadros de texto en inglés; al terminar, la barra queda activa. |
 | 27 | Audio | Después de la R3. |
@@ -125,7 +128,7 @@ el protagonista corre hasta que suelta la dirección. Se prueba en el PC con
 | | Tarou | Bárbara |
 |---|---|---|
 | Celda | 96×64 (la de hoy) | 64×96 |
-| Arma | espada corta | katana |
+| Arma | katana en la boca | katana en la mano |
 | Velocidad (andar / correr) | alta / muy alta | media / alta |
 | Combo | 4 golpes: corte, corte, corte, mordisco (derriba) | 3 golpes: corte, corte, tajo descendente (derriba) |
 | Alcance | corto | largo |
@@ -238,7 +241,7 @@ calculan cajas de golpe.
 |---|---|---|
 | 1. Aldea | calle con casas y puestos al atardecer; cajas y barriles con comida | 3 (básicos; luego básicos + rápido) |
 | 2. Bosque de bambú | sendero estrecho (carril más fino), viento | 3 (rápidos; un pesado) |
-| 3. Santuario | torii, faroles, de noche; **escena** con los 3 apoyos; la barra se activa; una oleada corta para probar el apoyo | 1 |
+| 3. Monasterio de Rex (antes santuario) | torii, faroles, de noche; **escena** con Rex (reconoce la reliquia); la barra se activa; una oleada corta para probar el apoyo | 1 |
 | 4. Dojo | puerta exterior (1 oleada) e interior: el **lugarteniente**; al vencerlo, escena: el villano huye con el Señor Pimentón | 1 + jefe |
 
 Entre zonas: fundido con mosaico y carga con la pantalla apagada (cada zona
@@ -296,6 +299,34 @@ con un cuadro cada uno = 288, **no caben**. Opciones que mide la prueba:
   ~60–70 % de su caja: ~64 tiles) → 3 × 64 = 192 + 64 para lo demás.
 - **B**: celda de enemigo más estrecha (48×96).
 - **C**: 2 ninjas «grandes» + 1 en una pose compartida residente.
+
+**Reparto decidido tras la prueba (v3):** opción A, todo en piezas de 16×16
+sin las vacías, empaquetadas en **pares de filas** de 1 KB (32 tiles: 8 piezas;
+la pieza k de un cuadro va en el tile base + (k/8)·32 + (k%8)·2). Los 512 tiles
+son 16 pares:
+
+| Pares | Tiles | Quién | Cuánto cabe |
+|---|---|---|---|
+| 0–2 | 0–95 | protagonista, búfer A | 24 piezas (Tarou: 18 como mucho; Bárbara 64×96: hasta 24) |
+| 3–5 | 96–191 | protagonista, búfer B | ídem: el cuadro nuevo sube aquí mientras se enseña el otro |
+| 6–8 | 192–287 | enemigo 1 (un búfer) | 24 piezas (un ninja de 64×96: 15–21) |
+| 9–11 | 288–383 | enemigo 2 | ídem |
+| 12–14 | 384–479 | enemigo 3 | ídem |
+| 15 | 480–511 | **compartido**: sombras (2 piezas), chispas, shuriken y kunai, objetos, «GO →» | 8 piezas residentes |
+
+Un hueco puede cruzar la frontera entre las dos tablas de nombres (tile 256):
+el bit 8 del tile va en el atributo de **cada pieza**, no del sprite entero. Las
+columnas 12–15 libres de la celda vieja de Tarou desaparecen con este formato:
+la sombra pasa al par 15. Retratos del HUD, apoyos y jefe no caben a la vez que
+3 enemigos: los apoyos se dibujan con la acción congelada (los enemigos dejan
+de subir cuadros y su par se presta) y el jefe sale con como mucho 1 ninja.
+
+**Subidas:** el plan de copias de cada cuadro lo da el número de piezas, sin
+tablas: los pares completos son filas de 512 B seguidas y el último par a medias
+son 2 copias de q·64 B (fila de arriba y de abajo). Se reparte en trozos de
+**512 B** (no de 1 KB): así el tope de 1,5 KB por VBlank del protagonista se
+llena entero y un cuadro de 3 KB sigue tardando 2 VBlanks. Un enemigo sube su
+cuadro entero en un solo VBlank (un búfer), uno por VBlank y por turnos.
 
 **Ancho de banda del VBlank.** Hoy medio cuadro de Tarou (1,5 KB) lleva el
 VBlank de la línea 7 a la 17–20: ~125 bytes por línea. Quedan ~17 líneas
@@ -465,7 +496,8 @@ Pixellab. Bytes exactos = piezas × 128. Pide 84 tiles por hueco, así que caben
      escribir su OAM) cuesta **~88 líneas** por frame.
    - Llenar la OAM con `oamSet` + `oamSetEx` del SDK cuesta **~5,4 líneas por
      pieza**. Con 3 ninjas (37 piezas) el frame no cabe (CPU 360–440).
-   - Con la rutina en ensamblador `juego/oam_piezas.asm` baja a ~2,2 líneas por
+   - Con la rutina en ensamblador `juego/oam_piezas.asm` (sustituida por
+     `sprites_oam.asm`, §9.2; queda en el commit `4b0811c`) baja a ~2,2 líneas por
      pieza, pero esa cifra es sobre todo la sobrecarga de las 8–9 llamadas desde C
      (8 parámetros cada una), no el bucle de ensamblador. Son lecturas del HUD de
      un solo frame, no promedios. Con 3 ninjas ×2, CPU
@@ -480,6 +512,65 @@ Pixellab. Bytes exactos = piezas × 128. Pide 84 tiles por hueco, así que caben
    al 50 %), con `OBSEL` 16/32 y piezas de 16×16. No hacen falta sprites de 8×8.
 6. **Orden por profundidad** (`juego/profundidad.c`, probado en el PC): funciona
    (el ninja de más abajo tapa a los de arriba).
+
+### 9.2 Resultados con la capa de sprites (v4, 2026-10-23)
+
+La misma prueba, rehecha con lo decidido (35–38) y con la capa de sprites nueva:
+ninjas de **64×96** (el samurái ×3 recortado a la celda: 15–21 piezas, 1,9–2,7 KB),
+Tarou también en piezas de 16×16 (14–18 piezas) y **dentro** del orden por
+profundidad (se pasea por delante y por detrás), reparto de la VRAM de §8 v3.
+
+**Lo que se construyó** (todo con pruebas en el PC o en Python):
+
+| Pieza | Qué hace |
+|---|---|
+| `scripts/piezas16.py` → `.p16` | tira PNG → piezas de 16×16 sin las vacías: índice de 8 bytes por cuadro, tabla (dx, dy), la **misma tabla espejada** y los tiles en orden de subida (n·128 bytes). El Makefile convierte así las 14 tiras de Tarou |
+| `juego/p16.c` | lee el índice de un cuadro (lógica pura) |
+| `juego/subida.c` | el plan de copias sale del número de piezas (pares completos: 2 × 512 B; el último a medias: 2 × q·64 B) y se reparte con un tope por VBlank en trozos de 512 B (lógica pura) |
+| `juego/dma_copias.asm` | pasa las copias de una subida a la lista de DMA en un bucle (sin una llamada desde C por copia) |
+| `juego/sprites.c` + `sprites_oam.asm` | tabla de entidades **fijas** (16 bytes cada una; cada frame solo se toca lo que cambia), orden por la y de los pies, y UNA llamada por frame que escribe toda la OAM. **Camino rápido**: si la celda entera está en la pantalla, cada pieza es una suma de 16 bits ((dx \| dy << 8) + (x0 \| y0 << 8)) y dos escrituras; si no, se comprueba cada pieza (x negativa con su bit 8, fuera de pantalla con y = 224) |
+
+**Medidas** (CPU en líneas desde el VBlank en que empieza el frame; 262 = no
+cupo. «Típica» es la lectura del HUD en un frame cualquiera; «máx», el máximo de
+toda la configuración. El HUD de depuración suma 40–60 líneas más, que no van en
+CPU pero sí en los frames perdidos; en el juego va apagado):
+
+| Configuración | CPU v2 (oamSet)¹ | CPU v4 típica / máx | VMAX | Perdidos (con HUD) |
+|---|---|---|---|---|
+| Tarou solo | 110 / 189 | **52 / 76** | 17 | 0 |
+| 1 ninja andando y atacando | — | 115 / 162 | 34 | 0 |
+| 2 ninjas | — | 154 / 204 | 36 | 0 |
+| 3 ninjas, misma y, sombras | 360–440 | **171 / 232** | 36 | 12 % |
+| 3 ninjas repartidos, sombras | — | **134 / 240** | 36 | 4 % |
+| 3 repartidos, solo andando | — | 133 / 241 | 36 | 9 % |
+| 3 repartidos, sin sombras | — | 111 / 199 | 36 | 0 |
+| 2 subidas de ninja por VBlank | — | 154 / 296 | **50** | — |
+
+¹ No es una comparación exacta: la v2 tenía ninjas de 62 px (11–13 piezas); la
+v4, de 64×96 (15–21). La mejora real es mayor de lo que dice la tabla.
+
+Desglose con 3 ninjas repartidos (un frame típico): las subidas ~30–40 líneas
+(la marca incluye el VBlank, que acaba en la 24–36), la tabla de entidades en C
+~26, la OAM en ensamblador ~44 (unas 0,5 líneas por pieza; con `oamSet` eran 5,4).
+Verificado a la vista en las capturas: los ninjas miran a Tarou, Tarou se espeja
+según hacia dónde anda, queda detrás del ninja que está más abajo y delante del
+que está más arriba, y cada uno tiene su sombra. (Una pasada anterior salió con
+los ninjas a trozos arriba de la pantalla: la entrada fija no guardaba el banco
+de su tabla de piezas. El HUD no lo veía: la escena hay que mirarla.)
+
+**Conclusiones:**
+1. Con 3 ninjas de 64×96, Tarou y sombras, el frame **cabe** (máx. 240 de 262)
+   y el VBlank también (36 de 37: una subida de ninja por VBlank). Queda un
+   margen corto para la lógica del juego en los peores frames: lo siguiente
+   que se puede abaratar es planificar las subidas (en C).
+2. Dos subidas de ninja en el mismo VBlank siguen sin caber (43): se mantiene
+   «una por VBlank, por turnos» (espera máxima medida: 2 frames).
+3. Tarou en piezas de 16×16 gasta 10 ranuras en su peor fila de andar (antes,
+   12): según el script, 3 ninjas repartidos caben en 34 andando, y atacando
+   solo se pasan las líneas de los pies, por las sombras.
+4. El nivel de plataformas (`tarou_sprite.c`) se queda con su motor de antes
+   hasta que se retire entero (§10); la capa nueva se estrena directamente en
+   la fase del beat 'em up (decisión del autor, 2026-10-23).
 
 ## 10. Arquitectura (qué cambia en `src/`)
 

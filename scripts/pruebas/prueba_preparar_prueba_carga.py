@@ -7,9 +7,9 @@ Se ejecutan desde la raíz del repositorio:
 Comprueban las tres piezas que la ROM de prueba de carga da por buenas sin
 poder verlas: el formato del tile 4bpp de la SNES (planos intercalados, bit 7 =
 píxel de la izquierda), el recorte en piezas de 16x16 (solo las que tienen
-algún píxel, en orden de lectura) y el empaquetado en pares de filas de 1 KB
-(la pieza k en el tile k/8*32 + k%8*2, como la lee src/pantallas/prueba_carga.c),
-más la cuenta de ranuras por línea de las predicciones.
+algún píxel, en orden de lectura), el tile de cada pieza en su par de filas
+(k/8*32 + k%8*2) y la cuenta de ranuras por línea de las predicciones. El
+formato .p16 que escribe lo prueban scripts/pruebas/prueba_piezas16.py.
 """
 
 import sys
@@ -65,20 +65,6 @@ class PruebaPiezas(unittest.TestCase):
     def test_tile_de_pieza(self):
         self.assertEqual([pc.tile_de_pieza(k) for k in (0, 1, 7, 8, 9)], [0, 2, 14, 32, 34])
 
-    def test_empaquetado_en_pares_de_filas(self):
-        # 9 piezas: hacen falta 2 pares de filas (2 KB); la novena va al tile 32.
-        puntos = [(x * 16, 0) for x in range(4)] + [(x * 16, 16) for x in range(4)] + [(0, 32)]
-        img = self.cuadro(puntos, alto=48)
-        piezas = pc.piezas_no_vacias(img)
-        self.assertEqual(len(piezas), 9)
-        datos = pc.empaquetar(img, piezas)
-        self.assertEqual(len(datos), 2 * pc.BYTES_PAR)
-        # La pieza 8 tiene su píxel (valor 3: planos 0 y 1) arriba a la izquierda:
-        # tile 32, fila 0, bit 7.
-        self.assertEqual(datos[32 * 32], 0x80)
-        self.assertEqual(datos[32 * 32 + 1], 0x80)
-        # La pieza 1 (tile 2): su píxel también arriba a la izquierda.
-        self.assertEqual(datos[2 * 32], 0x80)
 
 
 class PruebaRanuras(unittest.TestCase):

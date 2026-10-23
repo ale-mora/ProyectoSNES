@@ -33,7 +33,9 @@
 ;     .rodata_nivel1_cerca  nivel1_cerca_til/_til_end/_pal/_col/_col_end (capa cercana, por columnas)
 ;     .rodata_nivel1_banco  nivel1_cerca_col_banco (1 byte: el banco del mapa por columnas)
 ;     .rodata_nivel1_colision  nivel1_colision (rejilla de 128x14 bytes)
-;     .rodata_prueba_*   ninja3_*_til, ninja2_*_til, ninja_pal, sombra_til, ninja_bancos
+;     .rodata_p16_*      tarou_<anim>_p16 (14 tiras en piezas de 16x16) y tarou_p16_bancos
+;     .rodata_prueba_*   ninja64_andar, ninja64_ataque, ninja_pal, sombra_til, sombra_piezas,
+;                        sombra_banco, ninja_bancos
 ;                        (solo la ROM de prueba de carga, -DPRUEBA_CARGA)
 ;
 ;   Extensiones que genera gfx4snes: .pic tiles, .pal paleta, .map mapa;
@@ -260,27 +262,74 @@ tarou_til_bancos: .db :tarou_reposo_til, :tarou_caminar_til, :tarou_correr_til
                   .db :tarou_guardia_til     ; índice 13 = DIBUJO_GUARDIA (no es un estado)
 .ends
 
+; --- Tarou en piezas de 16x16 (formato .p16) -----------------------------------------
+; Las mismas 14 tiras que arriba, en el formato de la capa de sprites del beat 'em up
+; (scripts/piezas16.py; docs/diseno-beat-em-up.md §8 v3): índice por cuadro, tablas
+; (dx, dy) y tiles en orden de subida. Hoy solo las usa la ROM de prueba de carga.
+.section ".rodata_p16_reposo" superfree
+tarou_reposo_p16: .incbin "res/personajes/tarou/tarou_reposo.p16"
+.ends
+.section ".rodata_p16_caminar" superfree
+tarou_caminar_p16: .incbin "res/personajes/tarou/tarou_caminar.p16"
+.ends
+.section ".rodata_p16_correr" superfree
+tarou_correr_p16: .incbin "res/personajes/tarou/tarou_correr.p16"
+.ends
+.section ".rodata_p16_saltar" superfree
+tarou_saltar_p16: .incbin "res/personajes/tarou/tarou_saltar.p16"
+.ends
+.section ".rodata_p16_caer" superfree
+tarou_caer_p16: .incbin "res/personajes/tarou/tarou_caer.p16"
+.ends
+.section ".rodata_p16_agachado" superfree
+tarou_agachado_p16: .incbin "res/personajes/tarou/tarou_agachado.p16"
+.ends
+.section ".rodata_p16_agachado_caminar" superfree
+tarou_agachado_caminar_p16: .incbin "res/personajes/tarou/tarou_agachado_caminar.p16"
+.ends
+.section ".rodata_p16_desenvainar" superfree
+tarou_desenvainar_p16: .incbin "res/personajes/tarou/tarou_desenvainar.p16"
+.ends
+.section ".rodata_p16_envainar" superfree
+tarou_envainar_p16: .incbin "res/personajes/tarou/tarou_envainar.p16"
+.ends
+.section ".rodata_p16_atacar" superfree
+tarou_atacar_p16: .incbin "res/personajes/tarou/tarou_atacar.p16"
+.ends
+.section ".rodata_p16_echarse" superfree
+tarou_echarse_p16: .incbin "res/personajes/tarou/tarou_echarse.p16"
+.ends
+.section ".rodata_p16_dormido" superfree
+tarou_dormido_p16: .incbin "res/personajes/tarou/tarou_dormido.p16"
+.ends
+.section ".rodata_p16_despertar" superfree
+tarou_despertar_p16: .incbin "res/personajes/tarou/tarou_despertar.p16"
+.ends
+.section ".rodata_p16_guardia" superfree
+tarou_guardia_p16: .incbin "res/personajes/tarou/tarou_guardia.p16"
+.ends
+; El banco de cada tira .p16, en el orden del enum Estado y la guardia detrás.
+.section ".rodata_p16_bancos" superfree
+tarou_p16_bancos: .db :tarou_reposo_p16, :tarou_caminar_p16, :tarou_correr_p16, :tarou_saltar_p16, :tarou_caer_p16, :tarou_agachado_p16, :tarou_agachado_caminar_p16
+                  .db :tarou_desenvainar_p16, :tarou_envainar_p16, :tarou_atacar_p16, :tarou_echarse_p16, :tarou_dormido_p16, :tarou_despertar_p16, :tarou_guardia_p16
+.ends
+
 ; --- ROM de prueba de carga (docs/diseno-beat-em-up.md §9) ---------------------------
-; El ninja provisional en dos escalas (×3: 93 px de alto; ×2: 62 px), cortado en piezas
-; de 16x16 empaquetadas en pares de filas de 1 KB, su paleta (3 variantes + la sombra)
-; y la sombra (2 piezas). Los genera scripts/preparar_prueba_carga.py (.bin versionados:
-; el pack de origen no se versiona). Solo los usa src/pantallas/prueba_carga.c, que se
-; compila con -DPRUEBA_CARGA: en la ROM normal nadie los nombra y wlalink -d los descarta.
-.section ".rodata_prueba_n3_andar" superfree
-ninja3_andar_til:     .incbin "res/prueba_carga/ninja3_andar.bin"
+; El ninja provisional (el samurái del pack ×3, recortado a la celda de 64x96) en .p16,
+; su paleta (3 variantes + la sombra) y la sombra (2 piezas). Los genera
+; scripts/preparar_prueba_carga.py (.bin versionados: el pack de origen no se
+; versiona). Solo los usa src/pantallas/prueba_carga.c (-DPRUEBA_CARGA): en la ROM
+; normal nadie los nombra y wlalink -d los descarta.
+.section ".rodata_prueba_n64_andar" superfree
+ninja64_andar:        .incbin "res/prueba_carga/ninja64_andar.bin"
 .ends
-.section ".rodata_prueba_n3_ataque" superfree
-ninja3_ataque_til:    .incbin "res/prueba_carga/ninja3_ataque.bin"
-.ends
-.section ".rodata_prueba_n2_andar" superfree
-ninja2_andar_til:     .incbin "res/prueba_carga/ninja2_andar.bin"
-.ends
-.section ".rodata_prueba_n2_ataque" superfree
-ninja2_ataque_til:    .incbin "res/prueba_carga/ninja2_ataque.bin"
+.section ".rodata_prueba_n64_ataque" superfree
+ninja64_ataque:       .incbin "res/prueba_carga/ninja64_ataque.bin"
 .ends
 .section ".rodata_prueba_varios" superfree
 ninja_pal:            .incbin "res/prueba_carga/ninja_pal.bin"
 sombra_til:           .incbin "res/prueba_carga/sombra.bin"
-; El banco de cada tira, en este orden: ×3 andar, ×3 ataque, ×2 andar, ×2 ataque.
-ninja_bancos:         .db :ninja3_andar_til, :ninja3_ataque_til, :ninja2_andar_til, :ninja2_ataque_til
+sombra_piezas:        .db 0, 0, 16, 0      ; sus 2 piezas (dx, dy): izquierda y derecha
+sombra_banco:         .db :sombra_piezas
+ninja_bancos:         .db :ninja64_andar, :ninja64_ataque
 .ends
