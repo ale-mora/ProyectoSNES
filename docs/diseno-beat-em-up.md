@@ -29,6 +29,7 @@ y del truco de hardware que usa cada pieza está en
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v9 | 2026-10-23 | §5.5: cifras de combate decididas (vida, daño, velocidades, tiempos, rangos, jefes, puntos); salen de §12. |
 | v8 | 2026-10-23 | Decisión 5: la intro cuenta la apertura del guion (Rev. 3). |
 | v7 | 2026-10-23 | Decisión 39: ataque corriendo para los dos protagonistas (sale de §12). |
 | v6 | 2026-10-23 | Restos de «santuario» → monasterio (decisión 26, barra de ataque, objetos de Tiled, modos de color, archivos de §10: `pantalla_monasterio.c`); §12 sin los nombres ya decididos. |
@@ -140,8 +141,7 @@ el protagonista corre hasta que suelta la dirección. Se prueba en el PC con
 | Agarre | zarpazos y lanzamiento corto | golpes de empuñadura y lanzamiento de judo largo |
 | Especial A+B | giro con la espada (360°) | corte circular amplio |
 
-Las cifras exactas (velocidades, daño, frames de cada golpe) son constantes en
-`tarou.h` / `barbara.h`, a ajustar jugando.
+Las cifras están en §5.5; van como constantes en `tarou.h` / `barbara.h`.
 
 **Relevo (L):**
 1. Solo si el enfriamiento ha terminado, el que sale no está en un estado
@@ -152,8 +152,8 @@ Las cifras exactas (velocidades, daño, frames de cada golpe) son constantes en
    enemigos a menos de ~48 px. **Nunca hay dos protagonistas en pantalla a la
    vez**: así los dos comparten la celda de VRAM y el presupuesto de sprites
    (§8).
-3. El que espera fuera recupera 1 punto de vida cada ~2 s, hasta un tope (no
-   se cura del todo esperando).
+3. El que espera fuera recupera 1 punto de vida cada 2 s (120 frames), hasta 48
+   de 64 (no se cura del todo esperando).
 4. Si el activo cae (vida 0), entra el otro automáticamente. Si el otro
    también está a 0, se pierde una vida y vuelven los dos con la barra llena.
 
@@ -222,6 +222,79 @@ ataque a toda la pantalla y se va, y la barra vuelve a 0.
 Durante el apoyo, el protagonista queda en una pose fija (`INVOCAR`). Su
 segunda celda de VRAM queda libre y se presta a los cuadros del apoyo (§8).
 
+### 5.5 Cifras de combate (v9, decididas con el autor)
+
+Valores iniciales: van como constantes en `tarou.h` / `barbara.h` / `combate.h` y se
+ajustan jugando, pero el punto de partida ya no se discute. Unidades: puntos de vida,
+**frames** (60 por segundo) y **px por frame** en punto fijo 12.4. Todo cabe en `u8`
+salvo la puntuación. Los multiplicadores por rango van en **tablas** de 4 entradas,
+nunca como multiplicación en el frame.
+
+**Protagonistas**
+
+| | Tarou | Bárbara |
+|---|---|---|
+| Vida | 64 | 64 |
+| Andar / correr (x) | 1,5 / 3 | 1,25 / 2,5 |
+| Profundidad (y) | la mitad de x | la mitad de x |
+| Combo | 3 + 3 + 3 + 5 = 14 | 5 + 5 + 8 = 18 |
+| Ataque aéreo / corriendo | 5 / 5 | 7 / 7 |
+| Golpe de agarre / lanzamiento | 2 / 6 | 4 / 10 |
+| Arma arrojadiza | 6 | 6 |
+| Especial A+B | 6 a todos los cercanos; cuesta 4 de vida si conecta | ídem |
+
+El lanzamiento también hace su daño a quien choque con el lanzado.
+
+**Reglas con cifra**
+
+| Regla | Valor |
+|---|---|
+| Ventana de encadenado del combo | 12 frames |
+| Invulnerable al levantarse | 60 frames, con parpadeo |
+| Parada de impacto (golpe fuerte) | 4 frames |
+| Destello del golpeado | 2 frames |
+| Agarre | tras 10 frames andando contra el enemigo |
+| `TOLERANCIA_Y` (profundidad para conectar) | 8 px |
+| Relevo: enfriamiento | 120 frames |
+| Relevo: golpe de entrada | 4 de daño, empuje a menos de 48 px |
+| El que espera fuera | +1 de vida cada 120 frames, tope 48 (75 %) |
+| Barra de ataque | +1 por golpe que conecta; llena con 48 |
+| Comida (solo al activo) | onigiri +16, pescado asado +64 |
+| Vidas / continues | 3 / 3 (decisión 12) |
+
+**Enemigos por rango** (paleta del cinturón, `guion-historia.md` §2). La vida y el daño
+salen de la tabla del rango; el pesado es siempre rojo.
+
+| Rango | Vida | Bonus de daño | Puntos al vencerlo |
+|---|---|---|---|
+| blanco | 16 | +0 | 100 |
+| amarillo | 24 | +1 | 150 |
+| verde | 32 | +2 | 200 |
+| rojo | 48 | +3 | 300 |
+
+| Ataque enemigo | Daño base |
+|---|---|
+| shinai / patada (básico) | 4 |
+| shuriken / tajo rápido (rápido) | 3 |
+| golpe pesado (pesado) | 8 |
+| lanzamiento (pesado) | 10 |
+
+Velocidad base de los ninjas: 1 px por frame (inicial; el rápido y el pesado se ajustan
+jugando).
+
+**Jefes**
+
+| Jefe | Vida | Notas |
+|---|---|---|
+| Gomasuri-dono (fase 1) | 160 | cambia de patrón al 50 %; carga 10, tajo de alcance 8 |
+| Nigeashi-dono / Hankozuki-dono / Nebō-dono | 180 / 200 / 220 | fases 2–4 |
+| Nikoraemon | 200 + 160 | etapa 1 con relevo; etapa 2 solo Tarou (`guion-historia.md` §6) |
+
+**Puntuación**: golpe que conecta 10 · ninja según rango (arriba) · jefe 5000 · rompible
+50 · comida 200. **Vida extra** a 50 000 y a 150 000 puntos, además de la escondida
+(decisión 25). Sin `long` en tcc816: la puntuación se guarda en **dos `u16`** (o en BCD)
+y se suma con acarreo a mano.
+
 ## 6. Enemigos
 
 | Enemigo | Vida | Comportamiento | Ataques |
@@ -229,7 +302,7 @@ segunda celda de VRAM queda libre y se presta a los cuadros del apoyo (§8).
 | Ninja básico | baja | se acerca, rodea, espera turno | golpe de shinai, patada |
 | Ninja rápido | baja | mantiene distancia, cambia de carril | lanza shuriken (proyectil por y), tajo rápido |
 | Kendoka pesado | alta | avanza despacio | bloquea golpes frontales (el combo rebota), agarra y lanza |
-| Lugarteniente (jefe) | muy alta | patrones por fases de vida | carga, tajo de alcance, convoca 1 ninja básico |
+| Gomasuri-dono (jefe) | muy alta (160) | patrones por fases de vida | carga, tajo de alcance, convoca 1 ninja básico |
 
 **Turnos de ataque**: como mucho **2** enemigos atacando a la vez (un «testigo»
 que se pasan). Los demás rodean o esperan. Es la regla clásica para que 3
@@ -599,4 +672,3 @@ final de la intro (placeholders) · un mapa de viaje entre fases.
   guion (`guion-historia.md` §10).
 - El sprite del **Señor Pimentón**: el autor lo tiene y lo aporta cuando toque; falta dejarlo en
   `res/descargas/graficos/` y decir su tamaño.
-- Cifras de combate (daño, velocidades, ventanas): se ajustan jugando.
