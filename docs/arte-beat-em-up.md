@@ -7,6 +7,12 @@ Pixellab, qué escenografía dibujar por zona, qué objetos, efectos y HUD hacen
 falta, y **qué recurso de la SNES usa cada pieza** para sacarle partido a la
 máquina. Cada fila tiene una casilla de estado para ir marcándola.
 
+**Decisiones de arte (2026-10-23, con el autor):** todo el arte que falta se pide a
+**Pixellab** (exportación nativa + scripts del proyecto, como Tarou); retratos de escena
+de 64×64 (§1.5); Mode 7 en el monasterio (§5.3); orden de producción en §10. La
+Revisión 3 cubre **solo la fase 1**: jefes de las fases 2–4, final y constelación van
+después.
+
 Leyenda de estado: `[ ]` por pedir · `[~]` placeholder · `[x]` arte real en
 el juego · `♻` se reutiliza lo que ya hay.
 
@@ -116,6 +122,32 @@ en BG3, porque BG3 solo tiene 4 colores.
 ```
 x, y, ancho, alto en píxeles dentro de la celda, mirando al este.
 
+### 1.5 Retratos de las escenas
+
+Cuadros de texto del guion (`guion-historia.md` §11): retrato de **64×64** en sprites de
+16 colores junto al texto, **2 gestos** por personaje (normal + uno propio). 2 KB por
+gesto.
+
+| Personaje | Gesto propio | En la R3 | Estado |
+|---|---|---|---|
+| Tarou | llora | sí | [ ] |
+| Bárbara | furiosa | sí | [ ] |
+| Bárbara niña | sonríe | sí (intro) | [ ] |
+| Tarou cachorro | feliz | sí (intro) | [ ] |
+| Pimenton-sama | brilla | sí | [ ] |
+| Rex | sonríe con los ojos cerrados | sí | [ ] |
+| Lucinda | ruge | sí | [ ] |
+| Fenrir | lengua fuera | sí | [ ] |
+| Nikoraemon | ríe | sí | [ ] |
+| Gomasuri-dono | aplaude | sí | [ ] |
+| ninja genérico | grita | sí | [ ] |
+| Nigeashi-dono, Hankozuki-dono, Nebō-dono | asustado / sella / bosteza | no | [ ] |
+
+### 1.6 Tarou cachorro (solo escena)
+
+Sprite de **64×64** para el flashback de la intro: caminar 6, olfatear 4, sentarse feliz
+4. Sin cajas ni combate. [ ]
+
 ## 2. Enemigos: ninjas kendokas humanos (64×96 en principio)
 
 | Animación | Básico (shinai) | Rápido (shuriken) | Pesado (agarra, bloquea) |
@@ -140,7 +172,7 @@ CGRAM al aparecer.
 
 | Personaje | Celda | Animaciones | Estado |
 |---|---|---|---|
-| Gomasuri-dono (jefe de la fase 1; gordo, armadura de colores chillones) | 96×96 a medir en la prueba de carga (sale con como mucho 1 ninja básico, que deja VRAM libre) | guardia 4, caminar 8, carga 6, tajo de alcance 6, convocar 4, recibir 2, derribado 5, levantarse 6, derrota 8, entrada 6 | [ ] |
+| Gomasuri-dono (jefe de la fase 1; gordo, armadura **rosa fucsia con borde dorado**, casco con un abanico enorme) | 96×96 a medir en la prueba de carga (sale con como mucho 1 ninja básico, que deja VRAM libre) | guardia 4, caminar 8, carga 6, tajo de alcance 6, convocar 4, recibir 2, derribado 5, levantarse 6, derrota 8, entrada 6 | [ ] |
 | Nigeashi-dono, Hankozuki-dono, Nebō-dono (jefes de las fases 2–4; aspecto en guion §2) | a medir | fuera de la Revisión 3 | [ ] |
 | Nikoraemon (villano) | 64×96 | solo en escenas: aparece 4, coge el juguete 4, huye 6 | [ ] |
 
@@ -151,9 +183,9 @@ segunda celda del protagonista (128 tiles) está libre para ellos.
 
 | Apoyo | Celda | Animaciones | Estado |
 |---|---|---|---|
-| Gata samurái (muy rápida) | 64×64 | entrada 3, tajo ×3 (6), salida 3; escena: guardia 4 + saludo 4 | [ ] |
-| Perro monje (telépata) | 96×64 | entrada 4, concentración 6 (bucle), soltar 4, salida 3; escena: guardia 4 + saludo 4 | [ ] |
-| Perro bruto (embiste) | 96×64 | carrera 8 (bucle), choque 4, salida 3; escena: guardia 4 + saludo 4 | [ ] |
+| Lucinda, gata samurái (muy rápida) | 64×64 | entrada 3, tajo ×3 (6), salida 3; escena: guardia 4 + saludo 4 | [ ] |
+| Rex, perro monje (telépata) | 96×64 | entrada 4, concentración 6 (bucle), soltar 4, salida 3; escena: guardia 4 + saludo 4 | [ ] |
+| Fenrir, husky bruto (embiste) | 96×64 | carrera 8 (bucle), choque 4, salida 3; escena: guardia 4 + saludo 4 | [ ] |
 | Iconos de apoyo en el HUD | 16×16 | 3 + marco de selección | [ ] |
 
 ## 4. Objetos, efectos y armas (sprites pequeños)
@@ -217,8 +249,8 @@ tiles (hasta 8 KB de VRAM por capa en el mapa actual).
 | explanada, *torii* rojo, faroles de piedra, *shimenawa*, árbol sagrado | BG1 (torii en alto) | prioridad | [ ] |
 | halo de los faroles | ventana + color | **ventana circular**: una tabla HDMA da el borde izquierdo y derecho de cada línea (un círculo) y suma el color fijo dentro. **Solo en la escena** (momento congelado, sin sombras); en el combate, el halo va pintado | [ ] |
 | luciérnagas | sprites de 16×16 | paleta 7, translúcidas | [ ] |
-| **escena de los apoyos** | Mode 1 + motor de escenas | retratos de los 3 en sprites, cuadros de texto en BG3, fundidos y mosaico (♻ `escena.c`) | [ ] |
-| **activación de la barra** (propuesta, no decidida) | **Mode 7** | un sello (*mandala*) de 128×128 a 256 colores que **gira y se acerca** (matriz de Mode 7 cambiada cada frame); después mosaico y vuelta al Mode 1. Pantalla aparte, cargada con la pantalla apagada | [ ] |
+| **escena con Rex** | Mode 1 + motor de escenas | retratos de 64×64 en sprites (§1.5), cuadros de texto en BG3, fundidos y mosaico (♻ `escena.c`) | [ ] |
+| **activación de la barra** (decidido: sí, solo aquí) | **Mode 7** | un sello (*mandala*) de 128×128 a 256 colores que **gira y se acerca** (matriz de Mode 7 cambiada cada frame); después mosaico y vuelta al Mode 1. Pantalla aparte, cargada con la pantalla apagada | [ ] |
 
 ### 5.4 Dojo
 
@@ -269,6 +301,9 @@ También del final (guion §7): Tarou sube como **constelación** de perro pasto
 luna; epílogo en el Dojo del Pastor; escena tras los créditos con Tarou y el Señor
 Pimentón en las nubes. Fuera de la Revisión 3.
 
+La **constelación** va en sprites: Tarou sube en luz y después aparecen estrellas de
+16×16 una a una, unidas por líneas dibujadas en el fondo. Sin Mode 7.
+
 ## 9. Cuánta ROM ocupa (estimación)
 
 | Bloque | Cuadros | Por cuadro | Total |
@@ -280,7 +315,21 @@ Pimentón en las nubes. Fuera de la Revisión 3.
 | Apoyos | ~70 | 2–3 KB | ~180 KB |
 | 4 zonas (tiles + mapas) | — | — | ~250 KB |
 | Intro (3 imágenes de 256 colores) + Mode 7 del monasterio | — | — | ~220 KB |
-| **Total** | | | **~2,2 MB** de los ~3,7 MB libres |
+| Retratos de la fase 1 (11 × 2 gestos) + Tarou cachorro (14 cuadros) | 36 | 2 KB | ~75 KB |
+| **Total** | | | **~2,3 MB** de los ~3,7 MB libres |
 
 Cabe en la ROM de 4 MB. Lo que aprieta no es la ROM sino la VRAM y el VBlank
 de cada frame (`diseno-beat-em-up.md` §8).
+
+## 10. Orden de producción
+
+Lo jugable primero (decisión del autor):
+
+1. Tarou: animaciones de combate (§1.1).
+2. Ninjas con sus 4 paletas de rango (§2).
+3. Bárbara (§1.2).
+4. Gomasuri-dono (§2.1).
+5. Objetos, efectos y HUD (§4, §7).
+6. Escenografía de las 4 zonas (§5).
+7. Apoyos (§3).
+8. Retratos, Tarou cachorro e intro (§1.5, §1.6, §8).

@@ -657,10 +657,10 @@ una ROM con guion juega la fase sin manos.
 - [ ] **Intro rehecha** — 3 escenas nuevas con placeholders (decisión 5).
 - [ ] **Pausa** — Start pausa; en pausa, Select vuelve al título
       (decisión 32).
-- [ ] **Mode 7 en escenas** — _no decidido; la spec no lo pide._ Se dejó
-      fuera de la demo de arranque (Etapa 1.5); queda como técnica a
-      estudiar si alguna escena (monasterio, final del jefe, intro) lo
-      necesita.
+- [ ] **Mode 7 en escenas** — _decidido (2026-10-23): solo en la activación de la barra en el
+      monasterio (`arte-beat-em-up.md` §5.3)._ Se dejó
+      fuera de la demo de arranque (Etapa 1.5). Un sello de 128×128 gira y
+      se acerca; después, mosaico y vuelta al Mode 1.
       Recursos: `graphics/Backgrounds/Mode7` del SDK.
 - [ ] **Organización de banking de ROM** — con 128 bancos de 32 KB, cada
       zona, personaje y tira de animación en su sección `superfree`.
