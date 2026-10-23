@@ -476,7 +476,7 @@ capa de sprites, spec §9.1 y §9.2). Entregable 3 empezado: la lógica pura
 del prototipo de combate (`doble_toque.c`, `mundo.c`, `combate.c`, con las
 cifras de `cifras.h`) ya tiene pruebas en el PC. El luchador de Tarou
 (`luchador.c`: 21 estados, combo, aire, especial, derribo, KO y agarre) también
-tiene pruebas. Falta el enemigo de prueba y la pantalla, que **sustituye al nivel 1** al pulsar Start
+tiene pruebas. El ninja de prueba (`enemigos/ninja.c`) también tiene pruebas. Falta la pantalla que **sustituye al nivel 1** al pulsar Start
 (decisión del autor); el código de plataformas se queda hasta la fase 1.
 
 ### Heredado de las Revisiones 1–2 (plataformas, tag plataformas-r2)
