@@ -51,6 +51,7 @@ void mando_leer(Mando *m)
     guion_mando(GUION_TUTORIAL, GUION_TUTORIAL_TRAMOS, cuadro_guion, m);
     cuadro_guion++;
     m->arriba = 0;                 /* El guion del tutorial no tiene profundidad.          */
+    m->relevo_pulsado = 0;         /* Ni relevo: el tutorial es de un solo protagonista.   */
     m->hud_pulsado = (u8)((pulsados & KEY_SELECT) != 0);
     m->salir_pulsado = (u8)((pulsados & KEY_START) != 0);
     return;
@@ -70,6 +71,7 @@ void mando_leer(Mando *m)
     m->espada_pulsado = (u8)((pulsados & KEY_R) != 0);
     m->hud_pulsado = (u8)((pulsados & KEY_SELECT) != 0);
     m->salir_pulsado = (u8)((pulsados & KEY_START) != 0);
+    m->relevo_pulsado = (u8)((pulsados & KEY_L) != 0);
 
     /* Cualquier cosa tocada cuenta como actividad (reinicia el contador de sueño). */
     m->actividad = (u8)((mantenidos | pulsados) != 0);

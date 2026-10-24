@@ -61,7 +61,9 @@ enum
 
 typedef struct
 {
-    u8 x, y;                         /* Esquina en la celda, mirando al este.              */
+    s8 x;                            /* Esquina en la celda, mirando al este (con signo: una caja
+                                        centrada en los pies, más ancha que la celda, empieza antes). */
+    u8 y;                            /* Esquina de arriba en la celda.                     */
     u8 ancho, alto;                  /* Tamaño; ancho 0 = sin caja.                        */
     u8 dano;                         /* Vida que quita.                                    */
     u8 efecto;                       /* EFECTO_RETROCESO o EFECTO_DERRIBO.                 */
@@ -106,6 +108,10 @@ u8 combate_golpear(const CajaMundo *golpe, const CajaCuadro *datos, const Cuerpo
                    Golpeable *atacante_g, const CajaMundo *objetivo_caja,
                    const Cuerpo *objetivo, Golpeable *objetivo_g, u8 *golpeados,
                    u8 bit_objetivo);
+
+/* 1 si `b` está a `alcance` px o menos de `a` en x Y a la misma profundidad: el golpe de entrada
+   del relevo (spec §4) empuja a los que estén a menos de ALCANCE_ENTRADA_RELEVO px. */
+u8 combate_empuje_cercano(const Cuerpo *a, const Cuerpo *b, u8 alcance);
 
 /* Un frame de los contadores (invulnerable, destello, parada): bajan hasta 0. */
 void combate_tic(Golpeable *g);

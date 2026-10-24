@@ -29,6 +29,7 @@
       atacar_pulsado      recién      A
       espada_pulsado      recién      R
       hud_pulsado         recién      SELECT
+      relevo_pulsado      recién      L (relevo Tarou <-> Bárbara)
       salir_pulsado       recién      START
       actividad           cualquier botón o dirección mantenido o pulsado (para dormir)
 
@@ -43,6 +44,7 @@ typedef struct
 {
     u8 izquierda, derecha, arriba, abajo, correr, saltar;                        /* mantenidos     */
     u8 saltar_pulsado, atacar_pulsado, espada_pulsado, hud_pulsado, salir_pulsado; /* recién pulsados*/
+    u8 relevo_pulsado;                                                           /* L: relevo      */
     u8 actividad;                                                                /* algo tocado    */
 } Mando;
 

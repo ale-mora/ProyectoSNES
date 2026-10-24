@@ -17,17 +17,14 @@
       ninguno.
 
     VARIABLES (tablas en ROM)
-      fases[LQ_ESTADOS]   Fase    frames, ventana de golpe [ini, fin) y siguiente estado
-      cajas[LQ_ESTADOS]   CajaCuadro  caja de golpe del estado (ancho 0 = sin caja)
+      fases_tarou/_barbara[LQ_ESTADOS]  Fase        frames, ventana de golpe [ini, fin) y siguiente
+      cajas_tarou/_barbara[LQ_ESTADOS]  CajaCuadro   caja de golpe del estado (ancho 0 = sin caja)
 
     → glosario: Estado, Combo, Derribo, Caja de golpe
 ---------------------------------------------------------------------------------*/
 #include "juego/luchador.h"
 #include "juego/cifras.h"
 
-/* Velocidades en profundidad (y): la mitad que en x (§5.5). */
-#define VEL_Y_ANDAR (VEL_ANDAR_TAROU >> 1)
-#define VEL_Y_CORRER (VEL_CORRER_TAROU >> 1)
 #define VEL_DERRIBO_Z 48             /* 3 px por frame hacia arriba al caer derribado.     */
 
 typedef struct
@@ -39,7 +36,7 @@ typedef struct
 } Fase;
 
 /* Tiempos y ventanas de cada estado, en el orden de LuchadorEstado. */
-static const Fase fases[LQ_ESTADOS] =
+static const Fase fases_tarou[LQ_ESTADOS] =
 {
     {0, 0, 0, LQ_QUIETO},            /* QUIETO                                             */
     {0, 0, 0, LQ_ANDAR},             /* ANDAR                                              */
@@ -63,10 +60,12 @@ static const Fase fases[LQ_ESTADOS] =
     {30, 0, 0, LQ_LEVANTARSE},       /* EN_SUELO                                           */
     {36, 0, 0, LQ_QUIETO},           /* LEVANTARSE                                         */
     {0, 0, 0, LQ_KO},                /* KO (acaba por FRAMES_KO, en su propio caso)        */
+    {0, 0, 0, LQ_ENTRADA},           /* ENTRADA: cae hasta aterrizar                       */
+    {FRAMES_ENTRADA_GOLPE, 0, 0, LQ_QUIETO}, /* ENTRADA_GOLPE                              */
 };
 
 /* Cajas de golpe, mirando al este, dentro de la celda de 96x64 (los pies en el centro). */
-static const CajaCuadro cajas[LQ_ESTADOS] =
+static const CajaCuadro cajas_tarou[LQ_ESTADOS] =
 {
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* QUIETO */
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* ANDAR */
@@ -90,7 +89,98 @@ static const CajaCuadro cajas[LQ_ESTADOS] =
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* EN_SUELO */
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* LEVANTARSE */
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* KO */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* ENTRADA */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* ENTRADA_GOLPE (se resuelve por distancia) */
 };
+
+/* Bárbara: katana lenta y larga (celda de 96x96, pies en el centro; spec §4). Combo de 3 golpes
+   (24/24/30 frames, ventana de encadenado de 12); el tajo final cierra el combo y derriba. */
+static const Fase fases_barbara[LQ_ESTADOS] =
+{
+    {0, 0, 0, LQ_QUIETO},            /* QUIETO                                             */
+    {0, 0, 0, LQ_ANDAR},             /* ANDAR                                              */
+    {0, 0, 0, LQ_CORRER},            /* CORRER                                             */
+    {0, 0, 0, LQ_SALTO},             /* SALTO                                              */
+    {0, 0, 255, LQ_QUIETO},          /* AEREO                                              */
+    {0, 0, 255, LQ_QUIETO},          /* PATADA                                             */
+    {20, 8, 14, LQ_QUIETO},          /* CARRERA_ATAQUE: la embestida con el hombro         */
+    {24, 6, 12, LQ_GOLPE_2},         /* GOLPE_1                                            */
+    {24, 6, 12, LQ_GOLPE_3},         /* GOLPE_2                                            */
+    {30, 8, 14, LQ_QUIETO},          /* GOLPE_3: el tajo cierra el combo (no hay golpe 4)  */
+    {0, 0, 0, LQ_QUIETO},            /* GOLPE_4: Bárbara no lo usa                         */
+    {24, 6, 18, LQ_QUIETO},          /* ESPECIAL                                           */
+    {0, 0, 0, LQ_AGARRAR},           /* AGARRAR                                            */
+    {16, 4, 10, LQ_AGARRAR},         /* GOLPE_AGARRE: empuñadura                           */
+    {22, 8, 12, LQ_QUIETO},          /* LANZAR: judo                                       */
+    {0, 0, 0, LQ_AGARRADO},          /* AGARRADO                                           */
+    {0, 0, 0, LQ_LANZADO},           /* LANZADO                                            */
+    {FRAMES_RECIBIR, 0, 0, LQ_QUIETO}, /* RECIBIR                                          */
+    {0, 0, 0, LQ_EN_SUELO},          /* DERRIBADO                                          */
+    {30, 0, 0, LQ_LEVANTARSE},       /* EN_SUELO                                           */
+    {36, 0, 0, LQ_QUIETO},           /* LEVANTARSE                                         */
+    {0, 0, 0, LQ_KO},                /* KO                                                 */
+    {0, 0, 0, LQ_ENTRADA},           /* ENTRADA                                            */
+    {FRAMES_ENTRADA_GOLPE, 0, 0, LQ_QUIETO}, /* ENTRADA_GOLPE                              */
+};
+
+/* Cajas de Bárbara en su celda de 96x96 (alcance hasta 48 px por delante de los pies: el borde
+   de la celda). El especial es un corte circular de 128 px centrado en los pies: x = -16. */
+static const CajaCuadro cajas_barbara[LQ_ESTADOS] =
+{
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* QUIETO */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* ANDAR */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* CORRER */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* SALTO */
+    {52, 44, 40, 28, DANO_AEREO_BARBARA, EFECTO_DERRIBO, {0, 0}},                     /* AEREO */
+    {44, 44, 52, 28, DANO_PATADA_BARBARA, EFECTO_DERRIBO, {0, 0}},                    /* PATADA */
+    {40, 24, 56, 40, DANO_AEREO_BARBARA, EFECTO_DERRIBO, {0, 0}},                     /* CARRERA_ATAQUE */
+    {52, 36, 44, 20, DANO_COMBO_BARBARA, EFECTO_RETROCESO, {0, 0}},                   /* GOLPE_1 */
+    {52, 36, 44, 20, DANO_COMBO_BARBARA, EFECTO_RETROCESO, {0, 0}},                   /* GOLPE_2 */
+    {44, 24, 52, 44, DANO_TAJO_BARBARA, EFECTO_DERRIBO, {0, 0}},                      /* GOLPE_3 */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* GOLPE_4 (no existe) */
+    {-16, 8, 128, 84, DANO_ESPECIAL, EFECTO_RETROCESO, {0, 0}},                       /* ESPECIAL */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* AGARRAR */
+    {52, 40, 28, 24, DANO_AGARRE_BARBARA, EFECTO_RETROCESO, {0, 0}},                  /* GOLPE_AGARRE */
+    {52, 40, 28, 24, DANO_LANZAR_BARBARA, EFECTO_DERRIBO, {0, 0}},                    /* LANZAR */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* AGARRADO */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* LANZADO */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* RECIBIR */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* DERRIBADO */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* EN_SUELO */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* LEVANTARSE */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* KO */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* ENTRADA */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* ENTRADA_GOLPE */
+};
+
+/* Las tablas y velocidades de cada personaje. */
+static const Fase *fases_de(const Luchador *L)
+{
+    if (L->quien == QUIEN_BARBARA)
+        return fases_barbara;
+    return fases_tarou;
+}
+
+static const CajaCuadro *cajas_de(const Luchador *L)
+{
+    if (L->quien == QUIEN_BARBARA)
+        return cajas_barbara;
+    return cajas_tarou;
+}
+
+static s16 vel_andar(const Luchador *L)
+{
+    if (L->quien == QUIEN_BARBARA)
+        return VEL_ANDAR_BARBARA;
+    return VEL_ANDAR_TAROU;
+}
+
+static s16 vel_correr(const Luchador *L)
+{
+    if (L->quien == QUIEN_BARBARA)
+        return VEL_CORRER_BARBARA;
+    return VEL_CORRER_TAROU;
+}
 
 /*--- Ayudas ------------------------------------------------------------------------*/
 
@@ -111,7 +201,7 @@ static void cambiar(Luchador *L, u8 nuevo)
     if (nuevo == LQ_ESPECIAL)        /* Invulnerable durante toda la animación.            */
     {
         L->pagado = 0;
-        L->g.invulnerable = fases[nuevo].frames;
+        L->g.invulnerable = fases_de(L)[nuevo].frames;
     }
     if (nuevo == LQ_LEVANTARSE)      /* Invulnerable al levantarse (§5.5).                 */
         L->g.invulnerable = FRAMES_INVULNERABLE;
@@ -170,9 +260,9 @@ static void atender_parado(Luchador *L, const Mando *m, u8 corre)
         {
             cambiar(L, LQ_CARRERA_ATAQUE);
             if (L->mira_izquierda)
-                L->c.vx_fp = -VEL_CORRER_TAROU;
+                L->c.vx_fp = -vel_correr(L);
             else
-                L->c.vx_fp = VEL_CORRER_TAROU;
+                L->c.vx_fp = vel_correr(L);
             L->c.vy_fp = 0;
         }
         else
@@ -194,13 +284,13 @@ static void atender_parado(Luchador *L, const Mando *m, u8 corre)
     {
         if (L->estado != LQ_CORRER)
             cambiar(L, LQ_CORRER);
-        cruceta_a_velocidad(L, m, VEL_CORRER_TAROU, VEL_Y_CORRER);
+        cruceta_a_velocidad(L, m, vel_correr(L), vel_correr(L) >> 1);
     }
     else
     {
         if (L->estado != LQ_ANDAR)
             cambiar(L, LQ_ANDAR);
-        cruceta_a_velocidad(L, m, VEL_ANDAR_TAROU, VEL_Y_ANDAR);
+        cruceta_a_velocidad(L, m, vel_andar(L), vel_andar(L) >> 1);
     }
 }
 
@@ -218,7 +308,7 @@ static void atender_salto(Luchador *L, const Mando *m)
             cambiar(L, LQ_AEREO);    /* A sin cruceta: ataque aéreo de siempre.            */
         return;
     }
-    cruceta_a_velocidad(L, m, VEL_ANDAR_TAROU, VEL_Y_ANDAR);
+    cruceta_a_velocidad(L, m, vel_andar(L), vel_andar(L) >> 1);
 }
 
 /* En un golpe del combo: A en la ventana de encadenado (tras su último cuadro activo). */
@@ -226,7 +316,7 @@ static void atender_combo(Luchador *L, const Mando *m)
 {
     const Fase *f;
 
-    f = &fases[L->estado];
+    f = &fases_de(L)[L->estado];
     if (m->atacar_pulsado && L->tiempo >= f->fin && L->tiempo < f->frames)
         L->encadenar = 1;
 }
@@ -256,6 +346,12 @@ static void atender_agarre(Luchador *L, const Mando *m)
 
 void luchador_iniciar(Luchador *L, u16 x, u16 y, u8 vida)
 {
+    luchador_iniciar_como(L, QUIEN_TAROU, x, y, vida);   /* Por defecto, Tarou.             */
+}
+
+void luchador_iniciar_como(Luchador *L, u8 quien, u16 x, u16 y, u8 vida)
+{
+    L->quien = quien;                /* Antes que nada: decide las tablas que se usan.     */
     mundo_colocar(&L->c, x, y);
     L->g.vida = vida;
     L->g.invulnerable = 0;
@@ -289,7 +385,7 @@ void luchador_actualizar(Luchador *L, const Mando *m, const Carril *carril)
     corre = doble_toque_actualizar(&L->d, m->izquierda, m->derecha);
 
     /* Si el estado ha agotado su tiempo, pasa al siguiente antes de atender el mando. */
-    f = &fases[L->estado];
+    f = &fases_de(L)[L->estado];
     if (f->frames != 0 && L->tiempo >= f->frames)
     {
         if (es_combo(L->estado) && !(L->encadenar && L->conecto))
@@ -335,6 +431,8 @@ void luchador_actualizar(Luchador *L, const Mando *m, const Carril *carril)
             cambiar(L, LQ_QUIETO);
         else if (L->estado == LQ_DERRIBADO || L->estado == LQ_LANZADO)
             cambiar(L, LQ_EN_SUELO);
+        else if (L->estado == LQ_ENTRADA)
+            cambiar(L, LQ_ENTRADA_GOLPE);   /* Aterrizó el que entra: el golpe de entrada.   */
     }
 }
 
@@ -376,8 +474,8 @@ const CajaCuadro *luchador_caja_golpe(const Luchador *L)
     const Fase *f;
     const CajaCuadro *caja;
 
-    f = &fases[L->estado];
-    caja = &cajas[L->estado];
+    f = &fases_de(L)[L->estado];
+    caja = &cajas_de(L)[L->estado];
     if (caja->ancho == 0)
         return 0;                    /* Este estado no pega.                               */
     if (L->tiempo < f->ini || L->tiempo >= f->fin)
@@ -409,4 +507,57 @@ void luchador_lanzar(Luchador *L, s16 vx_fp, s16 vz_fp)
     L->c.vx_fp = vx_fp;
     L->c.vy_fp = 0;
     L->c.vz_fp = vz_fp;
+}
+
+void luchador_celda(const Luchador *L, Celda *celda)
+{
+    celda->ancho = 96;               /* Las dos celdas son de 96 px de ancho.              */
+    celda->mitad_ancho = 48;         /* Los pies, en el centro.                            */
+    if (L->quien == QUIEN_BARBARA)
+        celda->alto = 96;            /* Bárbara: 96x96 (decisión 33 revisada, 2026-10-24). */
+    else
+        celda->alto = 64;            /* Tarou: 96x64.                                      */
+}
+
+void luchador_entrar(Luchador *L, s16 x_fp, s16 y_fp, u8 invulnerable)
+{
+    L->c.x_fp = x_fp;                /* Cae justo donde estaba el que sale.                */
+    L->c.y_fp = y_fp;
+    L->c.z_fp = PF(ALTURA_ENTRADA_RELEVO);
+    L->c.vx_fp = 0;
+    L->c.vy_fp = 0;
+    L->c.vz_fp = 0;                  /* Cae con la gravedad de siempre.                    */
+    L->c.en_suelo = 0;
+    L->g.parada = 0;
+    L->golpes_agarre = 0;
+    L->vencido = 0;                  /* Si salió por un KO, vuelve a estar en pie.         */
+    cambiar(L, LQ_ENTRADA);
+    L->g.invulnerable = invulnerable; /* Después de cambiar: cambiar no lo toca aquí.       */
+}
+
+u8 luchador_entrada_activa(const Luchador *L)
+{
+    return L->estado == LQ_ENTRADA_GOLPE && L->tiempo == 0;   /* Solo el frame del aterrizaje. */
+}
+
+u8 luchador_puede_salir(const Luchador *L)
+{
+    switch (L->estado)
+    {
+    case LQ_RECIBIR:
+    case LQ_DERRIBADO:
+    case LQ_EN_SUELO:
+    case LQ_LEVANTARSE:
+    case LQ_AGARRADO:
+    case LQ_LANZADO:
+    case LQ_KO:
+    case LQ_ENTRADA:
+    case LQ_ENTRADA_GOLPE:
+    case LQ_AGARRAR:                 /* Agarrando: soltar a un enemigo a medias no tiene sentido. */
+    case LQ_GOLPE_AGARRE:
+    case LQ_LANZAR:
+        return 0;
+    default:
+        return 1;
+    }
 }

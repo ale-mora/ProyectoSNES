@@ -69,6 +69,8 @@
 #define BARRA_LLENA 48               /* Golpes que conectan para llenar la barra.          */
 #define CURA_ONIGIRI 16              /* Un cuarto de barra.                                */
 #define CURA_PESCADO 64              /* La barra entera.                                   */
+#define ALTURA_ENTRADA_RELEVO 80     /* px desde los que cae el que entra (≈25 frames).    */
+#define FRAMES_ENTRADA_GOLPE 8       /* Lo que dura el golpe de entrada tras aterrizar.    */
 #define VIDAS_INICIALES 3            /* Decisión 12.                                       */
 #define CONTINUES_INICIALES 3        /* Decisión 12.                                       */
 

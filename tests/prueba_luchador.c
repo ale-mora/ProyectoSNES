@@ -38,6 +38,7 @@ static void limpiar(Mando *m)
     m->hud_pulsado = 0;
     m->salir_pulsado = 0;
     m->actividad = 0;
+    m->relevo_pulsado = 0;
 }
 
 /* `n` frames con el mando tal como está. */
@@ -61,7 +62,7 @@ void pruebas_luchador(void)
     c.y_arriba_fp = PF(150);
     c.y_abajo_fp = PF(208);
 
-    COMPROBAR(sizeof(Luchador) == 32);               /* Potencia de 2: a[i] sin tcc__mul.   */
+    /* Luchador (33 bytes) no se indexa en arrays: Tarou y Bárbara son instancias separadas. */
 
     /* Al empezar: quieto, con vida, sin combo ni agarre. */
     luchador_iniciar(&L, 100, 180, VIDA_PROTAGONISTA);
@@ -444,4 +445,134 @@ void pruebas_luchador(void)
     m.atacar_pulsado = 1;
     luchador_actualizar(&L, &m, &c);
     COMPROBAR(L.estado != LQ_PATADA && L.c.en_suelo == 1);
+
+    /*--- Bárbara (spec §4; decisiones del 2026-10-24): combo lento de 3, alcance largo -----*/
+    luchador_iniciar_como(&L, QUIEN_BARBARA, 100, 180, VIDA_PROTAGONISTA);
+    COMPROBAR(L.quien == QUIEN_BARBARA && L.estado == LQ_QUIETO);
+
+    /* Más lenta que Tarou: 1,25 px por frame andando y 2,5 corriendo. */
+    limpiar(&m);
+    m.derecha = 1;
+    luchador_actualizar(&L, &m, &c);
+    COMPROBAR(L.c.vx_fp == VEL_ANDAR_BARBARA && VEL_ANDAR_BARBARA < VEL_ANDAR_TAROU);
+    COMPROBAR(L.c.vy_fp == 0);
+    limpiar(&m);
+    luchador_actualizar(&L, &m, &c);
+    m.derecha = 1;
+    luchador_actualizar(&L, &m, &c);
+    COMPROBAR(L.estado == LQ_CORRER && L.c.vx_fp == VEL_CORRER_BARBARA);
+
+    /* Combo de 3: golpe 1 a 24 frames, con caja de 44 px y 5 de daño; el tajo (golpe 3) dura
+       30, hace 8 y derriba; no existe un golpe 4. */
+    luchador_iniciar_como(&L, QUIEN_BARBARA, 100, 180, VIDA_PROTAGONISTA);
+    limpiar(&m);
+    m.atacar_pulsado = 1;
+    luchador_actualizar(&L, &m, &c);
+    COMPROBAR(L.estado == LQ_GOLPE_1);
+    limpiar(&m);
+    correr(&L, &m, &c, 5);
+    COMPROBAR(luchador_caja_golpe(&L) == 0);         /* Tiempo 5: aún no pega.              */
+    correr(&L, &m, &c, 1);
+    COMPROBAR(luchador_caja_golpe(&L) != 0);         /* Tiempo 6: pega.                     */
+    COMPROBAR(luchador_caja_golpe(&L)->ancho == 44);
+    COMPROBAR(luchador_caja_golpe(&L)->dano == DANO_COMBO_BARBARA);
+    COMPROBAR(luchador_caja_golpe(&L)->efecto == EFECTO_RETROCESO);
+    luchador_marcar_conecto(&L);
+    correr(&L, &m, &c, 5);                           /* Tiempo 11: aún pega (hasta 12).     */
+    COMPROBAR(luchador_caja_golpe(&L) != 0);
+    correr(&L, &m, &c, 1);
+    COMPROBAR(luchador_caja_golpe(&L) == 0);         /* Tiempo 12: ya no; empieza la ventana. */
+    m.atacar_pulsado = 1;
+    luchador_actualizar(&L, &m, &c);                 /* Tiempo 13: dentro de la ventana.    */
+    limpiar(&m);
+    correr(&L, &m, &c, 11);                          /* Tiempo 24: acaba el golpe.          */
+    COMPROBAR(L.estado == LQ_GOLPE_2);
+
+    /* Golpe 2 y tajo: el tajo derriba con 8 y cierra el combo (queda quieta, no golpe 4). */
+    L.conecto = 1;
+    L.encadenar = 1;
+    correr(&L, &m, &c, 24);
+    COMPROBAR(L.estado == LQ_GOLPE_3);
+    correr(&L, &m, &c, 8);
+    COMPROBAR(luchador_caja_golpe(&L) != 0);
+    COMPROBAR(luchador_caja_golpe(&L)->ancho == 52);
+    COMPROBAR(luchador_caja_golpe(&L)->dano == DANO_TAJO_BARBARA);
+    COMPROBAR(luchador_caja_golpe(&L)->efecto == EFECTO_DERRIBO);
+    L.conecto = 1;
+    L.encadenar = 1;
+    correr(&L, &m, &c, 22);                          /* Hasta el final del tajo (30).       */
+    COMPROBAR(L.estado == LQ_QUIETO);
+
+    /* Su caja de golpe cabe en la celda de 96x96 (x + ancho <= 96), salvo el especial. */
+    Celda celda;
+    luchador_celda(&L, &celda);
+    COMPROBAR(celda.ancho == 96 && celda.mitad_ancho == 48 && celda.alto == 96);
+    luchador_iniciar(&L, 100, 180, VIDA_PROTAGONISTA);
+    luchador_celda(&L, &celda);
+    COMPROBAR(celda.ancho == 96 && celda.mitad_ancho == 48 && celda.alto == 64);
+
+    /* Especial: corte circular de 128 px, centrado en los pies (x = -16: igual a los dos lados). */
+    luchador_iniciar_como(&L, QUIEN_BARBARA, 100, 180, VIDA_PROTAGONISTA);
+    limpiar(&m);
+    m.atacar_pulsado = 1;
+    m.saltar = 1;
+    luchador_actualizar(&L, &m, &c);
+    COMPROBAR(L.estado == LQ_ESPECIAL);
+    limpiar(&m);
+    correr(&L, &m, &c, 6);
+    COMPROBAR(luchador_caja_golpe(&L) != 0 && luchador_caja_golpe(&L)->ancho == 128);
+    {
+        CajaMundo este, oeste;
+        luchador_celda(&L, &celda);
+        combate_caja_mundo(luchador_caja_golpe(&L), &celda, &L.c, 0, &este);
+        combate_caja_mundo(luchador_caja_golpe(&L), &celda, &L.c, 1, &oeste);
+        COMPROBAR(este.x == 100 - 64 && este.x + este.ancho == 100 + 64);   /* ±64 de los pies. */
+        COMPROBAR(oeste.x == este.x && oeste.ancho == este.ancho);          /* Igual espejado.  */
+    }
+
+    /* Patada y tajo de Bárbara hacen más que los de Tarou. */
+    COMPROBAR(DANO_PATADA_BARBARA == 10 && DANO_TAJO_BARBARA > DANO_MORDISCO_TAROU);
+
+    /*--- El relevo: entrar cayendo, el golpe de entrada y quién puede salir ---------------*/
+    luchador_iniciar_como(&L, QUIEN_BARBARA, 100, 180, VIDA_PROTAGONISTA);
+    luchador_entrar(&L, PF(140), PF(170), 36);
+    COMPROBAR(L.estado == LQ_ENTRADA && L.c.en_suelo == 0);
+    COMPROBAR(L.c.x_fp == PF(140) && L.c.y_fp == PF(170) && L.c.z_fp == PF(ALTURA_ENTRADA_RELEVO));
+    COMPROBAR(L.g.invulnerable == 36);
+    COMPROBAR(luchador_entrada_activa(&L) == 0);     /* Todavía cayendo.                    */
+    limpiar(&m);
+    n = 0;
+    aterrizaje = 0;
+    while (n < 120 && L.estado == LQ_ENTRADA)
+    {
+        luchador_actualizar(&L, &m, &c);
+        n++;
+    }
+    COMPROBAR(L.estado == LQ_ENTRADA_GOLPE && L.c.z_fp == 0);
+    COMPROBAR(n >= 20 && n <= 32);                   /* ~25 frames de caída desde 80 px.    */
+    COMPROBAR(luchador_entrada_activa(&L) == 1);     /* El frame del aterrizaje.            */
+    luchador_actualizar(&L, &m, &c);
+    COMPROBAR(luchador_entrada_activa(&L) == 0);     /* Una sola vez.                       */
+    correr(&L, &m, &c, FRAMES_ENTRADA_GOLPE);
+    COMPROBAR(L.estado == LQ_QUIETO);
+
+    /* Mientras cae es invulnerable: el contador baja, no se pierde al cambiar de estado. */
+    luchador_entrar(&L, PF(100), PF(180), 60);
+    correr(&L, &m, &c, 10);
+    COMPROBAR(L.g.invulnerable == 50);
+
+    /* Quién puede salir: parados, andando, saltando o atacando sí; recibiendo, derribados, en el
+       suelo, agarrados, KO, entrando o agarrando, no. */
+    luchador_iniciar(&L, 100, 180, VIDA_PROTAGONISTA);
+    COMPROBAR(luchador_puede_salir(&L) == 1);
+    L.estado = LQ_ANDAR;     COMPROBAR(luchador_puede_salir(&L) == 1);
+    L.estado = LQ_SALTO;     COMPROBAR(luchador_puede_salir(&L) == 1);
+    L.estado = LQ_GOLPE_2;   COMPROBAR(luchador_puede_salir(&L) == 1);
+    L.estado = LQ_RECIBIR;   COMPROBAR(luchador_puede_salir(&L) == 0);
+    L.estado = LQ_DERRIBADO; COMPROBAR(luchador_puede_salir(&L) == 0);
+    L.estado = LQ_EN_SUELO;  COMPROBAR(luchador_puede_salir(&L) == 0);
+    L.estado = LQ_AGARRADO;  COMPROBAR(luchador_puede_salir(&L) == 0);
+    L.estado = LQ_KO;        COMPROBAR(luchador_puede_salir(&L) == 0);
+    L.estado = LQ_ENTRADA;   COMPROBAR(luchador_puede_salir(&L) == 0);
+    L.estado = LQ_AGARRAR;   COMPROBAR(luchador_puede_salir(&L) == 0);
 }

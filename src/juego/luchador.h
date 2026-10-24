@@ -39,7 +39,9 @@
       golpes_agarre  u8          golpes de agarre dados (máximo 3)
       mira_izquierda u8          1 si mira a la izquierda
       vencido        u8          1 cuando un KO termina y el luchador sale de la pelea
-      (32 bytes exactos: sin relleno)
+      quien          u8          QUIEN_TAROU o QUIEN_BARBARA (decide tablas y velocidades)
+      (33 bytes: no es potencia de 2, pero nunca se indexa en un array: Tarou y Bárbara
+      son dos instancias separadas, a las que se llega por puntero)
 
     → glosario: Estado, Combo, Derribo, Parada de impacto, Doble toque, Caja de golpe
 ---------------------------------------------------------------------------------*/
@@ -56,6 +58,9 @@
 #define FRAMES_KO 40                 /* Lo que tarda el KO en dar al luchador por vencido. */
 #define FRAMES_RECIBIR 12            /* Retroceso por un golpe normal (no está en la spec).*/
 #define MAX_GOLPES_AGARRE 3          /* Golpes de agarre seguidos (§5.3).                  */
+
+/* A quién representa el luchador: decide sus tablas (tiempos y cajas) y sus velocidades. */
+enum { QUIEN_TAROU = 0, QUIEN_BARBARA = 1 };
 
 /* Prefijo LQ_ (luchador) para no chocar con el enum Estado de animaciones.h. */
 enum LuchadorEstado
@@ -82,6 +87,8 @@ enum LuchadorEstado
     LQ_EN_SUELO,                     /* Tirado en el suelo.                                */
     LQ_LEVANTARSE,                   /* Se levanta: invulnerable mientras tanto.           */
     LQ_KO,                           /* Vencido: cae y, al acabar el tiempo, sale.         */
+    LQ_ENTRADA,                      /* Relevo: cae desde arriba, invulnerable.            */
+    LQ_ENTRADA_GOLPE,                /* Relevo: aterrizó; el golpe de entrada, un instante. */
     LQ_ESTADOS                       /* Cuántos estados hay (tamaño de las tablas).        */
 };
 
@@ -98,10 +105,27 @@ typedef struct
     u8 golpes_agarre;                /* Golpes de agarre dados (máximo 3).                 */
     u8 mira_izquierda;               /* 1 si mira a la izquierda.                          */
     u8 vencido;                      /* 1 cuando el KO ha terminado.                       */
+    u8 quien;                        /* QUIEN_TAROU o QUIEN_BARBARA.                       */
 } Luchador;
 
-/* Lo deja de pie, quieto, en (x, y) del mundo, con `vida` puntos. */
+/* Lo deja de pie, quieto, en (x, y) del mundo, con `vida` puntos: Tarou. */
 void luchador_iniciar(Luchador *L, u16 x, u16 y, u8 vida);
+
+/* Lo mismo para `quien` (QUIEN_TAROU o QUIEN_BARBARA). */
+void luchador_iniciar_como(Luchador *L, u8 quien, u16 x, u16 y, u8 vida);
+
+/* La celda de dibujo del luchador (Tarou 96x64; Bárbara 96x96), para pasar las cajas al mundo. */
+void luchador_celda(const Luchador *L, Celda *celda);
+
+/* Relevo: lo hace entrar cayendo desde ALTURA_ENTRADA_RELEVO px sobre (x_fp, y_fp), invulnerable
+   `invulnerable` frames. Al aterrizar da el golpe de entrada (ver luchador_entrada_activa). */
+void luchador_entrar(Luchador *L, s16 x_fp, s16 y_fp, u8 invulnerable);
+
+/* 1 solo en el frame en que el que entra aterriza: ese frame se resuelve el golpe de entrada. */
+u8 luchador_entrada_activa(const Luchador *L);
+
+/* 1 si puede salir en un relevo: no está recibiendo, derribado, agarrado, KO ni entrando. */
+u8 luchador_puede_salir(const Luchador *L);
 
 /* Un frame: lee el mando, cambia de estado, mueve el cuerpo y avanza los contadores.
    Si está congelado por una parada de impacto, no hace nada salvo bajar el contador. */

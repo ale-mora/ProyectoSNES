@@ -90,6 +90,18 @@ u8 combate_misma_profundidad(const Cuerpo *a, const Cuerpo *b)
     return dy <= TOLERANCIA_Y;
 }
 
+u8 combate_empuje_cercano(const Cuerpo *a, const Cuerpo *b, u8 alcance)
+{
+    s16 dx;                          /* Diferencia en x, en punto fijo.                    */
+
+    dx = a->x_fp - b->x_fp;
+    if (dx < 0)
+        dx = -dx;                    /* Valor absoluto, a mano.                            */
+    if (dx > (s16)((u16)alcance << PF_BITS))
+        return 0;                    /* Demasiado lejos.                                   */
+    return combate_misma_profundidad(a, b);
+}
+
 u8 combate_golpear(const CajaMundo *golpe, const CajaCuadro *datos, const Cuerpo *atacante,
                    Golpeable *atacante_g, const CajaMundo *objetivo_caja,
                    const Cuerpo *objetivo, Golpeable *objetivo_g, u8 *golpeados,

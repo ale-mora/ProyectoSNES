@@ -29,6 +29,7 @@ y del truco de hardware que usa cada pieza está en
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v11 | 2026-10-24 | Bárbara y relevo: decisión 33 revisada (Bárbara 96×96); decisiones 43–46 (entrada del relevo, relevo por KO, quién puede salir, Bárbara en combate). |
 | v10 | 2026-10-24 | Decisiones 40–42 (referencia de cine de ninjas de Cannon Films): patada voladora, zoom al KO, entrada del jefe. |
 | v9 | 2026-10-23 | §5.5: cifras de combate decididas (vida, daño, velocidades, tiempos, rangos, jefes, puntos); salen de §12. |
 | v8 | 2026-10-23 | Decisión 5: la intro cuenta la apertura del guion (Rev. 3). |
@@ -76,7 +77,7 @@ y del truco de hardware que usa cada pieza está en
 | 30 | Correr | **Doble toque** de dirección. Y queda libre. |
 | 31 | Dormir | Tarou ya no duerme (se retira la animación). |
 | 32 | Start | **Pausa**; en pausa, Select vuelve al título. |
-| 33 | Celdas | **Bárbara: 64×96** (vertical). Tarou sigue en 96×64. Los dos son 6 piezas de 32×32: mismos 3 KB por cuadro, misma celda de VRAM. |
+| 33 | Celdas | **Bárbara: 96×96** (revisada el 2026-10-24: con 64×96 su katana solo llegaba a 32 px de los pies y no superaba el alcance de Tarou, 36). Tarou sigue en 96×64. Los dos comparten la celda de VRAM, así que Bárbara debe caber en **24 piezas de 16×16 no vacías por cuadro (3 KB)**: a comprobar con `piezas16.py` en su primera exportación, y hay que **volver a medir las ranuras por línea** con su celda de 96 px (§8). |
 | 34 | Especies | Los ninjas son **humanos** (celdas de 64×96); el lugarteniente y el villano, también (más grandes). |
 | 35 | Tamaño de los ninjas (tras la prueba de carga) | Se mantiene **64×96**, con subida de tamaño exacto y **bandas de cine** si hace falta margen en el VBlank (§9.1). |
 | 36 | Enemigos a la vez | **3 como máximo**, que la IA reparte en profundidad (nunca 3 a la misma altura) para no pasar de 34 ranuras por línea. |
@@ -86,6 +87,10 @@ y del truco de hardware que usa cada pieza está en
 | 40 | Patada voladora | Ataque aéreo con giro de piernas (de referencia: cine de ninjas de los 80, Cannon Films). Más alcance que el ataque aéreo y derriba a todos los de la línea. Se suma al aéreo, no lo reemplaza. **Entrada:** A en el aire con la cruceta hacia donde mira (sin cruceta, ataque aéreo normal). **Cifras:** 7 Tarou / 10 Bárbara, caja de 56 px (el aéreo, 36 px). |
 | 41 | Zoom al KO | Al vencer al último enemigo de una oleada: encuadre cercano de 30 frames (0,5 s) con la acción congelada y luego se corta. Solo se ve en el KO del último enemigo; los demás, sin zoom. |
 | 42 | Entrada del jefe | Cada jefe entra de pie, con un plano fijo y su título en pantalla (formato de cartel, `arte-beat-em-up.md` §11). Durante la entrada, nada le pega. |
+| 43 | Relevo: la entrada | El que sale desaparece en una nube. El que entra **cae desde 80 px** sobre el mismo sitio, mirando hacia donde miraba el otro, **invulnerable** durante la caída y el golpe de entrada (36 frames). El golpe de entrada se resuelve **por distancia**: a ≤ 48 px en x y a la misma profundidad, 4 de daño y retroceso, una sola vez al aterrizar. |
+| 44 | Relevo por KO | Si el activo cae KO, entra el otro **al instante, sin enfriamiento** y con 60 frames de invulnerabilidad. Si el otro también está a 0, se pierde una vida. El que salió por KO se sigue curando fuera (+1 cada 120 frames, tope 48) y puede volver en cuanto tenga 1 de vida. |
+| 45 | Relevo: quién puede salir | No puede salir quien está recibiendo un golpe, derribado, en el suelo, levantándose, agarrado, lanzado, KO, entrando, agarrando o lanzando (soltar a un enemigo a medias no tiene sentido). Atacando o saltando, sí. |
+| 46 | Bárbara en combate | Combo de **3 golpes, 24/24/30 frames**, ventana de encadenado de 12; el tajo final (8) derriba y cierra el combo. Velocidad 1,25 andando y 2,5 corriendo. Mismos estados que Tarou, con sus tablas propias (`luchador.c`, `QUIEN_BARBARA`). |
 
 ## 2. Mando
 
@@ -136,14 +141,14 @@ el protagonista corre hasta que suelta la dirección. Se prueba en el PC con
 
 | | Tarou | Bárbara |
 |---|---|---|
-| Celda | 96×64 (la de hoy) | 64×96 |
+| Celda | 96×64 (la de hoy) | 96×96 |
 | Arma | katana en la boca | katana en la mano |
 | Velocidad (andar / correr) | alta / muy alta | media / alta |
 | Combo | 4 golpes: corte, corte, corte, mordisco (derriba) | 3 golpes: corte, corte, tajo descendente (derriba) |
-| Alcance | corto | largo |
+| Alcance | corto (caja de 28 px; llega a 36 de los pies) | largo (caja de 44 px, 52 el tajo; llega a 48 de los pies, el borde de su celda) |
 | Daño por golpe | bajo | alto |
 | Agarre | zarpazos y lanzamiento corto | golpes de empuñadura y lanzamiento de judo largo |
-| Especial A+B | giro con la espada (360°) | corte circular amplio |
+| Especial A+B | giro con la espada (360°), 96 px | corte circular amplio, 128 px, centrado en los pies |
 
 Las cifras están en §5.5; van como constantes en `src/juego/cifras.h`.
 

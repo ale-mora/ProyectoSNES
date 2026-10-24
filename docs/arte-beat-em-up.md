@@ -83,7 +83,12 @@ el juego · `♻` se reutiliza lo que ya hay.
 | victoria | 6 | | [ ] |
 | **Se retiran** | — | agachado, agachado_caminar, echarse, dormido, despertar, atacar (pose fija) | — |
 
-### 1.2 Bárbara: 64×96, katana, alcance
+### 1.2 Bárbara: 96×96, katana, alcance largo
+
+> **Celda revisada (2026-10-24):** pasa de 64×96 a **96×96**. Con 64 px la katana solo llegaba
+> a 32 px de los pies (menos que Tarou); con 96 llega a 48 (`diseno-beat-em-up.md` decisión 33).
+> Cada cuadro debe caber en **24 piezas de 16×16 no vacías (3 KB)**: se comprueba con
+> `piezas16.py` en la primera exportación. Los golpes de la katana se dibujan dentro de la celda.
 
 Hoy solo tiene un sprite estático de 64×64 (`res/personajes/barbara_samurai.png`)
 para la intro y el título. Necesita el **juego completo** en Pixellab
