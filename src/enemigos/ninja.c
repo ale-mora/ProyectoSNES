@@ -200,7 +200,8 @@ u8 ninja_caja_golpe(const Ninja *n, CajaCuadro *salida)
     if (n->estado != NQ_ATACAR || n->tiempo < f->ini || n->tiempo >= f->fin)
         return 0;                    /* Fuera de los frames del shinai: no pega.           */
 
-    salida->x = 56;                  /* Mirando al este; el espejo lo hace combate.        */
+    salida->x = 36;                  /* Mirando al este; el espejo lo hace combate. Cabe en la
+                                        celda de 64 px: 36 + 28 = 64, la espada no se sale.  */
     salida->y = 56;                  /* A la altura del pecho de un perro (Tarou).         */
     salida->ancho = 28;
     salida->alto = 20;

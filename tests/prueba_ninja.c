@@ -127,6 +127,23 @@ void pruebas_ninja(void)
                               &golpeable_tarou, &golpeados, 1) == GOLPE_RETROCESO);
     COMPROBAR(golpeable_tarou.vida == VIDA_PROTAGONISTA - DANO_SHINAI);
 
+    /* El shinai mirando a la IZQUIERDA (como ataca en el juego: Tarou a su izquierda)
+       también conecta: la caja se espeja dentro de la celda sin salirse de ella. */
+    ninja_iniciar(&n, 124, 180, RANGO_BLANCO);
+    mundo_colocar(&tarou, 100, 180);
+    ninja_actualizar(&n, &tarou, 1, &c);
+    COMPROBAR(n.mira_izquierda == 1);
+    correr(&n, &tarou, 1, &c, 8);
+    COMPROBAR(ninja_caja_golpe(&n, &caja) == 1);
+    combate_caja_mundo(&caja, &celda_ninja, &n.c, n.mira_izquierda, &golpe);
+    combate_caja_mundo(&dano_tarou, &celda_tarou, &tarou, 0, &cuerpo_tarou);
+    COMPROBAR(golpe.x >= 124 - NINJA_MITAD - 1 && golpe.x + golpe.ancho <= 124 + NINJA_MITAD + 1);
+    golpeable_tarou.vida = VIDA_PROTAGONISTA;
+    golpeable_tarou.invulnerable = 0;
+    golpeados = 0;
+    COMPROBAR(combate_golpear(&golpe, &caja, &n.c, &n.g, &cuerpo_tarou, &tarou,
+                              &golpeable_tarou, &golpeados, 1) == GOLPE_RETROCESO);
+
     /* Enfriamiento: dos ataques empiezan COOLDOWN_NINJA frames separados. */
     ninja_iniciar(&n, 100, 180, RANGO_BLANCO);
     mundo_colocar(&tarou, 120, 180);

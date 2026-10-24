@@ -59,6 +59,14 @@ void pruebas_combate(void)
     combate_caja_mundo(&golpe_c, &tarou, &atacante, 1, &golpe);
     COMPROBAR(golpe.x == 58 && golpe.y == 136);
 
+    /* Una caja que sobresale de la celda, espejada, da una x negativa (no 236 por un
+       desbordamiento de u8): la celda de 64 px, caja de x 56 y ancho 28, mirando al oeste. */
+    caja(&golpe_c, 56, 20, 28, 16, 4, EFECTO_RETROCESO);
+    mundo_colocar(&objetivo, 100, 180);
+    combate_caja_mundo(&golpe_c, &ninja, &objetivo, 1, &golpe);
+    COMPROBAR(golpe.x == 100 - 32 - 20);             /* x_celda 68, x_en_celda -20 = 48.    */
+    caja(&golpe_c, 60, 20, 30, 16, DANO_COMBO_TAROU, EFECTO_RETROCESO);
+
     /* En el aire la caja sube con z. */
     atacante.z_fp = PF(20);
     combate_caja_mundo(&golpe_c, &tarou, &atacante, 0, &golpe);

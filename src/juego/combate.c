@@ -49,14 +49,15 @@ void combate_caja_mundo(const CajaCuadro *c, const Celda *celda, const Cuerpo *c
 {
     s16 x_celda;                                     /* Esquina de la celda en el mundo.    */
     s16 y_celda;
-    u8 x_en_celda;                                   /* x de la caja dentro de la celda.    */
+    s16 x_en_celda;                                  /* x de la caja dentro de la celda (con signo:
+                                                        una caja que sobresale da negativo, no 236). */
 
     x_celda = (s16)PF_ENTERO(cuerpo->x_fp) - celda->mitad_ancho; /* Pies en el centro.      */
     y_celda = (s16)mundo_y_dibujo(cuerpo) - celda->alto;         /* Pies en la última fila. */
 
     x_en_celda = c->x;                               /* Mirando al este, tal cual.          */
     if (izquierda)
-        x_en_celda = celda->ancho - c->x - c->ancho; /* Mirando al oeste, espejada.         */
+        x_en_celda = (s16)celda->ancho - (s16)c->x - (s16)c->ancho;   /* Mirando al oeste, espejada. */
 
     salida->x = x_celda + x_en_celda;                /* Al mundo.                           */
     salida->y = y_celda + c->y;
