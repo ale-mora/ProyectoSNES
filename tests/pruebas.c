@@ -46,6 +46,7 @@ void pruebas_ninja(void);
 void pruebas_marcador(void);
 void pruebas_relevo(void);
 void pruebas_apoyos(void);
+void pruebas_oleadas(void);
 
 int main(void)
 {
@@ -69,6 +70,7 @@ int main(void)
     pruebas_marcador();
     pruebas_relevo();
     pruebas_apoyos();
+    pruebas_oleadas();
 
     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
     return pruebas_fallidas != 0;

@@ -29,6 +29,7 @@ y del truco de hardware que usa cada pieza está en
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v13 | 2026-10-24 | Fase 1 por zonas: decisiones 51–55 (barra llena al activarse, longitudes, oleadas, objetos, escenas) y §7 con los números; el «lugarteniente» pasa a ser Gomasuri-dono. |
 | v12 | 2026-10-24 | Apoyos y barra de ataque: decisiones 47–50 (daño, jefes, barra de un uso, Rex cura) y cronología propuesta de cada apoyo (§5.4). |
 | v11 | 2026-10-24 | Bárbara y relevo: decisión 33 revisada (Bárbara 96×96); decisiones 43–46 (entrada del relevo, relevo por KO, quién puede salir, Bárbara en combate). |
 | v10 | 2026-10-24 | Decisiones 40–42 (referencia de cine de ninjas de Cannon Films): patada voladora, zoom al KO, entrada del jefe. |
@@ -96,6 +97,11 @@ y del truco de hardware que usa cada pieza está en
 | 48 | Apoyos contra jefes | **La mitad del daño** (Lucinda 4 por tajo, Rex 8, Fenrir 10) y **no derriban** al jefe. Un apoyo ayuda sin saltarse el combate. |
 | 49 | Barra de ataque: un uso | Se llena con **48 golpes que conectan** y no suma mientras actúa un apoyo. Llena = **una** invocación; al invocar vuelve a 0. Bloqueada hasta el monasterio de Rex. Si caen los dos protagonistas, vuelven con la barra llena. |
 | 50 | Rex cura | Además de levantar y soltar a los enemigos, **cura 16** al protagonista activo (sin pasar de 64). Es el apoyo defensivo del guion (§2). |
+| 51 | La barra empieza llena | Al activarse en el monasterio la barra **empieza llena**: la oleada del monasterio (3 amarillos, ~20 golpes) no bastaría para llenar los 48, y la spec pedía «probar el apoyo». Activarla otra vez no la vuelve a llenar. |
+| 52 | Longitud de las zonas | Aldea **1536 px**, bosque **1280**, monasterio **768**, dojo **1024**: 4608 px (18 pantallas). La cámara llega hasta `longitud − 256`. |
+| 53 | Oleadas por zona | Aldea: 2 blancos; 3 blancos; 2 blancos + 1 rápido. Bosque: 2 rápidos + 1 amarillo; 3 amarillos; 1 pesado rojo + 2 amarillos. Monasterio: 3 amarillos. Dojo: puerta con 2 verdes + 1 rápido amarillo; jefe (Gomasuri-dono), solo. Los enemigos salen de uno en uno, 40 frames entre cada uno; la cámara se bloquea en la x de la oleada hasta vencerla y entonces sale «GO →» (1,5 s). |
+| 54 | Rompibles y comida | Aldea 6 (2 onigiri, **1 vida extra escondida** en el último farol, 3 vacíos); bosque 4 (2 onigiri, 1 shuriken, 1 vacío); monasterio 3 (1 pescado, 2 vacíos); dojo 4 (1 onigiri, 1 pescado, 2 vacíos). |
+| 55 | Escenas en mitad de la zona | Bosque: Lucinda se une al vencer la oleada 1; Fenrir cruza (gag) tras la 2. Monasterio: la escena de Rex **abre la zona**, antes de su oleada (se une Rex y se activa la barra). Dojo: la entrada del jefe va antes de su oleada y la huida de Nikoraemon, después. |
 
 ## 2. Mando
 
@@ -343,10 +349,10 @@ calculan cajas de golpe.
 
 | Zona | Qué pasa | Oleadas |
 |---|---|---|
-| 1. Aldea | calle con casas y puestos al atardecer; cajas y barriles con comida | 3 (básicos; luego básicos + rápido) |
-| 2. Bosque de bambú | sendero estrecho (carril más fino), viento | 3 (rápidos; un pesado) |
-| 3. Monasterio de Rex (antes santuario) | torii, faroles, de noche; **escena** con Rex (reconoce la reliquia); la barra se activa; una oleada corta para probar el apoyo | 1 |
-| 4. Dojo | puerta exterior (1 oleada) e interior: el **lugarteniente**; al vencerlo, escena: el villano huye con el Señor Pimentón | 1 + jefe |
+| 1. Aldea (1536 px) | calle con casas y puestos al atardecer; cajas y barriles con comida | 3 (2 blancos; 3 blancos; 2 blancos + 1 rápido) |
+| 2. Bosque de bambú (1280 px) | sendero estrecho (carril más fino), viento; **escena de Lucinda** tras la oleada 1 y gag de Fenrir tras la 2 | 3 (2 rápidos + 1 amarillo; 3 amarillos; pesado rojo + 2 amarillos) |
+| 3. Monasterio de Rex (768 px) | torii, faroles, de noche; **escena** con Rex al entrar (reconoce la reliquia); la barra se activa, **llena**; una oleada corta para probar el apoyo | 1 (3 amarillos) |
+| 4. Dojo (1024 px) | puerta exterior (1 oleada) e interior: **Gomasuri-dono**, con su entrada con título (decisión 42); al vencerlo, escena: Nikoraemon huye con el Señor Pimentón | 1 (2 verdes + 1 rápido amarillo) + jefe |
 
 Entre zonas: fundido con mosaico y carga con la pantalla apagada (cada zona
 puede tener su propio juego de tiles). Al vencer al jefe:

@@ -103,8 +103,15 @@ void pruebas_apoyos(void)
     COMPROBAR(llenar_a_golpes(&a, 60) == 0 && a.golpes == 0);
     COMPROBAR(apoyos_puede_invocar(&a) == 0);
 
-    /* Activada: se llena en el golpe 48 exacto, no antes, y no se pasa. */
+    /* Activada (el monasterio): la barra EMPIEZA LLENA, para probar el primer apoyo; activarla otra
+       vez no la vuelve a llenar. */
     apoyos_activar_barra(&a);
+    COMPROBAR(a.golpes == BARRA_LLENA && apoyos_puede_invocar(&a) == 1);
+    a.golpes = 0;
+    apoyos_activar_barra(&a);
+    COMPROBAR(a.golpes == 0);
+
+    /* Se llena en el golpe 48 exacto, no antes, y no se pasa. */
     COMPROBAR(llenar_a_golpes(&a, 47) == 0 && a.golpes == 47);
     COMPROBAR(apoyos_puede_invocar(&a) == 0);
     COMPROBAR(apoyos_golpe_conecto(&a) == 1 && a.golpes == BARRA_LLENA);

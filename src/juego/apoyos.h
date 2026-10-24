@@ -28,7 +28,7 @@
       golpes        u8   0..BARRA_LLENA              golpes que conectaron desde el último apoyo
       disponibles   u8   bits 0..2                   apoyos que ya se han unido al grupo
       seleccionado  u8   APOYO_*                     el que invoca X
-      activa        u8   0 / 1                       1 desde el monasterio: antes la barra no se llena
+      activa        u8   0 / 1                       1 desde el monasterio (la barra empieza llena); antes no se llena
       en_curso      u8   0 = ninguno, si no apoyo+1  el apoyo que está actuando
       tiempo        u8   0..duración                 frames del apoyo en curso
       relleno       u8[2]
@@ -68,7 +68,8 @@ typedef struct
 /* Todo apagado: barra a 0, bloqueada, ningún apoyo todavía. */
 void apoyos_iniciar(Apoyos *a);
 
-/* El monasterio de Rex: la barra empieza a llenarse. */
+/* El monasterio de Rex: la barra se activa y empieza LLENA (para probar el primer apoyo). Activarla
+   otra vez no la vuelve a llenar. */
 void apoyos_activar_barra(Apoyos *a);
 
 /* Un apoyo se une al grupo. El primero que llega queda elegido. */

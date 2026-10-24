@@ -56,7 +56,12 @@ void apoyos_iniciar(Apoyos *a)
 
 void apoyos_activar_barra(Apoyos *a)
 {
+    if (a->activa)
+        return;                      /* Ya estaba: no se vuelve a regalar una barra llena. */
     a->activa = 1;
+    a->golpes = BARRA_LLENA;         /* Empieza LLENA para probar el primer apoyo en la oleada
+                                        del monasterio (decisión 51): 3 amarillos son unos 20
+                                        golpes, lejos de los 48 que pide llenarla.          */
 }
 
 void apoyos_desbloquear(Apoyos *a, u8 apoyo)
