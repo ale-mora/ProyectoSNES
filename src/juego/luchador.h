@@ -65,6 +65,7 @@ enum LuchadorEstado
     LQ_CORRER,                       /* Corriendo (doble toque).                           */
     LQ_SALTO,                        /* Subiendo o cayendo del salto.                      */
     LQ_AEREO,                        /* Ataque aéreo: derriba, hasta aterrizar.            */
+    LQ_PATADA,                       /* Patada voladora (decisión 40): derriba, hasta aterrizar. */
     LQ_CARRERA_ATAQUE,               /* A mientras corre: tajo en carrera, derriba.        */
     LQ_GOLPE_1,                      /* Combo: corte 1.                                    */
     LQ_GOLPE_2,                      /* Combo: corte 2.                                    */

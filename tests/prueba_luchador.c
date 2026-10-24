@@ -367,4 +367,81 @@ void pruebas_luchador(void)
         n++;
     }
     COMPROBAR(L.estado == LQ_QUIETO && L.c.z_fp == 0);
+
+    /* Patada voladora (decisión 40): A en el aire con la cruceta hacia donde mira. */
+    luchador_iniciar(&L, 100, 180, VIDA_PROTAGONISTA);
+    limpiar(&m);
+    m.saltar_pulsado = 1;
+    m.saltar = 1;
+    luchador_actualizar(&L, &m, &c);
+    limpiar(&m);
+    m.derecha = 1;
+    correr(&L, &m, &c, 3);                           /* En el aire, mirando a la derecha.   */
+    m.atacar_pulsado = 1;
+    luchador_actualizar(&L, &m, &c);
+    COMPROBAR(L.estado == LQ_PATADA);
+    COMPROBAR(luchador_caja_golpe(&L) != 0);
+    COMPROBAR(luchador_caja_golpe(&L)->ancho == 56);
+    COMPROBAR(luchador_caja_golpe(&L)->dano == DANO_PATADA_TAROU);
+    COMPROBAR(luchador_caja_golpe(&L)->efecto == EFECTO_DERRIBO);
+    COMPROBAR(L.c.vx_fp != 0);                       /* Sigue avanzando mientras patea.     */
+    limpiar(&m);
+    n = 0;
+    while (n < 120 && L.estado == LQ_PATADA)
+    {
+        luchador_actualizar(&L, &m, &c);
+        n++;
+    }
+    COMPROBAR(L.estado == LQ_QUIETO && L.c.z_fp == 0);   /* Aterriza igual que el aéreo.    */
+
+    /* Sin cruceta es el ataque aéreo de siempre, más corto que la patada. */
+    luchador_iniciar(&L, 100, 180, VIDA_PROTAGONISTA);
+    limpiar(&m);
+    m.saltar_pulsado = 1;
+    m.saltar = 1;
+    luchador_actualizar(&L, &m, &c);
+    limpiar(&m);
+    correr(&L, &m, &c, 3);
+    m.atacar_pulsado = 1;
+    luchador_actualizar(&L, &m, &c);
+    COMPROBAR(L.estado == LQ_AEREO);
+    COMPROBAR(luchador_caja_golpe(&L)->ancho == 36);
+    COMPROBAR(DANO_PATADA_TAROU > DANO_AEREO_TAROU && DANO_PATADA_BARBARA > DANO_AEREO_BARBARA);
+
+    /* Cruceta CONTRARIA a donde mira: no es patada, es aéreo. */
+    luchador_iniciar(&L, 100, 180, VIDA_PROTAGONISTA);
+    limpiar(&m);
+    m.saltar_pulsado = 1;
+    m.saltar = 1;
+    luchador_actualizar(&L, &m, &c);
+    limpiar(&m);
+    m.derecha = 1;
+    correr(&L, &m, &c, 3);                           /* Mira a la derecha.                  */
+    limpiar(&m);
+    m.izquierda = 1;
+    m.atacar_pulsado = 1;
+    luchador_actualizar(&L, &m, &c);
+    COMPROBAR(L.estado == LQ_AEREO);
+
+    /* Mirando a la izquierda: izquierda + A es patada. */
+    luchador_iniciar(&L, 100, 180, VIDA_PROTAGONISTA);
+    limpiar(&m);
+    m.saltar_pulsado = 1;
+    m.saltar = 1;
+    luchador_actualizar(&L, &m, &c);
+    limpiar(&m);
+    m.izquierda = 1;
+    correr(&L, &m, &c, 3);
+    COMPROBAR(L.mira_izquierda == 1);
+    m.atacar_pulsado = 1;
+    luchador_actualizar(&L, &m, &c);
+    COMPROBAR(L.estado == LQ_PATADA && L.c.vx_fp < 0);
+
+    /* En el suelo, A + cruceta no es patada (esa orden es para andar y atacar). */
+    luchador_iniciar(&L, 100, 180, VIDA_PROTAGONISTA);
+    limpiar(&m);
+    m.derecha = 1;
+    m.atacar_pulsado = 1;
+    luchador_actualizar(&L, &m, &c);
+    COMPROBAR(L.estado != LQ_PATADA && L.c.en_suelo == 1);
 }

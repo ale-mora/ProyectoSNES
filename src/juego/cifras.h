@@ -43,6 +43,8 @@
 #define DANO_TAJO_BARBARA 8          /* Golpe 3: el tajo descendente, derriba.             */
 #define DANO_AEREO_TAROU 5           /* Ataque aéreo y ataque corriendo de Tarou.          */
 #define DANO_AEREO_BARBARA 7         /* Ataque aéreo y ataque corriendo de Bárbara.        */
+#define DANO_PATADA_TAROU 7          /* Patada voladora de Tarou (decisión 40).            */
+#define DANO_PATADA_BARBARA 10       /* Patada voladora de Bárbara.                        */
 #define DANO_AGARRE_TAROU 2          /* Cada zarpazo del agarre.                           */
 #define DANO_AGARRE_BARBARA 4        /* Cada golpe de empuñadura del agarre.               */
 #define DANO_LANZAR_TAROU 6          /* Lanzamiento (también a quien choque).              */

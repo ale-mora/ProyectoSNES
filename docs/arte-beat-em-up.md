@@ -68,6 +68,7 @@ el juego · `♻` se reutiliza lo que ya hay.
 | golpe 4: mordisco (derriba) | 6 | | [ ] |
 | ataque aéreo | 4 | | [ ] |
 | ataque corriendo: tajo en carrera (derriba) | 5 | decisión 39 | [ ] |
+| patada voladora (giro de piernas, derriba) | 5 | decisión 40 | [ ] |
 | agarre (sujetar) | 2 | | [ ] |
 | golpe de agarre (zarpazo) | 3 | | [ ] |
 | lanzamiento | 6 | | [ ] |
@@ -96,6 +97,7 @@ para la intro y el título. Necesita el **juego completo** en Pixellab
 | golpe 3: tajo descendente (derriba) | 7 | [ ] |
 | ataque aéreo (estocada hacia abajo) | 4 | [ ] |
 | ataque corriendo: embestida con el hombro (derriba) | 5 | [ ] |
+| patada voladora (derriba) | 5 | [ ] |
 | agarre / golpe de empuñadura / lanzamiento de judo | 2 / 3 / 7 | [ ] |
 | agarrada / recibir / derribada / en el suelo / levantarse | 2 / 2 / 5 / 1 / 6 | [ ] |
 | especial A+B: corte circular | 8 | [ ] |

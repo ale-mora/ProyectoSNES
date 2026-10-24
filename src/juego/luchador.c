@@ -46,6 +46,7 @@ static const Fase fases[LQ_ESTADOS] =
     {0, 0, 0, LQ_CORRER},            /* CORRER                                             */
     {0, 0, 0, LQ_SALTO},            /* SALTO (acaba al aterrizar)                         */
     {0, 0, 255, LQ_QUIETO},          /* AEREO: activo todo el vuelo                        */
+    {0, 0, 255, LQ_QUIETO},          /* PATADA: activa todo el vuelo                       */
     {18, 6, 12, LQ_QUIETO},          /* CARRERA_ATAQUE                                     */
     {20, 4, 8, LQ_GOLPE_2},          /* GOLPE_1: la ventana de encadenado son los 12 últimos */
     {20, 4, 8, LQ_GOLPE_3},          /* GOLPE_2                                            */
@@ -72,6 +73,7 @@ static const CajaCuadro cajas[LQ_ESTADOS] =
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* CORRER */
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* SALTO */
     {40, 24, 36, 24, DANO_AEREO_TAROU, EFECTO_DERRIBO, {0, 0}},                       /* AEREO */
+    {40, 24, 56, 24, DANO_PATADA_TAROU, EFECTO_DERRIBO, {0, 0}},                      /* PATADA: más larga */
     {48, 16, 40, 20, DANO_AEREO_TAROU, EFECTO_DERRIBO, {0, 0}},                       /* CARRERA_ATAQUE */
     {56, 20, 28, 16, DANO_COMBO_TAROU, EFECTO_RETROCESO, {0, 0}},                     /* GOLPE_1 */
     {56, 20, 28, 16, DANO_COMBO_TAROU, EFECTO_RETROCESO, {0, 0}},                     /* GOLPE_2 */
@@ -116,7 +118,7 @@ static void cambiar(Luchador *L, u8 nuevo)
 
     /* Quieto salvo en los estados que se mueven solos (andar, correr, saltar, volar). */
     if (nuevo != LQ_ANDAR && nuevo != LQ_CORRER && nuevo != LQ_SALTO && nuevo != LQ_AEREO
-        && nuevo != LQ_LANZADO && nuevo != LQ_CARRERA_ATAQUE)
+        && nuevo != LQ_PATADA && nuevo != LQ_LANZADO && nuevo != LQ_CARRERA_ATAQUE)
     {
         L->c.vx_fp = 0;
         L->c.vy_fp = 0;
@@ -205,9 +207,15 @@ static void atender_parado(Luchador *L, const Mando *m, u8 corre)
 /* En el salto: se controla con la cruceta (sin correr) y A da el ataque aéreo. */
 static void atender_salto(Luchador *L, const Mando *m)
 {
+    u8 hacia_delante;                /* 1 si la cruceta apunta hacia donde mira.           */
+
     if (m->atacar_pulsado)
     {
-        cambiar(L, LQ_AEREO);
+        hacia_delante = L->mira_izquierda ? m->izquierda : m->derecha;
+        if (hacia_delante)
+            cambiar(L, LQ_PATADA);   /* A + cruceta hacia delante: patada voladora.        */
+        else
+            cambiar(L, LQ_AEREO);    /* A sin cruceta: ataque aéreo de siempre.            */
         return;
     }
     cruceta_a_velocidad(L, m, VEL_ANDAR_TAROU, VEL_Y_ANDAR);
@@ -301,6 +309,7 @@ void luchador_actualizar(Luchador *L, const Mando *m, const Carril *carril)
         atender_salto(L, m);
         break;
     case LQ_AEREO:
+    case LQ_PATADA:
         break;                       /* Sigue el vuelo: solo cuenta aterrizar.             */
     case LQ_GOLPE_1:
     case LQ_GOLPE_2:
@@ -322,7 +331,7 @@ void luchador_actualizar(Luchador *L, const Mando *m, const Carril *carril)
     aterrizo = mundo_mover(&L->c, carril);
     if (aterrizo)
     {
-        if (L->estado == LQ_SALTO || L->estado == LQ_AEREO)
+        if (L->estado == LQ_SALTO || L->estado == LQ_AEREO || L->estado == LQ_PATADA)
             cambiar(L, LQ_QUIETO);
         else if (L->estado == LQ_DERRIBADO || L->estado == LQ_LANZADO)
             cambiar(L, LQ_EN_SUELO);

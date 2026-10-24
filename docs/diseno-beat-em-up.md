@@ -83,7 +83,7 @@ y del truco de hardware que usa cada pieza está en
 | 37 | Siguiente paso técnico | La **capa de sprites en ensamblador** (orden, OAM y plan de subidas, una llamada por frame) con los planes de copia precalculados por script; después se repite la prueba de carga. |
 | 38 | Piezas de Tarou | Tarou también se corta en **piezas de 16×16 sin las vacías**, como los enemigos y Bárbara. |
 | 39 | Ataque corriendo | A mientras se corre. **Tarou**: tajo en carrera; **Bárbara**: embestida con el hombro. Los dos derriban. |
-| 40 | Patada voladora | Ataque aéreo con giro de piernas (de referencia: cine de ninjas de los 80, Cannon Films). Más alcance que el ataque aéreo y derriba a todos los de la línea. Se suma al aéreo, no lo reemplaza. |
+| 40 | Patada voladora | Ataque aéreo con giro de piernas (de referencia: cine de ninjas de los 80, Cannon Films). Más alcance que el ataque aéreo y derriba a todos los de la línea. Se suma al aéreo, no lo reemplaza. **Entrada:** A en el aire con la cruceta hacia donde mira (sin cruceta, ataque aéreo normal). **Cifras:** 7 Tarou / 10 Bárbara, caja de 56 px (el aéreo, 36 px). |
 | 41 | Zoom al KO | Al vencer al último enemigo de una oleada: encuadre cercano de 30 frames (0,5 s) con la acción congelada y luego se corta. Solo se ve en el KO del último enemigo; los demás, sin zoom. |
 | 42 | Entrada del jefe | Cada jefe entra de pie, con un plano fijo y su título en pantalla (formato de cartel, `arte-beat-em-up.md` §11). Durante la entrada, nada le pega. |
 
