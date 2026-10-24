@@ -2,6 +2,7 @@
 tools/
 
 # Artefactos de compilacion (regenerados por `make`)
+*.exe
 *.sfc
 *.sym
 *.symfull
@@ -10,10 +11,47 @@ tools/
 hdr.asm
 linkfile
 
+# Capturas de Mesen (salida de scripts/capturar_mesen.ps1)
+scripts/capturas/
+
 # Metadata local de herramientas de Claude Code (no es parte del juego)
 .remember/
 .code-review-graph/
 
+# Cachés de Python (scripts/ y scripts/pruebas/)
+__pycache__/
+
 # Basura de SO
 Thumbs.db
 .DS_Store
+
+# Salidas de conversion de assets (gfx4snes / smconv / snesbrr; se regeneran con make)
+res/**/*.pic
+res/**/*.pal
+res/**/*.map
+res/**/*.col
+res/**/*.inc
+res/**/*_data.as
+res/**/*.brr
+res/**/*.pc7
+res/**/*.mp7
+res/**/*.p16
+res/musica/soundbank.*
+
+# Descargas crudas de terceros (material con copyright, uso privado): no se versionan
+res/descargas/*
+!res/descargas/README.md
+!res/descargas/graficos/
+!res/descargas/audio/
+res/descargas/graficos/*
+res/descargas/audio/*
+!res/descargas/graficos/.gitkeep
+!res/descargas/audio/.gitkeep
+# Exportaciones de Pixellab por personaje: se ignoran, salvo el README de cada carpeta
+!res/descargas/graficos/pixellab/
+res/descargas/graficos/pixellab/*
+!res/descargas/graficos/pixellab/tarou/
+!res/descargas/graficos/pixellab/barbara/
+!res/descargas/graficos/pixellab/suelo/
+res/descargas/graficos/pixellab/*/*
+!res/descargas/graficos/pixellab/*/README.md

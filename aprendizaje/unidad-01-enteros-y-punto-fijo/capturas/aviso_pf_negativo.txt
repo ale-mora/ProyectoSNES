@@ -1,0 +1,8 @@
+=== sh.c (lo que daría escribir PF(-6) en vez de (-96)) ===
+#include <stdint.h>
+int16_t f(void){ return (int16_t)((-6) << 4); }
+=== gcc -std=c99 -Wall -Wextra -c sh.c ===
+sh.c: In function 'f':
+sh.c:2:40: warning: left shift of negative value [-Wshift-negative-value]
+    2 | int16_t f(void){ return (int16_t)((-6) << 4); }
+      |                                        ^~

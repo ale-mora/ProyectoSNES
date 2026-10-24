@@ -1,0 +1,9 @@
+frame  pad    down   up     B?  B?(u8)  switch del ejemplo
+    0  0000   0000   0000   0   0       (nada)
+    1  8000   8000   0000   1   0       B PRESSED
+    2  8000   0000   0000   1   0       B PRESSED
+    3  8100   0100   0000   1   0       (nada)
+    4  0100   0000   8000   0   0       RIGHT PRESSED
+    5  0180   0080   0000   0   0       (nada)
+    6  0180   0000   0000   0   0       (nada)
+    7  0000   0000   0180   0   0       (nada)

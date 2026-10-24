@@ -1,0 +1,56 @@
+      columnas 0..29 (16 px cada una), filas 7..13:
+  y112 ..........####................
+  y128 ..........####................
+  y144 ..........####................
+  y160 ..................======....##
+  y176 ............................##
+  y192 ............................##
+  y208 ##############################
+
+cuadro fase            x    y  pies(y)  vx  vy  estado              suelo
+    0  1 caer           40   60   124    0   0  CAYENDO             no
+   16  1 caer           40   94   158    0  64  CAYENDO             no
+   26  1 caer           40  144   208    0   0  PARADO              si
+   32  1 caer           40  144   208    0   0  PARADO              si
+   40  2 caminar        40  144   208    2   0  CAMINANDO           si
+   48  2 caminar        45  144   208   16   0  CAMINANDO           si
+   64  2 caminar        61  144   208   16   0  CAMINANDO           si
+   80  2 caminar        77  144   208   16   0  CAMINANDO           si
+   91  3 agacharse      84  144   208    0   0  AGACHADO            si
+   92  3 agacharse      84  144   208    2   0  AGACHADO_CAMINANDO  si
+   96  3 agacharse      86  144   208    8   0  AGACHADO_CAMINANDO  si
+  112  3 agacharse      94  144   208    8   0  AGACHADO_CAMINANDO  si
+  128  3 agacharse     102  144   208    8   0  AGACHADO_CAMINANDO  si
+  144  3 agacharse     110  144   208    8   0  AGACHADO_CAMINANDO  si
+  160  3 agacharse     118  144   208    8   0  AGACHADO_CAMINANDO  si
+  176  3 soltar Abajo  126  144   208    8   0  AGACHADO_CAMINANDO  si
+  192  3 soltar Abajo  134  144   208    8   0  AGACHADO_CAMINANDO  si
+  208  3 soltar Abajo  142  144   208    8   0  AGACHADO_CAMINANDO  si
+  224  3 soltar Abajo  150  144   208    8   0  AGACHADO_CAMINANDO  si
+  240  3 soltar Abajo  158  144   208    8   0  AGACHADO_CAMINANDO  si
+  256  3 soltar Abajo  166  144   208    8   0  AGACHADO_CAMINANDO  si
+  272  3 soltar Abajo  174  144   208    8   0  AGACHADO_CAMINANDO  si
+  288  3 soltar Abajo  182  144   208    8   0  AGACHADO_CAMINANDO  si
+  304  3 soltar Abajo  190  144   208    8   0  AGACHADO_CAMINANDO  si
+  320  3 soltar Abajo  198  144   208    8   0  AGACHADO_CAMINANDO  si
+  325  3 soltar Abajo  200  144   208    8   0  CAMINANDO           si
+  336  3 soltar Abajo  210  144   208   16   0  CAMINANDO           si
+  352  3 soltar Abajo  226  144   208   16   0  CAMINANDO           si
+  363  4 saltar        237  138   202   16 -92  SALTANDO            no
+  368  4 saltar        242  113   177   16 -72  SALTANDO            no
+  384  4 saltar        258   75   139   16  -8  SALTANDO            no
+  386  4 saltar        260   75   139   16   0  CAYENDO             no
+  399  4 saltar        273   96   160   16   0  CAMINANDO           si
+  400  5 seguir        274   96   160   16   0  CAMINANDO           si
+  416  5 seguir        290   96   160   16   0  CAMINANDO           si
+  432  5 seguir        306   96   160   16   0  CAMINANDO           si
+  448  5 seguir        322   96   160   16   0  CAMINANDO           si
+  464  5 seguir        338   96   160   16   0  CAMINANDO           si
+  474  5 seguir        348   96   160   16   0  CAYENDO             no
+  480  5 seguir        354  101   165   16  24  CAYENDO             no
+  494  5 seguir        368  144   208   16   0  CAMINANDO           si
+  496  5 seguir        370  144   208   16   0  CAMINANDO           si
+  502  fin: parado contra el muro en x=372 (borde derecho del cuerpo: 372 + 24 + 52 = 448)
+
+PF_ENTERO(-80) = 65531  (-80 son -5 px; no da 5: el u16 da la vuelta)
+PF_ENTERO(y) >= 192 dice CAYO (mal); y_fp >= PF(192) dice no cayo (bien)

@@ -1,0 +1,9 @@
+$ gcc -std=c99 -Wall -Wextra -o demo_07.exe demo_07/main.c    (falta demo_07/reloj.c: compila, pero no enlaza; rutas acortadas)
+ld: ccXXXXXX.o:main.c:(.text+0x19): undefined reference to `reloj_segundos'
+ld: ccXXXXXX.o:main.c:(.text+0x79): undefined reference to `reloj_iniciar'
+ld: ccXXXXXX.o:main.c:(.text+0x7e): undefined reference to `reloj_avanzar'
+ld: ccXXXXXX.o:main.c:(.text+0x8e): undefined reference to `reloj_avanzar'
+ld: ccXXXXXX.o:main.c:(.text+0xae): undefined reference to `reloj_avanzar'
+ld: ccXXXXXX.o:main.c:(.text+0xc8): undefined reference to `reloj_iniciar'
+ld: ccXXXXXX.o:main.c:(.rdata$.refptr.frames_totales[.refptr.frames_totales]+0x0): undefined reference to `frames_totales'
+collect2.exe: error: ld returned 1 exit status

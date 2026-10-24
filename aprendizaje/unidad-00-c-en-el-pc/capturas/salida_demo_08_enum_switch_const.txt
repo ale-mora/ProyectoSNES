@@ -1,0 +1,15 @@
+1. PANTALLA_NINTENDO=0 PANTALLA_NIVEL1=3 CANTIDAD_PANTALLAS=4
+2. 0 NINTENDO  dura 180 frames, musica: silencio
+2. 1 PUBLISHER dura 180 frames, musica: silencio
+2. 2 TITULO    dura   0 frames, musica: tema del titulo
+2. 3 NIVEL1    dura   0 frames, musica: tema del bosque
+3. iniciar: logo con mosaico y destello
+3. iniciar: logo del publisher
+3. iniciar: pantalla que usa el mando
+3. iniciar: pantalla que usa el mando
+3. iniciar: pantalla desconocida (4)
+4. frame   0: mosaico = 15
+4. frame   0: brillo  = 0
+4. frame  32: brillo  = 15
+4. frame  48: mosaico = 0
+4. fin en el frame 244; la tabla tiene 5 filas de 4 bytes

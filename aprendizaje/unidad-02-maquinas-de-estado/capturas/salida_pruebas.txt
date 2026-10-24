@@ -1,0 +1,4 @@
+--- ANTES (tests/ sin cambios, commit 9a7234c; medido en el clon antes de editar) ---
+367 pruebas, 0 fallos
+--- DESPUES: make -C tests; .\tests\pruebas.exe (con prueba_espada_persiste_entre_estados) ---
+374 pruebas, 0 fallos

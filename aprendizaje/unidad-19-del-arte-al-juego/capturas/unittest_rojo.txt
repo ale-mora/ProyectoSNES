@@ -1,0 +1,8 @@
+ERROR: test_la_hoja_no_es_una_pieza (scripts.pruebas.prueba_preparar_nivel.PruebaPiezas.test_la_hoja_no_es_una_pieza)
+AttributeError: module 'preparar_nivel' has no attribute 'hoja_de_suelo'
+ERROR: test_zarza_de_pixellab (scripts.pruebas.prueba_preparar_nivel.PruebaPiezas.test_zarza_de_pixellab)
+TypeError: poner_zarzas() takes 4 positional arguments but 5 were given
+FAIL: test_con_animacion_usa_la_animacion (scripts.pruebas.prueba_preparar_personaje.PruebasAtaqueNuevo.test_con_animacion_usa_la_animacion)
+AssertionError: 1 != 6
+Ran 39 tests in 40.383s
+FAILED (failures=1, errors=2)

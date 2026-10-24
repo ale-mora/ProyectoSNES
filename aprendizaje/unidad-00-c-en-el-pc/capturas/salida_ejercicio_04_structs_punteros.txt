@@ -1,0 +1,11 @@
+Inicio: x=150 vx=0 dir=0
+Frame 1: x=151 vx=1 dir=0
+Frame 2: x=153 vx=2 dir=0
+Frame 3: x=156 vx=3 dir=0
+Frame 4: x=159 vx=3 dir=0
+Frame 5: x=160 vx=0 dir=0
+Frame 6: x=160 vx=0 dir=0
+Frame 7: x=159 vx=-1 dir=1
+Frame 8: x=157 vx=-2 dir=1
+Frame 9: x=154 vx=-3 dir=1
+Caja: x=178 y=152 ancho=48 alto=56

@@ -1,0 +1,5 @@
+$ gcc -std=c99 -Wall -Wextra -o demo_08.exe demo_08_enum_switch_const.c    (con "DURACION[0] = 1;" anadido al principio de main)
+demo_08_enum_switch_const.c: In function 'main':
+demo_08_enum_switch_const.c:127:17: error: assignment of read-only location 'DURACION[0]'
+  127 |     DURACION[0] = 1;                 /* PRUEBA: escribir en una tabla const. */
+      |                 ^

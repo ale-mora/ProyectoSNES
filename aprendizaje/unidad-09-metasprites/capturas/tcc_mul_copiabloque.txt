@@ -1,0 +1,53 @@
+Recuento de 'jsr.l tcc__mul' en el ensamblador que genera tcc816 (receta PLAN §6.4, en un clon, 2026-10-22)
+CopiaBloque de 8 bytes (con el campo libre, el código actual):
+  metasprite.asm:   0
+  tarou_sprite.asm: 0
+CopiaBloque de 6 bytes (sin el campo libre):
+  metasprite.asm:   3
+  tarou_sprite.asm: 5
+
+Contexto (tarou_sprite.asm, 6 bytes): cada acceso copias[copiadas] multiplica copiadas x 6:
+916-lda.w #6
+917-sta.b tcc__r9
+918-lda.b tcc__r0
+919-sta.b tcc__r10
+920:jsr.l tcc__mul
+--
+960-lda.w #6
+961-sta.b tcc__r9
+962-lda.b tcc__r0
+963-sta.b tcc__r10
+964:jsr.l tcc__mul
+--
+986-lda.w #6
+987-sta.b tcc__r9
+988-lda.b tcc__r0
+989-sta.b tcc__r10
+990:jsr.l tcc__mul
+--
+1003-lda.w #6
+1004-sta.b tcc__r9
+1005-lda.b tcc__r0
+1006-sta.b tcc__r10
+1007:jsr.l tcc__mul
+--
+
+Contexto (tarou_sprite.asm, 8 bytes): el mismo acceso, copiadas x 8 con tres asl (desplazar 3 bits):
+911:lda.w #0
+912:sep #$20
+913:lda.w tccs_{WLA_FILENAME}_copiadas + 0
+914:rep #$20
+915:asl a
+916:asl a
+917:asl a
+918:sta.b tcc__r0
+919:lda.w #:tccs_{WLA_FILENAME}_copias
+920:sta.b tcc__r1h
+921:lda.w #tccs_{WLA_FILENAME}_copias + 0
+922:clc
+923:adc.b tcc__r0
+924:clc
+925:adc.w #4
+926:sta.b tcc__r1
+927:lda.w tccs_{WLA_FILENAME}_bytes + 0
+928:sta.b tcc__r0

@@ -1,0 +1,7 @@
+Tarou empieza con 3 vidas.
+Obstaculo 1: Tarou choco. Vidas restantes: 2
+Obstaculo 2: Tarou choco. Vidas restantes: 1
+Obstaculo 3: Tarou choco. Vidas restantes: 0
+Obstaculo 4: Tarou ya no tiene vidas. Fin del intento.
+Obstaculo 5: Tarou ya no tiene vidas. Fin del intento.
+Game Over.

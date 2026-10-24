@@ -1,0 +1,21 @@
+Generar el ensamblador de src/juego/camara.c (receta de PLAN.md §6.4)
+Ejecutado el 2026-10-22 en el clon E:\ProyectoSNES_trabajo\u03 (commit 9a7234c), PowerShell:
+
+PS> make src/juego/camara.asm
+... (816-tcc compila camara.c a camara.ps)
+816opt: optimization pass 1:
+816opt: 11 optimizations performed
+816opt: optimization pass 2:
+816opt: 4 optimizations performed
+816opt: optimization pass 3:
+816opt: 0 optimizations performed
+816opt: 15 optimizations performed in total
+816opt: processed in 11ms
+rm src/juego/camara.ps                 <- make borra el intermedio .ps; el .asm se queda
+                                          porque se pidió como objetivo explícito
+
+Después: copiar src/juego/camara.asm a la unidad y BORRARLO de src/ (si no, el
+siguiente make lo ensamblaría junto a camara.c: símbolos duplicados).
+
+Resultado: camara.asm de 85 líneas (la función camara_para ocupa las líneas 10-68;
+las 69-85 son secciones vacías de datos que tcc816 emite siempre).

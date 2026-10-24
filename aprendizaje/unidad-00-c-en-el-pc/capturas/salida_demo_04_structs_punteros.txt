@@ -1,0 +1,11 @@
+1. vidas = 5 (cambiada a traves de pv)
+2. tarou: x=100 y=144 vx=2 (ocupa 6 bytes: tres s16)
+3. dentro de mover_copia la copia vale x=102
+3. despues de mover_copia el original sigue en x=100
+4. frame 1: x=102
+4. frame 2: x=104
+4. frame 3: x=106
+5. con pt->vx = -1, tarou.x=105
+5. caja del cuerpo: x=109 y=146 ancho=8 alto=14
+6. DOBLE(1 + 2) = 6
+6. DOBLE_MAL(1 + 2) = 5

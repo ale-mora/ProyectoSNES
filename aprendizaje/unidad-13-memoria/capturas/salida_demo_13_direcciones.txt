@@ -1,0 +1,15 @@
+1. etiqueta                        banco  dir    memoria         byte del .sfc
+1. main                             $8E   $D147  ROM rapida      0x075147
+1. tarou_actualizar                 $8B   $FCE0  ROM rapida      0x05FCE0
+1. nivel1_cerca_col                 $81   $B3BA  ROM rapida      0x00B3BA
+1. nivel1_cerca_col_banco           $80   $FFB1  ROM rapida      0x007FB1
+1. nivel1_colision                  $86   $F900  ROM rapida      0x037900
+1. tarou_reposo_til                 $82   $8000  ROM rapida      0x010000
+1. ESCENA_NINTENDO                  $7F   $01FA  WRAM            -
+1. ANIMACIONES                      $7F   $0150  WRAM            -
+1. ..._controles (static const)     $0E   $D5B2  ROM lenta       0x0755B2
+1. ..._tarou (static Tarou)         $7E   $2631  WRAM            -
+1. frames_en_pantalla               $7E   $26E9  WRAM            -
+2. SlowROM: 128 bancos = $00..$7F (los dos ultimos son $7E y $7F: la WRAM)
+2. FastROM: 128 bancos = $80..$FF (ninguno choca con la WRAM)
+2. 128 x 32768 = 4194304 bytes

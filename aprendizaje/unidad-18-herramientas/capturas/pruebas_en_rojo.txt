@@ -1,0 +1,12 @@
+
+ERROR: test_guardia_es_la_pose_fija (scripts.pruebas.prueba_preparar_personaje.PruebasPixellabNativo.test_guardia_es_la_pose_fija)
+FAIL: test_cuadros_del_mapeo (scripts.pruebas.prueba_preparar_personaje.PruebasPixellabNativo.test_cuadros_del_mapeo)
+AssertionError: {'rep[139 chars]: 1, 'echarse': 6, 'dormido': 9, 'despertar': 10} != {'rep[139 chars]: 1, 'echarse': 6, 'dormido': 9, 'despertar': 10, 'guardia': 1}
+FAIL: test_marcador_cuando_falta_animacion (scripts.pruebas.prueba_preparar_personaje.PruebasPrepararPersonaje.test_marcador_cuando_falta_animacion)
+AssertionError: 14 != 15
+FAIL: test_reposo_estatico_siempre_dos_cuadros (scripts.pruebas.prueba_preparar_personaje.PruebasPrepararPersonaje.test_reposo_estatico_siempre_dos_cuadros)
+AssertionError: '#define TAROU_ANIMACIONES 14' not found in '/*---------------------------------------------------------------------------------\n    tarou_anim.h — Cuántos cuadros tiene cada animación de tarou.\n\n    PROPÓSITO\n      Lo GENERA scripts/preparar_personaje.py a partir del arte (o de los\n      marcadores): no editar a mano. Así el código no necesita saber cuántos\n      cuadros dibujó el artista: la tabla de animaciones lo lee de aquí.\n\n    SE CONECTA CON\n      Lo usan: src/juego/animaciones.c (tabla ANIMACIONES) y tests/ (copia fija).\n\n    HARDWARE QUE TOCA\n      ninguno.\n\n    VARIABLES (constantes)\n      TAROU_<ANIMACION>_CUADROS  1..10  cuadros de 96x64 de esa tira\n      TAROU_ANIMACIONES          13      cuántas animaciones hay\n---------------------------------------------------------------------------------*/\n#ifndef TAROU_ANIM_H\n#define TAROU_ANIM_H\n\n#define TAROU_REPOSO_CUADROS 6\n#define TAROU_CAMINAR_CUADROS 8\n#define TAROU_CORRER_CUADROS 8\n#define TAROU_SALTAR_CUADROS 2\n#define TAROU_CAER_CUADROS 2\n#define TAROU_AGACHADO_CUADROS 2\n#define TAROU_AGACHADO_CAMINAR_CUADROS 6\n#define TAROU_DESENVAINAR_CUADROS 4\n#define TAROU_ENVAINAR_CUADROS 4\n#define TAROU_ATACAR_CUADROS 5\n#define TAROU_ECHARSE_CUADROS 4\n#define TAROU_DORMIDO_CUADROS 4\n#define TAROU_DESPERTAR_CUADROS 4\n\n#define TAROU_ANIMACIONES 13\n\n#endif /* TAROU_ANIM_H */\n'
+Ran 12 tests in 27.919s
+FAILED (failures=3, errors=1)
+
+

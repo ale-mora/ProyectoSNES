@@ -1,0 +1,25 @@
+# make en aprendizaje/unidad-15-asm-escribir/rom (2026-10-22, PowerShell, receta PLAN §6.3; tras make clean)
+Debug mode: DISABLED
+Enable it with: export PVSNESLIB_DEBUG=1
+LoROM FastROM compilation is enabled
+--- COMPILATION SUMMARY ---
+No warnings or errors found.
+---------------------------
+ROM: 245111 bytes (93.50%) free of total 262144.
+RAM: 155729 bytes (95.05%) free of total 163840.
+
+# unidad15.sym: las rutinas y variables de la unidad (direcciones de 24 bits: banco + 16 bits)
+0080ac97 relleno_vram_c      <- C (relleno_c.c), banco $80: FastROM
+0080aead limpiar_c           <- C (relleno_c.c)
+007e2108 relleno_llamadas    <- la RAMSECTION de relleno.asm: banco $7E, WRAM (bien)
+0080b029 relleno_vram        <- relleno.asm: enlazada sin .export
+00818371 memset              <- la librería (libc.obj)
+007e9ddf mirrorINIDISP       <- variable del SDK que lee relleno.asm
+
+# EXPERIMENTO: la misma ROM quitando la línea ".BASE $00" de delante de la RAMSECTION
+# (copia aparte, nunca en rom/). Compila igual de limpia...
+No warnings or errors found.
+# ...pero la variable acaba en el banco $FE, que con FastROM es ROM:
+00fe2108 relleno_llamadas
+# $7E + $80 = $FE: WLA-DX sumó el .BASE $80 de hdr.asm al banco de la RAMSECTION.
+# Escribir ahí no hace nada (es ROM); leer devuelve bytes del programa.

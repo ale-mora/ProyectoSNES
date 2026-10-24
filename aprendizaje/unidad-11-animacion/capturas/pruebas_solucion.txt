@@ -1,0 +1,7 @@
+Solucion del ejercicio 11 (clon u11): desenvainar/envainar 3 frames por cuadro, despertar 5; FRAMES_DESENVAINAR (4 * 3), FRAMES_DESPERTAR (4 * 5).
+Segunda compilacion con el tarou_anim.h real: los 16 fallos son las cuentas de la copia fija (prueba_animacion, prueba_tarou); prueba_recorrido NO aparece: el recorrido termina.
+
+--- con la copia fija tests/tarou_anim.h (make -C tests) ---
+367 pruebas, 0 fallos
+--- con el tarou_anim.h REAL (res/personajes/tarou), solo prueba_recorrido ---
+367 pruebas, 16 fallos

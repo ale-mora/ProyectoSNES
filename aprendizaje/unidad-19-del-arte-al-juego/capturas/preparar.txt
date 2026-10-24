@@ -1,0 +1,26 @@
+PS> python scripts/preparar_personaje.py tarou   (exportación de hoy: sin Attack/, con la solución C)
+[tarou] entrada: res\descargas\graficos\pixellab\tarou  salida: res\personajes\tarou
+  tarou_reposo.png  9 cuadros  (pixellab)
+  tarou_caminar.png  8 cuadros  (pixellab)
+  tarou_correr.png  8 cuadros  (pixellab)
+  tarou_saltar.png  3 cuadros  (pixellab)
+  tarou_caer.png  3 cuadros  (pixellab)
+  tarou_agachado.png  1 cuadros  (pixellab)
+  tarou_agachado_caminar.png  8 cuadros  (pixellab)
+  tarou_desenvainar.png  9 cuadros  (pixellab)
+  tarou_envainar.png  9 cuadros  (pixellab)
+  tarou_atacar.png  1 cuadros  (pixellab)
+  tarou_echarse.png  6 cuadros  (pixellab)
+  tarou_dormido.png  9 cuadros  (pixellab)
+  tarou_despertar.png  10 cuadros  (pixellab)
+  tarou_reposo_estatico.png  2 cuadros  (reposo [0, 4])
+  tarou_anim.h  paleta: 15 colores + transparente; exportación nativa de Pixellab (anclada por centro y pies)
+
+PS> python solucion/crear_zarza_ejemplo.py; python scripts/preparar_nivel.py   (con la solución B)
+[nivel] mapa: res\nivel1\tutorial.tmj; hoja: res\descargas\graficos\pixellab\suelo\pixellab-tileset-packed-brown-earth-with-small-stones-simple-godot-3bcb8d74.png
+  zarza: res\descargas\graficos\pixellab\suelo\zarza.png (5 colores fuera de la paleta: se cambian por el más cercano)
+  res\nivel1\fondo_cerca.png  2080x256; 245 tiles distintos; 15 colores; 8 carteles
+  res\nivel1\colision.bin  128x14 celdas;  res\nivel1\nivel1_datos.h
+
+Sin zarza.png (el nivel versionado): 260 tiles distintos; 15 colores; 8 carteles
+git status tras preparar_personaje.py: sin cambios en res/personajes/tarou/ (la pose sigue elegida)

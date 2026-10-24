@@ -1,0 +1,41 @@
+test_con_animacion_usa_la_animacion (scripts.pruebas.prueba_preparar_personaje.PruebasAtaqueNuevo.test_con_animacion_usa_la_animacion) ... ok
+test_sin_animacion_usa_la_pose (scripts.pruebas.prueba_preparar_personaje.PruebasAtaqueNuevo.test_sin_animacion_usa_la_pose) ... ok
+Cada animación del juego sale del estado de Pixellab que dice el mapeo. ... ok
+Tramos e inversiones: saltar = Jump 2..4, caer = Jump 5..7, envainar = ... ok
+Píxeles nativos: el perro de 80 px de Run sigue midiendo 80 px; cada ... ok
+Todas las animaciones se desplazan lo mismo: el personaje más bajo ... ok
+Una carpeta con 01.png y 02.png cuenta 2 cuadros. ... ok
+Una tira de 11 cuadros (11 x 3 KB = 33 KB) no cabe en un banco de 32 KB: ... ok
+Un GIF de 2 cuadros cuenta 2 cuadros. ... ok
+Sin entrada, salen 13 marcadores con los cuadros por defecto. ... ok
+Las 13 salidas comparten paleta, usan ≤ 16 índices y el fondo es el índice 0. ... ok
+La tira estática de reposo (intro y título, personajes.c) tiene SIEMPRE ... ok
+Una tira PNG de 3 cuadros de 64x64 produce una salida de 288x64 (3 celdas ... ok
+test_doble_de_ancho_y_espejo (scripts.pruebas.prueba_preparar_fondo_nivel.PruebasPrepararFondoNivel.test_doble_de_ancho_y_espejo) ... ok
+test_logo_borrado_en_ambas_mitades (scripts.pruebas.prueba_preparar_fondo_nivel.PruebasPrepararFondoNivel.test_logo_borrado_en_ambas_mitades) ... ok
+test_paleta_conservada (scripts.pruebas.prueba_preparar_fondo_nivel.PruebasPrepararFondoNivel.test_paleta_conservada) ... ok
+gfx4snes -y exige un alto múltiplo de 256: con alto=64 la salida crece ... ok
+Dos ejecuciones dan el mismo archivo: la variación usa una semilla fija. ... ok
+Una hoja sin tiles de borde (hierba sobre tierra) no sirve: el script falla ... ok
+En cada columna, el primer píxel opaco está en la fila del suelo, y de ahí ... ok
+Con hundir=4 la banda de hierba empieza 4 px por encima de la fila del ... ok
+Las briznas sueltas que asoman por encima de la hierba no cuentan: lo que ... ok
+La altura del suelo es un parámetro (SUELO_Y del juego). ... ok
+Con --seto, los arbustos asoman por ENCIMA del suelo (subidos para que su ... ok
+512x256 indexada (gfx4snes -y exige alto múltiplo de 256), índice 0 = ... ok
+Las celdas de tierra no son todas iguales: se voltean (gratis en el mapa de ... ok
+test_esquinas_y_diagonales (scripts.pruebas.prueba_preparar_nivel.PruebaArte.test_esquinas_y_diagonales) ... ok
+test_limite_de_tiles (scripts.pruebas.prueba_preparar_nivel.PruebaArte.test_limite_de_tiles) ... ok
+test_nivel_completo (scripts.pruebas.prueba_preparar_nivel.PruebaArte.test_nivel_completo) ... ok
+test_tiles_volteados_cuentan_uno (scripts.pruebas.prueba_preparar_nivel.PruebaArte.test_tiles_volteados_cuentan_uno) ... ok
+test_ancho_que_no_cuadra (scripts.pruebas.prueba_preparar_nivel.PruebaColumnas.test_ancho_que_no_cuadra) ... ok
+test_reordenar (scripts.pruebas.prueba_preparar_nivel.PruebaColumnas.test_reordenar) ... ok
+Una zarza.png más nueva que la hoja no debe tomarse por la hoja. ... ok
+Con una pieza, cada celda de zarza lleva SUS píxeles (no el marcador). ... ok
+test_bits_de_volteo (scripts.pruebas.prueba_preparar_nivel.PruebaTmj.test_bits_de_volteo) ... ok
+test_ida_y_vuelta (scripts.pruebas.prueba_preparar_nivel.PruebaTmj.test_ida_y_vuelta) ... ok
+test_tamano_equivocado (scripts.pruebas.prueba_preparar_nivel.PruebaTmj.test_tamano_equivocado) ... ok
+test_objetos (scripts.pruebas.prueba_preparar_nivel.PruebaTrazado.test_objetos) ... ok
+test_obstaculos (scripts.pruebas.prueba_preparar_nivel.PruebaTrazado.test_obstaculos) ... ok
+Ran 39 tests in 25.125s
+OK

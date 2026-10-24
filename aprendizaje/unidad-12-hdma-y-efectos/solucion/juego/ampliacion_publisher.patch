@@ -1,0 +1,340 @@
+diff --git a/src/escena/escena_publisher.c b/src/escena/escena_publisher.c
+new file mode 100644
+index 0000000..fe455c5
+--- /dev/null
++++ b/src/escena/escena_publisher.c
+@@ -0,0 +1,34 @@
++/*---------------------------------------------------------------------------------
++    escena_publisher.c — Los eventos del logo del publisher (ver escena_publisher.h).
++
++    PROPÓSITO
++      Se lee como un guion, en frames (60 = 1 s):
++        0-31     el logo se enciende (brillo 0 → 15) y a la vez se enfoca:
++                 empieza pixelado (mosaico 15) y queda nítido en el frame 31;
++        32-195   quieto;
++        196-243  se pixela otra vez (mosaico 0 → 15, 48 frames, el mismo ritmo
++                 que setMosaicEffect) y, desde el 212, se apaga (brillo 15 → 0);
++        244      fin: brillo 0. pantalla_publisher.c llama a efectos_terminar
++                 (mosaico a 0) y pasa a la pantalla de los desarrolladores.
++
++    SE CONECTA CON
++      Incluye:  escena/escena_publisher.h.
++      Lo usan:  pantallas/pantalla_publisher.c, tests/prueba_escena_publisher.c.
++
++    HARDWARE QUE TOCA
++      ninguno.
++
++    VARIABLES (globales)
++      ESCENA_PUBLISHER  const EventoEscena[6]  la tabla (en la WRAM: const global)
++    → glosario: Motor de escenas, Mosaico, Fade / brillo
++---------------------------------------------------------------------------------*/
++#include "escena/escena_publisher.h"
++
++const EventoEscena ESCENA_PUBLISHER[ESCENA_PUBLISHER_EVENTOS] = {
++    FIJAR(0, PISTA_MOSAICO, 15),                     /* Arranca con bloques de 16x16...     */
++    RAMPA(0, 32, PISTA_MOSAICO, 15, 0),              /* ...que se enfocan en 32 frames...   */
++    RAMPA(0, 32, PISTA_BRILLO, 0, 15),               /* ...mientras se enciende.            */
++    RAMPA(196, 48, PISTA_MOSAICO, 0, 15),            /* Se pixela al salir (como la intro). */
++    RAMPA(212, 32, PISTA_BRILLO, 15, 0),             /* Fundido de salida.                  */
++    FIN_ESCENA(ESCENA_PUBLISHER_FRAMES),             /* 244: lo mismo que duraba antes.     */
++};
+diff --git a/src/escena/escena_publisher.h b/src/escena/escena_publisher.h
+new file mode 100644
+index 0000000..ac35f77
+--- /dev/null
++++ b/src/escena/escena_publisher.h
+@@ -0,0 +1,35 @@
++/*---------------------------------------------------------------------------------
++    escena_publisher.h — La coreografía del logo del publisher (pantalla 2).
++    Solución de la ampliación del ejercicio 12 (aprendizaje/unidad-12-hdma-y-efectos).
++
++    PROPÓSITO
++      Declara la tabla de eventos de pantalla_publisher.c. Dura lo mismo que la
++      pantalla antes del motor (32 frames de fade_in, 180 de espera y 32 de
++      fade_out = 244), para no correr la secuencia de arranque: el título sigue
++      saliendo hacia el segundo 47. tests/prueba_escena_publisher.c lo vigila.
++
++    SE CONECTA CON
++      Incluye:  escena/escena.h.
++      Lo usan:  pantallas/pantalla_publisher.c, tests/prueba_escena_publisher.c.
++
++    HARDWARE QUE TOCA
++      ninguno.
++
++    VARIABLES (constantes)
++      ESCENA_PUBLISHER_FRAMES   244   frame del FIN_ESCENA
++      ESCENA_PUBLISHER_EVENTOS  6     líneas de la tabla
++      ESCENA_PUBLISHER          const EventoEscena[]  la tabla (const global:
++                                tcc816 la deja en la WRAM, copiada al arrancar)
++    → glosario: Motor de escenas
++---------------------------------------------------------------------------------*/
++#ifndef ESCENA_PUBLISHER_H
++#define ESCENA_PUBLISHER_H
++
++#include "escena/escena.h"
++
++#define ESCENA_PUBLISHER_FRAMES (32 + 180 + 32)    /* Fade in + 3 s + fade out, como antes. */
++#define ESCENA_PUBLISHER_EVENTOS 6
++
++extern const EventoEscena ESCENA_PUBLISHER[ESCENA_PUBLISHER_EVENTOS];
++
++#endif /* ESCENA_PUBLISHER_H */
+diff --git a/src/pantallas/pantalla_publisher.c b/src/pantallas/pantalla_publisher.c
+index 5a0ccf9..392d916 100644
+--- a/src/pantallas/pantalla_publisher.c
++++ b/src/pantallas/pantalla_publisher.c
+@@ -1,51 +1,77 @@
+ /*---------------------------------------------------------------------------------
+-    pantalla_publisher.c — Pantalla (2): logo del publisher, 3 segundos.
++    pantalla_publisher.c — Pantalla (2): logo del publisher, con el motor de escenas.
+ 
+     PROPÓSITO
+       Provisional: logo de Capcom del ejemplo del SDK, ampliado x2 sobre negro
+       (res/publisher/logo_publisher.png, 16 colores, paleta 1, fondo 1). El
+       jingle llegará con el soundbank (sesión de audio).
++      Desde la unidad 12 (ampliación del ejercicio) no usa fade_in/fade_out
++      (que bloquean): la tabla escena/escena_publisher.c mueve el brillo y el
++      mosaico, y escena/efectos.c los lleva a la PPU en el VBlank. Dura lo
++      mismo que antes (244 frames).
+ 
+     SE CONECTA CON
+-      Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h.
++      Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h,
++                escena/escena_publisher.h, escena/efectos.h.
+       Lee de la ROM: publisher_til/_til_end/_pal/_map/_map_end (data.asm).
+-      Lo usan:  sistema/secuencia.c.
++      Lo usan:  sistema/secuencia.c (llama a _iniciar, _actualizar y _vblank).
+ 
+     HARDWARE QUE TOCA
+-      PPU y VRAM a través de comun.c. Mando: padsDown() si PERMITE_SALTO.
++      PPU y VRAM a través de comun.c. Brillo y mosaico a través de
++      escena/efectos.c. Mando: padsDown() si PERMITE_SALTO.
+ 
+     VARIABLES (globales y estáticas de este archivo)
+-      ninguna.
++      escena  Escena  el estado del motor (pistas, próximo evento, reloj)
+ 
+-    → glosario: BG / capas, Paleta, Fade / brillo
++    → glosario: BG / capas, Paleta, Fade / brillo, Mosaico, Motor de escenas
+ ---------------------------------------------------------------------------------*/
+ #include "sistema/pantallas.h"
+ #include "sistema/secuencia.h"
+ #include "sistema/comun.h"
++#include "escena/escena_publisher.h"
++#include "escena/efectos.h"
+ 
+ extern char publisher_til, publisher_til_end, publisher_pal, publisher_map, publisher_map_end;
+ 
++#define FONDO_LOGO 0x02                              /* Bit del fondo 1 (el del logo).      */
++
++static Escena escena;
++
+ void pantalla_publisher_iniciar(void)
+ {
+     video_texto_mode1();
+     fondo16_cargar(1, &publisher_til, &publisher_til_end, &publisher_pal, 1,
+                    &publisher_map, &publisher_map_end, VRAM_FONDO_A, VRAM_MAPA_B, SC_32x32);
+     limpiar_texto();                                 /* Sin texto: solo el logo.            */
+-    fade_in(FRAMES_FADE);
++    efectos_preparar(FONDO_LOGO);                    /* Mosaico solo en el logo; sin destello. */
++    escena_empezar(&escena, ESCENA_PUBLISHER);       /* Brillo 0: la escena lo sube.        */
++}
++
++/* Apaga los efectos (el mosaico acaba en 15) ANTES de preparar la siguiente. */
++static void salir(void)
++{
++    efectos_terminar();
++    secuencia_cambiar(PANTALLA_DEVS);
+ }
+ 
+ void pantalla_publisher_actualizar(void)
+ {
+-    if (PERMITE_SALTO && (padsDown(0) & KEY_START))
++    if (PERMITE_SALTO && (padsDown(0) & KEY_START))  /* Salto opcional (desactivado).       */
+     {
++        efectos_terminar();                          /* Sin mosaico durante el fundido.     */
+         fade_out(FRAMES_FADE);
+-        secuencia_cambiar(PANTALLA_DEVS);
++        salir();
+         return;
+     }
+ 
+-    if (frames_en_pantalla >= DURACION_PUBLISHER)
+-    {
+-        fade_out(FRAMES_FADE);
+-        secuencia_cambiar(PANTALLA_DEVS);
++    escena_avanzar(&escena);                         /* Los valores de este frame.          */
++    if (escena.terminada)                            /* Llegó al FIN_ESCENA (frame 244),    */
++    {                                                /* con el brillo ya en 0.              */
++        salir();
+     }
+ }
++
++void pantalla_publisher_vblank(void)
++{
++    efectos_aplicar(&escena);                        /* Los valores, a los registros.       */
++}
+diff --git a/src/sistema/pantallas.h b/src/sistema/pantallas.h
+index 7237993..3b239b8 100644
+--- a/src/sistema/pantallas.h
++++ b/src/sistema/pantallas.h
+@@ -91,6 +91,7 @@ void pantalla_nintendo_vblank(void);
+ 
+ void pantalla_publisher_iniciar(void);
+ void pantalla_publisher_actualizar(void);
++void pantalla_publisher_vblank(void);   /* Unidad 12: su escena, a la PPU en el VBlank. */
+ 
+ void pantalla_devs_iniciar(void);
+ void pantalla_devs_actualizar(void);
+diff --git a/src/sistema/secuencia.c b/src/sistema/secuencia.c
+index 8f32812..9eddd98 100644
+--- a/src/sistema/secuencia.c
++++ b/src/sistema/secuencia.c
+@@ -110,6 +110,7 @@ void secuencia_vblank(void)
+     switch (pantalla_actual)
+     {
+         case PANTALLA_NINTENDO:     pantalla_nintendo_vblank();     break;
++        case PANTALLA_PUBLISHER:    pantalla_publisher_vblank();    break;
+         case PANTALLA_NIVEL1:       pantalla_nivel1_vblank();       break;
+         default:                    break;   /* Las demás pantallas no necesitan _vblank. */
+     }
+diff --git a/tests/Makefile b/tests/Makefile
+index 92a4760..d7d6e2a 100644
+--- a/tests/Makefile
++++ b/tests/Makefile
+@@ -22,7 +22,7 @@ PRUEBAS = pruebas.c $(wildcard prueba_*.c)
+ # Lógica pura del juego: solo los archivos que ya existen (las tareas los van añadiendo).
+ PURO    = $(wildcard ../src/juego/nivel.c ../src/juego/camara.c ../src/juego/animaciones.c ../src/juego/tarou.c ../src/juego/metasprite.c ../src/juego/colision.c ../src/juego/partida.c ../src/juego/guion.c ../src/juego/guion_tutorial.c)
+ # El motor de escenas (src/escena/): el secuenciador y las tablas; efectos.c toca la PPU y no entra.
+-PURO   += ../src/escena/escena.c ../src/escena/escena_nintendo.c
++PURO   += ../src/escena/escena.c ../src/escena/escena_nintendo.c ../src/escena/escena_publisher.c
+ CABECERAS = $(wildcard *.h ../src/sistema/*.h ../src/juego/*.h ../src/escena/*.h ../res/nivel1/nivel1_datos.h)
+ 
+ pruebas.exe: $(PRUEBAS) $(PURO) $(CABECERAS)
+diff --git a/tests/prueba_escena_publisher.c b/tests/prueba_escena_publisher.c
+new file mode 100644
+index 0000000..daad2e4
+--- /dev/null
++++ b/tests/prueba_escena_publisher.c
+@@ -0,0 +1,101 @@
++/*---------------------------------------------------------------------------------
++    prueba_escena_publisher.c — Pruebas de la tabla del logo del publisher
++    (escena/escena_publisher.c). Solución de la ampliación del ejercicio 12.
++
++    PROPÓSITO
++      Que la tabla vaya ordenada y termine en el FIN, que dure 244 frames (la
++      duración de antes del motor: si no, el arranque entero se corre), que el
++      logo se vea con brillo 15 y nítido entre los fundidos, que ninguna pista
++      dé saltos (un `desde` mal escrito en una RAMPA) y que acabe APAGADA:
++      brillo 0 (setBrightness(0) es forced blank). El mosaico acaba en 15 a
++      propósito: lo pone a 0 efectos_terminar() antes de cambiar de pantalla.
++
++    SE CONECTA CON
++      Incluye:  minitest.h, escena/escena.h, escena/escena_publisher.h.
++      Lo usa:   tests/pruebas.c (pruebas_escena_publisher).
++
++    HARDWARE QUE TOCA
++      ninguno (solo PC).
++
++    VARIABLES: ninguna global.
++    → glosario: Motor de escenas
++---------------------------------------------------------------------------------*/
++#include "minitest.h"
++#include "escena/escena.h"
++#include "escena/escena_publisher.h"
++
++/* Cuánto cambió una pista entre dos frames (en 8.8, sin signo). La de
++   prueba_escena.c es static: cada archivo de pruebas tiene la suya. */
++static u16 salto(u16 a, u16 b)
++{
++    return (u16)(a > b ? a - b : b - a);
++}
++
++void pruebas_escena_publisher(void)
++{
++    Escena e;
++    const EventoEscena *ev;
++    u16 previo[ESCENA_PISTAS];
++    u16 maximo[ESCENA_PISTAS];
++    u16 frames = 0;
++    u8 orden = 1;
++    u8 sin_saltos = 1;
++    u8 visible = 1;
++    u8 i;
++
++    /* Ordenada, cada rampa acaba antes del FIN, y el FIN es la última línea. */
++    for (ev = ESCENA_PUBLISHER; ev->pista != ESCENA_FIN; ev++)
++    {
++        if (ev[1].cuadro < ev->cuadro || ev->cuadro + ev->frames > ESCENA_PUBLISHER_FRAMES)
++        {
++            orden = 0;
++        }
++    }
++    COMPROBAR(orden);
++    COMPROBAR(ev == &ESCENA_PUBLISHER[ESCENA_PUBLISHER_EVENTOS - 1]);
++    COMPROBAR(ev->cuadro == 32 + 180 + 32);           /* La duración de antes del motor.   */
++
++    /* El salto máximo por pista: el mayor |paso| de sus rampas más 1 entero. */
++    for (i = 0; i < ESCENA_PISTAS; i++)
++    {
++        maximo[i] = 0;
++        previo[i] = 0;
++    }
++    for (ev = ESCENA_PUBLISHER; ev->pista != ESCENA_FIN; ev++)
++    {
++        u16 p = (u16)(ev->paso < 0 ? -ev->paso : ev->paso);
++        if (ev->frames != 0 && p + 256 > maximo[ev->pista])
++        {
++            maximo[ev->pista] = (u16)(p + 256);
++        }
++    }
++
++    escena_empezar(&e, ESCENA_PUBLISHER);
++    while (!e.terminada && frames < 1000)
++    {
++        u16 c = e.cuadro;
++        escena_avanzar(&e);
++        frames++;
++        for (i = 0; i < ESCENA_PISTAS; i++)
++        {
++            if (c != 0 && salto(previo[i], e.pistas[i].valor) > maximo[i])
++            {
++                sin_saltos = 0;                      /* El frame 0 lleva un FIJAR.        */
++            }
++            previo[i] = e.pistas[i].valor;
++        }
++        if (c >= 31 && c < 196 &&
++            (ESCENA_VALOR(&e, PISTA_BRILLO) != 15 || ESCENA_VALOR(&e, PISTA_MOSAICO) != 0))
++        {
++            visible = 0;                             /* Entre medias: brillo 15 y nítido. */
++        }
++    }
++    COMPROBAR(sin_saltos);
++    COMPROBAR(visible);
++    COMPROBAR(frames == ESCENA_PUBLISHER_FRAMES + 1); /* 245 llamadas: la última ve el FIN. */
++    COMPROBAR(e.terminada == 1);
++    COMPROBAR(ESCENA_VALOR(&e, PISTA_BRILLO) == 0);   /* Acaba apagada.                    */
++    COMPROBAR(ESCENA_VALOR(&e, PISTA_MOSAICO) == 15); /* Pixelada: lo limpia efectos_terminar. */
++    COMPROBAR(ESCENA_VALOR(&e, PISTA_LUZ) == 0);      /* Sin luz ni destello.              */
++    COMPROBAR(ESCENA_VALOR(&e, PISTA_DESTELLO) == 0);
++}
+diff --git a/tests/pruebas.c b/tests/pruebas.c
+index 2647687..3b2ec5b 100644
+--- a/tests/pruebas.c
++++ b/tests/pruebas.c
+@@ -35,6 +35,7 @@ void pruebas_colision(void);
+ void pruebas_partida(void);
+ void pruebas_recorrido(void);
+ void pruebas_escena(void);
++void pruebas_escena_publisher(void);
+ 
+ int main(void)
+ {
+@@ -47,6 +48,7 @@ int main(void)
+     pruebas_partida();
+     pruebas_recorrido();
+     pruebas_escena();
++    pruebas_escena_publisher();
+ 
+     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
+     return pruebas_fallidas != 0;

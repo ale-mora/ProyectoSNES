@@ -1,0 +1,21 @@
+inicio:    VERDE
+frame  1:  VERDE (lleva 1)
+frame  2:  VERDE (lleva 2)
+frame  3:  VERDE (lleva 3)
+frame  4:  VERDE (lleva 4)
+frame  5:  VERDE (lleva 5)
+frame  6:  AMBAR (lleva 0)  <- cambia
+frame  7:  AMBAR (lleva 1)
+frame  8:  ROJA  (lleva 0)  <- cambia
+frame  9:  ROJA  (lleva 1)
+frame 10:  ROJA  (lleva 2)
+frame 11:  ROJA  (lleva 3)
+frame 12:  VERDE (lleva 0)  <- cambia
+frame 13:  VERDE (lleva 1)
+frame 14:  VERDE (lleva 2)
+frame 15:  AMBAR (lleva 0)  [boton]  <- cambia
+frame 16:  AMBAR (lleva 1)
+frame 17:  ROJA  (lleva 0)  <- cambia
+frame 18:  ROJA  (lleva 1)
+frame 19:  ROJA  (lleva 2)
+frame 20:  ROJA  (lleva 3)

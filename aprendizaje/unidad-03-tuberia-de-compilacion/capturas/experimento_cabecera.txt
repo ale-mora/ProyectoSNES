@@ -1,0 +1,35 @@
+Experimento del paso 4 del README (ejecutado el 2026-10-22 en rom/, PowerShell)
+==============================================================================
+
+1) Estado inicial: ROM compilada con TEXTO_SALUDO "HELLO, SNES!".
+
+2) Se cambia SOLO src/textos.h:  #define TEXTO_SALUDO "HELLO, WORLD!"
+   y se ejecuta `make` (sin clean). Salida en pantalla:
+
+     --- COMPILATION SUMMARY ---
+     No warnings or errors found.
+     ---------------------------
+
+   Lo que dice hola_mundo.log (resumido): NO aparece "Compiling to .ps ... hola.c".
+     Doing obj files from asm ...
+     .../wla-65816 -d -s -x -o hdr.obj hdr.asm        <- hdr.asm se regenera en cada make
+     Creating linkfile ...
+     Linking ... hola_mundo.sfc                        <- se vuelve a enlazar el hola.obj VIEJO
+
+   Búsqueda del texto dentro de la ROM:
+     grep -c "HELLO, SNES"  hola_mundo.sfc   ->  1    (el texto viejo sigue ahí)
+     grep -c "HELLO, WORLD" hola_mundo.sfc   ->  0    (el nuevo no ha entrado)
+
+3) `make clean` y `make`:
+
+     --- COMPILATION SUMMARY ---
+     No warnings or errors found.
+     hola_mundo.log:6:Compiling to .ps ... hola.c      <- ahora sí se recompila
+
+     grep -c "HELLO, SNES"  hola_mundo.sfc   ->  0
+     grep -c "HELLO, WORLD" hola_mundo.sfc   ->  1
+
+4) Se deja textos.h como estaba ("HELLO, SNES!") y make clean + make otra vez.
+
+Conclusión: el resumen dice "No warnings or errors found." en los dos casos; solo
+el .log (y la ROM) delatan que en el caso 2 no se recompiló nada.

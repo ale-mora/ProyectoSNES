@@ -1,0 +1,22 @@
+--- LA TRAMPA: las mismas pruebas compiladas con el tarou_anim.h del arte real
+    (gcc ... -I../res/personajes/tarou -I. -I../src ...: la copia real gana a la fija) ---
+FALLO prueba_animacion.c:30: ANIMACIONES[ESTADO_PARADO].cuadros == 4
+FALLO prueba_animacion.c:32: ANIMACIONES[ESTADO_ATACANDO].cuadros == 5
+FALLO prueba_animacion.c:33: ANIMACIONES[ESTADO_AGACHADO_CAMINANDO].cuadros == 6
+FALLO prueba_tarou.c:519: t.estado == ESTADO_DORMIDO
+FALLO prueba_tarou.c:520: t.cuadro == 0
+FALLO prueba_tarou.c:522: t.cuadro == 1
+FALLO prueba_tarou.c:524: t.cuadro == 0
+FALLO prueba_tarou.c:540: t.estado == ESTADO_PARADO
+FALLO prueba_tarou.c:596: t.cuadro == 4
+FALLO prueba_tarou.c:598: t.cuadro == 4 && t.anim_terminada == 1
+FALLO prueba_tarou.c:374: t.anim_terminada == 1
+FALLO prueba_tarou.c:375: t.cuadro == 3
+FALLO prueba_tarou.c:378: t.estado == ESTADO_PARADO
+FALLO prueba_tarou.c:379: t.espada == ESPADA_FUERA
+FALLO prueba_tarou.c:392: t.estado == ESTADO_PARADO
+FALLO prueba_tarou.c:393: t.espada == ESPADA_ENVAINADA
+FALLO prueba_tarou.c:483: t.estado == ESTADO_PARADO && t.espada == ESPADA_FUERA
+FALLO prueba_tarou.c:485: t.estado == ESTADO_SALTANDO
+FALLO prueba_tarou.c:486: t.espada == ESPADA_FUERA
+374 pruebas, 19 fallos

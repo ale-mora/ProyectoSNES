@@ -1,0 +1,486 @@
+# Diseño — Demo jugable, Revisión 1: Tarou adulto en el nivel 1
+
+> **Documento histórico (2026-10-23).** Describe la Revisión 1 de cuando el juego era un
+> plataformas; el código está en el tag `plataformas-r2`. El juego actual es un beat 'em up:
+> `docs/diseno-beat-em-up.md`.
+
+**Proyecto:** _Tarou: A Dog's Journey_ · **Etapa del plan:** 2 (Prototipo) ·
+**Revisión:** 1 · **Fecha de esta versión:** 2026-10-16 · **Estado:** diseño
+acordado en sesión de preguntas (33 decisiones); el plan de implementación
+está en `docs/plan-implementacion-revision-1.md`.
+
+Este documento especifica el producto mínimo viable (MVP) jugable: desde el
+título, Start entra al nivel 1, donde el jugador controla a **Tarou adulto**,
+que camina, corre, salta, se agacha, desenvaina y usa la espada, y se duerme si
+nadie toca el mando. Es un **documento vivo**: los valores marcados «a afinar»
+se ajustan tras verlos en Mesen con el HUD de depuración.
+
+> **Vocabulario.** Este documento usa los términos fijados en
+> `docs/glosario-snes.md` → «Vocabulario del proyecto»: Etapa, Revisión,
+> Nivel, Escenario, Pantalla, Protagonista, Jugador, Edad, Estado, Espada,
+> Dirección, Stub. Si aquí aparece otra palabra para el mismo concepto, es un
+> error.
+
+## 0. Historial
+
+| Versión | Fecha | Qué decía |
+|---|---|---|
+| v1 | 2026-10-14 | Tarou **cachorro** de 32×32 con carga estática de 12 cuadros; solo caminar y cámara. Reemplazada por completo. Sus especificaciones de Pixellab para el cachorro quedan en el historial de git (`3b30b64`). |
+| v2 | 2026-10-16 | Tarou **adulto** de 64×64 como metasprite dinámico; ocho mecánicas; HUD de depuración; reorganización de `src/`; renombrado Tarouh → Tarou; ROM de 512 KB. |
+| v3.2 | 2026-10-20 | El nivel 1 pasa a ser el tutorial de movimiento de 2048 px con colisión: lo especifica `docs/diseno-tutorial-movimiento.md` (Revisión 2). Lo de este documento sobre el nivel plano de 512 px (§5 suelo, §8 capa cercana) queda como historia. |
+| v3.1 | 2026-10-19 | Suelo del nivel desde un tileset *Sidescroller* de Pixellab (`scripts/preparar_suelo.py`) con los arbustos como seto; `SUELO_Y` 208 → 176; la banda de hierba 4 px por encima de los pies (perspectiva del arte). |
+| v3 | 2026-10-19 | Llega el arte real de Pixellab (un perro cuadrúpedo de hasta 81 px de ancho): celda de **96×64** (6 piezas), sin escalar; mapeo de la exportación nativa a las 13 animaciones; cajas rehechas sobre el arte; intro y título con 2 cuadros de reposo. |
+
+---
+
+## 1. Propósito y alcance
+
+- **Qué es:** el primer contacto con gameplay real. Entrada del mando, física
+  con punto fijo, máquina de estados del protagonista con trece estados,
+  animación por estados con sprites dinámicos, cámara con scroll y parallax.
+  Es la base sobre la que la Etapa 2 añadirá colisión con el escenario y la
+  Etapa 3 enemigos.
+- **Qué no es:** no hay colisión con tiles ni desniveles, ni enemigos, ni
+  daño, ni Bárbara jugable, ni audio nuevo, ni HUD del juego (vida, ítems).
+  Ver [§14](#14-fuera-de-alcance).
+- **Criterio de éxito:** una ROM que, desde el título, entra al nivel con
+  Start; Tarou ejecuta las ocho mecánicas con la animación correcta y el
+  espejo correcto; la cámara lo sigue y se detiene en los extremos; el HUD de
+  depuración muestra los valores en vivo; Start vuelve al título. Sin glitches
+  gráficos, a 60 FPS.
+- **Restricción de estilo del proyecto:** cada línea de código lleva su
+  comentario en español; el texto en pantalla del juego va en inglés. El HUD
+  de depuración es la única excepción: usa los nombres de los estados tal como
+  están en el código, para que lo que se ve coincida con lo que se lee.
+
+## 2. Decisiones tomadas (sesión del 2026-10-16)
+
+| # | Decisión | Elegido | Motivo |
+|---|---|---|---|
+| 1 | Protagonista y edad | **Tarou adulto** | Pedido del autor; el arte de Pixellab existe para el adulto |
+| 2 | Mecánicas | caminar, correr, saltar, agacharse y caminar agachado, envainar/desenvainar, ataque básico, dormir y despertar | Lista del autor. Sin colisión por tiles (exige tileset y Tiled: otra sesión) |
+| 3 | Tamaño y técnica del sprite | **96×64 como metasprite dinámico del SDK** (v3; era 64×64): hasta 6 piezas de 32×32, `gfx4snes -s 32 -T -X 96 -Y 64`, `oamMetaDrawDyn32` | Con ~90 cuadros no cabe nada estático (límite 512 tiles = 5 cuadros). Las animaciones de Pixellab miden hasta 81 px de ancho y reducirlas al 79 % estropeaba el pixel art (decisión del 2026-10-19). Es el motor de LikeMario y sirve para enemigos |
+| 4 | Tamaño de ROM | **16 bancos (512 KB)**; desde el 2026-10-21, **128 bancos (4 MB) LoROM + FastROM** | ~115 KB libres no bastan con margen: los cuadros ocupan ~110 KB. Con 512 KB quedaban 47 KB; 4 MB es el máximo estándar (`docs/hardware-snes-por-modulo.md` §6) |
+| 5 | Mando | B salta, Y corre, A ataca, R envaina/desenvaina, Abajo agacha, SELECT HUD, START título; X y L libres | Ver [§3](#3-mando) |
+| 6 | Salto | altura variable, control aéreo, sin doble salto | Expresivo y barato de programar |
+| 7 | Correr | Y mantenido, sin derrape | Convención Nintendo |
+| 8 | Agacharse | puede saltar agachado; no ataca agachado | Simplicidad |
+| 9 | Espada | arranca envainada; R alterna con animación; A ataca solo con espada fuera y en suelo; sin ataque aéreo; la caja de golpe se calcula y se muestra en el HUD | Base para enemigos en Etapa 3 |
+| 10 | Dormir | por inactividad (~10 s), cualquier botón despierta | «Animación de espera» clásica |
+| 11 | Modelo | **Estado + Espada + Dirección** (tres variables) | Sin estados duplicados «con espada» |
+| 12 | HUD de depuración | texto en BG3 alternado con SELECT, apagado al inicio | Verificar la física sin el depurador; enseñar el punto fijo |
+| 13 | Organización de `src/` | subcarpetas por rol: `sistema/`, `pantallas/`, `juego/` y stubs | `snes_rules` compila `src/*/*.c` (verificado) |
+| 14 | «Juego completo» | MVP + **esqueleto de stubs** por subsistema futuro | Los stubs no contienen lógica, solo su contrato previsto |
+| 15 | Nombre | **Tarou** en todo (título, `ROMTITLE`, archivos, variables, documentos) | Pedido del autor |
+| 16 | Arte | personaje de **Pixellab** del autor: exportación nativa (8 direcciones, lienzos de 76..104 px), usada sin escalar y anclada por centro y pies; `MAPEOS_PIXELLAB` dice de qué estado sale cada animación. Lo que falte, **marcadores numerados** | El arte real entra sin tocar código |
+| 17 | Sprites antiguos | el lobo samurái (`tarouh_lobo`) pasa a `lobo_samurai` y será un **enemigo**; Bárbara conserva su sprite hasta la Revisión 2 | Pedido del autor |
+| 18 | Intro y título | se cambian **ahora** para mostrar al Tarou nuevo (2 cuadros de reposo de 96×64, carga estática) junto a Bárbara | Pedido del autor |
+| 19 | Lógica pura separada del hardware, con pruebas en PC | `tarou.c`, `camara.c`, `nivel.c` no tocan la PPU y se compilan también con `gcc` | Permite TDD y enseña «la física no sabe de la PPU». Decisión del plan, a revisar |
+| 20 | Escenario | el del diseño v1: nivel 1 de 512 px, suelo plano, dos capas con parallax, cielo HDMA | Sin cambios |
+
+## 3. Mando
+
+| Botón | Acción | Lectura |
+|---|---|---|
+| Izquierda / Derecha | caminar; en el aire, control aéreo; agachado, caminar agachado | mantenido |
+| Abajo | agacharse (en suelo) | mantenido |
+| Y | correr (velocidad máxima mayor) | mantenido |
+| B | saltar; mantenerlo alarga el salto | pulsado + mantenido |
+| A | atacar con la espada (solo con espada fuera y en suelo) | pulsado |
+| R | envainar / desenvainar | pulsado |
+| SELECT | alternar el HUD de depuración | pulsado |
+| START | volver al título con fundido | pulsado |
+| X, L | libres | — |
+
+«Pulsado» = `padsDown(0)` (solo el frame en que baja); «mantenido» =
+`padsCurrent(0)`. Cualquier botón o dirección cuenta como «actividad» para el
+contador de sueño.
+
+## 4. Estados del protagonista
+
+Trece estados, uno activo a la vez. Cada estado tiene una animación del mismo
+nombre (relación 1:1, [§7](#7-sprite-y-animación)).
+
+| Estado | Suelo | Mueve en x | Gravedad | Sale cuando |
+|---|---|---|---|---|
+| `PARADO` | sí | no (frena) | no | dirección → `CAMINANDO`/`CORRIENDO`; Abajo → `AGACHADO`; B → salto; R → `DESENVAINANDO`/`ENVAINANDO`; A con espada fuera → `ATACANDO`; `FRAMES_PARA_DORMIR` sin actividad → `ECHANDOSE` |
+| `CAMINANDO` | sí | sí, hasta `VEL_CAMINAR_MAX` | no | sin dirección y `vx == 0` → `PARADO`; Y → `CORRIENDO`; Abajo → `AGACHADO` (vx = 0); B → salto; R → `DESENVAINANDO`/`ENVAINANDO` (vx = 0); A con espada fuera → `ATACANDO` (vx = 0) |
+| `CORRIENDO` | sí | sí, hasta `VEL_CORRER_MAX` | no | igual que `CAMINANDO`; sin Y → `CAMINANDO` (frena hasta `VEL_CAMINAR_MAX`) |
+| `SALTANDO` | no | control aéreo (`ACEL_AIRE`) | sí | `vy >= 0` → `CAYENDO`; soltar B con `vy < VEL_SALTO_CORTE` recorta `vy` a `VEL_SALTO_CORTE` |
+| `CAYENDO` | no | control aéreo | sí, hasta `VEL_TERMINAL` | pies en el suelo → aterriza: `AGACHADO` si Abajo; si no, `CORRIENDO`/`CAMINANDO` si `vx != 0`; si no, `PARADO` |
+| `AGACHADO` | sí | no (frena) | no | dirección → `AGACHADO_CAMINANDO`; soltar Abajo → `PARADO`; B → salto (se levanta) |
+| `AGACHADO_CAMINANDO` | sí | sí, hasta `VEL_AGACHADO_MAX` | no | sin dirección y `vx == 0` → `AGACHADO`; soltar Abajo → `CAMINANDO`; B → salto |
+| `DESENVAINANDO` | sí | no | no | fin de animación → `espada = FUERA`, `PARADO`. Ignora el mando |
+| `ENVAINANDO` | sí | no | no | fin de animación → `espada = ENVAINADA`, `PARADO`. Ignora el mando |
+| `ATACANDO` | sí | no (vx = 0) | no | fin de animación → `PARADO`. Ignora el mando. La caja de golpe está activa todos sus cuadros (a afinar) |
+| `ECHANDOSE` | sí | no | no | fin de animación → `DORMIDO`; cualquier actividad → `DESPERTANDO` |
+| `DORMIDO` | sí | no | no | cualquier actividad → `DESPERTANDO` (animación en bucle) |
+| `DESPERTANDO` | sí | no | no | fin de animación → `PARADO`. Ignora el mando |
+
+Reglas transversales:
+
+- **Salto** (desde cualquier estado de suelo que lo permita): `vy = VEL_SALTO`,
+  `en_suelo = 0`, estado `SALTANDO`; conserva `vx` (correr alarga el salto).
+- **Prioridad el mismo frame:** START > SELECT > R > A > B > Abajo > dirección.
+  Dos pulsaciones simultáneas resuelven por esta lista.
+- **Dirección:** la fija la última dirección pulsada, en suelo o en el aire.
+  No cambia mientras un estado ignora el mando.
+- **Contador de sueño:** `frames_quieto` sube solo en `PARADO`; cualquier
+  actividad lo pone a 0.
+
+## 5. Movimiento y física
+
+- **Coordenadas del mundo:** Tarou vive en píxeles del mundo, `x` de 0 a
+  `ANCHO_NIVEL − 64 = 448` (la celda mide 64). El píxel que usan la OAM y el
+  scroll es siempre la **parte entera** (`x_fp >> 4`): sprite y fondo
+  comparten el mismo entero y nunca se desfasan.
+- **Punto fijo 12.4 en `s16`:** 12 bits de entero y 4 de fracción (1/16 px).
+  **Las posiciones nunca son negativas** (se recortan antes de convertir), así
+  el desplazamiento `>> 4` es seguro en `tcc816`. Solo las velocidades pueden
+  ser negativas y nunca se convierten a píxel.
+- **Constantes iniciales (a afinar en Mesen con el HUD):**
+
+| Constante | Valor (fp) | En píxeles | Efecto |
+|---|---|---|---|
+| `VEL_CAMINAR_MAX` | 16 | 1,0 px/frame | 60 px/s |
+| `VEL_CORRER_MAX` | 32 | 2,0 px/frame | cruza el nivel en ~4 s |
+| `VEL_AGACHADO_MAX` | 8 | 0,5 px/frame | |
+| `ACEL_SUELO` | 2 | | 8 frames hasta caminar, 16 hasta correr |
+| `FRENADO_SUELO` | 2 | | 8 frames hasta parar desde caminar |
+| `ACEL_AIRE` | 1 | | control aéreo suave |
+| `GRAVEDAD` | 4 | 0,25 px/frame² | |
+| `VEL_SALTO` | −96 | −6,0 px/frame | 69 px de altura (4·24·23/2 = 1104 = 69 px): la y mínima se alcanza en el frame 23 y `vy` llega a 0 en el 24 |
+| `VEL_SALTO_CORTE` | −32 | −2,0 px/frame | salto corto ≈ 8 px tras soltar |
+| `VEL_TERMINAL` | 96 | 6,0 px/frame | |
+| `FRAMES_PARA_DORMIR` | 600 | | 10 s |
+
+- **Cada frame, en este orden:** leer mando → transiciones de estado →
+  aceleración/frenado en x → gravedad en y → integrar (`x += vx`, `y += vy`)
+  → recortar x a [0, 416] (`ANCHO_NIVEL − ANCHO_CELDA`) → aterrizaje (si
+  `y_pix + 64 >= suelo`: `y = suelo − ALTO_CELDA`, `vy = 0`, `en_suelo = 1`)
+  → avanzar animación.
+> **Revisión 2 (2026-10-20):** el paso «aterrizaje» y la función
+> `nivel_suelo_en` ya no existen: `tarou_actualizar(t, m)` mueve primero en x
+> contra las paredes y después en y contra suelos, plataformas y techos,
+> preguntando a la rejilla de `src/juego/colision.c`. El hundir de 4 px se
+> reparte en 2 del arte y 2 del dibujo (`HUNDIR_PIES`). Ver `docs/diseno-tutorial-movimiento.md` §7.
+
+- **Suelo:** `nivel_suelo_en(x_pix)` devolvía la constante `SUELO_Y = 176`
+  (antes 208, sobre los arbustos; cambiado el 2026-10-19 al llegar el suelo de
+  Pixellab). La última fila del cuadro es la planta de las patas:
+  `y_celda = suelo − 64`, así que los pies quedan en la fila 175. La banda de
+  hierba de la capa cercana empieza **4 px más arriba**, en la 172: el arte de
+  Pixellab es una vista lateral un poco elevada (las patas lejanas acaban 3 px
+  más arriba que las cercanas) y, con la hierba justo debajo de los pies, el
+  perro parecía flotar sobre una raya. Hundidos 4 px, pisa el terreno.
+- **Cajas** (coordenadas relativas a la celda de 96×64, medidas sobre el arte
+  de Pixellab el 2026-10-19: el perro mide unos 64×58 de pie y 46 de alto
+  agachado, centrado en la celda):
+  - cuerpo de pie: x 24..76, y 14..64 (sin la cola); agachado: y 28..64;
+  - golpe (solo en `ATACANDO`): 28×16 px, y 20..36 (la boca y la espada), x
+    60..88 mirando a la derecha; en espejo, x 8..36 (`96 − 88 = 8`).
+
+## 6. Cámara
+
+- `camara = x_pix + 48 − 128` (48 = centro de la celda de 96), recortada a 0..`ANCHO_NIVEL − ANCHO_PANTALLA`
+  (0..256; desde la Revisión 2, con el nivel de 2048 px, 0..1792). Tarou se
+  mueve hasta el centro, la cámara lo sigue y, al final, llega al borde. Sin
+  suavizado.
+- `x_pantalla = x_pix − camara` (nunca negativo); `y_pantalla = y_pix` (no hay
+  scroll vertical).
+- Capa cercana: scroll = `camara`. Capa lejana: scroll = `camara >> 1`.
+
+## 7. Sprite y animación
+
+- **Motor:** sprites dinámicos del SDK. `oamInitDynamicSprite(0x0000, 0x1000,
+  0, 0, OBJ_SIZE16_L32)`: piezas grandes de 32×32 desde VRAM 0x0000. Tarou usa
+  las entradas 0..5 de la OAM, paleta de sprites 0 (CGRAM 128), prioridad 3.
+- **Por frame:** `oamMetaDrawDyn32(0, x_pantalla, y_pantalla, tabla, tiles)`
+  en la actualización; `oamInitDynamicSpriteEndFrame()` al final de la
+  actualización; `oamVramQueueUpdate()` justo después de `WaitForVBlank()`.
+  Para esto la secuencia gana una tercera función por pantalla:
+  `pantalla_X_vblank()`.
+- **Espejo:** la tabla metasprite de cada cuadro viene de `gfx4snes -T`
+  mirando a la derecha. Mirando a la izquierda se construye en RAM una copia
+  con `dx → 64 − dx` (0 ↔ 64; la columna del medio se queda), el bit `hflip`
+  (0x40) en los atributos y el terminador detrás de la última pieza
+  (`juego/metasprite.c`, lógica pura probada en PC). Un cuadro tiene **hasta**
+  6 piezas: `gfx4snes -T` omite los bloques de 32×32 transparentes. Sin variantes `-L` del conversor (menos
+  incógnitas).
+- **Animaciones (1:1 con los estados):** `reposo`, `caminar`, `correr`,
+  `saltar`, `caer`, `agachado`, `agachado_caminar`, `desenvainar`, `envainar`,
+  `atacar`, `echarse`, `dormido`, `despertar`. Cada una: cantidad de cuadros
+  (la fija el arte y la genera el pipeline en `tarou_anim.h`), frames por
+  cuadro y si hace bucle.
+
+| Animación | Frames/cuadro (a afinar) | Bucle |
+|---|---|---|
+| reposo | 12 | sí |
+| caminar | 6 | sí |
+| correr | 4 | sí |
+| saltar, caer | 6 | no (se queda en el último cuadro) |
+| agachado | 12 | sí |
+| agachado_caminar | 8 | sí |
+| desenvainar, envainar | 5 | no |
+| atacar | `DURACION_ATAQUE / cuadros` (división entera: unos 20 frames en total, exacto si los cuadros dividen a 20; hoy 1 × 20) | no |
+| echarse, despertar | 8 | no |
+| dormido | 20 | sí |
+
+- **Presupuesto:** cada cuadro de 96×64 son 3 KB en ROM (6 piezas de 512
+  bytes); con los 88 cuadros del arte actual, ~264 KB (quedan ~80 KB libres de
+  los 512). Cada animación va en su propia sección de `data.asm` y **no puede
+  pasar de 10 cuadros** (30 KB < 32 KB por banco); el pipeline lo comprueba.
+  Por eso `despertar` usa 10 de los 11 cuadros de Stand_up.
+
+## 8. Fondo
+
+- **Modo:** Mode 1 con `BG3_MODE1_PRIORITY_HIGH`. BG0 cercana, BG1 lejana, BG2
+  texto del HUD (fuente 2bpp del título), apagado salvo con el HUD.
+> **Revisión 2 (2026-10-20):** la capa cercana es ahora el tutorial de
+> 2048 px: la genera `scripts/preparar_nivel.py` desde Tiled y se dibuja por
+> columnas en el mapa de 64×32, usado como anillo (`src/juego/fondo_nivel.c`).
+> La descripción de abajo es la del suelo plano de 512 px. Ver `docs/diseno-tutorial-movimiento.md` §3 y §4.
+
+- **Capa cercana (BG0):** el **suelo**, `res/nivel1/fondo_cerca.png`
+  (`nivel1_cerca_*`), 512 px en `SC_64x32`, paleta 1, en `VRAM_FONDO_A` /
+  `VRAM_MAPA_A`. Scroll 1:1. La genera `scripts/preparar_suelo.py` a partir
+  del tileset *Sidescroller* de Pixellab (Create Tileset, tiles de 16×16, banda
+  de hierba gruesa: unos 8 px más un borde oscuro): toma la tira más larga de
+  tiles de borde (hierba sobre tierra) y los tiles de tierra opaca, pone la
+  primera fila llena de la banda en `SUELO_Y − 4` (`--hundir`, ver §5; las
+  briznas sueltas asoman por encima), rellena de tierra hasta abajo variando
+  cada celda con volteos (semilla fija) para que no se vean franjas, y deja
+  detrás los arbustos del título subidos como un seto (`--seto`). 15 colores +
+  transparente (12 del suelo, 3 del seto); unos 309 tiles de 8×8 en VRAM.
+- **Capa lejana (BG1):** `res/nivel1/fondo_lejos.png`, derivada del título por
+  `scripts/preparar_fondo_nivel.py` (borra el logo horneado y duplica en espejo
+  hasta 512 px), paleta 2, `SC_64x32` en `VRAM_FONDO_B` / `VRAM_MAPA_B`
+  (0x7400–0x7BFF). Scroll a la mitad.
+- **Cielo:** el degradado HDMA del título (`hdmaGradcieloList`, canal 6), que
+  se corta al salir con `setModeHdmaReset(0)`.
+
+## 9. HUD de depuración
+
+Capa BG2 (BG3 del hardware) con la fuente 2bpp. SELECT la enciende y apaga
+(`bgSetEnable(2)` / `bgSetDisable(2)` + limpiar). Arranca apagada. Filas:
+
+```
+X 123  VX -16        (píxel entero y velocidad en fp)
+Y 144  VY 0
+EST CAMINANDO
+ESP FUERA  DIR DER
+CAM 0  F 1234        (cámara y frames desde que empezó el nivel)
+GOLPE 167 168 28 16  (x, y, ancho, alto en píxeles del mundo; «-» si no hay)
+LIN 252 10 59  VB 3738  (línea del haz tras la lógica, tras el sprite y al final del
+                         frame: >= 225 = frame pasado de tiempo; y VBlanks totales)
+```
+
+**Implementación (decidida en la Tarea 4.4/4.5):** el HUD no usa
+`consoleDrawText`; escribe las palabras del tilemap en RAM (tile = carácter −
+32, paleta 0) y las copia por DMA tras el VBlank, una fila por frame y sin
+divisiones (restas de potencias de diez). La fila `LIN` lee los contadores del
+haz (`$2137`/`$213D`) y es el medidor de coste del frame: con todo encendido,
+la lógica termina en la línea ~60 de 262 (≈ 47 % del tiempo de frame).
+
+## 10. Pipeline de assets del protagonista
+
+```
+res/descargas/graficos/pixellab/tarou/      ← el autor descarga aquí (ignorado por git)
+    README.md                               ← qué exportar y cómo nombrarlo (versionado)
+    Idle/animations/<nombre>/east/frame_000.png ...   (exportación nativa: un estado por carpeta)
+    o, a mano: reposo.png | reposo/01.png... | reposo.gif   (una entrada por animación)
+          │  python scripts/preparar_personaje.py tarou
+          ▼
+res/personajes/tarou/                       ← versionado (como el resto de res/)
+    tarou_reposo.png ... tarou_despertar.png   tiras indexadas, 96×64 por cuadro,
+                                               UNA paleta compartida (15 + transparente)
+    tarou_reposo_estatico.png                  SIEMPRE 2 cuadros elegidos del reposo (intro y título)
+    tarou_anim.h                               #define TAROU_REPOSO_CUADROS 4 ...
+          │  make  (gfx4snes -s 32 -o 16 -u 16 -p -T -X 96 -Y 64 -P 3)
+          ▼
+    tarou_reposo.pic / .pal / tarou_reposo_meta.inc   (ignorados; data.asm y tarou_sprite.c los usan)
+```
+
+- **Exportación nativa de Pixellab** (Characters → Export, lo que el autor
+  descarga): una carpeta por estado (`Idle`, `Walk`, `Run`, `Jump`, `Sneak`,
+  `Unsheathe`, `Stand_up`, `Sleep`, `Attack_1`...), 8 direcciones y lienzos de
+  76..104 px según el estado. El script la reconoce y usa `MAPEOS_PIXELLAB`
+  (decisión del 2026-10-19):
+
+  | Animación | Sale de | Notas |
+  |---|---|---|
+  | reposo, caminar, correr | Idle, Walk, Run | enteras |
+  | saltar / caer | Jump 2..4 / Jump 5..7 | Jump es un salto hacia delante; el 0..1 (impulso) y el 8 (aterrizaje) no se usan |
+  | agachado / agachado_caminar | Sneak 0 / Sneak entero | no hay pose agachada quieta |
+  | desenvainar / envainar | Unsheathe / Unsheathe al revés | |
+  | atacar | Attack_1 (pose fija) | **provisional** hasta que haya animación de ataque |
+  | echarse / despertar | Stand_up 0..5 al revés / Stand_up 0..9 | 11 cuadros no caben en un banco |
+  | dormido | Sleep, mirando al **sur** | Pixellab solo lo generó en esa dirección |
+
+  Todo lo demás mira al este (la izquierda la pone el espejo del hardware).
+  Cada animación se ancla **sin escalar**: centro del lienzo → columna 48,
+  pies → fila 63.
+- Entrada a mano por animación: tira horizontal PNG de cuadros cuadrados,
+  carpeta con cuadros numerados, o GIF. Si falta una animación, el script
+  genera un **marcador**: celdas de 96×64 con el nombre y el número del cuadro.
+- Alineación (entrada a mano): una sola caja envolvente común a **todas** las
+  animaciones, pies al borde inferior. Así no hay saltos entre animaciones.
+- Paleta: se cuantizan juntos todos los cuadros de todas las animaciones a 15
+  colores; el índice 0 es transparente. Los `.pal` que genere gfx4snes deben
+  ser idénticos; se carga solo el de `reposo`.
+- Lo mismo vale para `barbara` en la Revisión 2 (misma carpeta, mismo script).
+
+## 11. Arquitectura
+
+```
+src/
+├── sistema/        main.c · secuencia.c/.h · comun.c/.h · pantallas.h · tipos.h · puntofijo.h
+├── pantallas/      pantalla_nintendo.c · _publisher.c · _devs.c · _dedicatoria.c
+│                   · _intro.c · _titulo.c · _nivel1.c · personajes.c/.h
+├── juego/          mando.c/.h · nivel.c/.h · camara.c/.h · animaciones.c/.h
+│                   · tarou.c/.h (lógica pura) · tarou_sprite.c/.h (OAM) · hud_debug.c/.h
+│                   · barbara.c/.h [stub R2] · cambio_protagonista.c/.h [stub Etapa 4]
+├── enemigos/       enemigos.c/.h [stub Etapa 3]
+├── objetos/        objetos.c/.h [stub Etapa 3]        (ítems)
+├── hud/            hud.c/.h [stub Etapa 3]            (vida, ítems; distinto de hud_debug)
+├── audio/          audio.c/.h [stub, sesión de audio]
+└── niveles/        niveles.c/.h [stub Etapa 2/3]      (carga de niveles por tiles)
+tests/              pruebas en PC con gcc: minitest.h · pruebas.c · prueba_*.c · Makefile
+```
+
+Flujo del nivel, por frame (el de la Revisión 1; el actual añade
+`partida_actualizar` tras `tarou_actualizar` y `fondo_nivel_vblank` en el
+VBlank, y `tarou_actualizar` ya no recibe el suelo: ver
+`docs/mapa-de-archivos.md` §4 y `docs/diseno-tutorial-movimiento.md` §7):
+
+```
+main.c ─ secuencia_actualizar() ─▶ pantalla_nivel1_actualizar()
+                                      mando_leer(&mando)                [juego/mando.c]
+                                      START → salir(PANTALLA_TITULO)
+                                      SELECT → hud_debug_alternar()
+                                      tarou_actualizar(&tarou, &mando, suelo)   [lógica pura]
+                                      camara = camara_para(x_pix)
+                                      (el scroll ya no se escribe aquí: ver _vblank)
+                                      tarou_sprite_dibujar(&tarou, camara)      [OAM]
+                                      hud_debug_dibujar(&tarou, camara)
+                                      oamInitDynamicSpriteEndFrame()
+       ─ WaitForVBlank()
+       ─ secuencia_vblank() ───────▶ pantalla_nivel1_vblank(): oamVramQueueUpdate()
+```
+
+(Diagrama de la Revisión 1. Hoy el motor dinámico del SDK ya no existe:
+`pantalla_nivel1_vblank` escribe el scroll de las dos capas con `bgSetScroll`
+y dispara la lista de DMA con `dma_lista_ejecutar`. El scroll se pasó al
+VBlank el 2026-10-22 para que cambie a la vez que las columnas y la OAM;
+antes se escribía a mitad del dibujo.)
+
+- **Lógica pura** (`tarou.c`, `camara.c`, `nivel.c`, `animaciones.c`): sin
+  `snes.h`. Incluyen `sistema/tipos.h`, que en la SNES toma `u8/u16/s16` de
+  `snes.h` y en el PC (`-DPRUEBAS_PC`) de `stdint.h`. Se compilan en la ROM
+  con `tcc816` y en `tests/` con `gcc`.
+- **Capa de hardware** (`mando.c`, `tarou_sprite.c`, `hud_debug.c`,
+  `pantalla_nivel1.c`): traduce entre la lógica y la PPU/mando.
+- **Intro y título:** `personajes.c` muestra a Tarou con la tira
+  `tarou_reposo_estatico` (siempre 2 cuadros de 96×64, elegidos del reposo
+  real por el pipeline; carga estática de 6 KB en VRAM 0x0000, tiles 0..191;
+  un `oamSet` de 32×32 por pieza según su tabla metasprite, hasta 6,
+  escondiendo las entradas que sobran) y a Bárbara (sprite estático de 64×64
+  en la segunda tabla de tiles, 256..511, VRAM 0x1000). Tamaño
+  `OBJ_SIZE32_L64`. Así el reposo del nivel puede tener los cuadros que
+  quiera el arte sin tocar `personajes.c`.
+
+## 12. Cabecera estándar de cada archivo fuente
+
+Todo `.c`, `.h` y `.asm` empieza con este bloque (en `.asm`, con `;`):
+
+```c
+/*---------------------------------------------------------------------------------
+    nombre.c — Una línea: qué es este archivo.
+
+    PROPÓSITO
+      Dos o tres frases: qué problema resuelve y cómo.
+
+    SE CONECTA CON
+      Incluye:  a.h (para X), b.h (para Y)
+      Lo usan:  c.c (llama a f), d.c (lee g)
+
+    HARDWARE QUE TOCA
+      PPU: registros de scroll (bgSetScroll) · OAM (oamSet) · ninguno
+
+    VARIABLES (globales y estáticas de este archivo)
+      nombre      tipo   rango / unidad          para qué sirve
+      x_fp        s16    0..7168, punto fijo 12.4 posición en el mundo
+
+    → glosario: Término1, Término2
+---------------------------------------------------------------------------------*/
+```
+
+Los stubs llevan además la línea `PENDIENTE: Etapa N — qué hará`.
+
+## 13. Verificación
+
+No hay suite de tests en la SNES. Tres niveles:
+
+1. **Pruebas en PC** (`make -C tests && tests/pruebas.exe`): la lógica pura
+   con los valores de §5 (aceleración, salto, corte, aterrizaje, cámara,
+   transiciones, animación). Todas en verde antes de cada commit.
+2. **Compilación de la ROM** desde PowerShell (comando de `CLAUDE.md`), con
+   `make clean` tras tocar cabeceras. Sin errores ni avisos nuevos; el `.log`
+   dice 16 bancos.
+3. **Mesen**, con capturas de `scripts/capturas_mesen.lua` (si Mesen bloquea
+   la escritura, activar el acceso a E/S de scripts en su configuración):
+   1. Start en el título entra al nivel con fundido; el HUD arranca apagado.
+   2. Caminar y correr a ambos lados; espejo correcto; la cámara se detiene en
+      0 y 256; Tarou llega a los dos bordes.
+   3. Salto largo (B mantenido) y corto (B soltado); control aéreo.
+   4. Abajo agacha; Abajo + dirección camina agachado; B agachado salta.
+   5. R desenvaina y envaina con animación; A solo ataca con espada fuera;
+      el HUD muestra la caja de golpe durante el ataque.
+   6. 10 s quieto: se echa, duerme; un botón lo despierta.
+   7. Las dos capas se desplazan a distinta velocidad sin costuras.
+   8. START vuelve al título; intro y título muestran al Tarou nuevo.
+
+## 14. Fuera de alcance
+
+~~Colisión con el escenario, desniveles, tileset y Tiled~~ (hecho en la
+Revisión 2: `docs/diseno-tutorial-movimiento.md`) · enemigos y daño ·
+ítems · Bárbara jugable y cambio de protagonista (Revisión 2 / Etapa 4) ·
+edades cachorro y vieja · audio · HUD del juego · derrape · ataque aéreo y
+agachado · variantes de animación con espada fuera · cámara suavizada.
+
+## 15. Riesgos y puntos a verificar
+
+- **Metasprite estático en intro y título:** la numeración de bloques de
+  `gfx4snes -s 32` (filas de 128 px, bloque `n` → tile `(n/4)*64 + (n%4)*4`)
+  se comprueba con el marcador numerado antes de fiarse de la fórmula.
+- **Piezas transparentes:** `gfx4snes -T` omite los bloques de 32×32 vacíos
+  (un Tarou dormido solo ocupa la fila de abajo de la celda): ningún código
+  supone 6 piezas por cuadro; se recorre hasta el terminador
+  (`metasprite_piezas`, `metasprite_espejar`, `tests/prueba_metasprite.c`).
+- **Sprites grandes y las dos tablas de tiles:** la OAM direcciona 512 tiles
+  en dos tablas de 256, y un sprite NO cruza de una a otra: al bajar de fila
+  la PPU suma 16 al número de tile y da la vuelta dentro de su tabla. Visto en
+  Mesen el 2026-10-19: con Bárbara (64×64) en el tile 192, la mitad de abajo
+  de dos de sus cuadros mostraba tiles de Tarou. Regla: un sprite grande
+  empieza en una tabla y no se sale de ella (Bárbara va en el 256).
+- **Primer cuadro al entrar en el nivel:** `pantalla_nivel1_iniciar` llama a
+  `oamVramQueueUpdate()` justo después de `oamInitDynamicSpriteEndFrame()`,
+  con la pantalla aún apagada; si no, los 32 frames del fade in muestran las
+  piezas que hubiera en VRAM (las de la tira estática del título).
+- **Nombres de las tablas `_meta.inc`:** se leen del archivo generado antes de
+  escribir `tarou_sprite.c`.
+- **`consoleDrawText` con `%d` negativos:** imprime el signo, pero su formateo
+  es caro y no se usa en el nivel (ver §9).
+- **`tcc816`:** da un error interno (ICE) con expresiones `?:` de cadenas como
+  argumentos variádicos (elegir el texto antes con `if/else`); `/` y `%` llaman
+  a una rutina lenta: evitar divisiones en código por frame.
+- **Mesen:** la configuración guardada del autor tenía `EmulationSpeed = 75`
+  (45 FPS), lo que hizo parecer lenta la ROM; `scripts/capturar_mesen.ps1`
+  fuerza `--Emulation.EmulationSpeed=100`. Al medir velocidad, mirar `F` y
+  `VB` del HUD, no el reloj.
+- **Altura del suelo y cajas:** se miden sobre el arte real cuando llegue.
+- **Arte de Pixellab:** puede no venir «en el sitio» ni con 15 colores; el
+  pipeline cuantiza y alinea, pero el resultado se revisa a ojo.
+- **`tcc816`:** evitar `int`, `long`, `float`, `bool`, punteros a función y
+  aritmética de 32 bits en la lógica pura, que también compila en gcc.
+- **Cambios de `pantallas.h` y `tipos.h`:** `make clean` antes de `make`.

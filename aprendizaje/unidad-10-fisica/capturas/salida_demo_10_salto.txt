@@ -1,0 +1,80 @@
+== 1. El salto del juego (VEL_SALTO -96, GRAVEDAD 4), frame a frame ==
+  frame  1  vy= -92  y_fp= 2212  y=138 px  altura=  5.75 px
+  frame  2  vy= -88  y_fp= 2124  y=132 px  altura= 11.25 px
+  frame  3  vy= -84  y_fp= 2040  y=127 px  altura= 16.50 px
+  frame  4  vy= -80  y_fp= 1960  y=122 px  altura= 21.50 px
+  frame  5  vy= -76  y_fp= 1884  y=117 px  altura= 26.25 px
+  frame  6  vy= -72  y_fp= 1812  y=113 px  altura= 30.75 px
+  frame  7  vy= -68  y_fp= 1744  y=109 px  altura= 35.00 px
+  frame  8  vy= -64  y_fp= 1680  y=105 px  altura= 39.00 px
+  frame  9  vy= -60  y_fp= 1620  y=101 px  altura= 42.75 px
+  frame 10  vy= -56  y_fp= 1564  y= 97 px  altura= 46.25 px
+  frame 11  vy= -52  y_fp= 1512  y= 94 px  altura= 49.50 px
+  frame 12  vy= -48  y_fp= 1464  y= 91 px  altura= 52.50 px
+  frame 13  vy= -44  y_fp= 1420  y= 88 px  altura= 55.25 px
+  frame 14  vy= -40  y_fp= 1380  y= 86 px  altura= 57.75 px
+  frame 15  vy= -36  y_fp= 1344  y= 84 px  altura= 60.00 px
+  frame 16  vy= -32  y_fp= 1312  y= 82 px  altura= 62.00 px
+  frame 17  vy= -28  y_fp= 1284  y= 80 px  altura= 63.75 px
+  frame 18  vy= -24  y_fp= 1260  y= 78 px  altura= 65.25 px
+  frame 19  vy= -20  y_fp= 1240  y= 77 px  altura= 66.50 px
+  frame 20  vy= -16  y_fp= 1224  y= 76 px  altura= 67.50 px
+  frame 21  vy= -12  y_fp= 1212  y= 75 px  altura= 68.25 px
+  frame 22  vy=  -8  y_fp= 1204  y= 75 px  altura= 68.75 px
+  frame 23  vy=  -4  y_fp= 1200  y= 75 px  altura= 69.00 px
+  frame 24  vy=   0  y_fp= 1200  y= 75 px  altura= 69.00 px
+  frame 25  vy=   4  y_fp= 1204  y= 75 px  altura= 68.75 px
+  frame 26  vy=   8  y_fp= 1212  y= 75 px  altura= 68.25 px
+  frame 27  vy=  12  y_fp= 1224  y= 76 px  altura= 67.50 px
+  frame 28  vy=  16  y_fp= 1240  y= 77 px  altura= 66.50 px
+  frame 29  vy=  20  y_fp= 1260  y= 78 px  altura= 65.25 px
+  frame 30  vy=  24  y_fp= 1284  y= 80 px  altura= 63.75 px
+  frame 31  vy=  28  y_fp= 1312  y= 82 px  altura= 62.00 px
+  frame 32  vy=  32  y_fp= 1344  y= 84 px  altura= 60.00 px
+  frame 33  vy=  36  y_fp= 1380  y= 86 px  altura= 57.75 px
+  frame 34  vy=  40  y_fp= 1420  y= 88 px  altura= 55.25 px
+  frame 35  vy=  44  y_fp= 1464  y= 91 px  altura= 52.50 px
+  frame 36  vy=  48  y_fp= 1512  y= 94 px  altura= 49.50 px
+  frame 37  vy=  52  y_fp= 1564  y= 97 px  altura= 46.25 px
+  frame 38  vy=  56  y_fp= 1620  y=101 px  altura= 42.75 px
+  frame 39  vy=  60  y_fp= 1680  y=105 px  altura= 39.00 px
+  frame 40  vy=  64  y_fp= 1744  y=109 px  altura= 35.00 px
+  frame 41  vy=  68  y_fp= 1812  y=113 px  altura= 30.75 px
+  frame 42  vy=  72  y_fp= 1884  y=117 px  altura= 26.25 px
+  frame 43  vy=  76  y_fp= 1960  y=122 px  altura= 21.50 px
+  frame 44  vy=  80  y_fp= 2040  y=127 px  altura= 16.50 px
+  frame 45  vy=  84  y_fp= 2124  y=132 px  altura= 11.25 px
+  frame 46  vy=  88  y_fp= 2212  y=138 px  altura=  5.75 px
+  frame 47  vy=   0  y_fp= 2304  y=144 px  altura=  0.00 px  <- aterriza
+
+== 2 y 3. Resumen de varias parejas ==
+VEL_SALTO  -96 GRAVEDAD 4: apogeo en el frame 23, altura  69.00 px (y_fp min 1200, y min  75 px), aterriza en el frame 47
+    en el aire 47 frames: caminando 47 px, corriendo  94 px | muro de 48 px: SI | foso (68 px en el aire) corriendo: SI
+VEL_SALTO  -80 GRAVEDAD 4: apogeo en el frame 19, altura  47.50 px (y_fp min 1544, y min  96 px), aterriza en el frame 39
+    en el aire 39 frames: caminando 39 px, corriendo  78 px | muro de 48 px: NO | foso (68 px en el aire) corriendo: SI
+VEL_SALTO -112 GRAVEDAD 4: apogeo en el frame 27, altura  94.50 px (y_fp min  792, y min  49 px), aterriza en el frame 56
+    en el aire 56 frames: caminando 56 px, corriendo 112 px | muro de 48 px: SI | foso (68 px en el aire) corriendo: SI
+VEL_SALTO -120 GRAVEDAD 6: apogeo en el frame 19, altura  71.25 px (y_fp min 1164, y min  72 px), aterriza en el frame 40
+    en el aire 40 frames: caminando 40 px, corriendo  80 px | muro de 48 px: SI | foso (68 px en el aire) corriendo: SI
+
+== 4. Salto corto: soltar B en el frame 2 (VEL_SALTO -96, GRAVEDAD 4) ==
+  frame  1  vy= -92  y_fp= 2212  y=138 px  altura=  5.75 px
+  frame  2  vy= -28  y_fp= 2184  y=136 px  altura=  7.50 px
+  frame  3  vy= -24  y_fp= 2160  y=135 px  altura=  9.00 px
+  frame  4  vy= -20  y_fp= 2140  y=133 px  altura= 10.25 px
+  frame  5  vy= -16  y_fp= 2124  y=132 px  altura= 11.25 px
+  frame  6  vy= -12  y_fp= 2112  y=132 px  altura= 12.00 px
+  frame  7  vy=  -8  y_fp= 2104  y=131 px  altura= 12.50 px
+  frame  8  vy=  -4  y_fp= 2100  y=131 px  altura= 12.75 px
+  frame  9  vy=   0  y_fp= 2100  y=131 px  altura= 12.75 px
+  frame 10  vy=   4  y_fp= 2104  y=131 px  altura= 12.50 px
+  frame 11  vy=   8  y_fp= 2112  y=132 px  altura= 12.00 px
+  frame 12  vy=  12  y_fp= 2124  y=132 px  altura= 11.25 px
+  frame 13  vy=  16  y_fp= 2140  y=133 px  altura= 10.25 px
+  frame 14  vy=  20  y_fp= 2160  y=135 px  altura=  9.00 px
+  frame 15  vy=  24  y_fp= 2184  y=136 px  altura=  7.50 px
+  frame 16  vy=  28  y_fp= 2212  y=138 px  altura=  5.75 px
+  frame 17  vy=  32  y_fp= 2244  y=140 px  altura=  3.75 px
+  frame 18  vy=  36  y_fp= 2280  y=142 px  altura=  1.50 px
+  frame 19  vy=   0  y_fp= 2304  y=144 px  altura=  0.00 px  <- aterriza
+  altura maxima 12.75 px, aterriza en el frame 19

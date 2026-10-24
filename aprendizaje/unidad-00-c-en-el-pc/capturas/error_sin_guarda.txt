@@ -1,0 +1,9 @@
+$ gcc -std=c99 -Wall -Wextra -o demo_06.exe demo_06_preprocesador.c    (con demo_06_caja.h SIN sus tres lineas de guarda)
+In file included from demo_06_preprocesador.c:35:
+demo_06_caja.h:30:8: error: redefinition of 'struct Caja'
+   30 | struct Caja                          /* Una struct con etiqueta (struct Caja): definirla  */
+      |        ^~~~
+In file included from demo_06_preprocesador.c:34:
+demo_06_caja.h:30:8: note: originally defined here
+   30 | struct Caja                          /* Una struct con etiqueta (struct Caja): definirla  */
+      |        ^~~~

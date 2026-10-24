@@ -1,0 +1,14 @@
+Práctica sobre el juego real (unidad 04), ejecutada el 2026-10-22 en el clon
+E:\ProyectoSNES_trabajo\u04 (commit 9a7234c + solucion/hud_encendido_en_rom_de_prueba.patch)
+
+1) Pruebas de PC (el cambio va dentro de #ifdef GUION_PRUEBA y no toca la lógica):
+   PS> $env:PATH="C:\msys64\usr\bin;"+$env:PATH; make -C tests; .\tests\pruebas.exe
+   367 pruebas, 0 fallos
+
+2) ROM de prueba con el HUD encendido desde el primer frame:
+   PS> make clean; $env:CFLAGS="-DGUION_PRUEBA"; make; $env:CFLAGS=$null
+   --- COMPILATION SUMMARY ---
+   No warnings or errors found.
+   ROM: 3712476 bytes (88.51%) free of total 4194304.
+
+   Copiada a E:\ProyectoSNES_trabajo\roms\u04_tutorial_hud.sfc para la tanda de Mesen.

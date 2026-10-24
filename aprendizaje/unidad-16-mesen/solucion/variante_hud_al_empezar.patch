@@ -1,0 +1,14 @@
+diff --git a/src/pantallas/pantalla_nivel1.c b/src/pantallas/pantalla_nivel1.c
+index 62ad091..f3ac2ec 100644
+--- a/src/pantallas/pantalla_nivel1.c
++++ b/src/pantallas/pantalla_nivel1.c
+@@ -160,6 +160,9 @@ void pantalla_nivel1_iniciar(void)
+                    &nivel1_lejos_map, &nivel1_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
+     fuente_2bpp(2);                                  /* Texto del HUD en el fondo 2...      */
+     hud_debug_iniciar();                             /* ...apagado hasta que lo pida SELECT.*/
++#ifdef HUD_AL_EMPEZAR
++    hud_debug_alternar();                            /* Variante de la unidad 16: HUD ya encendido. */
++#endif
+     mando_iniciar();                                 /* (Solo hace algo en la ROM de prueba.) */
+ 
+     tarou_sprite_cargar();                           /* OAM lista + paleta de Tarou.        */

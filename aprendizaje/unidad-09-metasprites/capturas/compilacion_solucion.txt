@@ -1,0 +1,22 @@
+# make clean; make en solucion/rom/ (2026-10-23, tras el arreglo)
+Debug mode: DISABLED
+Enable it with: export PVSNESLIB_DEBUG=1
+LoROM FastROM compilation is enabled
+--- COMPILATION SUMMARY ---
+No warnings or errors found.
+---------------------------
+ROM bank 0 (20 bytes (0.06%) free)
+ROM bank 1 (0 bytes (0.00%) free)
+ROM bank 2 (1 bytes (0.00%) free)
+ROM bank 3 (26980 bytes (82.34%) free)
+ROM bank 4 (32768 bytes (100.00%) free)
+ROM bank 5 (32768 bytes (100.00%) free)
+ROM bank 6 (32768 bytes (100.00%) free)
+ROM bank 7 (32768 bytes (100.00%) free)
+RAM slot 0 bank 126 (25120 bytes (76.66%) free)
+RAM slot 1 bank 0 (7995 bytes (97.60%) free)
+RAM slot 2 bank 126 (57266 bytes (99.86%) free)
+RAM slot 3 bank 127 (65432 bytes (99.84%) free)
+ROM: 158073 bytes (60.30%) free of total 262144.
+RAM: 155813 bytes (95.10%) free of total 163840.
+

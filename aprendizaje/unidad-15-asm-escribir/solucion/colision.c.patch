@@ -1,0 +1,31 @@
+diff --git a/src/juego/colision.c b/src/juego/colision.c
+index 079f21f..cf8575d 100644
+--- a/src/juego/colision.c
++++ b/src/juego/colision.c
+@@ -28,7 +28,10 @@
+ #define ANCHO_PX (COLUMNAS_COLISION * CELDA_COLISION)   /* 2048: más allá, pared.     */
+ #define ALTO_PX (FILAS_COLISION * CELDA_COLISION)       /* 224: más abajo, vacío.     */
+ 
+-static const u8 *rejilla;      /* La rejilla elegida con colision_usar (0 = ninguna).      */
++/* SIN static (unidad 15): juego/colision_rapida.asm la lee por su nombre. Un static
++   de tcc816 se llama tccs_<archivo>_rejilla y no se ve desde otro archivo. */
++const u8 *colision_rejilla;    /* La rejilla elegida con colision_usar (0 = ninguna).      */
++#define rejilla colision_rejilla   /* El resto del archivo sigue diciendo "rejilla".      */
+ static u16 bloque_x, bloque_y; /* Esquina de arriba a la izquierda del bloque.             */
+ static u16 bloque_ancho, bloque_alto; /* Su tamaño; ancho 0 = no hay bloque.               */
+ 
+@@ -141,6 +144,9 @@ u8 colision_fila_es(s16 x0, s16 x1, s16 y, u8 tipo)
+     return 0;
+ }
+ 
++/* En la SNES, colision_apoyan está en ensamblador (juego/colision_rapida.asm); esta
++   versión en C es la de las pruebas del PC (y la referencia de la de ensamblador). */
++#ifdef PRUEBAS_PC
+ u8 colision_apoyan(u16 xa, u16 xb, s16 y)
+ {
+     u16 base;
+@@ -168,3 +174,4 @@ u8 colision_apoyan(u16 xa, u16 xb, s16 y)
+     }
+     return 0;
+ }
++#endif /* PRUEBAS_PC */

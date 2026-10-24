@@ -1,0 +1,46 @@
+diff --git a/src/juego/animaciones.c b/src/juego/animaciones.c
+index 42851d5..480c10c 100644
+--- a/src/juego/animaciones.c
++++ b/src/juego/animaciones.c
+@@ -36,8 +36,8 @@ const AnimDef ANIMACIONES[ESTADO_CANTIDAD] = {
+     {TAROU_CAER_CUADROS, 6, 0},               /* ESTADO_CAYENDO             */
+     {TAROU_AGACHADO_CUADROS, 12, 1},          /* ESTADO_AGACHADO            */
+     {TAROU_AGACHADO_CAMINAR_CUADROS, 8, 1},   /* ESTADO_AGACHADO_CAMINANDO  */
+-    {TAROU_DESENVAINAR_CUADROS, 5, 0},        /* ESTADO_DESENVAINANDO       */
+-    {TAROU_ENVAINAR_CUADROS, 5, 0},           /* ESTADO_ENVAINANDO          */
++    {TAROU_DESENVAINAR_CUADROS, 3, 0},        /* ESTADO_DESENVAINANDO: arte 9 x 3 = 27 frames (0,45 s); antes 5 (0,75 s) */
++    {TAROU_ENVAINAR_CUADROS, 3, 0},           /* ESTADO_ENVAINANDO: igual que desenvainar  */
+     {TAROU_ATACAR_CUADROS, DURACION_ATAQUE / TAROU_ATACAR_CUADROS, 0}, /* ESTADO_ATACANDO: el
+                                                  golpe dura unos 20 frames: exacto si los cuadros
+                                                  dividen a 20 (hoy 1, la pose fija Attack_1: 1 x 20);
+@@ -45,7 +45,7 @@ const AnimDef ANIMACIONES[ESTADO_CANTIDAD] = {
+                                                  la hace el compilador: son dos constantes.  */
+     {TAROU_ECHARSE_CUADROS, 8, 0},            /* ESTADO_ECHANDOSE           */
+     {TAROU_DORMIDO_CUADROS, 20, 1},           /* ESTADO_DORMIDO             */
+-    {TAROU_DESPERTAR_CUADROS, 8, 0},          /* ESTADO_DESPERTANDO         */
++    {TAROU_DESPERTAR_CUADROS, 5, 0},          /* ESTADO_DESPERTANDO: arte 10 x 5 = 50 frames (0,83 s); antes 8 (1,33 s) */
+ };
+ 
+ const char *const NOMBRES_ESTADO[ESTADO_CANTIDAD] = {
+diff --git a/tests/prueba_tarou.c b/tests/prueba_tarou.c
+index e9c63dd..e395199 100644
+--- a/tests/prueba_tarou.c
++++ b/tests/prueba_tarou.c
+@@ -292,7 +292,7 @@ static void prueba_salto_corriendo(void)
+      ATACANDO; §5 cajas). Las animaciones sin bucle terminan a los
+      cuadros * frames_por_cuadro frames y el estado cambia en el frame siguiente. ===*/
+ 
+-#define FRAMES_DESENVAINAR (4 * 5)              /* tarou_anim.h: 4 cuadros x 5 frames.  */
++#define FRAMES_DESENVAINAR (4 * 3)              /* tarou_anim.h: 4 cuadros x 3 frames.  */
+ #define FRAMES_ATACAR (5 * 4)                   /* 5 cuadros x 4 frames.                */
+ 
+ static void prueba_agacharse(void)
+@@ -478,7 +478,7 @@ static void prueba_prioridad_espada(void)
+ /*=== Dormir y despertar (§4 ECHANDOSE, DORMIDO, DESPERTANDO) y animación (§7) ======*/
+ 
+ #define FRAMES_ECHARSE (4 * 8)                  /* tarou_anim.h: 4 cuadros x 8 frames.  */
+-#define FRAMES_DESPERTAR (4 * 8)
++#define FRAMES_DESPERTAR (4 * 5)                 /* 4 cuadros (copia fija) x 5 frames.   */
+ 
+ static void prueba_dormirse(void)
+ {

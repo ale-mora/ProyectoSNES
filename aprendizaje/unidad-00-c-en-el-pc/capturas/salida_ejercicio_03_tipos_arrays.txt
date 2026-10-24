@@ -1,0 +1,7 @@
+Nivel 1: 2 vidas perdidas
+Nivel 2: 0 vidas perdidas
+Nivel 3: 1 vidas perdidas
+Nivel 4: 0 vidas perdidas
+Nivel 5: 3 vidas perdidas
+Total de vidas perdidas: 6
+Niveles perfectos (0 vidas perdidas): 2

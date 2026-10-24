@@ -1,0 +1,19 @@
+--- make (ROM normal, en el clone) ---
+ROM bank 10 (0 bytes (0.00%) free)
+ROM bank 11 (0 bytes (0.00%) free)
+ROM bank 12 (2 bytes (0.01%) free)
+ROM bank 13 (3 bytes (0.01%) free)
+ROM bank 14 (5382 bytes (16.42%) free)
+ROM bank 15 (32768 bytes (100.00%) free)
+ROM bank 16 (32768 bytes (100.00%) free)
+ROM bank 17 (32768 bytes (100.00%) free)
+ROM bank 18 (32768 bytes (100.00%) free)
+ROM bank 19 (32768 bytes (100.00%) free)
+ROM: 3708190 bytes (88.41%) free of total 4194304.
+RAM: 152957 bytes (93.36%) free of total 163840.
+--- tests/pruebas.exe ---
+367 pruebas, 0 fallos
+--- .sym ---
+0085f000 tarou_guardia_til
+00860000 tarou_guardia_til_end
+008eea9d tarou_til_bancos

@@ -1,0 +1,34 @@
+# Unidad 14 — comprobaciones (2026-10-22, clon E:\ProyectoSNES_trabajo\u14, PVSnesLib 4.6.0, FastROM)
+# Generado con: make src/juego/camara.asm src/juego/nivel.asm src/pantallas/personajes.asm src/juego/guion.asm (PowerShell)
+
+## Líneas de cada .asm generado
+   85 camara.asm
+   43 nivel.asm
+  894 personajes.asm
+  516 guion.asm
+  246 divisiones.asm
+ 1784 total
+
+## TODO 3: tcc__div en personajes.asm (original) y con (u16)n (personajes_u16.patch)
+original:      2
+con (u16)n:    0
+
+## TODO 3.5: divisiones.asm, qué llama cada función
+div_u8: jsr.l tcc__div 
+div_u8_cast: lsr.b tcc__r0 
+div_u8_local: lsr.b tcc__r0 
+div_u16: lsr.b tcc__r0 
+div_s16: jsr.l tcc__div 
+shr_u8: ror.b tcc__r0 
+div_u16_var: jsr.l tcc__udiv 
+
+## TODO 4: mantenidos con puntero (guion.asm) y con guion[i] (guion_indice.patch)
+puntero, tcc__mul: 0
+puntero, t++ suma: adc.w #6
+indice,  tcc__mul: 3
+indice,  lo que se carga en tcc__r9 antes de cada tcc__mul:
+lda.w #6
+lda.w #6
+lda.w #6
+líneas de mantenidos: puntero 144
+                      índice  181

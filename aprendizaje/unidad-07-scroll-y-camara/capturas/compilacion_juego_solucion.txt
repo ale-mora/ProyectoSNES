@@ -1,0 +1,6 @@
+Debug mode: DISABLED
+Enable it with: export PVSNESLIB_DEBUG=1
+LoROM FastROM compilation is enabled
+--- COMPILATION SUMMARY ---
+No warnings or errors found.
+---------------------------

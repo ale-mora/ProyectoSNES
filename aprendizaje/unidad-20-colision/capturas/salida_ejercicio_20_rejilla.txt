@@ -1,0 +1,4 @@
+1. celda(40,130)=2 celda(85,200)=1 celda(10,10)=0 celda(2048,0)=1 celda(10,300)=0
+2. solapan=1 rozan=0 dentro=1 lejos=0
+3. x=53 x=56 x=59 x=62 x=64
+4. cruza=128 no_cruza=-1 sin_plataforma=-1 desde_abajo=-1 suelo=208

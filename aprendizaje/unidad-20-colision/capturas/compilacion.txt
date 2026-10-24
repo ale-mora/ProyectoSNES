@@ -1,0 +1,17 @@
+Clon E:\ProyectoSNES_trabajo\u20 con la solución (foso en las columnas 107..110 + guion de 14 tramos), 2026-10-22:
+
+PS> python scripts/preparar_nivel.py
+  res\nivel1\fondo_cerca.png  2080x256; 264 tiles distintos; 15 colores; 8 carteles   (sin el foso: 260)
+  res\nivel1\colision.bin  128x14 celdas;  res\nivel1\nivel1_datos.h
+
+PS> make clean; make
+No warnings or errors found.          (ProyectoSNES.sfc, 4194304 bytes)
+
+PS> make clean; $env:CFLAGS="-DGUION_PRUEBA"; make; $env:CFLAGS=$null
+No warnings or errors found.          (copiada a E:\ProyectoSNES_trabajo\roms\u20_foso2_guion.sfc)
+
+Ejemplo del SDK graphics/maps/tiled copiado a otra carpeta y compilado:
+ROM: 229439 bytes (87.52%) free of total 262144.
+Build finished successfully !
+
+gcc -std=c99 -Wall -Wextra (demo_20_colision.c, traza_20.c, ejercicio_20_rejilla.c y su solución): sin avisos.
