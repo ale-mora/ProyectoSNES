@@ -38,6 +38,18 @@ void pruebas_camara(void)
     COMPROBAR(ANCHO_NIVEL == 2048);               /* El tutorial: 8 pantallas.            */
     COMPROBAR(COLUMNAS_NIVEL == 256);
     COMPROBAR(ANCHO_PANTALLA == 256);
+    /* Cámara del beat 'em up: solo hacia delante, a CAMARA_PASO por frame, con tope. */
+    COMPROBAR(camara_avanzar(0, 100, 0xFFFF) == 0);             /* Aún no pasa del centro (128). */
+    COMPROBAR(camara_avanzar(0, 128, 0xFFFF) == 0);
+    COMPROBAR(camara_avanzar(0, 129, 0xFFFF) == 1);             /* Un píxel más: lo sigue.       */
+    COMPROBAR(camara_avanzar(0, 500, 0xFFFF) == CAMARA_PASO);   /* Lejos: no más de 2 por frame. */
+    COMPROBAR(camara_avanzar(300, 200, 0xFFFF) == 300);         /* Nunca retrocede.              */
+    COMPROBAR(camara_avanzar(255, 1000, 256) == 256);           /* El límite de la zona manda...  */
+    COMPROBAR(camara_avanzar(256, 1000, 256) == 256);           /* ...y la deja quieta.          */
+    COMPROBAR(camara_avanzar(1791, 2000, 0xFFFF) == 1792);      /* El final del nivel.           */
+    COMPROBAR(camara_avanzar(1792, 2000, 0xFFFF) == 1792);
+    COMPROBAR(CAMARA_PASO == 2);
+
     COMPROBAR(ANCHO_CELDA == 96);                 /* Celda de 96x64: el perro de Pixellab */
     COMPROBAR(ALTO_CELDA == 64);                  /* mide hasta 81 px de ancho al correr. */
 

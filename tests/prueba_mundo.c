@@ -32,6 +32,7 @@ void pruebas_mundo(void)
     Cuerpo c;
     Mando m;
     u8 k, subio, max_alto;
+    u16 n;
 
     /* Quieto: no se mueve y está PARADO. */
     preparar(&c, &m);
@@ -77,11 +78,22 @@ void pruebas_mundo(void)
     }
     COMPROBAR(c.x == MUNDO_X_MIN);
     m.izquierda = 0; m.derecha = 1;
-    for (k = 0; k < 200; k++)
+    for (n = 0; n < 1000; n++)                       /* 1000 · 2 px: de sobra hasta el final. */
     {
         mundo_actualizar(&c, &m);
     }
     COMPROBAR(c.x == MUNDO_X_MAX);
+
+    /* La cámara estrecha los límites: mundo_limitar_x recorta por los dos lados. */
+    mundo_iniciar(&c, 500, 200);
+    mundo_limitar_x(&c, 324, 532);
+    COMPROBAR(c.x == 500);                           /* Dentro de los límites: no se toca.    */
+    mundo_iniciar(&c, 100, 200);
+    mundo_limitar_x(&c, 324, 532);
+    COMPROBAR(c.x == 324);                           /* Por la izquierda: no vuelve atrás.    */
+    mundo_iniciar(&c, 900, 200);
+    mundo_limitar_x(&c, 324, 532);
+    COMPROBAR(c.x == 532);                           /* Por la derecha: no sale de la pantalla. */
 
     /* Salto: sube, llega a ~36 px, baja y aterriza en 24 frames, de nuevo PARADO. */
     preparar(&c, &m);

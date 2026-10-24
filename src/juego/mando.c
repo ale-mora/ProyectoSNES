@@ -43,27 +43,26 @@ static u16 cuadro_guion;           /* Cuadros desde que empezó el nivel (ROM de
 #define G_ARR 4
 #define G_ABA 8
 #define G_SAL 16
+#define G_ATK 32
 typedef struct
 {
     u16 hasta;
     u8 teclas;
 } TramoFase1;
 static const TramoFase1 GUION_F1[] = {
-    {60, 0},                       /* Quieto 1 s: se ve el cuadro de reposo.               */
-    {120, G_DER},                  /* Derecha 1 s.                                         */
-    {150, G_ABA},                  /* Abajo: hasta el borde del carril.                    */
-    {210, G_ARR},                  /* Arriba: hasta el otro borde.                         */
-    {240, 0},
-    {243, G_SAL},                  /* Salto quieto (3 cuadros de B).                       */
-    {300, 0},                      /* Aterriza.                                            */
-    {360, G_IZQ},                  /* Izquierda: x se acerca al borde izquierdo.           */
-    {363, G_IZQ | G_SAL},          /* Salto andando hacia la izquierda...                  */
-    {375, G_IZQ | G_ARR},          /* ...y cambia de carril en el aire (arriba).           */
-    {420, 0},
-    {480, G_DER | G_ABA},          /* Diagonal: x e y a la vez.                            */
-    {540, 0},
+    {30, 0},                       /* Quieto medio segundo.                                */
+    {420, G_DER},                  /* Derecha: la cámara sigue a Tarou y se bloquea en 256. */
+    {423, G_ATK},                  /* A = «oleada vencida»: se libera la cámara.           */
+    {480, G_DER | G_ARR},          /* Sigue a la derecha y sube de carril.                 */
+    {483, G_DER | G_SAL},          /* Salto andando.                                       */
+    {600, G_DER},
+    {900, G_DER | G_ABA},          /* La cámara se bloquea en 640 (zona 1) y Tarou la alcanza. */
+    {903, G_ATK},                  /* Segunda oleada vencida.                              */
+    {1000, G_IZQ},                 /* Izquierda: la cámara NO retrocede; Tarou topa con su borde. */
+    {1260, G_DER},                 /* Y otra vez a la derecha, hacia la zona 2.            */
+    {1320, 0},
 };
-#define GUION_F1_TRAMOS 13
+#define GUION_F1_TRAMOS 11
 static u8 teclas_antes;            /* Teclas del cuadro anterior (para el «recién pulsado»). */
 #endif
 
@@ -108,7 +107,8 @@ void mando_leer(Mando *m)
         m->abajo = (u8)((teclas & G_ABA) != 0);
         m->saltar = (u8)((teclas & G_SAL) != 0);
         m->saltar_pulsado = (u8)(m->saltar && !(teclas_antes & G_SAL));
-        m->correr = m->atacar_pulsado = m->espada_pulsado = 0;
+        m->atacar_pulsado = (u8)((teclas & G_ATK) != 0 && !(teclas_antes & G_ATK));
+        m->correr = m->espada_pulsado = 0;
         m->hud_pulsado = (u8)((pulsados & KEY_SELECT) != 0);   /* Estos dos, del mando real. */
         m->salir_pulsado = (u8)((pulsados & KEY_START) != 0);
         m->actividad = (u8)(teclas != 0);

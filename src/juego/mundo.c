@@ -33,6 +33,18 @@ void mundo_iniciar(Cuerpo *c, u16 x, u16 y)
     c->libre[1] = 0;
 }
 
+void mundo_limitar_x(Cuerpo *c, u16 x_min, u16 x_max)
+{
+    if (c->x < x_min)
+    {
+        c->x = x_min;
+    }
+    else if (c->x > x_max)
+    {
+        c->x = x_max;
+    }
+}
+
 u16 mundo_altura(const Cuerpo *c)
 {
     return (u16)(c->z >> 4);                         /* 12.4 a píxeles (z nunca es negativa). */

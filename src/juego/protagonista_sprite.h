@@ -38,8 +38,9 @@
 void protagonista_sprite_cargar(void);
 
 /* Un frame, DESPUÉS de dma_lista_vaciar(): avanza la animación, añade a la lista de DMA
-   lo que toque subir, rellena las entidades y las ordena por profundidad. */
-void protagonista_sprite_actualizar(const Cuerpo *c);
+   lo que toque subir, rellena las entidades y las ordena por profundidad. `camara` es el
+   desplazamiento horizontal del escenario: la x de pantalla es c->x − camara. */
+void protagonista_sprite_actualizar(const Cuerpo *c, u16 camara);
 
 /* 1 cuando el cuadro actual ya está entero en la VRAM (antes del fade in, para no
    enseñar basura). */

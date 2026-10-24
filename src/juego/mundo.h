@@ -39,8 +39,10 @@
     con la sombra de la fila de abajo. */
 #define CARRIL_Y_MIN 184
 #define CARRIL_Y_MAX 216
-#define MUNDO_X_MIN 24                   /* Límites de x (el centro del cuerpo): hoy, una */
-#define MUNDO_X_MAX 232                  /* sola pantalla; la cámara los moverá.          */
+#define MUNDO_X_MIN 24                   /* Límites de x (el centro del cuerpo) en TODO el */
+#define MUNDO_X_MAX 2024                 /* nivel (ANCHO_NIVEL 2048 − 24). La cámara los   */
+#define MARGEN_PANTALLA 24               /* estrecha con mundo_limitar_x: ni un paso más   */
+                                         /* allá de este margen del borde de la pantalla.  */
 
 /*--- Movimiento (px por frame; las cifras se ajustan jugando, §12) ------------------*/
 #define PASO_X 2                         /* Andar en x.                                   */
@@ -73,6 +75,11 @@ void mundo_iniciar(Cuerpo *c, u16 x, u16 y);
 
 /* Un frame: mueve según el mando, salta, aplica la gravedad y recorta a los límites. */
 void mundo_actualizar(Cuerpo *c, const Mando *m);
+
+/* Recorta x a [x_min, x_max]: la cámara pone ahí los bordes de la pantalla (cámara +
+   MARGEN_PANTALLA y cámara + 256 − MARGEN_PANTALLA), para que el protagonista no salga de
+   ella ni vuelva atrás de lo ya recorrido. Después de mundo_actualizar. */
+void mundo_limitar_x(Cuerpo *c, u16 x_min, u16 x_max);
 
 /* La altura en píxeles (z / 16, 0 en el suelo). */
 u16 mundo_altura(const Cuerpo *c);

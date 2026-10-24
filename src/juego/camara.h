@@ -29,4 +29,16 @@
    a 0..ANCHO_NIVEL - ANCHO_PANTALLA. Devuelve píxeles enteros. */
 u16 camara_para(u16 x_pix);
 
+/*--- Cámara del beat 'em up (docs/diseno-beat-em-up.md §3, «zonas por oleadas») -------
+    No retrocede nunca (como en Final Fight) y no pasa del `limite` que pone la zona en
+    curso (juego/oleadas.c: la cámara se bloquea hasta vencer la oleada). */
+#define CAMARA_PASO 2        /* Píxeles por frame como mucho: fondo_nivel_actualizar no se
+                                salta ninguna columna de 8 px y no se adelanta al protagonista. */
+
+/* Un frame de cámara: persigue la x del CENTRO del protagonista (queda en el centro de la
+   pantalla, 128) pero solo hacia delante, a CAMARA_PASO por frame, sin pasar de `limite`
+   (0xFFFF = sin límite) ni del final del nivel (ANCHO_NIVEL − ANCHO_PANTALLA). Devuelve la
+   cámara nueva. */
+u16 camara_avanzar(u16 camara, u16 x_centro, u16 limite);
+
 #endif /* CAMARA_H */

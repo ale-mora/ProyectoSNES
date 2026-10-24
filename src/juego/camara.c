@@ -38,3 +38,27 @@ u16 camara_para(u16 x_pix)
     }
     return (u16)camara;
 }
+
+u16 camara_avanzar(u16 camara, u16 x_centro, u16 limite)
+{
+    u16 meta;                           /* Dónde la dejaría el protagonista centrado.      */
+
+    meta = (u16)(x_centro > ANCHO_PANTALLA / 2 ? x_centro - ANCHO_PANTALLA / 2 : 0);
+    if (meta > CAMARA_MAX)
+    {
+        meta = CAMARA_MAX;              /* No hay más nivel.                               */
+    }
+    if (meta > limite)
+    {
+        meta = limite;                  /* La zona en curso no deja pasar (oleada viva).   */
+    }
+    if (meta <= camara)
+    {
+        return camara;                  /* Nunca retrocede.                                */
+    }
+    if (meta - camara > CAMARA_PASO)
+    {
+        return (u16)(camara + CAMARA_PASO);   /* A lo sumo CAMARA_PASO por frame.          */
+    }
+    return meta;
+}

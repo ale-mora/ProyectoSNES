@@ -175,7 +175,7 @@ static void subir(void)
     }
 }
 
-void protagonista_sprite_actualizar(const Cuerpo *c)
+void protagonista_sprite_actualizar(const Cuerpo *c, u16 camara)
 {
     SpriteEnt *s;
     P16Cuadro cu;
@@ -186,7 +186,7 @@ void protagonista_sprite_actualizar(const Cuerpo *c)
 
     /*--- El cuerpo: x0, y0 son el borde izquierdo y el de arriba de la celda ---------*/
     s = sprites_ent + ENT_CUERPO;
-    s->x0 = (u16)(c->x - ANCHO_CELDA / 2);           /* Centrado en x (puede ser < 0).      */
+    s->x0 = (u16)(c->x - camara - ANCHO_CELDA / 2);  /* x de pantalla, centrado (puede ser < 0). */
     s->y0 = (u16)(c->y - ALTO_CELDA + 2 - mundo_altura(c));   /* 2 px hundido, como en el nivel. */
     s->borde = sprites_borde(s->x0, s->y0, ANCHO_CELDA, ALTO_CELDA);
     s->tile = (u16)(bufer ? TILE_TAROU_B : TILE_TAROU_A);
@@ -204,7 +204,7 @@ void protagonista_sprite_actualizar(const Cuerpo *c)
 
     /*--- La sombra: en el suelo (no sube con el salto), bajo el centro -----------------*/
     s = sprites_ent + ENT_SOMBRA;
-    s->x0 = (u16)(c->x - 16);
+    s->x0 = (u16)(c->x - camara - 16);
     s->y0 = (u16)(c->y - SOMBRA_ALTO);
     s->borde = sprites_borde(s->x0, s->y0, 32, 16);
 
