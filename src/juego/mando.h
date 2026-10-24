@@ -30,6 +30,8 @@
       hud_pulsado         recién      SELECT
       salir_pulsado       recién      START
       actividad           cualquier botón o dirección mantenido o pulsado (para dormir)
+      arriba              mantenido   cruceta arriba (el plataformas no la usa; en el
+                          beat 'em up, con abajo, mueve por el carril: juego/mundo.c)
 
     → glosario: Mando, struct
 ---------------------------------------------------------------------------------*/
@@ -43,6 +45,7 @@ typedef struct
     u8 izquierda, derecha, abajo, correr, saltar;                                /* mantenidos     */
     u8 saltar_pulsado, atacar_pulsado, espada_pulsado, hud_pulsado, salir_pulsado; /* recién pulsados*/
     u8 actividad;                                                                /* algo tocado    */
+    u8 arriba;                                                                   /* mantenido: carril (beat 'em up) */
 } Mando;
 
 /* Rellena `m` leyendo el mando 1 de la SNES. Solo existe en la ROM (juego/mando.c). */

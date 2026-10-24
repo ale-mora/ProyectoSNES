@@ -14,7 +14,7 @@
       Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h,
                 pantallas/personajes.h.
       Lee de la ROM: cerca_*, lejos_* y hdmaGradcieloList (data.asm).
-      Lo usan:  sistema/secuencia.c. Start lleva a PANTALLA_NIVEL1.
+      Lo usan:  sistema/secuencia.c. Start lleva a PANTALLA_FASE1.
 
     HARDWARE QUE TOCA
       PPU: modo y prioridad de BG3 (setMode), fondos y texto por comun.c, scroll
@@ -88,10 +88,11 @@ void pantalla_titulo_iniciar(void)
 
 void pantalla_titulo_actualizar(void)
 {
-    /*--- 1. Start: entramos al nivel 1 --------------------------------------------*/
+    /*--- 1. Start: entramos a la fase 1 del beat 'em up (el tutorial del plataformas
+           sigue compilado, pero solo se abre con -DGUION_PRUEBA) -------------------*/
     if (padsDown(0) & KEY_START)
     {
-        salir(PANTALLA_NIVEL1);
+        salir(PANTALLA_FASE1);
         return;
     }
 

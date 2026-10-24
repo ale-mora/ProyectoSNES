@@ -55,6 +55,9 @@ int main(void)
 #if defined(PRUEBA_CARGA)
     prueba_carga_ejecutar();          /* ROM de prueba de carga (make con -DPRUEBA_CARGA):
                                          su propio bucle, no vuelve (pantallas/prueba_carga.h). */
+#elif defined(GUION_FASE1)
+    secuencia_iniciar(PANTALLA_FASE1);   /* ROM de prueba (make con -DGUION_FASE1): directo a la
+                                            fase 1 del beat 'em up, que se juega sola (mando.c). */
 #elif defined(GUION_PRUEBA)
     secuencia_iniciar(PANTALLA_NIVEL1);  /* ROM de prueba (make con -DGUION_PRUEBA): directo
                                             al nivel, que se juega solo (juego/guion.h).  */

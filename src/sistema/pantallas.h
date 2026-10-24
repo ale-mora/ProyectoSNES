@@ -41,7 +41,8 @@ typedef enum
     PANTALLA_DEDICATORIA,      /* (4) mensaje personal, máquina de escribir                  */
     PANTALLA_INTRO,            /* (5) tres escenas con texto                                 */
     PANTALLA_TITULO,           /* (6) título con PRESS START, attract a los 15 s             */
-    PANTALLA_NIVEL1,           /* (7) el nivel 1 (el tutorial); Start vuelve al título       */
+    PANTALLA_NIVEL1,           /* (7) el nivel 1 (el tutorial del plataformas, congelado: solo con -DGUION_PRUEBA) */
+    PANTALLA_FASE1,            /* (7b) la fase 1 del beat 'em up (esqueleto); Start vuelve al título */
     PANTALLA_PROXIMAMENTE,     /* (8) "LEVEL 2 / COMING SOON" al salir del nivel 1           */
     CANTIDAD_PANTALLAS         /* no es una pantalla: cuenta cuántas hay arriba              */
 } Pantalla;                    /* "Pantalla" pasa a ser un tipo de dato, como u8 o u16.      */
@@ -109,6 +110,11 @@ void pantalla_titulo_actualizar(void);
 void pantalla_nivel1_iniciar(void);
 void pantalla_nivel1_actualizar(void);
 void pantalla_nivel1_vblank(void);
+
+/* La fase 1 del beat 'em up: también tiene _vblank (la lista de copias a la VRAM). */
+void pantalla_fase1_iniciar(void);
+void pantalla_fase1_actualizar(void);
+void pantalla_fase1_vblank(void);
 
 void pantalla_proximamente_iniciar(void);
 void pantalla_proximamente_actualizar(void);

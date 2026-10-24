@@ -47,6 +47,7 @@ void guion_mando(const TramoGuion *guion, u8 n, u16 cuadro, Mando *m)
     m->izquierda = (u8)((ahora & BOTON_IZQUIERDA) != 0);
     m->derecha = (u8)((ahora & BOTON_DERECHA) != 0);
     m->abajo = (u8)((ahora & BOTON_ABAJO) != 0);
+    m->arriba = 0;                                   /* El tutorial no usa la cruceta arriba. */
     m->correr = (u8)((ahora & BOTON_CORRER) != 0);
     m->saltar = (u8)((ahora & BOTON_SALTAR) != 0);
     m->saltar_pulsado = (u8)((nuevos & BOTON_SALTAR) != 0);

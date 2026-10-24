@@ -68,6 +68,13 @@ Load-test ROM for the beat 'em up (`docs/diseno-beat-em-up.md` §9, results in �
 make clean; $env:CFLAGS="-DPRUEBA_CARGA"; make; $env:CFLAGS=$null
 .\scripts\capturar_mesen.ps1 -Rom RUTA\prueba_carga.sfc -Duracion 66 -Cada 2 -Espera 2
 ```
+Skeleton of the beat 'em up (2026-10-24; `src/pantallas/pantalla_fase1.c`): Start on the title now enters it (the platformer level `PANTALLA_NIVEL1` stays compiled and is only reachable with `-DGUION_PRUEBA`). Tarou walks the lane (arrows: x and depth, `Mando.arriba` is new), jumps (B) and has a shadow, drawn on the new sprite layer (`juego/mundo.c` pure logic, 17 PC checks in `tests/prueba_mundo.c`; `juego/protagonista_sprite.c` hardware). Placeholder background = level 1 near/far layers, still; no camera, enemies, waves, hits or Bárbara yet. Self-playing ROM (boots into the phase, walks the lane and jumps from a table in `mando.c`, HUD on; `make clean` before and after):
+```
+make clean; $env:CFLAGS="-DGUION_FASE1"; make; $env:CFLAGS=$null
+.\scripts\capturar_mesen.ps1 -Rom RUTA\guion_fase1.sfc -Duracion 11 -Cada 0.5 -Espera 3
+```
+Note: wlalink runs with `-d` (discard unreferenced sections), so the ROM grows when game code starts referencing assets that only a test ROM used before (the 14 `.p16` strips of Tarou: 88 % → 83 % free).
+
 Mesen verification without hands (window captures every N seconds, optionally starting at `-Desde`; pad driven by a time-based key script; see `docs/mesen-y-depuracion.md` §5):
 ```
 .\scripts\capturar_mesen.ps1 -Duracion 70 -Cada 1 -Espera 4 -Guion "55,55.3,Start;57,57.3,Select;58,61,Right"

@@ -160,6 +160,7 @@ src/juego/tarou_sprite.obj: $(TAROU_PICS)
 src/pantallas/personajes.obj: res/personajes/tarou/tarou_reposo_estatico.pic
 src/juego/animaciones.obj: res/personajes/tarou/tarou_anim.h
 src/pantallas/pantalla_nivel1.obj: res/nivel1/nivel1_datos.h
+src/pantallas/pantalla_fase1.obj: res/nivel1/nivel1_datos.h
 
 # ROM de prueba de carga (docs/diseno-beat-em-up.md §9; solo con CFLAGS=-DPRUEBA_CARGA):
 # los ninjas provisionales que genera scripts/preparar_prueba_carga.py. Son .bin
