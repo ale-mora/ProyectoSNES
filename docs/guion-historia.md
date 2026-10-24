@@ -19,7 +19,7 @@ Todo el texto en pantalla va en **inglés sencillo con honoríficos japoneses**
   ninjas de **The Cannon Group, Inc.** (Cannon Films). Su cine de ninjas es sobre todo de
   los **años 80** (p. ej. *Enter the Ninja*, 1981; *Revenge of the Ninja*, 1983; *American
   Ninja*, 1985), no de los 90: esa es la etapa de referencia. Se traduce en humor de serie
-  B, exageración, carteles de película y poses heroicas (§12). No es una parodia de una
+  B, exageración, carteles de película y poses heroicas (`arte-beat-em-up.md` §11). No es una parodia de una
   película concreta.
 - **Comedia con corazón**: humor absurdo en nombres y situaciones, emoción real en el
   vínculo de los hermanos y en el final.
