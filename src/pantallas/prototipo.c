@@ -359,6 +359,7 @@ void prototipo_ejecutar(void)
     pausado = 0;
     empezar();
 
+    fuente_2bpp(2);                                  /* La fuente de 2 bpp y el mapa de texto en BG3 (sin esto el HUD no se ve). */
     hud_debug_iniciar();                             /* Filas de texto en blanco; BG3 apagado. */
     bgSetEnable(2);                                  /* BG3 (la capa de texto) encendida.       */
 
