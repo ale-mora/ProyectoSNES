@@ -585,3 +585,25 @@ u8 luchador_puede_invocar(const Luchador *L)
 {
     return L->c.en_suelo && luchador_puede_salir(L);
 }
+
+void luchador_caja_dano(const Luchador *L, CajaCuadro *caja)
+{
+    if (L->quien == QUIEN_BARBARA)
+    {
+        caja->x = 32;                /* Bárbara: cuerpo de 32 px centrado en los pies de su celda de 96x96. */
+        caja->y = 14;
+        caja->ancho = 32;
+        caja->alto = 80;
+    }
+    else
+    {
+        caja->x = 10;                /* Tarou: el cuerpo en su celda de 96x64.             */
+        caja->y = 8;
+        caja->ancho = 40;
+        caja->alto = 52;
+    }
+    caja->dano = 0;
+    caja->efecto = EFECTO_RETROCESO;
+    caja->relleno[0] = 0;
+    caja->relleno[1] = 0;
+}

@@ -115,6 +115,9 @@ void luchador_iniciar(Luchador *L, u16 x, u16 y, u8 vida);
 /* Lo mismo para `quien` (QUIEN_TAROU o QUIEN_BARBARA). */
 void luchador_iniciar_como(Luchador *L, u8 quien, u16 x, u16 y, u8 vida);
 
+/* Su caja de daño: dónde le pueden golpear (el cuerpo), en su celda, mirando al este. */
+void luchador_caja_dano(const Luchador *L, CajaCuadro *caja);
+
 /* La celda de dibujo del luchador (Tarou 96x64; Bárbara 96x96), para pasar las cajas al mundo. */
 void luchador_celda(const Luchador *L, Celda *celda);
 

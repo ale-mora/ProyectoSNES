@@ -113,6 +113,11 @@ u8 combate_golpear(const CajaMundo *golpe, const CajaCuadro *datos, const Cuerpo
    del relevo (spec §4) empuja a los que estén a menos de ALCANCE_ENTRADA_RELEVO px. */
 u8 combate_empuje_cercano(const Cuerpo *a, const Cuerpo *b, u8 alcance);
 
+/* Daño que no viene de una caja (golpe de entrada del relevo, apoyos): resta `dano` al que lo
+   recibe, con destello. Devuelve GOLPE_FALLA si ya está vencido o es invulnerable; GOLPE_VENCE si
+   se queda sin vida; si no, GOLPE_DERRIBO (efecto DERRIBO) o GOLPE_RETROCESO. */
+u8 combate_dano_directo(Golpeable *g, u8 dano, u8 efecto);
+
 /* Un frame de los contadores (invulnerable, destello, parada): bajan hasta 0. */
 void combate_tic(Golpeable *g);
 

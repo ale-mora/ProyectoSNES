@@ -102,6 +102,22 @@ u8 combate_empuje_cercano(const Cuerpo *a, const Cuerpo *b, u8 alcance)
     return combate_misma_profundidad(a, b);
 }
 
+u8 combate_dano_directo(Golpeable *g, u8 dano, u8 efecto)
+{
+    if (g->vida == 0 || g->invulnerable)
+        return GOLPE_FALLA;          /* Vencido o protegido: no le llega.                  */
+    g->destello = FRAMES_DESTELLO;
+    if (dano >= g->vida)
+    {
+        g->vida = 0;
+        return GOLPE_VENCE;
+    }
+    g->vida -= dano;
+    if (efecto == EFECTO_DERRIBO)
+        return GOLPE_DERRIBO;
+    return GOLPE_RETROCESO;
+}
+
 u8 combate_golpear(const CajaMundo *golpe, const CajaCuadro *datos, const Cuerpo *atacante,
                    Golpeable *atacante_g, const CajaMundo *objetivo_caja,
                    const Cuerpo *objetivo, Golpeable *objetivo_g, u8 *golpeados,

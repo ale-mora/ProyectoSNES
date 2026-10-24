@@ -155,6 +155,16 @@ void pruebas_combate(void)
     COMPROBAR(combate_pagar_especial(4) == 1);
     COMPROBAR(combate_pagar_especial(1) == 1);
 
+    /* Daño directo (entrada del relevo, apoyos): sin caja, con destello; respeta invulnerable. */
+    obj.vida = 16; obj.invulnerable = 0; obj.destello = 0; obj.parada = 0;
+    COMPROBAR(combate_dano_directo(&obj, 4, EFECTO_RETROCESO) == GOLPE_RETROCESO);
+    COMPROBAR(obj.vida == 12 && obj.destello == FRAMES_DESTELLO);
+    COMPROBAR(combate_dano_directo(&obj, 4, EFECTO_DERRIBO) == GOLPE_DERRIBO && obj.vida == 8);
+    COMPROBAR(combate_dano_directo(&obj, 8, EFECTO_DERRIBO) == GOLPE_VENCE && obj.vida == 0);
+    COMPROBAR(combate_dano_directo(&obj, 8, EFECTO_RETROCESO) == GOLPE_FALLA);   /* Ya vencido. */
+    obj.vida = 10; obj.invulnerable = 5;
+    COMPROBAR(combate_dano_directo(&obj, 4, EFECTO_RETROCESO) == GOLPE_FALLA && obj.vida == 10);
+
     /* Tablas por rango. */
     COMPROBAR(cifras_vida_ninja(RANGO_BLANCO) == 16 && cifras_vida_ninja(RANGO_ROJO) == 48);
     COMPROBAR(cifras_bonus_dano(RANGO_AMARILLO) == 1 && cifras_bonus_dano(RANGO_ROJO) == 3);

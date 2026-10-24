@@ -577,4 +577,16 @@ void pruebas_luchador(void)
     L.estado = LQ_KO;        COMPROBAR(luchador_puede_salir(&L) == 0);
     L.estado = LQ_ENTRADA;   COMPROBAR(luchador_puede_salir(&L) == 0);
     L.estado = LQ_AGARRAR;   COMPROBAR(luchador_puede_salir(&L) == 0);
+
+    /* Caja de daño: el cuerpo de cada personaje dentro de su celda (Bárbara, centrada en los pies). */
+    {
+        CajaCuadro cuerpo;
+        luchador_iniciar(&L, 100, 180, VIDA_PROTAGONISTA);
+        luchador_caja_dano(&L, &cuerpo);
+        COMPROBAR(cuerpo.x == 10 && cuerpo.ancho == 40 && cuerpo.x + cuerpo.ancho <= 96 && cuerpo.dano == 0);
+        luchador_iniciar_como(&L, QUIEN_BARBARA, 100, 180, VIDA_PROTAGONISTA);
+        luchador_caja_dano(&L, &cuerpo);
+        COMPROBAR(cuerpo.x + cuerpo.ancho / 2 == 48);                  /* Centrada en los pies. */
+        COMPROBAR(cuerpo.y + cuerpo.alto <= 96 && cuerpo.ancho < 40);  /* Más delgada que Tarou. */
+    }
 }
