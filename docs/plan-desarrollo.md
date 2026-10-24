@@ -533,7 +533,7 @@ Lo que ya se aprendió y se sigue usando:
 
 ### Ítems técnicos a estudiar (beat 'em up)
 
-- [ ] **Referencias del género: _Final Fight_, _Streets of Rage_** — cómo
+- [ ] **Referencias del género: _Final Fight_, _Streets of Rage_, y el cine de samuráis y ninjas de Cannon Films (los 80)** — tono de serie B, carteles de película, patada voladora, zoom al KO y entrada de los jefes (`diseno-beat-em-up.md` decisiones 40–42; `arte-beat-em-up.md` §11) — cómo
       se sienten el combo, el agarre, el derribo y los turnos de ataque; qué
       hacen cuando la pantalla se llena de sprites.
       Recursos: partidas y desgloses en YouTube; la spec §5 y §6.

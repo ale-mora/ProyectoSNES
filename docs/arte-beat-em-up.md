@@ -333,3 +333,25 @@ Lo jugable primero (decisión del autor):
 6. Escenografía de las 4 zonas (§5).
 7. Apoyos (§3).
 8. Retratos, Tarou cachorro e intro (§1.5, §1.6, §8).
+
+## 11. Referencia de cine (decisiones del autor, 2026-10-24)
+
+Toma el estilo del cine de samuráis y ninjas de Cannon Films (ver `guion-historia.md` §1).
+
+**Poses de cartel (ninjas y enemigos).** Al morir, cada ninja muestra una pose de
+«héroe» de cartel (brazos abiertos, mirada al frente) antes de caer. Es un cuadro extra
+por tipo: no son cuadros de combate.
+
+| Personaje | Cuadros | Estado |
+|---|---|---|
+| ninja (los 4 rangos comparten la pose) | 1 | [ ] |
+| Gomasuri-dono, Nigeashi-dono, Hankozuki-dono, Nebō-dono | 1 cada uno | [ ] |
+
+**Títulos de fase (formato de cartel).** Letras grandes que entran en pantalla: el nombre
+de la fase con tipografía de cartel de los 80/90. El crédito «A CANNON-STYLE PRODUCTION»
+sale solo como gag. Se hace con los tiles de la fuente de título; sin arte nuevo de fondo.
+
+| Pieza | Tamaño | Estado |
+|---|---|---|
+| tipografía de cartel (A–Z, 0–9) | 16×16 por letra | [ ] |
+| marco del título | fondo BG3 | [ ] |

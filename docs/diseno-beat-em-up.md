@@ -29,6 +29,7 @@ y del truco de hardware que usa cada pieza está en
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v10 | 2026-10-24 | Decisiones 40–42 (referencia de cine de ninjas de Cannon Films): patada voladora, zoom al KO, entrada del jefe. |
 | v9 | 2026-10-23 | §5.5: cifras de combate decididas (vida, daño, velocidades, tiempos, rangos, jefes, puntos); salen de §12. |
 | v8 | 2026-10-23 | Decisión 5: la intro cuenta la apertura del guion (Rev. 3). |
 | v7 | 2026-10-23 | Decisión 39: ataque corriendo para los dos protagonistas (sale de §12). |
@@ -82,6 +83,9 @@ y del truco de hardware que usa cada pieza está en
 | 37 | Siguiente paso técnico | La **capa de sprites en ensamblador** (orden, OAM y plan de subidas, una llamada por frame) con los planes de copia precalculados por script; después se repite la prueba de carga. |
 | 38 | Piezas de Tarou | Tarou también se corta en **piezas de 16×16 sin las vacías**, como los enemigos y Bárbara. |
 | 39 | Ataque corriendo | A mientras se corre. **Tarou**: tajo en carrera; **Bárbara**: embestida con el hombro. Los dos derriban. |
+| 40 | Patada voladora | Ataque aéreo con giro de piernas (de referencia: cine de ninjas de los 80, Cannon Films). Más alcance que el ataque aéreo y derriba a todos los de la línea. Se suma al aéreo, no lo reemplaza. |
+| 41 | Zoom al KO | Al vencer al último enemigo de una oleada: encuadre cercano de 30 frames (0,5 s) con la acción congelada y luego se corta. Solo se ve en el KO del último enemigo; los demás, sin zoom. |
+| 42 | Entrada del jefe | Cada jefe entra de pie, con un plano fijo y su título en pantalla (formato de cartel, `arte-beat-em-up.md` §11). Durante la entrada, nada le pega. |
 
 ## 2. Mando
 
