@@ -29,6 +29,7 @@ y del truco de hardware que usa cada pieza está en
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v14 | 2026-10-24 | Pantalla de la fase: decisiones 56–58 (cuatro zonas encadenadas, escenas con el motor de escenas, la cámara no retrocede) y el director de la fase (`fase.c`) con sus placeholders. |
 | v13 | 2026-10-24 | Fase 1 por zonas: decisiones 51–55 (barra llena al activarse, longitudes, oleadas, objetos, escenas) y §7 con los números; el «lugarteniente» pasa a ser Gomasuri-dono. |
 | v12 | 2026-10-24 | Apoyos y barra de ataque: decisiones 47–50 (daño, jefes, barra de un uso, Rex cura) y cronología propuesta de cada apoyo (§5.4). |
 | v11 | 2026-10-24 | Bárbara y relevo: decisión 33 revisada (Bárbara 96×96); decisiones 43–46 (entrada del relevo, relevo por KO, quién puede salir, Bárbara en combate). |
@@ -102,6 +103,9 @@ y del truco de hardware que usa cada pieza está en
 | 53 | Oleadas por zona | Aldea: 2 blancos; 3 blancos; 2 blancos + 1 rápido. Bosque: 2 rápidos + 1 amarillo; 3 amarillos; 1 pesado rojo + 2 amarillos. Monasterio: 3 amarillos. Dojo: puerta con 2 verdes + 1 rápido amarillo; jefe (Gomasuri-dono), solo. Los enemigos salen de uno en uno, 40 frames entre cada uno; la cámara se bloquea en la x de la oleada hasta vencerla y entonces sale «GO →» (1,5 s). |
 | 54 | Rompibles y comida | Aldea 6 (2 onigiri, **1 vida extra escondida** en el último farol, 3 vacíos); bosque 4 (2 onigiri, 1 shuriken, 1 vacío); monasterio 3 (1 pescado, 2 vacíos); dojo 4 (1 onigiri, 1 pescado, 2 vacíos). |
 | 55 | Escenas en mitad de la zona | Bosque: Lucinda se une al vencer la oleada 1; Fenrir cruza (gag) tras la 2. Monasterio: la escena de Rex **abre la zona**, antes de su oleada (se une Rex y se activa la barra). Dojo: la entrada del jefe va antes de su oleada y la huida de Nikoraemon, después. |
+| 56 | La pantalla de la fase | **Las cuatro zonas encadenadas** (aldea → bosque → monasterio → dojo) en una sola pantalla, con fundido entre zonas y, tras el jefe, STAGE CLEAR (puntuación) y STAGE 2 / COMING SOON. Sin vidas: GAME OVER con la cuenta atrás del continue (9 s). Se prueba con `-DFASE1`. |
+| 57 | Escenas con el motor de escenas | Al saltar una escena la acción se para: el brillo baja de 15 a 6 y el mosaico sube de 0 a 5 en 24 frames **solo en los fondos** (el texto, en BG3, queda nítido); salen los cuadros de texto del guion (≤ 26 caracteres; A los adelanta) y se vuelve a afilar. |
+| 58 | La cámara | Sigue al protagonista hacia la derecha **sin retroceder**, queda a 120 px del borde izquierdo y se bloquea en la x de cada oleada. El protagonista no sale de la pantalla (16 px de margen). Salida de la zona: con la zona completa, 32 px antes del final; en el dojo no hay salida, viene el STAGE CLEAR. |
 
 ## 2. Mando
 

@@ -48,6 +48,7 @@ void pruebas_relevo(void);
 void pruebas_apoyos(void);
 void pruebas_oleadas(void);
 void pruebas_fase(void);
+void pruebas_dialogos(void);
 
 int main(void)
 {
@@ -73,6 +74,7 @@ int main(void)
     pruebas_apoyos();
     pruebas_oleadas();
     pruebas_fase();
+    pruebas_dialogos();
 
     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
     return pruebas_fallidas != 0;

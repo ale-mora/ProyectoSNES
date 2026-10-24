@@ -85,6 +85,10 @@ el juego · `♻` se reutiliza lo que ya hay.
 
 ### 1.2 Bárbara: 96×96, katana, alcance largo
 
+> **Sprite de Bárbara:** el autor ya lo tiene hecho y lo copiará en `res/descargas/graficos/pixellab/barbara/`;
+> qué animaciones hacen falta se define en otra sesión. Hasta entonces la pantalla de la fase dibuja la pose de
+> Tarou para los dos (el HUD dice quién está activo).
+>
 > **Celda revisada (2026-10-24):** pasa de 64×96 a **96×96**. Con 64 px la katana solo llegaba
 > a 32 px de los pies (menos que Tarou); con 96 llega a 48 (`diseno-beat-em-up.md` decisión 33).
 > Cada cuadro debe caber en **24 piezas de 16×16 no vacías (3 KB)**: se comprueba con

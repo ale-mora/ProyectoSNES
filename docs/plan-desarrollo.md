@@ -475,7 +475,7 @@ Mesen sin crashear y sus pruebas en el PC pasan.
 capa de sprites, spec §9.1 y §9.2). Entregable 3 empezado: la lógica pura
 del prototipo de combate (`doble_toque.c`, `mundo.c`, `combate.c`, con las
 cifras de `cifras.h`) ya tiene pruebas en el PC. El luchador de Tarou
-(`luchador.c`: 24 estados para Tarou y Bárbara, combo, aire, patada voladora, especial, derribo, KO, agarre y entrada del relevo; `cambio_protagonista.c`: el relevo; `apoyos.c`: la barra de ataque y los tres apoyos; `fase1.c` + `oleadas.c`: las cuatro zonas de la fase 1 con sus oleadas, rompibles y escenas) también
+(`luchador.c`: 24 estados para Tarou y Bárbara, combo, aire, patada voladora, especial, derribo, KO, agarre y entrada del relevo; `cambio_protagonista.c`: el relevo; `apoyos.c`: la barra de ataque y los tres apoyos; `fase1.c` + `oleadas.c`: las cuatro zonas de la fase 1 con sus oleadas, rompibles y escenas; `fase.c`: el director que lo une todo; `pantalla_fase.c`: la pantalla, con `-DFASE1`) también
 tiene pruebas. El ninja de prueba (`enemigos/ninja.c`) también tiene pruebas. Falta la pantalla que **sustituye al nivel 1** al pulsar Start
 (decisión del autor); el código de plataformas se queda hasta la fase 1.
 
