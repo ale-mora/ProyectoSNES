@@ -89,6 +89,7 @@ enum LuchadorEstado
     LQ_KO,                           /* Vencido: cae y, al acabar el tiempo, sale.         */
     LQ_ENTRADA,                      /* Relevo: cae desde arriba, invulnerable.            */
     LQ_ENTRADA_GOLPE,                /* Relevo: aterrizó; el golpe de entrada, un instante. */
+    LQ_INVOCAR,                      /* Llamando a un apoyo: pose fija e invulnerable hasta que acabe. */
     LQ_ESTADOS                       /* Cuántos estados hay (tamaño de las tablas).        */
 };
 
@@ -123,6 +124,15 @@ void luchador_entrar(Luchador *L, s16 x_fp, s16 y_fp, u8 invulnerable);
 
 /* 1 solo en el frame en que el que entra aterriza: ese frame se resuelve el golpe de entrada. */
 u8 luchador_entrada_activa(const Luchador *L);
+
+/* Llama a un apoyo: el luchador queda en pose fija e invulnerable (la acción está congelada). */
+void luchador_invocar(Luchador *L);
+
+/* El apoyo acabó: vuelve a estar quieto y deja de ser invulnerable. */
+void luchador_terminar_invocar(Luchador *L);
+
+/* 1 si puede invocar un apoyo: en el suelo y en un estado en el que también podría salir en un relevo. */
+u8 luchador_puede_invocar(const Luchador *L);
 
 /* 1 si puede salir en un relevo: no está recibiendo, derribado, agarrado, KO ni entrando. */
 u8 luchador_puede_salir(const Luchador *L);

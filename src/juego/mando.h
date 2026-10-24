@@ -30,6 +30,8 @@
       espada_pulsado      recién      R
       hud_pulsado         recién      SELECT
       relevo_pulsado      recién      L (relevo Tarou <-> Bárbara)
+      invocar_pulsado     recién      X (invoca el apoyo elegido, con la barra llena)
+      apoyo_pulsado       recién      R (siguiente apoyo; el mismo botón que espada_pulsado del plataformas)
       salir_pulsado       recién      START
       actividad           cualquier botón o dirección mantenido o pulsado (para dormir)
 
@@ -45,6 +47,7 @@ typedef struct
     u8 izquierda, derecha, arriba, abajo, correr, saltar;                        /* mantenidos     */
     u8 saltar_pulsado, atacar_pulsado, espada_pulsado, hud_pulsado, salir_pulsado; /* recién pulsados*/
     u8 relevo_pulsado;                                                           /* L: relevo      */
+    u8 invocar_pulsado, apoyo_pulsado;                                           /* X, R: apoyos   */
     u8 actividad;                                                                /* algo tocado    */
 } Mando;
 

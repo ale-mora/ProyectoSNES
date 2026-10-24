@@ -62,6 +62,7 @@ static const Fase fases_tarou[LQ_ESTADOS] =
     {0, 0, 0, LQ_KO},                /* KO (acaba por FRAMES_KO, en su propio caso)        */
     {0, 0, 0, LQ_ENTRADA},           /* ENTRADA: cae hasta aterrizar                       */
     {FRAMES_ENTRADA_GOLPE, 0, 0, LQ_QUIETO}, /* ENTRADA_GOLPE                              */
+    {0, 0, 0, LQ_INVOCAR},           /* INVOCAR: dura lo que dure el apoyo (acaba por fuera) */
 };
 
 /* Cajas de golpe, mirando al este, dentro de la celda de 96x64 (los pies en el centro). */
@@ -91,6 +92,7 @@ static const CajaCuadro cajas_tarou[LQ_ESTADOS] =
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* KO */
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* ENTRADA */
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* ENTRADA_GOLPE (se resuelve por distancia) */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* INVOCAR */
 };
 
 /* Bárbara: katana lenta y larga (celda de 96x96, pies en el centro; spec §4). Combo de 3 golpes
@@ -121,6 +123,7 @@ static const Fase fases_barbara[LQ_ESTADOS] =
     {0, 0, 0, LQ_KO},                /* KO                                                 */
     {0, 0, 0, LQ_ENTRADA},           /* ENTRADA                                            */
     {FRAMES_ENTRADA_GOLPE, 0, 0, LQ_QUIETO}, /* ENTRADA_GOLPE                              */
+    {0, 0, 0, LQ_INVOCAR},           /* INVOCAR: dura lo que dure el apoyo (acaba por fuera) */
 };
 
 /* Cajas de Bárbara en su celda de 96x96 (alcance hasta 48 px por delante de los pies: el borde
@@ -151,6 +154,7 @@ static const CajaCuadro cajas_barbara[LQ_ESTADOS] =
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* KO */
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* ENTRADA */
     {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* ENTRADA_GOLPE */
+    {0, 0, 0, 0, 0, 0, {0, 0}},                                                       /* INVOCAR */
 };
 
 /* Las tablas y velocidades de cada personaje. */
@@ -553,6 +557,7 @@ u8 luchador_puede_salir(const Luchador *L)
     case LQ_KO:
     case LQ_ENTRADA:
     case LQ_ENTRADA_GOLPE:
+    case LQ_INVOCAR:                 /* Llamando a un apoyo: no hay relevo a medias.        */
     case LQ_AGARRAR:                 /* Agarrando: soltar a un enemigo a medias no tiene sentido. */
     case LQ_GOLPE_AGARRE:
     case LQ_LANZAR:
@@ -560,4 +565,23 @@ u8 luchador_puede_salir(const Luchador *L)
     default:
         return 1;
     }
+}
+
+void luchador_invocar(Luchador *L)
+{
+    cambiar(L, LQ_INVOCAR);          /* Quieto: cambiar() le quita la velocidad.            */
+    L->g.invulnerable = 255;         /* Invulnerable hasta que acabe el apoyo (máx. 255 f). */
+}
+
+void luchador_terminar_invocar(Luchador *L)
+{
+    if (L->estado != LQ_INVOCAR)
+        return;                      /* Solo si seguía invocando.                           */
+    L->g.invulnerable = 0;
+    cambiar(L, LQ_QUIETO);
+}
+
+u8 luchador_puede_invocar(const Luchador *L)
+{
+    return L->c.en_suelo && luchador_puede_salir(L);
 }

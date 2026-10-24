@@ -40,6 +40,8 @@ static void limpiar(Mando *m)
     m->salir_pulsado = 0;
     m->actividad = 0;
     m->relevo_pulsado = 0;
+    m->invocar_pulsado = 0;
+    m->apoyo_pulsado = 0;
 }
 
 /* `n` frames sin tocar nada. */

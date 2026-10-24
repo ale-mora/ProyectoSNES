@@ -29,6 +29,7 @@ y del truco de hardware que usa cada pieza está en
 
 | Versión | Fecha | Qué decía |
 |---|---|---|
+| v12 | 2026-10-24 | Apoyos y barra de ataque: decisiones 47–50 (daño, jefes, barra de un uso, Rex cura) y cronología propuesta de cada apoyo (§5.4). |
 | v11 | 2026-10-24 | Bárbara y relevo: decisión 33 revisada (Bárbara 96×96); decisiones 43–46 (entrada del relevo, relevo por KO, quién puede salir, Bárbara en combate). |
 | v10 | 2026-10-24 | Decisiones 40–42 (referencia de cine de ninjas de Cannon Films): patada voladora, zoom al KO, entrada del jefe. |
 | v9 | 2026-10-23 | §5.5: cifras de combate decididas (vida, daño, velocidades, tiempos, rangos, jefes, puntos); salen de §12. |
@@ -91,6 +92,10 @@ y del truco de hardware que usa cada pieza está en
 | 44 | Relevo por KO | Si el activo cae KO, entra el otro **al instante, sin enfriamiento** y con 60 frames de invulnerabilidad. Si el otro también está a 0, se pierde una vida. El que salió por KO se sigue curando fuera (+1 cada 120 frames, tope 48) y puede volver en cuanto tenga 1 de vida. |
 | 45 | Relevo: quién puede salir | No puede salir quien está recibiendo un golpe, derribado, en el suelo, levantándose, agarrado, lanzado, KO, entrando, agarrando o lanzando (soltar a un enemigo a medias no tiene sentido). Atacando o saltando, sí. |
 | 46 | Bárbara en combate | Combo de **3 golpes, 24/24/30 frames**, ventana de encadenado de 12; el tajo final (8) derriba y cierra el combo. Velocidad 1,25 andando y 2,5 corriendo. Mismos estados que Tarou, con sus tablas propias (`luchador.c`, `QUIEN_BARBARA`). |
+| 47 | Daño de los apoyos | **Lucinda 24** (3 tajos de 8), **Rex 16** (al soltar a los enemigos levantados), **Fenrir 20** (la embestida). A toda la pantalla; derriban a los enemigos normales. |
+| 48 | Apoyos contra jefes | **La mitad del daño** (Lucinda 4 por tajo, Rex 8, Fenrir 10) y **no derriban** al jefe. Un apoyo ayuda sin saltarse el combate. |
+| 49 | Barra de ataque: un uso | Se llena con **48 golpes que conectan** y no suma mientras actúa un apoyo. Llena = **una** invocación; al invocar vuelve a 0. Bloqueada hasta el monasterio de Rex. Si caen los dos protagonistas, vuelven con la barra llena. |
+| 50 | Rex cura | Además de levantar y soltar a los enemigos, **cura 16** al protagonista activo (sin pasar de 64). Es el apoyo defensivo del guion (§2). |
 
 ## 2. Mando
 
@@ -227,6 +232,13 @@ ataque a toda la pantalla y se va, y la barra vuelve a 0.
 | Gata samurái | cruza la pantalla en 3 tajos; todos reciben daño y derribo | ventanas 1+2 dibujadas por HDMA en diagonal + suma del color fijo = tajos de luz (modo especial: la acción está congelada y las sombras escondidas, §8) |
 | Perro monje | levanta a todos los enemigos (z sube), los sostiene y los suelta | mosaico pulsante + ondulación por HDMA del scroll de BG2; enemigos en `LANZADO` con z alta |
 | Perro bruto | embiste de lado a lado; todos derribados y lanzados | temblor de pantalla (scroll ±2 px), polvo en sprites |
+
+**Cronología propuesta** (no estaba en la spec; se ajusta jugando, `src/juego/apoyos.c`):
+Lucinda, 3 tajos a los 12, 24 y 36 frames y acaba a los 48; Rex, levanta y cura a los 20,
+suelta a los 60 y acaba a los 80; Fenrir, la embestida pega a los 30 y acaba a los 50. Los
+apoyos se van uniendo (Lucinda en el bosque, Rex en el monasterio, Fenrir en la fase 2) y R
+solo recorre los que ya están. El protagonista no puede invocar en el aire ni en un estado
+bloqueado, ni hacer un relevo mientras invoca (`LQ_INVOCAR`, invulnerable).
 
 Durante el apoyo, el protagonista queda en una pose fija (`INVOCAR`). Su
 segunda celda de VRAM queda libre y se presta a los cuadros del apoyo (§8).

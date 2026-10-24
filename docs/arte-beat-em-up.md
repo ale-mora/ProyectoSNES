@@ -194,6 +194,7 @@ segunda celda del protagonista (128 tiles) está libre para ellos.
 | Rex, perro monje (telépata) | 96×64 | entrada 4, concentración 6 (bucle), soltar 4, salida 3; escena: guardia 4 + saludo 4 | [ ] |
 | Fenrir, husky bruto (embiste) | 96×64 | carrera 8 (bucle), choque 4, salida 3; escena: guardia 4 + saludo 4 | [ ] |
 | Iconos de apoyo en el HUD | 16×16 | 3 + marco de selección | [ ] |
+| Pose de invocar del protagonista (fija, mientras actúa el apoyo) | — | 1 por protagonista (Tarou y Bárbara) | [ ] |
 
 ## 4. Objetos, efectos y armas (sprites pequeños)
 

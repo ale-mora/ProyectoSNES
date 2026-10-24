@@ -62,6 +62,10 @@
 #define FRAMES_PARA_AGARRAR 10       /* Andando contra el enemigo.                         */
 #define TOLERANCIA_Y PF(8)           /* 8 px de profundidad para que un golpe conecte.     */
 #define ENFRIAMIENTO_RELEVO 120      /* Frames entre dos relevos.                          */
+#define DANO_APOYO_LUCINDA 8         /* Cada uno de los 3 tajos de Lucinda (24 en total).    */
+#define DANO_APOYO_REX 16            /* Al soltar Rex a los enemigos levantados.             */
+#define DANO_APOYO_FENRIR 20         /* La embestida de Fenrir.                              */
+#define CURA_REX 16                  /* Lo que cura Rex al protagonista activo.              */
 #define DANO_ENTRADA_RELEVO 4        /* Golpe de entrada del que llega.                    */
 #define ALCANCE_ENTRADA_RELEVO 48    /* px: empuja a los que estén a menos de esto.        */
 #define FRAMES_CURA_FUERA 120        /* El que espera fuera gana 1 de vida cada 2 s...     */
