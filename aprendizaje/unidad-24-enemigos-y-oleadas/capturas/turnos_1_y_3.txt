@@ -1,0 +1,5 @@
+Clon u24 con la solucion, cambiando NINJA_TURNOS en src/enemigos/ninja.h (2026-10-26):
+NINJA_TURNOS 1  ->  568 pruebas, 0 fallos
+NINJA_TURNOS 3  ->  568 pruebas, 0 fallos
+NINJA_TURNOS 2 (restaurado)  ->  568 pruebas, 0 fallos
+Las pruebas que miran los turnos (prueba_combate.c y la del ejercicio) comparan con la constante NINJA_TURNOS, no con un 2 escrito a mano; por eso siguen en verde.

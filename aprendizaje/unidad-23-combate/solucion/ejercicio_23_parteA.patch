@@ -1,0 +1,161 @@
+diff --git a/src/enemigos/ninja.h b/src/enemigos/ninja.h
+index ae560c1..8a158bb 100644
+--- a/src/enemigos/ninja.h
++++ b/src/enemigos/ninja.h
+@@ -48,7 +48,7 @@
+ #define NINJA_FRAMES_CUADRO 4            /* Cada cuántos frames cambia de cuadro.           */
+ #define NINJA_PASO_X 1                   /* Anda más lento que Tarou (2): se le puede huir. */
+ #define NINJA_DISTANCIA 40               /* Se detiene a esta distancia en x del objetivo.  */
+-#define NINJA_VIDA 4                     /* Combo de Tarou: 1 + 1 + 2 de daño = justo.      */
++#define NINJA_VIDA 4                     /* Combo de Tarou: 1+1+1+2; el 4.º remata. */
+ #define NINJA_RECIBIR_FRAMES 16          /* Aturdido tras un golpe normal.                  */
+ #define NINJA_DERRIBO_FRAMES 36          /* Caído (derribo, o el golpe que lo remata).      */
+ #define NINJA_EMPUJE_IZQ 1
+diff --git a/src/juego/combate.c b/src/juego/combate.c
+index 90fbe9f..484e4db 100644
+--- a/src/juego/combate.c
++++ b/src/juego/combate.c
+@@ -22,7 +22,7 @@
+ 
+ u8 combate_danio(u8 golpe)
+ {
+-    return (u8)(golpe >= GOLPES ? 2 : 1);            /* 1, 1, 2.                            */
++    return (u8)(golpe >= GOLPES ? 2 : 1);            /* 1, 1, 1, 2.                       */
+ }
+ 
+ u8 combate_derriba(u8 golpe)
+diff --git a/src/juego/combate.h b/src/juego/combate.h
+index ab38bc3..1af679b 100644
+--- a/src/juego/combate.h
++++ b/src/juego/combate.h
+@@ -8,8 +8,7 @@
+       suelo delante de Tarou: de COMBATE_ATRAS px detrás de sus pies a COMBATE_ALCANCE px
+       delante (hacia donde mira), con una tolerancia de COMBATE_PROFUNDIDAD píxeles en la
+       profundidad (y). Solo cuenta en los cuadros activos del golpe (mundo_golpe_activo) y
+-      cada tajo (Cuerpo.id) pega UNA vez a cada ninja. El combo es 1 + 1 + 2 de daño; el
+-      tercer golpe derriba. Es lógica pura, sin snes.h: probada en el PC
++      cada tajo (Cuerpo.id) pega UNA vez a cada ninja. El combo es 1 + 1 + 1 + 2 de daño; elcuarto golpe derriba. Es lógica pura, sin snes.h: probada en el PC
+       (tests/prueba_combate.c). Los ninjas aún no pegan: ese es el siguiente paso.
+ 
+     SE CONECTA CON
+@@ -35,7 +34,7 @@
+ #define PARADA_GOLPE 3                   /* Cuadros de «parada de impacto» al conectar.   */
+ #define PARADA_DERRIBO 5                 /* Y si el golpe derriba.                        */
+ 
+-/* Daño del golpe `golpe` (1..GOLPES) del combo: 1, 1 y 2. */
++/* Daño del golpe `golpe` (1..GOLPES) del combo: 1, 1, 1 y 2. */
+ u8 combate_danio(u8 golpe);
+ 
+ /* 1 si el golpe `golpe` derriba (el último del combo). */
+diff --git a/src/juego/mundo.h b/src/juego/mundo.h
+index d3ccab5..b6a7558 100644
+--- a/src/juego/mundo.h
++++ b/src/juego/mundo.h
+@@ -52,14 +52,14 @@
+ #define SALTO_V0 96                      /* 6 px/frame hacia arriba (12.4).               */
+ #define GRAVEDAD 8                       /* 0,5 px/frame²: salto de 36 px y 24 frames.    */
+ 
+-/*--- El combo de Tarou (A, A, A: el último derriba; cifras a ajustar jugando) --------*/
++/*--- El combo de Tarou (A, A, A, A: el último derriba; cifras a ajustar jugando) --------*/
+ /*--- Vida de Tarou y lo que pasa al recibir un golpe (cifras a ajustar jugando) ---------*/
+ #define VIDA_TAROU 24                    /* 12 celdas de barra de 2 puntos cada una.       */
+ #define RECIBIR_FRAMES 16                /* Aturdido tras un golpe normal.                 */
+ #define DERRIBO_FRAMES 36                /* Caído al quedarse sin vida (y, luego, KO).     */
+ #define INVULNERABLE_FRAMES 60           /* Tras un golpe no recibe otro: parpadea.        */
+ 
+-#define GOLPES 3                         /* Golpes del combo.                             */
++#define GOLPES 4                         /* Golpes del combo.                             */
+ #define GOLPE_FRAMES 14                  /* Duración de los golpes 1 y 2.                 */
+ #define GOLPE_ULTIMO_FRAMES 20           /* El último tarda más en recuperarse.           */
+ #define GOLPE_ACTIVO_DESDE 4             /* La caja de golpe, activa de aquí...           */
+diff --git a/tests/prueba_combate.c b/tests/prueba_combate.c
+index 2bf4e8b..3e249fa 100644
+--- a/tests/prueba_combate.c
++++ b/tests/prueba_combate.c
+@@ -101,11 +101,21 @@ void pruebas_combate(void)
+     {
+         cuadro(&c, 0);
+     }
+-    COMPROBAR(c.golpe == GOLPES);                    /* El tercero.                         */
++    COMPROBAR(c.golpe == 3);                         /* El tercero.                         */
++    for (k = 0; k < GOLPE_ENCADENAR_DESDE + 1; k++)
++    {
++        cuadro(&c, 0);
++    }
++    cuadro(&c, 1);
++    for (k = 0; k < 20 && c.golpe == 3; k++)
++    {
++        cuadro(&c, 0);
++    }
++    COMPROBAR(c.golpe == GOLPES);                    /* El cuarto, el último.               */
+     cuadro(&c, 0);
+     for (k = 0; k < GOLPE_ENCADENAR_DESDE + 1; k++)
+     {
+-        cuadro(&c, 1);                               /* No hay cuarto golpe: A no encadena. */
++        cuadro(&c, 1);                               /* No hay quinto golpe: A no encadena. */
+     }
+     for (k = 0; k < GOLPE_ULTIMO_FRAMES + 2; k++)
+     {
+@@ -132,8 +142,10 @@ void pruebas_combate(void)
+     }
+ 
+     /*--- Daño y caja de golpe -----------------------------------------------------------*/
+-    COMPROBAR(combate_danio(1) == 1 && combate_danio(2) == 1 && combate_danio(3) == 2);
+-    COMPROBAR(!combate_derriba(1) && !combate_derriba(2) && combate_derriba(3));
++    COMPROBAR(combate_danio(1) == 1 && combate_danio(2) == 1 && combate_danio(3) == 1 &&
++              combate_danio(4) == 2);
++    COMPROBAR(!combate_derriba(1) && !combate_derriba(2) && !combate_derriba(3) &&
++              combate_derriba(4));
+     mundo_iniciar(&c, 400, 200);                     /* Mirando a la derecha.               */
+     COMPROBAR(combate_en_caja(&c, 440, 200));        /* Delante, a 40.                      */
+     COMPROBAR(combate_en_caja(&c, 400 + COMBATE_ALCANCE, 200));        /* En el límite.     */
+@@ -202,7 +214,7 @@ void pruebas_combate(void)
+             n[0].x = 440;                            /* Se queda en el sitio.               */
+         }
+     }
+-    COMPROBAR(golpes_vistos == 3);                   /* Tres golpes conectaron, una vez cada uno. */
++    COMPROBAR(golpes_vistos == 4);                   /* Cuatro golpes conectaron, una vez cada uno. */
+     COMPROBAR(parada == PARADA_DERRIBO);             /* El último, con parada larga.        */
+     COMPROBAR(n[0].vida == 0);
+     for (k = 0; k < NINJA_DERRIBO_FRAMES + 2; k++)
+@@ -385,4 +397,40 @@ void pruebas_combate(void)
+     c.inv = 0;
+     combate_ninjas_resolver(n, &c);                  /* El mismo tajo no pega otra vez.     */
+     COMPROBAR(c.vida == VIDA_TAROU);
++
++    /*--- Ejercicio 23, parte A: un combo de CUATRO golpes (daño 1 + 1 + 1 + 2) ------------*/
++    COMPROBAR(GOLPES == 4);                          /* El combo tiene cuatro golpes...     */
++    COMPROBAR(combate_danio(1) == 1 && combate_danio(3) == 1 && combate_danio(4) == 2);
++    COMPROBAR(!combate_derriba(3) && combate_derriba(4));   /* ...y solo el cuarto derriba.  */
++    mundo_iniciar(&c, 400, 200);
++    ninja_iniciar_todos(n);
++    ninja_oleada(n, 300, 0);
++    n[0].x = 440; n[0].y = 200; n[0].dentro = 1;
++    golpes_vistos = 0; parada = 0;
++    {
++        u8 vida_tras_3 = 0, estado_tras_3 = 0;
++        cuadro(&c, 1);                               /* Golpe 1.                            */
++        for (k = 0; k < 130; k++)                    /* A cada 10 cuadros: encadena.        */
++        {
++            u8 p = combate_resolver(&c, n);
++            if (p)
++            {
++                golpes_vistos++;
++                parada = p;
++                if (golpes_vistos == 3)
++                {
++                    vida_tras_3 = n[0].vida;         /* Tras el tercero aún no ha muerto... */
++                    estado_tras_3 = n[0].estado;
++                }
++            }
++            cuadro(&c, (u8)(k % 10 == 7));
++            if (n[0].estado != NINJA_DERRIBADO && n[0].estado != NINJA_RECIBIR)
++            {
++                n[0].x = 440;
++            }
++        }
++        COMPROBAR(golpes_vistos == 4);               /* Cuatro golpes conectaron.           */
++        COMPROBAR(vida_tras_3 == NINJA_VIDA - 3 && estado_tras_3 == NINJA_RECIBIR);
++        COMPROBAR(parada == PARADA_DERRIBO && n[0].vida == 0);   /* El cuarto lo derriba y lo remata. */
++    }
+ }

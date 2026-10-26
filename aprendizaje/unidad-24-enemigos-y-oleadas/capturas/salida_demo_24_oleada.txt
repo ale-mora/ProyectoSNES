@@ -1,0 +1,83 @@
+Parte A: dos zonas con un jugador de juguete (eventos)
+[f= 159] la camara llega a 256: ZONA 0 BLOQUEADA, nacen 1 ninja(s)
+[f= 230] el ninja 0 ENTRA en pantalla (x=288, camara=256): ya no sale
+[f= 287] el ninja 0 coge turno y da un tajo (atacan 1 de 2)
+[f= 315] el ninja 0 acaba el tajo y descansa 50 cuadros
+[f= 365] el ninja 0 coge turno y da un tajo (atacan 1 de 2)
+[f= 393] el ninja 0 acaba el tajo y descansa 50 cuadros
+[f= 443] el ninja 0 coge turno y da un tajo (atacan 1 de 2)
+[f= 471] el ninja 0 acaba el tajo y descansa 50 cuadros
+[f= 489] el jugador derriba al ninja 0
+[f= 524] no queda ninguno: oleada VENCIDA, camara libre (siguiente zona 1)
+[f= 716] la camara llega a 640: ZONA 1 BLOQUEADA, nacen 2 ninja(s)
+[f= 787] el ninja 0 ENTRA en pantalla (x=672, camara=640): ya no sale
+[f= 787] el ninja 1 ENTRA en pantalla (x=864, camara=640): ya no sale
+[f= 844] el ninja 0 coge turno y da un tajo (atacan 2 de 2)
+[f= 844] el ninja 1 coge turno y da un tajo (atacan 2 de 2)
+[f= 872] el ninja 0 acaba el tajo y descansa 50 cuadros
+[f= 872] el ninja 1 acaba el tajo y descansa 50 cuadros
+[f= 922] el ninja 0 coge turno y da un tajo (atacan 2 de 2)
+[f= 922] el ninja 1 coge turno y da un tajo (atacan 2 de 2)
+[f= 950] el ninja 0 acaba el tajo y descansa 50 cuadros
+[f= 950] el ninja 1 acaba el tajo y descansa 50 cuadros
+[f=1000] el ninja 0 coge turno y da un tajo (atacan 2 de 2)
+[f=1000] el ninja 1 coge turno y da un tajo (atacan 2 de 2)
+[f=1028] el ninja 0 acaba el tajo y descansa 50 cuadros
+[f=1028] el ninja 1 acaba el tajo y descansa 50 cuadros
+[f=1046] el jugador derriba al ninja 0
+[f=1078] el ninja 1 coge turno y da un tajo (atacan 1 de 2)
+[f=1106] el jugador derriba al ninja 1
+[f=1141] no queda ninguno: oleada VENCIDA, camara libre (siguiente zona 2)
+
+Parte B: la zona 0 (1 ninja) y la zona 1 (2 ninjas), un cuadro de cada 20
+         entre el cuadro 140 y el 760; N0..N2 son las ranuras
+f= 140 cam= 218 tarou= 346 | N0:. x=   0 y=  0 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 160 cam= 256 tarou= 384 | N0:a x= 218 y=200 esp=28  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 180 cam= 256 tarou= 384 | N0:a x= 238 y=200 esp= 8  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 200 cam= 256 tarou= 384 | N0:a x= 258 y=200 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 220 cam= 256 tarou= 384 | N0:a x= 278 y=200 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 240 cam= 256 tarou= 384 | N0:A x= 298 y=200 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 260 cam= 256 tarou= 384 | N0:A x= 318 y=200 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 280 cam= 256 tarou= 384 | N0:A x= 338 y=200 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 300 cam= 256 tarou= 384 | N0:T x= 344 y=200 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 1
+f= 320 cam= 256 tarou= 384 | N0:p x= 344 y=200 esp=45  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 340 cam= 256 tarou= 384 | N0:p x= 344 y=200 esp=25  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 360 cam= 256 tarou= 384 | N0:p x= 344 y=200 esp= 5  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 380 cam= 256 tarou= 384 | N0:T x= 344 y=200 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 1
+f= 400 cam= 256 tarou= 384 | N0:p x= 344 y=200 esp=43  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 420 cam= 256 tarou= 384 | N0:p x= 344 y=200 esp=23  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 440 cam= 256 tarou= 384 | N0:p x= 344 y=200 esp= 3  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 460 cam= 256 tarou= 384 | N0:T x= 344 y=200 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 1
+f= 480 cam= 256 tarou= 384 | N0:p x= 344 y=200 esp=41  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 500 cam= 256 tarou= 384 | N0:D x= 308 y=200 esp=33  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 520 cam= 256 tarou= 384 | N0:D x= 302 y=200 esp=33  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 540 cam= 288 tarou= 416 | N0:. x=   0 y=  0 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 560 cam= 328 tarou= 456 | N0:. x=   0 y=  0 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 580 cam= 368 tarou= 496 | N0:. x=   0 y=  0 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 600 cam= 408 tarou= 536 | N0:. x=   0 y=  0 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 620 cam= 448 tarou= 576 | N0:. x=   0 y=  0 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 640 cam= 488 tarou= 616 | N0:. x=   0 y=  0 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 660 cam= 528 tarou= 656 | N0:. x=   0 y=  0 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 680 cam= 568 tarou= 696 | N0:. x=   0 y=  0 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 700 cam= 608 tarou= 736 | N0:. x=   0 y=  0 esp= 0  N1:. x=   0 y=  0 esp= 0  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 720 cam= 640 tarou= 768 | N0:a x= 605 y=200 esp=25  N1:a x= 931 y=191 esp=40  N2:. x=   0 y=  0 esp= 0  | atacan 0
+f= 740 cam= 640 tarou= 768 | N0:a x= 625 y=200 esp= 5  N1:a x= 911 y=200 esp=20  N2:. x=   0 y=  0 esp= 0  | atacan 0
+
+Parte C: oleada de 3 ninjas (zona 2), Tarou quieto en x=384, 900 cuadros
+  turnos | max a la vez | tajos ranura 0 | ranura 1 | ranura 2 | total
+       1 |            1 |              9 |        9 |        9 |    27
+       2 |            2 |             10 |       10 |       10 |    30
+       3 |            3 |             10 |       10 |       10 |    30
+  (en el juego NINJA_TURNOS = 2)
+
+Parte D: oleada de 3 ninjas, Tarou quieto; 1 caracter = 6 cuadros, 600 cuadros
+  turnos = 1
+    N0 aaaaaaaaaaaAAAAAAAAAATTTTTpppppppppTTTTTppppppppppTTTTTpppppppppTTTTTppppppppppTTTTTpppppppppTTTTTpp
+    N1 aaaaaaaaaaaAAAAAAAAAApppppTTTTppppppppppTTTTTppppppppppTTTTppppppppppTTTTTppppppppppTTTTppppppppppTT
+    N2 aaaaaaaaaaaAAAAAAAAAAppppppppppTTTTppppppppppTTTTTppppppppppTTTTppppppppppTTTTTppppppppppTTTTppppppp
+    # 0000000000000000000001111111110111111111111111111111111111101111111111111111111111111111011111111111   (cuantos atacan)
+  turnos = 2
+    N0 aaaaaaaaaaaAAAAAAAAAATTTTTppppppppTTTTTppppppppTTTTTppppppppTTTTTppppppppTTTTTppppppppTTTTTppppppppT
+    N1 aaaaaaaaaaaAAAAAAAAAATTTTTppppppppTTTTTppppppppTTTTTppppppppTTTTTppppppppTTTTTppppppppTTTTTppppppppT
+    N2 aaaaaaaaaaaAAAAAAAAAApppppTTTTpppppppppTTTTpppppppppTTTTpppppppppTTTTpppppppppTTTTpppppppppTTTTppppp
+    # 0000000000000000000002222211110000222221111000022222111100002222211110000222221111000022222111100002   (cuantos atacan)

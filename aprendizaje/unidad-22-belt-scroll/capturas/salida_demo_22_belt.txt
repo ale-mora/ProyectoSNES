@@ -1,0 +1,106 @@
+=== Parte 1: el salto en z (mundo.c real: SALTO_V0 96, GRAVEDAD 8) ===
+Los pies estan en y = 200 todo el rato; la y de pantalla del cuerpo es y - altura.
+frame      z altura     vz    y    cuerpo y0    sombra y0  estado
+    1     97      6    -88  200          132          190  SUBIENDO
+    2    185     11    -80  200          127          190  SUBIENDO
+    3    265     16    -72  200          122          190  SUBIENDO
+    4    337     21    -64  200          117          190  SUBIENDO
+    5    401     25    -56  200          113          190  SUBIENDO
+    6    457     28    -48  200          110          190  SUBIENDO
+    7    505     31    -40  200          107          190  SUBIENDO
+    8    545     34    -32  200          104          190  SUBIENDO
+    9    577     36    -24  200          102          190  SUBIENDO
+   10    601     37    -16  200          101          190  SUBIENDO
+   11    617     38     -8  200          100          190  SUBIENDO
+   12    625     39      0  200           99          190  BAJANDO
+   13    625     39      8  200           99          190  BAJANDO
+   14    617     38     16  200          100          190  BAJANDO
+   15    601     37     24  200          101          190  BAJANDO
+   16    577     36     32  200          102          190  BAJANDO
+   17    545     34     40  200          104          190  BAJANDO
+   18    505     31     48  200          107          190  BAJANDO
+   19    457     28     56  200          110          190  BAJANDO
+   20    401     25     64  200          113          190  BAJANDO
+   21    337     21     72  200          117          190  BAJANDO
+   22    265     16     80  200          122          190  BAJANDO
+   23    185     11     88  200          127          190  BAJANDO
+   24     97      6     96  200          132          190  BAJANDO
+   25      1      0    104  200          138          190  BAJANDO
+   26      0      0      0  200          138          190  PARADO
+Apogeo en el frame 12 (z = 625 = 39 px), aterriza en el frame 26.
+
+=== Parte 2: orden de dibujo por la y de los pies (profundidad_ordenar real) ===
+Las sombras llevan y = 0: acaban las ultimas de la OAM, detras de todo.
+Ninjas con y = 190, 204 y 204 (los dos ultimos empatan: el orden estable los respeta).
+
+frame  yTar  orden de la OAM (delante -> detras)                  comp. mov.
+    0   184  Nin2 Nin3 Nin1 Tarou sTarou sNin1 sNin2 sNin3    13    8   <- cambia el orden
+    4   188  Nin2 Nin3 Nin1 Tarou sTarou sNin1 sNin2 sNin3     7    0
+    7   191  Nin2 Nin3 Tarou Nin1 sTarou sNin1 sNin2 sNin3     8    1   <- cambia el orden
+    8   192  Nin2 Nin3 Tarou Nin1 sTarou sNin1 sNin2 sNin3     7    0
+   12   196  Nin2 Nin3 Tarou Nin1 sTarou sNin1 sNin2 sNin3     7    0
+   16   200  Nin2 Nin3 Tarou Nin1 sTarou sNin1 sNin2 sNin3     7    0
+   20   204  Nin2 Nin3 Tarou Nin1 sTarou sNin1 sNin2 sNin3     7    0
+   21   205  Tarou Nin2 Nin3 Nin1 sTarou sNin1 sNin2 sNin3     8    2   <- cambia el orden
+   24   208  Tarou Nin2 Nin3 Nin1 sTarou sNin1 sNin2 sNin3     7    0
+   28   212  Tarou Nin2 Nin3 Nin1 sTarou sNin1 sNin2 sNin3     7    0
+   32   216  Tarou Nin2 Nin3 Nin1 sTarou sNin1 sNin2 sNin3     7    0
+En 35 cuadros: 253 comparaciones y 11 movidas en total (n = 8: el minimo posible
+es n - 1 = 7 comparaciones por cuadro).
+
+=== Parte 3: gana la entrada MAS BAJA de la OAM (T Tarou, N ninja, s sombra) ===
+a) Tarou delante (y 210 > 190), tabla SIN ordenar [0 = Tarou ya va primero]:
+    ..NNNNNNNN......
+    ..NNNNNNNN......
+    ..NNNNNNNN......
+    ..NNNNNNNN......
+    ......TTTTTTTT..
+    ......TTTTTTTT..
+    ......TTTTTTTT..
+    ......TTTTTTTT..
+    ....ssTTTTTTTTss
+    ................
+    ................
+b) Tarou detras (y 180 < 190), tabla SIN ordenar: error, Tarou sigue tapando al ninja:
+    ..NNNNTTTTTTTT..
+    ..NNssTTTTTTTTss
+    ..NNNNNNNN......
+    ..NNNNNNNN......
+    ................
+    ................
+    ................
+    ................
+    ................
+    ................
+    ................
+c) El mismo caso b) ORDENADO: el ninja (y 190) va primero y tapa a Tarou:
+    ..NNNNNNNNTTTT..
+    ..NNNNNNNNTTTTss
+    ..NNNNNNNN......
+    ..NNNNNNNN......
+    ................
+    ................
+    ................
+    ................
+    ................
+    ................
+    ................
+
+=== Parte 4: camara_avanzar + oleadas (orden de pantalla_fase1.c) ===
+Tarou camina siempre a la derecha. En el frame 260 se 'vence la oleada' (A, hoy).
+frame  Tar x camara  zona  bloq  limite de la camara
+    1     66      0     0     0  0x0100
+   40    144     16     0     0  0x0100
+   80    224     96     0     0  0x0100
+  120    304    176     0     0  0x0100
+  160    384    256     0     1  0x0100
+  200    464    256     0     1  0x0100
+  240    488    256     0     1  0x0100
+  261    488    258     1     0  0x0280   <- oleada vencida, la camara se libera
+  280    526    296     1     0  0x0280
+  320    606    376     1     0  0x0280
+  360    686    456     1     0  0x0280
+  400    766    536     1     0  0x0280
+  440    846    616     1     0  0x0280
+  452    870    640     1     1  0x0280
+Frame 452: la camara llega a 640 (zona 1 bloqueada otra vez) y Tarou va en x = 870 (su tope derecho: camara + 256 - 24 = 872).

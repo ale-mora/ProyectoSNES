@@ -4,20 +4,22 @@ Esta carpeta es el curso para quien hereda el proyecto: 27 unidades de
 estudio que van de C en el PC hasta programar la SNES **en C con
 PVSnesLib**, cada una anclada en el código real de *Tarou: A Dog's Journey*.
 Las unidades 14 y 15 enseñan además a leer y escribir ensamblador 65816.
-Hay 21 escritas (00–20) y 6 por escribir (21–26).
+Hay 25 escritas (00–24) y 2 por escribir (25–26, sin código todavía).
 
 > **El juego cambió de género (2026-10-23).** Las unidades 00–20 se
 > escribieron sobre la **Revisión 2**, el plataformas con el tutorial de
 > movimiento, que queda congelado en el tag git **`plataformas-r2`** (commit
 > `480f373`). El juego pasa a ser un beat 'em up de carril en profundidad
-> ([`../docs/diseno-beat-em-up.md`](../docs/diseno-beat-em-up.md)), todavía
-> sin código. Por eso toda práctica sobre el juego de las unidades 00–20 se
+> ([`../docs/diseno-beat-em-up.md`](../docs/diseno-beat-em-up.md)), ya con
+> código en la rama principal. Por eso toda práctica sobre el juego de las unidades 00–20 se
 > hace en un clon fijado en ese tag (paso 3 de «Para el alumno»). Las
 > unidades **01, 02, 10, 11 y 20 son históricas** (física de plataformas,
 > colisión por rejilla, tutorial): su README lo avisa y dice qué parte del
 > concepto se traslada al beat 'em up. Las demás enseñan hardware y motores
-> que se quedan. Las 21–26, sobre el beat 'em up, se escribirán cuando
-> exista su código (`PLAN.md` §3).
+> que se quedan. Las 21–24 se escribieron el 2026-10-26 sobre el código del
+> beat 'em up (commit `641d7c0`; sus prácticas se hacen en un clon de la rama
+> principal, no del tag). Las 25–26 se escribirán cuando exista su código
+> (`PLAN.md` §3).
 
 - **El plan** (formato de una unidad, dependencias, recetas verificadas,
   trampas conocidas y estado): [`PLAN.md`](PLAN.md).
@@ -29,7 +31,7 @@ Hay 21 escritas (00–20) y 6 por escribir (21–26).
 - **La documentación técnica** del juego, que las unidades resumen y citan:
   [`../docs/README.md`](../docs/README.md).
 
-## Las unidades (00–20 escritas el 2026-10-22; 21–26 por escribir)
+## Las unidades (00–20 escritas el 2026-10-22; 21–24 escritas el 2026-10-26; 25–26 por escribir)
 
 El orden es el del grafo de [`PLAN.md`](PLAN.md) §4: cada unidad da por
 sabido lo de sus prerrequisitos. «(tag)» = la práctica sobre el juego se
@@ -59,10 +61,10 @@ sobre el juego de las unidades 00–20.
 | [18](unidad-18-herramientas/) | Herramientas: gfx4snes, scripts de Python y el Makefile | juego (TDD) |
 | [19](unidad-19-del-arte-al-juego/) | Del arte al juego: Pixellab, celdas, paletas y perspectiva | PC + juego (TDD) |
 | [20](unidad-20-colision/) | Colisión con el escenario y el nivel en Tiled (histórica) | PC + juego (tag) |
-| 21 | Presupuesto de sprites: ranuras por línea, 512 tiles, VBlank, bandas de cine, parpadeo rotatorio (la prueba de carga) | **por escribir** |
-| 22 | Belt-scroll: x/y/z, el carril, la sombra y el orden por profundidad (OAM y bit de prioridad) | **por escribir** |
-| 23 | Combate: estados que se afectan, cajas de golpe y daño, parada de impacto | **por escribir** |
-| 24 | Enemigos: IA con turnos de ataque y oleadas desde Tiled | **por escribir** |
+| [21](unidad-21-presupuesto-de-sprites/) | Presupuesto de sprites: ranuras por línea, 512 tiles, VBlank, piezas de 16×16 y el coste de la OAM (la prueba de carga) | PC + clon del juego (sin Mesen) |
+| [22](unidad-22-belt-scroll/) | Belt-scroll: x/y/z, el carril, la sombra y el orden por profundidad (OAM y bit de prioridad) | PC + juego (TDD) |
+| [23](unidad-23-combate/) | Combate: combo con cola e id por tajo, caja de golpe, estados que se afectan, parada de impacto y buffer | PC + juego (TDD) |
+| [24](unidad-24-enemigos-y-oleadas/) | Enemigos y oleadas: el ninja, el testigo de ataque y el bloqueo de cámara | PC + juego (TDD) |
 | 25 | Matemática de color, ventanas por HDMA y los efectos de los apoyos (Mode 7, opcional) | **por escribir** |
 | 26 | Relevo entre protagonistas y celda de VRAM compartida | **por escribir** |
 
@@ -100,8 +102,9 @@ conocidas). Antes de cambiar nada, relee los archivos de «Código del juego»
 de la unidad; si algo cambió, manda el código y corrige la unidad y el plan.
 Para las unidades 00–20, «el código» es el del tag plataformas-r2 (PLAN §6.1,
 punto 7): reléelo en un clon fijado en ese tag, no en la rama principal, y no
-reescribas una unidad histórica para enseñar el beat 'em up. Las 21–26 solo
-se escriben cuando su código exista en la rama principal.
+reescribas una unidad histórica para enseñar el beat 'em up. Las 21–24 se
+escribieron sobre la rama principal (641d7c0); la 25 y la 26 solo se escriben
+cuando su código exista.
 Trabaja los cambios del juego en un clon, ejecuta el criterio de aprobación
 de verdad con la solución, guarda las capturas en la unidad, marca la tabla
 de §7 y haz un commit sin push.

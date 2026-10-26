@@ -442,6 +442,31 @@ del plataformas (tag `plataformas-r2`).
   enemigos y de qué tamaño caben antes de pedir el arte.
 - **Bandas de cine** — apagar la pantalla (*forced blank*) en las últimas
   líneas para alargar el tiempo de DMA del VBlank.
+- **Pieza de 16×16 (`.p16`)** — formato de los cuadros del beat 'em up: solo
+  las piezas de 16×16 no vacías, con su índice y su tabla (unidad 21).
+- **Tope de subida por VBlank** — cuántos bytes de tiles caben en la lista de
+  DMA de un VBlank; por eso se sube un cuadro por frame, por turnos (unidad 21).
+- **Hueco de tiles / ranura de enemigo** — rango fijo de tiles de sprite
+  (192/288/384, 96 cada uno) y entrada fija de la tabla de ninjas (unidad 24).
+- **Pérdida silenciosa** — copia a la VRAM que no se hace sin avisar: lista de
+  DMA llena (32) o escritura pasada la línea 37 del VBlank (unidad 21).
+- **Ordenación por inserción (estable)** — cómo se ordena la OAM por y cada
+  frame: casi ordenada, ~7 comparaciones por frame (unidad 22).
+- **Tope de zona / cámara bloqueada** — el `limite` de `camara_avanzar`; no es
+  un muro del mundo, solo del scroll (unidades 22 y 24).
+- **Tajo** — un golpe entero; su `id` hace que pegue una sola vez a cada
+  objetivo. **Cuadro activo**: el cuadro en que existe la caja (unidad 23).
+- **Cola / ventana de encadenado** — la A recordada (un elemento) para
+  encadenar el siguiente golpe del combo (unidad 23).
+- **Aturdido (RECIBIR), derribo y KO** — estados tras un golpe: breve
+  retroceso, caída, sin vida. **Invulnerabilidad con parpadeo**: `inv & 2`
+  (unidad 23).
+- **Buffer de entrada (`a_guardada`)** — la A pulsada durante la parada de
+  impacto se guarda y se aplica al terminar (unidad 23).
+- **Testigo de ataque** — contador que limita los atacantes simultáneos
+  (`NINJA_TURNOS`); quien no tiene turno espera parado, no rodea (unidad 24).
+- **Cadencia / descanso (`espera`)** — tajo de 28 cuadros más 50 de descanso
+  (unidad 24).
 
 ## C (lo que aparece en este proyecto)
 

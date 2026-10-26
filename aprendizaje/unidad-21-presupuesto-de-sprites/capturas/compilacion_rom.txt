@@ -1,0 +1,15 @@
+ROM de prueba de carga, clon sin cambios (make clean; CFLAGS=-DPRUEBA_CARGA; make):
+
+No warnings or errors found.
+ROM: 3474117 bytes (82.83%) free of total 4194304.
+RAM: 152213 bytes (92.90%) free of total 163840.
+
+
+ROM de prueba de carga con la configuracion 8 (solucion/prueba_carga.diff):
+
+No warnings or errors found.
+ROM: 3474109 bytes (82.83%) free of total 4194304.
+RAM: 152213 bytes (92.90%) free of total 163840.
+
+
+La verificacion visual en Mesen NO se hizo en esta unidad (spec 9.2): solo se comprobo que compila.

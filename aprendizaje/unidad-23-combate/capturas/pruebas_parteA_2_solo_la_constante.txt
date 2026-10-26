@@ -1,0 +1,6 @@
+FALLO prueba_combate.c:104: c.golpe == GOLPES
+FALLO prueba_combate.c:114: c.golpe == 0 && c.cola == 0
+FALLO prueba_combate.c:135: combate_danio(1) == 1 && combate_danio(2) == 1 && combate_danio(3) == 2
+FALLO prueba_combate.c:136: !combate_derriba(1) && !combate_derriba(2) && combate_derriba(3)
+FALLO prueba_combate.c:205: golpes_vistos == 3
+566 pruebas, 5 fallos

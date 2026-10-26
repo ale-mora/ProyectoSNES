@@ -1,0 +1,15 @@
+diff --git a/src/pantallas/prueba_carga.c b/src/pantallas/prueba_carga.c
+index 02502ef..5cd3c78 100644
+--- a/src/pantallas/prueba_carga.c
++++ b/src/pantallas/prueba_carga.c
+@@ -104,8 +104,9 @@ static const Config CONFIGS[] = {
+     {3, 0, 1, 1, 1, {0, 0, 0}},      /* 5: 3 repartidos, solo andando, sombras.           */
+     {3, 1, 1, 0, 1, {0, 0, 0}},      /* 6: 3 repartidos, sin sombras.                     */
+     {3, 1, 1, 1, 2, {0, 0, 0}},      /* 7: como la 4, con 2 subidas por VBlank (el techo). */
++    {3, 1, 0, 0, 1, {0, 0, 0}},      /* 8: 3 ninjas, misma y, SIN sombras (unidad 21).      */
+ };
+-#define CONFIGS_N 8
++#define CONFIGS_N 9
+ #define FRAMES_POR_CONFIG 360        /* 6 s: tres capturas de Mesen cada 2 s.             */
+ #define NINJAS_MAX 3
+ #define NINJA_ANDAR 8                /* Cuadros de cada tira del ninja.                   */

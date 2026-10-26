@@ -1,0 +1,3 @@
+FALLO prueba_mundo.c:168: largo >= 48 && largo <= 56
+FALLO prueba_mundo.c:169: aire_largo > aire_corto
+563 pruebas, 2 fallos

@@ -1,0 +1,5 @@
+FALLO prueba_oleadas.c:82: oleadas_limite(&o) == 1792
+FALLO prueba_oleadas.c:89: oleadas_actualizar(&o, camara) == 1 && o.bloqueada == 1
+FALLO prueba_oleadas.c:91: o.actual == OLEADAS_ZONAS && OLEADAS_ZONAS == 5
+FALLO prueba_ninja.c:152: maximo == NINJA_TURNOS
+568 pruebas, 4 fallos

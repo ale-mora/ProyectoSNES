@@ -1,0 +1,28 @@
+cuadro      z  altura(px)  vz  esquiva?
+    0     97          6  -88  no
+    1    185         11  -80  no
+    2    265         16  -72  SI
+    3    337         21  -64  SI
+    4    401         25  -56  SI
+    5    457         28  -48  SI
+    6    505         31  -40  SI
+    7    545         34  -32  SI
+    8    577         36  -24  SI
+    9    601         37  -16  SI
+   10    617         38   -8  SI
+   11    625         39    0  SI
+   12    625         39    8  SI
+   13    617         38   16  SI
+   14    601         37   24  SI
+   15    577         36   32  SI
+   16    545         34   40  SI
+   17    505         31   48  SI
+   18    457         28   56  SI
+   19    401         25   64  SI
+   20    337         21   72  SI
+   21    265         16   80  SI
+   22    185         11   88  no
+   23     97          6   96  no
+   24      1          0  104  no
+   25      0          0    0  (aterrizó)
+Cuadros en el aire: 25. Altura máxima: 39 px. Cuadros con altura >= 12: 20.

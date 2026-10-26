@@ -1,0 +1,18 @@
+Experimento del 2026-10-26 (PC, gcc, código real de ninja.c / camara.c / oleadas.c; fuente: t.c, abajo)
+
+#include <stdio.h>
+#include "enemigos/ninja.h"
+#include "juego/camara.h"
+#include "juego/oleadas.h"
+int main(void){ Ninja n[3]; ninja_iniciar_todos(n); ninja_oleada(n,10,0); printf("camara 10: x=%u mira_izq=%u\n",n[0].x,n[0].mira_izq);
+ /* limite mayor que CAMARA_MAX */ { u16 c=0,i; for(i=0;i<2000;i++) c=camara_avanzar(c,2000,1800); printf("limite 1800: camara final=%u\n",c);}
+ /* ninja a la izquierda, Tarou pegado al borde: sin dentro, se detiene fuera */
+ { u16 cam=256,f; ninja_iniciar_todos(n); n[0].vivo=1;n[0].x=cam-40;n[0].y=200;n[0].dentro=0; for(f=0;f<400;f++){ ninja_actualizar(n,cam+24,200); ninja_limitar_x(n,cam+32,cam+224);} printf("con dentro: x=%u dentro=%u\n",n[0].x,n[0].dentro);
+   ninja_iniciar_todos(n); n[0].vivo=1;n[0].x=cam-40;n[0].y=200;n[0].dentro=1; for(f=0;f<400;f++){ ninja_actualizar(n,cam+24,200);} printf("como si dentro=1 desde el principio: x=%u (cam-16=%u)\n",n[0].x,cam-16);}
+ return 0;}
+
+--- salida ---
+(ninja_oleada con la cámara en 10) x=65506 mira_izq=0   <- camara - 40 da la vuelta en u16
+(camara_avanzar con limite 1800, Tarou en x=2000, 2000 frames) camara final=1792   <- nunca llega a 1800
+(juego real: nace con dentro=0, Tarou en camara+24 = 280) x=280 dentro=0   <- se queda encima de Tarou sin entrar (el mínimo es 288)
+(sin la excepción del dentro, forzando dentro=1 al nacer) x=240 = camara-16: se pararía FUERA de la pantalla

@@ -1,0 +1,18 @@
+ninja64_andar.bin: 8 cuadros, piezas [18, 19, 20, 21, 20, 18, 18, 19], 20260 bytes
+ninja64_ataque.bin: 7 cuadros, piezas [15, 15, 17, 17, 19, 17, 15], 15236 bytes
+máximo: 21 piezas = 2688 bytes exactos (el hueco tiene 24)
+PREDICCIÓN (límite 34 ranuras de 8 px y 32 sprites por línea; Tarou en piezas de 16, 16)
+  andando: peor cuadro de andar (18 piezas)
+    Tarou solo                         máx 10 ranuras,  5 sprites; líneas > 34: ninguna
+    Tarou + 1, sombras                 máx 20 ranuras, 10 sprites; líneas > 34: ninguna
+    Tarou + 2, sombras                 máx 28 ranuras, 14 sprites; líneas > 34: ninguna
+    Tarou + 3 misma y, sombras         máx 36 ranuras, 18 sprites; líneas > 34: 168..175 (8)
+    Tarou + 3 repartidos, sombras      máx 34 ranuras, 17 sprites; líneas > 34: ninguna
+    Tarou + 3 repartidos, sin sombras  máx 34 ranuras, 17 sprites; líneas > 34: ninguna
+  atacando: peor cuadro de ataque (15 piezas)
+    Tarou solo                         máx 10 ranuras,  5 sprites; líneas > 34: ninguna
+    Tarou + 1, sombras                 máx 24 ranuras, 12 sprites; líneas > 34: ninguna
+    Tarou + 2, sombras                 máx 36 ranuras, 18 sprites; líneas > 34: 168..175 (8)
+    Tarou + 3 misma y, sombras         máx 48 ranuras, 24 sprites; líneas > 34: 168..175 (8)
+    Tarou + 3 repartidos, sombras      máx 38 ranuras, 19 sprites; líneas > 34: 168..175 (8)
+    Tarou + 3 repartidos, sin sombras  máx 30 ranuras, 15 sprites; líneas > 34: ninguna

@@ -1,0 +1,4 @@
+FALLO prueba_oleadas.c:82: oleadas_limite(&o) == 1792
+FALLO prueba_oleadas.c:89: oleadas_actualizar(&o, camara) == 1 && o.bloqueada == 1
+FALLO prueba_oleadas.c:91: o.actual == OLEADAS_ZONAS && OLEADAS_ZONAS == 5
+568 pruebas, 3 fallos

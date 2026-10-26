@@ -1,0 +1,7 @@
+tramos de la tabla GUION_F1: 254
+[f= 189] zona 0 bloqueada en camara 256: nacen 1 ninja(s); Tarou en x=384 vida=24
+[f= 463] oleada VENCIDA; siguiente zona 1; Tarou vida=24
+[f= 716] zona 1 bloqueada en camara 640: nacen 2 ninja(s); Tarou en x=768 vida=24
+[f= 971] Tarou recibe un tajo: vida 24 -> 22
+[f=1130] oleada VENCIDA; siguiente zona 2; Tarou vida=22
+fin de la tabla (cuadro 1400): zona en curso 2, camara 738, Tarou x=866 vida=22, ninjas vivos 0

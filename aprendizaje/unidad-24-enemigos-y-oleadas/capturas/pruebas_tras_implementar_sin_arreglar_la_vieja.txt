@@ -1,0 +1,4 @@
+FALLO prueba_oleadas.c:52: o.actual == OLEADAS_ZONAS && o.bloqueada == 0
+FALLO prueba_oleadas.c:53: oleadas_limite(&o) == 0xFFFF
+FALLO prueba_oleadas.c:54: oleadas_actualizar(&o, 1792) == 0
+568 pruebas, 3 fallos

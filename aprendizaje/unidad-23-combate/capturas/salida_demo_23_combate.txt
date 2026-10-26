@@ -1,0 +1,170 @@
+=== Unidad 23: combate (código real de src/) ===
+
+Constantes: GOLPES 3, GOLPE_FRAMES 14 (el último 20), activo 4..8 (sin incluir), encadenar desde 5,
+  COMBATE_ALCANCE 52, COMBATE_ATRAS 8, COMBATE_PROFUNDIDAD 14, PARADA_GOLPE 3, PARADA_DERRIBO 5,
+  NINJA_VIDA 4, NINJA_DANIO 2, VIDA_TAROU 24, INVULNERABLE_FRAMES 60
+
+--- 1. La caja de golpe ---
+
+Tarou mirando a la derecha (alcance 52, profundidad 14):
+      dx: -16 -12 -8 -4  0  4  8 12 16 20 24 28 32 36 40 44 48 52 56 60
+  dy -16    .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . 
+  dy -12    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy  -8    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy  -4    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy  +0    .   .   #   #   @   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy  +4    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy  +8    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy +12    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy +16    .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . 
+  (# = un objetivo con los pies ahí recibiría el golpe; @ = los pies del luchador)
+
+Tarou mirando a la izquierda (la misma caja, reflejada):
+      dx: -16 -12 -8 -4  0  4  8 12 16 20 24 28 32 36 40 44 48 52 56 60
+  dy -16    .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . 
+  dy -12    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy  -8    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy  -4    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy  +0    .   .   #   #   @   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy  +4    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy  +8    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy +12    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   . 
+  dy +16    .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . 
+  (# = un objetivo con los pies ahí recibiría el golpe; @ = los pies del luchador)
+
+Un ninja mirando a la derecha (alcance 48, profundidad 12):
+      dx: -16 -12 -8 -4  0  4  8 12 16 20 24 28 32 36 40 44 48 52 56 60
+  dy -16    .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . 
+  dy -12    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   .   . 
+  dy  -8    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   .   . 
+  dy  -4    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   .   . 
+  dy  +0    .   .   #   #   @   #   #   #   #   #   #   #   #   #   #   #   #   .   .   . 
+  dy  +4    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   .   . 
+  dy  +8    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   .   . 
+  dy +12    .   .   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   .   .   . 
+  dy +16    .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . 
+  (# = un objetivo con los pies ahí recibiría el golpe; @ = los pies del luchador)
+
+--- 2. El combo CON buffer, cuadro a cuadro (ninja a 44 px, 4 px más abajo) ---
+
+  cuadro  A  parada | Tarou: golpe reloj cola  id activo | ninja: estado   vida id_golpe x
+      0  A       0 |     1     0    0   1     no | ANDANDO      4        0 443
+      1  -       0 |     1     1    0   1     no | ANDANDO      4        0 442
+      2  -       0 |     1     2    0   1     no | ANDANDO      4        0 441
+      3  -       0 |     1     3    0   1     no | ANDANDO      4        0 440
+      4  -       3 |     1     4    0   1     SI | RECIBIR      3        1 442  <- GOLPE CUENTA
+      5  A       2 |     1     4    0   1     SI | RECIBIR      3        1 442  <- congelado
+      6  -       1 |     1     4    0   1     SI | RECIBIR      3        1 442  <- congelado
+      7  -       0 |     1     4    0   1     SI | RECIBIR      3        1 442  <- congelado
+      8  -       0 |     1     5    1   1     SI | RECIBIR      3        1 444
+      9  -       0 |     1     6    1   1     SI | RECIBIR      3        1 446
+     10  -       0 |     1     7    1   1     SI | RECIBIR      3        1 448
+     11  -       0 |     1     8    1   1     no | RECIBIR      3        1 450
+     12  -       0 |     1     9    1   1     no | RECIBIR      3        1 452
+     13  -       0 |     1    10    1   1     no | RECIBIR      3        1 452
+     14  -       0 |     1    11    1   1     no | RECIBIR      3        1 452
+     15  -       0 |     1    12    1   1     no | RECIBIR      3        1 452
+     16  -       0 |     1    13    1   1     no | RECIBIR      3        1 452
+     17  -       0 |     2     0    0   2     no | RECIBIR      3        1 452
+     18  -       0 |     2     1    0   2     no | RECIBIR      3        1 452
+     19  -       0 |     2     2    0   2     no | RECIBIR      3        1 452
+     20  -       0 |     2     3    0   2     no | RECIBIR      3        1 452
+     21  -       3 |     2     4    0   2     SI | RECIBIR      2        2 454  <- GOLPE CUENTA
+     22  A       2 |     2     4    0   2     SI | RECIBIR      2        2 454  <- congelado
+     23  -       1 |     2     4    0   2     SI | RECIBIR      2        2 454  <- congelado
+     24  -       0 |     2     4    0   2     SI | RECIBIR      2        2 454  <- congelado
+     25  -       0 |     2     5    1   2     SI | RECIBIR      2        2 456
+     26  -       0 |     2     6    1   2     SI | RECIBIR      2        2 458
+     27  -       0 |     2     7    1   2     SI | RECIBIR      2        2 460
+     28  -       0 |     2     8    1   2     no | RECIBIR      2        2 462
+     29  -       0 |     2     9    1   2     no | RECIBIR      2        2 464
+     30  -       0 |     2    10    1   2     no | RECIBIR      2        2 464
+     31  -       0 |     2    11    1   2     no | RECIBIR      2        2 464
+     32  -       0 |     2    12    1   2     no | RECIBIR      2        2 464
+     33  -       0 |     2    13    1   2     no | RECIBIR      2        2 464
+     34  -       0 |     3     0    0   3     no | RECIBIR      2        2 464
+     35  -       0 |     3     1    0   3     no | RECIBIR      2        2 464
+     36  -       0 |     3     2    0   3     no | RECIBIR      2        2 464
+     37  -       0 |     3     3    0   3     no | RECIBIR      2        2 464
+     38  -       0 |     3     4    0   3     SI | RECIBIR      2        2 464
+     39  -       0 |     3     5    0   3     SI | PARADO       2        2 464
+     40  -       0 |     3     6    0   3     SI | ANDANDO      2        2 463
+     41  -       0 |     3     7    0   3     SI | ANDANDO      2        2 462
+     42  -       0 |     3     8    0   3     no | ANDANDO      2        2 461
+     43  -       0 |     3     9    0   3     no | ANDANDO      2        2 460
+     44  -       0 |     3    10    0   3     no | ANDANDO      2        2 459
+     45  -       0 |     3    11    0   3     no | ANDANDO      2        2 458
+     46  -       0 |     3    12    0   3     no | ANDANDO      2        2 457
+     47  -       0 |     3    13    0   3     no | ANDANDO      2        2 456
+     48  -       0 |     3    14    0   3     no | ANDANDO      2        2 455
+     49  -       0 |     3    15    0   3     no | ANDANDO      2        2 454
+     50  -       0 |     3    16    0   3     no | ANDANDO      2        2 453
+     51  -       0 |     3    17    0   3     no | ANDANDO      2        2 452
+     52  -       0 |     3    18    0   3     no | ANDANDO      2        2 451
+     53  -       0 |     3    19    0   3     no | ANDANDO      2        2 450
+     54  -       0 |     0     0    0   3     no | ANDANDO      2        2 449
+     55  -       0 |     0     0    0   3     no | ANDANDO      2        2 448
+     56  -       0 |     0     0    0   3     no | ANDANDO      2        2 447
+     57  -       0 |     0     0    0   3     no | ANDANDO      2        2 446
+     58  -       0 |     0     0    0   3     no | ANDANDO      2        2 445
+     59  -       0 |     0     0    0   3     no | ANDANDO      2        2 444
+  Resultado CON buffer, ninja libre: golpe más alto del combo = 3, golpes que contaron = 2,
+  cuadros de juego con la caja activa encima del ninja = 4, vida final del ninja = 2 de 4.
+
+--- 3. Variantes (solo el resumen) ---
+
+  El mismo jugador SIN buffer (a_guardada desactivada):
+  Resultado SIN buffer, ninja libre: golpe más alto del combo = 1, golpes que contaron = 1,
+  cuadros de juego con la caja activa encima del ninja = 4, vida final del ninja = 3 de 4.
+
+  CON buffer pero con el ninja clavado a 40 px, como en tests/prueba_combate.c
+  (esa prueba ni llama a ninja_actualizar, así que el empujón no lo mueve):
+  Resultado CON buffer, ninja clavado: golpe más alto del combo = 3, golpes que contaron = 3,
+  cuadros de juego con la caja activa encima del ninja = 12, vida final del ninja = 0 de 4.
+
+--- 4. Los tajos de dos ninjas contra Tarou ---
+
+  cuadro | ninja0: estado   timer conecto | ninja1: estado   timer conecto | Tarou: vida inv stun estado    dibujo
+      0  | ATACANDO     0      no | ANDANDO      0      no |    24   0    0 PARADO    visible
+      1  | ATACANDO     1      no | PARADO       0      no |    24   0    0 PARADO    visible
+     10  | ATACANDO    10      no | PARADO       0      no |    24   0    0 PARADO    visible
+     11  | ATACANDO    11      no | PARADO       0      no |    24   0    0 PARADO    visible
+     12  | ATACANDO    12      SI | PARADO       0      no |    22  60   16 RECIBIR   visible   <- TAJO CUENTA
+     13  | ATACANDO    12      SI | PARADO       0      no |    22  60   16 RECIBIR   visible
+     30  | ATACANDO    27      SI | ATACANDO    10      no |    22  45    1 RECIBIR   visible
+     31  | PARADO       0      SI | ATACANDO    11      no |    22  44    0 PARADO    visible
+     32  | ANDANDO      0      SI | ATACANDO    12      SI |    22  43    0 PARADO    (oculto)
+     33  | ANDANDO      0      SI | ATACANDO    13      SI |    22  42    0 PARADO    (oculto)
+     34  | ANDANDO      0      SI | ATACANDO    14      SI |    22  41    0 PARADO    visible
+     35  | ANDANDO      0      SI | ATACANDO    15      SI |    22  40    0 PARADO    visible
+     36  | ANDANDO      0      SI | ATACANDO    16      SI |    22  39    0 PARADO    (oculto)
+     37  | ANDANDO      0      SI | ATACANDO    17      SI |    22  38    0 PARADO    (oculto)
+     38  | ANDANDO      0      SI | ATACANDO    18      SI |    22  37    0 PARADO    visible
+     39  | ANDANDO      0      SI | ATACANDO    19      SI |    22  36    0 PARADO    visible
+     40  | ANDANDO      0      SI | ATACANDO    20      SI |    22  35    0 PARADO    (oculto)
+     41  | ANDANDO      0      SI | ATACANDO    21      SI |    22  34    0 PARADO    (oculto)
+     48  | PARADO       0      SI | PARADO       0      SI |    22  27    0 PARADO    (oculto)
+     52  | PARADO       0      SI | PARADO       0      SI |    22  23    0 PARADO    (oculto)
+     56  | PARADO       0      SI | PARADO       0      SI |    22  19    0 PARADO    (oculto)
+     60  | PARADO       0      SI | PARADO       0      SI |    22  15    0 PARADO    (oculto)
+     64  | PARADO       0      SI | PARADO       0      SI |    22  11    0 PARADO    (oculto)
+     68  | PARADO       0      SI | PARADO       0      SI |    22   7    0 PARADO    (oculto)
+     72  | PARADO       0      SI | PARADO       0      SI |    22   3    0 PARADO    (oculto)
+     76  | PARADO       0      SI | PARADO       0      SI |    22   0    0 PARADO    visible
+     90  | ATACANDO     9      no | PARADO       0      SI |    22   0    0 PARADO    visible
+     91  | ATACANDO    10      no | PARADO       0      SI |    22   0    0 PARADO    visible
+     92  | ATACANDO    11      no | PARADO       0      SI |    22   0    0 PARADO    visible
+     93  | ATACANDO    12      SI | PARADO       0      SI |    20  60   16 RECIBIR   visible   <- TAJO CUENTA
+     94  | ATACANDO    12      SI | PARADO       0      SI |    20  60   16 RECIBIR   visible
+     95  | ATACANDO    12      SI | PARADO       0      SI |    20  60   16 RECIBIR   visible
+     96  | ATACANDO    12      SI | PARADO       0      SI |    20  60   16 RECIBIR   visible
+     97  | ATACANDO    13      SI | PARADO       0      SI |    20  59   15 RECIBIR   (oculto)
+     98  | ATACANDO    14      SI | PARADO       0      SI |    20  58   14 RECIBIR   (oculto)
+     99  | ATACANDO    15      SI | PARADO       0      SI |    20  57   13 RECIBIR   visible
+  Tarou: vida 20 de 24. conecto del ninja 1 = 1 (su tajo se gastó contra la invulnerabilidad).
+
+--- 5. KO ---
+
+  mundo_recibir con vida 2 y daño 2 -> devuelve 1
+  vida 0, estado 6 (DERRIBADO = 6), stun 36, inv 60
+  tras 200 cuadros machacando A: estado 6, golpe 0, stun 0; otro golpe -> 0

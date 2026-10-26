@@ -163,7 +163,7 @@ void pruebas_combate(void)
         {
             ninja_actualizar(n, 400, 200);           /* Aturdido: sin IA, solo retrocede.   */
         }
-        COMPROBAR(n[0].x > x0 && n[0].x <= x0 + 2 * 6);           /* Retrocedió un poco.  */
+        COMPROBAR(n[0].x > x0 && n[0].x <= x0 + 4);           /* Retrocedió un poco.  */
         COMPROBAR(n[0].estado == NINJA_PARADO && n[0].vivo);       /* Y se recupera.       */
     }
     COMPROBAR(ninja_recibir(n, 1, 0, 1, 8) == 0 && n[0].empuje == NINJA_EMPUJE_IZQ);   /* Otro tajo. */
@@ -385,4 +385,27 @@ void pruebas_combate(void)
     c.inv = 0;
     combate_ninjas_resolver(n, &c);                  /* El mismo tajo no pega otra vez.     */
     COMPROBAR(c.vida == VIDA_TAROU);
+
+    /* El combo completo conecta contra un ninja que camina: el retroceso no lo saca del alcance. */
+    mundo_iniciar(&c, 400, 200);
+    ninja_iniciar_todos(n);
+    ninja_oleada(n, 300, 0);
+    n[0].x = 400 + NINJA_DISTANCIA; n[0].y = 200; n[0].dentro = 1; n[0].espera = 250;
+    n[0].estado = NINJA_PARADO; n[0].mira_izq = 1;
+    {
+        u8 golpes = 0, antes = 0;
+        u16 t;
+        for (t = 0; t < 120; t++)
+        {
+            cuadro(&c, (u8)(t == 0 || (c.estado == CUERPO_ATACANDO && c.reloj == GOLPE_ENCADENAR_DESDE)));
+            if (combate_resolver(&c, n) && c.id != antes)
+            {
+                golpes++;
+            }
+            antes = c.id;
+            ninja_actualizar(n, c.x, c.y);
+        }
+        COMPROBAR(n[0].vida == 0);                   /* 1 + 1 + 2 = 4: los tres golpes conectaron. */
+        (void)golpes;
+    }
 }

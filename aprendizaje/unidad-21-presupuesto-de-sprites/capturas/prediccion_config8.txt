@@ -1,0 +1,10 @@
+
+   andando: peor cuadro de andar (18 piezas)
+     Tarou + 3 misma y, sombras         max 36 ranuras, 18 sprites; lineas > 34: 168..175 (8)
+     Tarou + 3 repartidos, sin sombras  max 34 ranuras, 17 sprites; lineas > 34: ninguna
+     Tarou + 3 misma y, SIN sombras     max 34 ranuras, 17 sprites; lineas > 34: ninguna
+   atacando: peor cuadro de ataque (15 piezas)
+     Tarou + 3 misma y, sombras         max 48 ranuras, 24 sprites; lineas > 34: 168..175 (8)
+     Tarou + 3 repartidos, sin sombras  max 30 ranuras, 15 sprites; lineas > 34: ninguna
+     Tarou + 3 misma y, SIN sombras     max 32 ranuras, 16 sprites; lineas > 34: ninguna
+

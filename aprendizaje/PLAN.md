@@ -752,7 +752,7 @@ de zonas y oleadas (unidad 24).
 
 ### Unidades 21–26 — el beat 'em up (fichas nuevas del 2026-10-23)
 
-**Estado de las seis: por escribir cuando exista el código.** Las fichas
+**Estado: 21–24 escritas el 2026-10-26 contra el commit `641d7c0`; 25 y 26 por escribir cuando exista su código.** Las fichas de 21–24 se conservan como el plan original; en cada README hay una tabla «lo que la ficha prometía y todavía no existe» (carril por columnas, `preparar_zona.py`, agarre, ataque aéreo, especial, destello, jefe, Bárbara...). Las fichas
 salen de [`docs/diseno-beat-em-up.md`](../docs/diseno-beat-em-up.md) (la
 spec de la Revisión 3, citada aquí como «spec §n») y de
 [`docs/arte-beat-em-up.md`](../docs/arte-beat-em-up.md). Los archivos de
@@ -766,7 +766,7 @@ la prueba de carga (spec §9), después el mundo, el combate, los enemigos, los
 efectos y el relevo. Al escribir cada una se relee la spec: si el código
 final difiere, manda el código y se corrige la ficha.
 
-### Unidad 21 — Presupuesto de sprites: la prueba de carga (por escribir)
+### Unidad 21 — Presupuesto de sprites: la prueba de carga (escrita 2026-10-26; la ficha es el plan original, el código real manda: ver el README de la unidad)
 
 - **Objetivo:** saber cuántos personajes caben en pantalla a la vez y por
   qué, midiéndolo antes de pedir el arte: el límite que manda en un
@@ -798,7 +798,7 @@ final difiere, manda el código y se corrige la ficha.
   (prevista).
 - **Aprobación:** por definir cuando exista la ROM de prueba de carga.
 
-### Unidad 22 — Belt-scroll: x/y/z, el carril y el orden por profundidad (por escribir)
+### Unidad 22 — Belt-scroll: x/y/z, el carril y el orden por profundidad (escrita 2026-10-26; la ficha es el plan original, el código real manda: ver el README de la unidad)
 
 - **Objetivo:** que un mundo 2D parezca tener fondo: posición en el carril,
   altura del salto, sombra y quién tapa a quién.
@@ -824,7 +824,7 @@ final difiere, manda el código y se corrige la ficha.
   z). **Práctica:** PC + juego real (prevista).
 - **Aprobación:** por definir cuando exista el código.
 
-### Unidad 23 — Combate: estados que se afectan, cajas de golpe y daño (por escribir)
+### Unidad 23 — Combate: estados que se afectan, cajas de golpe y daño (escrita 2026-10-26; la ficha es el plan original, el código real manda: ver el README de la unidad)
 
 - **Objetivo:** que un golpe conecte, haga daño y cambie el estado del otro,
   con la contundencia de un *Final Fight*, sin gastar el frame.
@@ -853,7 +853,7 @@ final difiere, manda el código y se corrige la ficha.
   enseñan está en el tag), 22. **Práctica:** PC + juego real (prevista).
 - **Aprobación:** por definir cuando exista el código.
 
-### Unidad 24 — Enemigos: IA con turnos y oleadas desde Tiled (por escribir)
+### Unidad 24 — Enemigos: IA con turnos y oleadas desde Tiled (escrita 2026-10-26; la ficha es el plan original, el código real manda: ver el README de la unidad)
 
 - **Objetivo:** que tres enemigos se sientan justos y la fase avance por
   zonas: IA simple, turnos de ataque, oleadas y bloqueo de cámara, todo
@@ -955,7 +955,7 @@ final difiere, manda el código y se corrige la ficha.
 (01, 02, 10, 11 y 20: históricas, su código está en el tag plataformas-r2)
 ```
 
-Las unidades del beat 'em up (por escribir), en el orden en que la spec
+Las unidades del beat 'em up (21–24 escritas, 25–26 por escribir), en el orden en que la spec
 construye el código:
 
 ```text
@@ -998,10 +998,10 @@ concepto con el código del tag `plataformas-r2`.
 | Etapa 2: scroll de cámara y registros de BG | 07 (el bloqueo de zona, 22 y 24) |
 | Etapa 2: debugging con el debugger de Mesen | 16 |
 | Integración del arte (Pixellab → ROM) | 19 |
-| Beat 'em up: presupuesto de sprites (34 ranuras por línea, 512 tiles, VBlank, bandas de cine, parpadeo rotatorio; spec §8–§9) | 21 (por escribir) |
-| Beat 'em up: x/y/z, carril, sombra, orden por profundidad (OAM y bit de prioridad; spec §3) | 22 (por escribir) |
-| Beat 'em up: combate (estados que se afectan, cajas de golpe y daño, parada de impacto, destello; spec §5) | 23 (por escribir) |
-| Beat 'em up: IA de enemigos, turnos de ataque, oleadas y zonas desde Tiled (spec §6–§7) | 24 (por escribir) |
+| Beat 'em up: presupuesto de sprites (34 ranuras por línea, 512 tiles, VBlank, bandas de cine, parpadeo rotatorio; spec §8–§9) | 21 |
+| Beat 'em up: x/y/z, carril, sombra, orden por profundidad (OAM y bit de prioridad; spec §3) | 22 |
+| Beat 'em up: combate (estados que se afectan, cajas de golpe y daño, parada de impacto, destello; spec §5) | 23 |
+| Beat 'em up: IA de enemigos, turnos de ataque, oleadas y zonas desde Tiled (spec §6–§7) | 24 |
 | Beat 'em up: matemática de color, ventanas por HDMA, efectos de los apoyos (spec §5.4, §8; Mode 7 opcional, fuera de la spec) | 25 (por escribir) |
 | Beat 'em up: relevo entre protagonistas, celda de VRAM y paleta compartidas (spec §4) | 26 (por escribir) |
 | Beat 'em up: doble toque para correr (lógica pura con `guion.c`; spec §2) | 05 (el guion de mando); se verá en la 22 o la 23 |
@@ -1227,7 +1227,7 @@ en el orden de la spec (la 21 en cuanto exista la ROM de prueba de carga).
 
 Las unidades 00–20 se escribieron todas el 2026-10-22 (la 00, ampliada), en
 un solo commit, contra el código que hoy guarda el tag `plataformas-r2`; las
-21–26 (el beat 'em up) son fichas del 2026-10-23, por escribir (§3). Todo lo
+21–24 (el beat 'em up) se escribieron el 2026-10-26 contra el commit `641d7c0`; la 25 y la 26 son fichas por escribir (§3). Todo lo
 que se ejecuta en el PC (gcc, pruebas, scripts) y todas las compilaciones
 (mini-ROM y juego modificado, en clones) se ejecutaron de verdad y su salida
 está en `capturas/`.
@@ -1269,9 +1269,9 @@ las pantallas de imagen (scroll vertical −1, §6.6).
 | 18 | **hecha**; animación «guardia» con TDD (36/36 de scripts). Mesen: verificada. Clon en `6d12030`; se compara con el tag `plataformas-r2`. |
 | 19 | **hecha**; TDD (39/39 de scripts) + 4 ROM. Mesen: verificada. Práctica sobre el juego: clon en el tag `plataformas-r2`. |
 | 20 | **hecha**; segundo foso + guion (367/367). Mesen: verificada. **Histórica**: su código está en el tag `plataformas-r2`. |
-| 21 | **por escribir** cuando exista la ROM de prueba de carga (spec §9) |
-| 22 | **por escribir** cuando exista `mundo.c` |
-| 23 | **por escribir** cuando exista `combate.c` |
-| 24 | **por escribir** cuando existan los enemigos y `oleadas.c` |
+| 21 | **hecha**; demo y ejercicio de PC (cuadros .p16 reales, ranuras por línea idénticas al script, modelo del VBlank) + clon (570/570 con 10 pruebas nuevas; ROM -DPRUEBA_CARGA con una configuración nueva compila sin avisos). Mesen: NO verificada (spec §9.2). Práctica sobre el juego: clon de la rama demo-secuencia-arranque (641d7c0); bandas de cine y parpadeo rotatorio no existen en el código |
+| 22 | **hecha**; demo de PC (código real, 4 partes) + ejercicio TDD de salto de altura variable (560 → 563/563 en el clon); ROM del clon compila (sin probar en Mesen). Código en 641d7c0; carril por columnas y prioridad de poste: llegarán |
+| 23 | **hecha**; demo de PC con los .c reales + TDD en clon (A: combo de 4 golpes 567/567; B: el salto esquiva el tajo 563/563; ROM compila). Mesen: sin capturas. Código en `641d7c0` (el retroceso del ninja se corrigió después, ver su README); cajas por cuadro, agarre, lanzamiento, ataque aéreo y especial por venir |
+| 24 | **hecha**; demo de PC (oleada simulada, testigo con 1/2/3 turnos) + réplica de la ROM autojugable en el PC + ejercicio TDD en clon (quinta zona: 568/568; mutación del testigo detectada); ROM normal y -DGUION_FASE1 compilan. Mesen: pendiente. Ninja rápido, kendoka, jefe, objetos, Tiled y preparar_zona.py: por venir |
 | 25 | **por escribir** cuando existan los apoyos (`apoyos.c` y los efectos de `efectos.c`) |
 | 26 | **por escribir** cuando exista el relevo (`cambio_protagonista.c`, Bárbara jugable) |

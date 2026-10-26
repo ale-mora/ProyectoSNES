@@ -96,7 +96,7 @@ static void aturdido(Ninja *n)
     }
     else
     {
-        desliza = (u8)(n->timer > NINJA_RECIBIR_FRAMES - 6 ? 2 : 0);    /* Un pequeño retroceso. */
+        desliza = (u8)(n->timer > NINJA_RECIBIR_FRAMES - 4 ? 1 : 0);    /* Retroceso de 4 px: el combo de 3 golpes sigue a su alcance. */
     }
     if (n->empuje == NINJA_EMPUJE_IZQ)
     {

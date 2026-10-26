@@ -1,0 +1,2 @@
+FALLO prueba_combate.c:413: c.vida == VIDA_TAROU && n[0].conecto == 0
+563 pruebas, 1 fallos

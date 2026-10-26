@@ -1,0 +1,11 @@
+1. tiles: 0 14 32 64 78
+2. plan de 21 piezas: 6 copias
+     copia 0: origen 0 vram 0 bytes 512
+     copia 1: origen 512 vram 256 bytes 512
+     copia 2: origen 1024 vram 512 bytes 512
+     copia 3: origen 1536 vram 768 bytes 512
+     copia 4: origen 2048 vram 1024 bytes 320
+     copia 5: origen 2368 vram 1280 bytes 320
+3. vblanks: tope1536=2 tope65535=1 tope1024=3 tope100=6
+4. ranuras: Tarou=10 Tarou+2ninjas=22 Tarou+2ninjas+sombras=34 Tarou+3ninjas+sombras=44
+5. caben: sin sombras=4 con sombras=2

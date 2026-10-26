@@ -1,0 +1,5 @@
+1. tiles: 0 0 0 0 0
+2. plan de 21 piezas: 0 copias
+3. vblanks: tope1536=0 tope65535=0 tope1024=0 tope100=0
+4. ranuras: Tarou=0 Tarou+2ninjas=0 Tarou+2ninjas+sombras=0 Tarou+3ninjas+sombras=0
+5. caben: sin sombras=0 con sombras=0

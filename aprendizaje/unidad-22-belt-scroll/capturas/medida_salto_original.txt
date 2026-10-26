@@ -1,0 +1,2 @@
+mantener=0 altura=39 cuadros=26 primer_cuadro_bajando=12
+mantener=1 altura=39 cuadros=26 primer_cuadro_bajando=12

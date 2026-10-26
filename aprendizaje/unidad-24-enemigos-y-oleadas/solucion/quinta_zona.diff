@@ -1,0 +1,116 @@
+diff --git a/src/juego/oleadas.c b/src/juego/oleadas.c
+index dbf330c..474557b 100644
+--- a/src/juego/oleadas.c
++++ b/src/juego/oleadas.c
+@@ -22,7 +22,7 @@
+ #include "juego/oleadas.h"
+ 
+ /* static const: se queda en la ROM (una const global se copiaría a la WRAM al arrancar). */
+-static const u16 ZONA_CAMARA[OLEADAS_ZONAS] = {256, 640, 1024, 1536};
++static const u16 ZONA_CAMARA[OLEADAS_ZONAS] = {256, 640, 1024, 1536, 1792};
+ 
+ void oleadas_iniciar(Oleadas *o)
+ {
+diff --git a/src/juego/oleadas.h b/src/juego/oleadas.h
+index 5bd52a4..e91cde9 100644
+--- a/src/juego/oleadas.h
++++ b/src/juego/oleadas.h
+@@ -29,7 +29,7 @@
+ 
+ #include "sistema/tipos.h"
+ 
+-#define OLEADAS_ZONAS 4                  /* Zonas de la fase 1 (hoy provisionales).           */
++#define OLEADAS_ZONAS 5                  /* Zonas de la fase 1 (hoy provisionales).           */
+ 
+ typedef struct
+ {
+diff --git a/tests/prueba_ninja.c b/tests/prueba_ninja.c
+index f22462b..5bd3937 100644
+--- a/tests/prueba_ninja.c
++++ b/tests/prueba_ninja.c
+@@ -118,4 +118,39 @@ void pruebas_ninja(void)
+         n[k].vivo = 0;
+     }
+     COMPROBAR(ninja_vivos(n) == 0);
++
++    /*--- Ejercicio 24: la oleada de 3 con el testigo de ataque ----------------------------
++        Repite el bloque de IA de pantalla_fase1.c (turnos, ninja_actualizar, ninja_limitar_x,
++        ninja_intentar_atacar) con Tarou quieto en x 384, y 200, y la cámara en 256. */
++    {
++        u8 turnos, a_la_vez, maximo = 0, tajos[NINJAS_MAX];
++
++        ninja_iniciar_todos(n);
++        ninja_oleada(n, 256, 2);                     /* Zona 2: los tres.                   */
++        for (k = 0; k < NINJAS_MAX; k++)
++        {
++            tajos[k] = 0;
++        }
++        for (f = 0; f < 900; f++)
++        {
++            turnos = ninja_atacando(n);              /* Cuántos dan un tajo ahora.          */
++            for (k = 0; k < NINJAS_MAX; k++)
++            {
++                ninja_actualizar(n + k, 384, 200);
++                ninja_limitar_x(n + k, 256 + 32, 256 + 256 - 32);
++                if (ninja_intentar_atacar(n + k, 384, 200, (u8)(turnos < NINJA_TURNOS)))
++                {
++                    turnos++;                        /* El turno queda cogido.              */
++                    tajos[k]++;
++                }
++            }
++            a_la_vez = ninja_atacando(n);
++            if (a_la_vez > maximo)
++            {
++                maximo = a_la_vez;
++            }
++        }
++        COMPROBAR(maximo == NINJA_TURNOS);           /* Llegan al tope, y nunca lo pasan.   */
++        COMPROBAR(tajos[0] > 0 && tajos[1] > 0 && tajos[2] > 0);   /* Nadie se queda sin turno. */
++    }
+ }
+diff --git a/tests/prueba_oleadas.c b/tests/prueba_oleadas.c
+index aabd330..d527232 100644
+--- a/tests/prueba_oleadas.c
++++ b/tests/prueba_oleadas.c
+@@ -42,13 +42,15 @@ void pruebas_oleadas(void)
+     oleadas_vencer(&o);                              /* Sin estar bloqueada: no hace nada. */
+     COMPROBAR(o.actual == 1);
+ 
+-    /* Las cuatro zonas, y después ya no hay límite. */
++    /* Las cinco zonas, y después ya no hay límite (ejercicio 24: antes eran cuatro). */
+     oleadas_actualizar(&o, 640);
+     oleadas_vencer(&o);
+     oleadas_actualizar(&o, 1024);
+     oleadas_vencer(&o);
+     oleadas_actualizar(&o, 1536);
+     oleadas_vencer(&o);
++    oleadas_actualizar(&o, 1792);
++    oleadas_vencer(&o);
+     COMPROBAR(o.actual == OLEADAS_ZONAS && o.bloqueada == 0);
+     COMPROBAR(oleadas_limite(&o) == 0xFFFF);
+     COMPROBAR(oleadas_actualizar(&o, 1792) == 0);    /* Sin zonas que bloqueen.            */
+@@ -70,4 +72,24 @@ void pruebas_oleadas(void)
+         camara = camara_avanzar(camara, x, oleadas_limite(&o));
+     }
+     COMPROBAR(camara > 256 && camara <= 640);       /* ...hasta la zona 1 como mucho.     */
++
++    /*--- Ejercicio 24: una QUINTA zona al final del nivel (cámara 1792 = CAMARA_MAX) ------*/
++    oleadas_iniciar(&o);
++    for (x = 0; x < 4; x++)                          /* Pasa las cuatro primeras zonas.    */
++    {
++        oleadas_actualizar(&o, oleadas_limite(&o));  /* Llega al punto de la zona...       */
++        oleadas_vencer(&o);                          /* ...y la vence.                     */
++    }
++    COMPROBAR(o.actual == 4 && o.bloqueada == 0);    /* Ahora toca la quinta.              */
++    COMPROBAR(oleadas_limite(&o) == 1792);           /* Su punto es el final del nivel.    */
++    camara = 1700;                                   /* La cámara viene de más atrás...    */
++    for (x = 0; x < 200; x++)                        /* ...y Tarou corre hasta el borde.   */
++    {
++        camara = camara_avanzar(camara, 2000, oleadas_limite(&o));
++    }
++    COMPROBAR(camara == 1792);                       /* Llega exacta al punto.             */
++    COMPROBAR(oleadas_actualizar(&o, camara) == 1 && o.bloqueada == 1);   /* Bloquea y avisa. */
++    oleadas_vencer(&o);
++    COMPROBAR(o.actual == OLEADAS_ZONAS && OLEADAS_ZONAS == 5);   /* Ya no quedan.         */
++    COMPROBAR(oleadas_limite(&o) == 0xFFFF);
+ }

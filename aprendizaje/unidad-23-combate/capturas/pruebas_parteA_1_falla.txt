@@ -1,0 +1,6 @@
+FALLO prueba_combate.c:390: GOLPES == 4
+FALLO prueba_combate.c:391: combate_danio(1) == 1 && combate_danio(3) == 1 && combate_danio(4) == 2
+FALLO prueba_combate.c:392: !combate_derriba(3) && combate_derriba(4)
+FALLO prueba_combate.c:420: golpes_vistos == 4
+FALLO prueba_combate.c:421: vida_tras_3 == NINJA_VIDA - 3 && estado_tras_3 == NINJA_RECIBIR
+566 pruebas, 5 fallos

@@ -1,0 +1,37 @@
+diff --git a/tests/prueba_subida.c b/tests/prueba_subida.c
+index 79e0de2..497c095 100644
+--- a/tests/prueba_subida.c
++++ b/tests/prueba_subida.c
+@@ -68,6 +68,32 @@ void pruebas_subida(void)
+     b = subida_tomar(&s, 1536, &c, &n);
+     COMPROBAR(n == 0 && b == 0);
+ 
++    /* Cuadros REALES de la prueba de carga (unidad 21). El peor cuadro del ninja de
++       andar tiene 21 piezas: 2 pares completos (4 copias de 512) y 5 piezas a medias
++       (2 copias de 5 * 64 = 320): 6 copias y 2688 bytes. Con el tope de Tarou (1536)
++       sube en 2 VBlanks (3 copias de 512 y luego 512 + 320 + 320); sin tope, en 1. */
++    subida_empezar(&s, 21, 0, 0, 0);
++    COMPROBAR(s.n == 6);
++    COMPROBAR(s.plan[3].bytes == 512 && s.plan[4].bytes == 320 && s.plan[5].bytes == 320);
++    COMPROBAR(s.plan[4].vram == 0x0400 && s.plan[5].vram == 0x0500);
++    COMPROBAR(subida_restante(&s) == 2688);
++    b = subida_tomar(&s, 1536, &c, &n);
++    COMPROBAR(n == 3 && b == 1536 && !subida_terminada(&s));
++    b = subida_tomar(&s, 1536, &c, &n);
++    COMPROBAR(n == 3 && b == 1152 && subida_terminada(&s));
++    subida_empezar(&s, 21, 0, 0, 0);
++    b = subida_tomar(&s, 0xFFFF, &c, &n);
++    COMPROBAR(n == 6 && b == 2688 && subida_terminada(&s));
++
++    /* El peor cuadro de Tarou andando tiene 16 piezas: 2 pares completos, 4 copias de
++       512 y 2048 bytes; con el tope 1536, 2 VBlanks (3 copias y 1): sube en todos. */
++    subida_empezar(&s, 16, 0, 0, 0);
++    COMPROBAR(s.n == 4 && subida_restante(&s) == 2048);
++    b = subida_tomar(&s, 1536, &c, &n);
++    COMPROBAR(n == 3 && b == 1536);
++    b = subida_tomar(&s, 1536, &c, &n);
++    COMPROBAR(n == 1 && b == 512 && subida_terminada(&s));
++
+     /* El tile de la pieza k dentro del bloque: k/8*32 + k%8*2. */
+     COMPROBAR(subida_tile_pieza(0) == 0);
+     COMPROBAR(subida_tile_pieza(7) == 14);

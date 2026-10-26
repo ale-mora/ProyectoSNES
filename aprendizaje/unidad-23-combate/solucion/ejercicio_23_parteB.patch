@@ -1,0 +1,71 @@
+diff --git a/src/juego/combate.c b/src/juego/combate.c
+index 90fbe9f..2d92aeb 100644
+--- a/src/juego/combate.c
++++ b/src/juego/combate.c
+@@ -69,10 +69,11 @@ u8 combate_en_caja(const Cuerpo *c, u16 tx, u16 ty)
+ u8 combate_ninjas_resolver(Ninja *n, Cuerpo *c)
+ {
+     u8 k, parada = 0;
++    u8 esquiva = (u8)(mundo_altura(c) >= COMBATE_ESQUIVE);   /* ¿Salta tan alto que el tajo pasa por debajo? */
+ 
+     for (k = 0; k < NINJAS_MAX; k++)
+     {
+-        if (ninja_golpe_activo(n) &&
++        if (!esquiva && ninja_golpe_activo(n) &&
+             combate_caja(n->x, n->y, n->mira_izq, NINJA_ALCANCE, NINJA_PROFUNDIDAD, c->x, c->y))
+         {
+             n->conecto = 1;                          /* Este tajo ya no pega más.           */
+diff --git a/src/juego/combate.h b/src/juego/combate.h
+index ab38bc3..9c33b83 100644
+--- a/src/juego/combate.h
++++ b/src/juego/combate.h
+@@ -32,6 +32,7 @@
+ #define COMBATE_ALCANCE 52               /* Tarou: alcance corto (Bárbara tendrá más).    */
+ #define COMBATE_ATRAS 8                  /* La caja empieza un poco detrás de los pies.   */
+ #define COMBATE_PROFUNDIDAD 14           /* Diferencia máxima de y entre golpeador y golpeado. */
++#define COMBATE_ESQUIVE 12               /* Con los pies a esta altura (px) o más, el tajo de un ninja pasa por debajo. */
+ #define PARADA_GOLPE 3                   /* Cuadros de «parada de impacto» al conectar.   */
+ #define PARADA_DERRIBO 5                 /* Y si el golpe derriba.                        */
+ 
+diff --git a/tests/prueba_combate.c b/tests/prueba_combate.c
+index 2bf4e8b..840a5e6 100644
+--- a/tests/prueba_combate.c
++++ b/tests/prueba_combate.c
+@@ -385,4 +385,37 @@ void pruebas_combate(void)
+     c.inv = 0;
+     combate_ninjas_resolver(n, &c);                  /* El mismo tajo no pega otra vez.     */
+     COMPROBAR(c.vida == VIDA_TAROU);
++
++    /*--- Ejercicio 23, parte B: saltando alto, el tajo del ninja pasa por debajo ----------*/
++    {
++        u8 alturas[3] = {20, 4, 20};                 /* px: alto, bajo, alto y aterriza.    */
++        u8 caso;
++        for (caso = 0; caso < 3; caso++)
++        {
++            mundo_iniciar(&c, 400, 200);
++            c.z = (s16)(alturas[caso] * 16);         /* En el aire (z en 12.4).             */
++            ninja_iniciar_todos(n);
++            ninja_oleada(n, 300, 0);
++            n[0].x = 440; n[0].y = 200; n[0].dentro = 1; n[0].espera = 0;
++            n[0].estado = NINJA_PARADO; n[0].mira_izq = 1;
++            ninja_intentar_atacar(n, 400, 200, 1);
++            for (k = 0; k < NINJA_ATAQUE_FRAMES; k++)
++            {
++                if (caso == 2 && k == NINJA_GOLPE_DESDE + 3)
++                {
++                    c.z = 0;                         /* Aterriza con el tajo aún activo.    */
++                }
++                combate_ninjas_resolver(n, &c);
++                ninja_actualizar(n, 400, 200);
++            }
++            if (caso == 0)
++            {
++                COMPROBAR(c.vida == VIDA_TAROU && n[0].conecto == 0);   /* Esquivado, tajo sin gastar. */
++            }
++            else
++            {
++                COMPROBAR(c.vida == VIDA_TAROU - NINJA_DANIO);   /* Bajo, o al aterrizar: le da.  */
++            }
++        }
++    }
+ }

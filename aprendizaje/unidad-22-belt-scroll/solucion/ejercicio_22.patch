@@ -1,0 +1,77 @@
+diff --git a/src/juego/mundo.c b/src/juego/mundo.c
+index 73a285b..c982c8a 100644
+--- a/src/juego/mundo.c
++++ b/src/juego/mundo.c
+@@ -239,7 +239,7 @@ void mundo_actualizar(Cuerpo *c, const Mando *m)
+         if (aire)
+         {
+             c->z = (s16)(c->z - c->vz);              /* vz < 0 → z crece (sube).            */
+-            c->vz = (s16)(c->vz + GRAVEDAD);
++            c->vz = (s16)(c->vz + (m->saltar && c->vz < 0 ? GRAVEDAD_SUBIDA_B : GRAVEDAD));   /* B mantenida al subir: sube más. */
+             if (c->z <= 0)                           /* Tocó el suelo.                      */
+             {
+                 c->z = 0;
+diff --git a/src/juego/mundo.h b/src/juego/mundo.h
+index d3ccab5..6875ec3 100644
+--- a/src/juego/mundo.h
++++ b/src/juego/mundo.h
+@@ -50,6 +50,7 @@
+ #define PASO_X 2                         /* Andar en x.                                   */
+ #define PASO_Y 1                         /* Andar por el carril: la profundidad es más lenta. */
+ #define SALTO_V0 96                      /* 6 px/frame hacia arriba (12.4).               */
++#define GRAVEDAD_SUBIDA_B 6              /* Gravedad al SUBIR con B mantenida: salto de ~51 px (altura variable). */
+ #define GRAVEDAD 8                       /* 0,5 px/frame²: salto de 36 px y 24 frames.    */
+ 
+ /*--- El combo de Tarou (A, A, A: el último derriba; cifras a ajustar jugando) --------*/
+diff --git a/tests/prueba_mundo.c b/tests/prueba_mundo.c
+index 9326124..3e736cc 100644
+--- a/tests/prueba_mundo.c
++++ b/tests/prueba_mundo.c
+@@ -27,6 +27,31 @@ static void preparar(Cuerpo *c, Mando *m)
+     mundo_iniciar(c, 120, 200);
+ }
+ 
++/* Salta una vez y devuelve la altura máxima en píxeles. Con `mantener` a 1, B sigue
++   mantenida (m.saltar) todo el salto; con 0, solo se pulsa en el primer cuadro. */
++static u16 altura_maxima(u8 mantener, u16 *cuadros_en_aire)
++{
++    Cuerpo c;
++    Mando m;
++    u16 max_alto = 0, n = 0;
++
++    preparar(&c, &m);
++    m.saltar_pulsado = 1;                            /* El cuadro del despegue.             */
++    m.saltar = mantener;
++    do
++    {
++        mundo_actualizar(&c, &m);
++        m.saltar_pulsado = 0;                        /* Solo se PULSA una vez.              */
++        n++;
++        if (mundo_altura(&c) > max_alto)
++        {
++            max_alto = mundo_altura(&c);
++        }
++    } while (c.z > 0 && n < 100);
++    *cuadros_en_aire = n;
++    return max_alto;
++}
++
+ void pruebas_mundo(void)
+ {
+     Cuerpo c;
+@@ -132,4 +157,15 @@ void pruebas_mundo(void)
+         COMPROBAR(c.x == x_antes + PASO_X && c.mira_izq == 0); /* Sigue hacia la derecha.  */
+         COMPROBAR(c.y == y_antes + PASO_Y);          /* Pero cambia de carril.              */
+     }
++
++    /* Salto de altura variable: mantener B mientras sube lo alarga (ejercicio 22). */
++    {
++        u16 aire_corto, aire_largo;
++        u16 corto = altura_maxima(0, &aire_corto);   /* Tocar B: el salto de siempre.       */
++        u16 largo = altura_maxima(1, &aire_largo);   /* Mantener B: más alto...             */
++
++        COMPROBAR(corto >= 30 && corto <= 40);       /* ...el corto no cambia (39 px)...    */
++        COMPROBAR(largo >= 48 && largo <= 56);       /* ...y el largo llega a ~51 px.       */
++        COMPROBAR(aire_largo > aire_corto);          /* Y tarda más en volver.              */
++    }
+ }

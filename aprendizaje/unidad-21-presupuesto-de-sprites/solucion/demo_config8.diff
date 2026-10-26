@@ -1,0 +1,27 @@
+--- demo_21_presupuesto.c	2026-10-26 12:25:53.200806500 -0300
++++ nuevo.c	2026-10-26 12:39:05.997988900 -0300
+@@ -350,13 +350,14 @@
+     int sombras;
+ } ConfigPred;
+ 
+-static const ConfigPred CONFIGS_PRED[6] = {
++static const ConfigPred CONFIGS_PRED[7] = {
+     {"Tarou solo", 0, {0, 0, 0}, 0},
+     {"Tarou + 1, sombras", 1, {0, 0, 0}, 1},
+     {"Tarou + 2, sombras", 2, {0, 0, 0}, 1},
+     {"Tarou + 3 misma y, sombras", 3, {0, 0, 0}, 1},
+     {"Tarou + 3 repartidos, sombras", 3, {0, 12, 24}, 1},
+     {"Tarou + 3 repartidos, sin sombras", 3, {0, 12, 24}, 0},
++    {"Tarou + 3 misma y, SIN sombras", 3, {0, 0, 0}, 0},
+ };
+ 
+ /*--- C. Ranuras por línea: la predicción del script, en C ------------------------------*/
+@@ -385,7 +386,7 @@
+             p16_cuadro(tiras[tira].datos, fn, &q);
+             printf("   %s (%u piezas)\n", ROTULO[tira], q.n);
+         }
+-        for (c = 0; c < 6; c++)
++        for (c = 0; c < 7; c++)
+         {
+             ne = 0;
+             e[ne++] = de_cuadro(&tiras[2], ft, "Tarou", SUELO_Y - 64, SUELO_Y);

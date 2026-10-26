@@ -1,0 +1,4 @@
+== esqueleto (compila sin avisos; salida sin resolver)
+gcc ejercicio_21_presupuesto.c: rc=0, avisos: 0
+gcc solucion/ejercicio_21_presupuesto.c: rc=0, avisos: 0
+gcc demo_21_presupuesto.c (+ p16.c subida.c profundidad.c dma_lista.c): rc=0, avisos: 0

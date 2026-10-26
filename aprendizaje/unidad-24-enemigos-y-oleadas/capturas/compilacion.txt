@@ -1,0 +1,14 @@
+Unidad 24, 2026-10-26. Clon E:\ProyectoSNES_trabajo\u24 (commit 641d7c0) CON la solucion aplicada (quinta zona).
+
+gcc -std=c99 -Wall -Wextra (demo_24_oleada.c, traza_24_guion.c): 0 avisos.
+
+PS> make clean; make
+No warnings or errors found.     (ROM: 3481823 bytes (83.01%) free of total 4194304; ProyectoSNES.sfc, 4194304 bytes)
+
+PS> make clean; $env:CFLAGS="-DGUION_FASE1"; make; $env:CFLAGS=$null
+No warnings or errors found.     (ROM: 3479879 bytes (82.97%) free of total 4194304)
+
+PS> make clean       (arbol limpio al terminar)
+
+No se ejecuto Mesen: solo se comprobo que compilan. El PVSNESLIB_HOME del clon apunta a /e/ProyectoSNES/tools/pvsneslib (el clon no trae tools/).
+Punto de partida sin tocar: make -C tests ; .\tests\pruebas.exe  ->  560 pruebas, 0 fallos

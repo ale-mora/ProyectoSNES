@@ -1,0 +1,91 @@
+A. CUADROS .p16: piezas, bytes y VBlanks de subida
+   ninja64_andar.bin (8 cuadros, 20260 bytes en el archivo)
+     cuadro piezas bytes copias VBlanks(tope 1536) VBlanks(sin tope)
+         0     18  2304      6         2                 1
+         1     19  2432      6         2                 1
+         2     20  2560      6         2                 1
+         3     21  2688      6         2                 1
+         4     20  2560      6         2                 1
+         5     18  2304      6         2                 1
+         6     18  2304      6         2                 1
+         7     19  2432      6         2                 1
+     máximo: 21 piezas = 2688 bytes = 84 tiles
+     fila de 16 px más cargada: 4 piezas = 8 ranuras de 8 px en esas líneas
+   ninja64_ataque.bin (7 cuadros, 15236 bytes en el archivo)
+     cuadro piezas bytes copias VBlanks(tope 1536) VBlanks(sin tope)
+         0     15  1920      4         2                 1
+         1     15  1920      4         2                 1
+         2     17  2176      6         2                 1
+         3     17  2176      6         2                 1
+         4     19  2432      6         2                 1
+         5     17  2176      6         2                 1
+         6     15  1920      4         2                 1
+     máximo: 19 piezas = 2432 bytes = 76 tiles
+     fila de 16 px más cargada: 4 piezas = 8 ranuras de 8 px en esas líneas
+   tarou_caminar.p16 (8 cuadros, 16300 bytes en el archivo)
+     cuadro piezas bytes copias VBlanks(tope 1536) VBlanks(sin tope)
+         0     14  1792      4         2                 1
+         1     15  1920      4         2                 1
+         2     15  1920      4         2                 1
+         3     16  2048      4         2                 1
+         4     16  2048      4         2                 1
+         5     16  2048      4         2                 1
+         6     16  2048      4         2                 1
+         7     15  1920      4         2                 1
+     máximo: 16 piezas = 2048 bytes = 64 tiles
+     fila de 16 px más cargada: 5 piezas = 10 ranuras de 8 px en esas líneas
+
+B. VRAM DE SPRITES: 16 pares de filas x 32 tiles = 512 tiles (16 KB)
+   pares  0- 2: tiles   0- 95  protagonista A
+   pares  3- 5: tiles  96-191  protagonista B
+   pares  6- 8: tiles 192-287  enemigo 1
+   pares  9-11: tiles 288-383  enemigo 2
+   pares 12-14: tiles 384-479  enemigo 3
+   pares 15-15: tiles 480-511  compartido (sombras...)
+   Un hueco de 3 pares guarda 24 piezas (8 por par). Tile de la pieza k: (k/8)*32 + (k%8)*2
+   El hueco del enemigo 1 empieza en el tile 192: sus piezas cuyo tile pasa de 255
+   llevan el bit 8 de tile (el sprite entero NO lo lleva): 16 17 18 19 20 21 22 23
+
+C. RANURAS POR LINEA (limite 34 ranuras de 8 px y 32 sprites), como preparar_prueba_carga.py
+   andando: peor cuadro de andar (18 piezas)
+     Tarou solo                         max 10 ranuras,  5 sprites; lineas > 34: ninguna
+     Tarou + 1, sombras                 max 20 ranuras, 10 sprites; lineas > 34: ninguna
+     Tarou + 2, sombras                 max 28 ranuras, 14 sprites; lineas > 34: ninguna
+     Tarou + 3 misma y, sombras         max 36 ranuras, 18 sprites; lineas > 34: 168..175 (8)
+     Tarou + 3 repartidos, sombras      max 34 ranuras, 17 sprites; lineas > 34: ninguna
+     Tarou + 3 repartidos, sin sombras  max 34 ranuras, 17 sprites; lineas > 34: ninguna
+   atacando: peor cuadro de ataque (15 piezas)
+     Tarou solo                         max 10 ranuras,  5 sprites; lineas > 34: ninguna
+     Tarou + 1, sombras                 max 24 ranuras, 12 sprites; lineas > 34: ninguna
+     Tarou + 2, sombras                 max 36 ranuras, 18 sprites; lineas > 34: 168..175 (8)
+     Tarou + 3 misma y, sombras         max 48 ranuras, 24 sprites; lineas > 34: 168..175 (8)
+     Tarou + 3 repartidos, sombras      max 38 ranuras, 19 sprites; lineas > 34: 168..175 (8)
+     Tarou + 3 repartidos, sin sombras  max 30 ranuras, 15 sprites; lineas > 34: ninguna
+
+D. ORDEN POR PROFUNDIDAD Y QUIEN PIERDE (3 ninjas a la misma y, atacando, con sombras)
+   orden de dibujo (primero = entrada más baja de la OAM = DELANTE): Tarou0 ninja1 ninja2 ninja3 sombra Tarou4 sombra ninja5 sombra ninja6 sombra ninja7
+   (con la misma y gana el orden de partida: Tarou, entidad 0, queda DELANTE de todos)
+   líneas-pieza perdidas (cada una = 16 px de una pieza que no se dibuja en esa línea):
+     Tarou 0: 40
+     ninja 1: 30
+   total 70 (el resto de las entidades: 0)
+
+E. VBLANK (MODELO lineal: linea = 7,5 + 7 * KB; medidas de la spec: Tarou solo 17-19,
+   1 ninja 34, 2 ninjas 36, con dos subidas de ninja por VBlank 43-50)
+   peor cuadro de ninja: 2688 bytes
+   Tarou solo (1536 B)                         -> linea 18.0
+   Tarou + 1 subida de ninja (4224 B)         -> linea 36.4
+   ... y una fila de HUD (+64 B)              -> linea 36.8
+   ... y OTRA fila de tilemap (+64 B más)     -> linea 37.2  (PASA DE 37: la ultima copia se pierde)
+   Tarou + 2 subidas de ninja (6912 B)        -> linea 54.8  (NO CABE)
+   En qué línea acaba cada copia de la lista (orden: Tarou, ninja, HUD, HUD extra):
+     Tarou       1536 B  acaba en la linea  18.0 
+     ninja       2688 B  acaba en la linea  36.4 
+     HUD           64 B  acaba en la linea  36.8 
+     HUD extra     64 B  acaba en la linea  37.2 <- fuera del VBlank: no se dibuja
+   margen del peor frame (Tarou + peor ninja) hasta la linea 37: ~91 bytes (MODELO, +-3 lineas = +-440 B)
+
+F. LISTA DE DMA LLENA (DMA_LISTA_MAX = 32): dma_lista_anadir.c, el real
+   apuntadas 35 copias, en la lista quedan 32. Las 3 últimas se perdieron, sin error ni aviso.
+   Peor caso de prueba_carga.c: Tarou 3 + ninja 6 + fila de HUD 1 = 10 entradas (con 2
+   subidas de ninja, 16): NO es esta limitación la que cuenta; es el VBlank (parte E).
