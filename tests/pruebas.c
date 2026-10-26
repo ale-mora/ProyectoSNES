@@ -41,6 +41,7 @@ void pruebas_p16(void);
 void pruebas_mundo(void);
 void pruebas_oleadas(void);
 void pruebas_ninja(void);
+void pruebas_combate(void);
 
 int main(void)
 {
@@ -59,6 +60,7 @@ int main(void)
     pruebas_mundo();
     pruebas_oleadas();
     pruebas_ninja();
+    pruebas_combate();
 
     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
     return pruebas_fallidas != 0;

@@ -40,7 +40,7 @@
 #include "juego/p16.h"
 #include "juego/dma_lista.h"
 
-extern char tarou_reposo_p16, tarou_caminar_p16, tarou_saltar_p16, tarou_caer_p16;
+extern char tarou_reposo_p16, tarou_caminar_p16, tarou_saltar_p16, tarou_caer_p16, tarou_atacar_p16;
 extern char tarou_pal, ninja_pal, sombra_til, sombra_piezas;
 extern u8 tarou_p16_bancos[];        /* Banco de cada tira .p16 de Tarou (enum Estado).   */
 extern u8 sombra_banco;
@@ -59,7 +59,8 @@ extern u8 sombra_banco;
 
 /* Qué animación de Tarou enseña cada EstadoCuerpo (mundo.h): el orden es el del enum. */
 static const u8 ESTADO_ANIM[CUERPO_ESTADOS] = {ESTADO_PARADO, ESTADO_CAMINANDO,
-                                               ESTADO_SALTANDO, ESTADO_CAYENDO};
+                                               ESTADO_SALTANDO, ESTADO_CAYENDO,
+                                               ESTADO_ATACANDO};   /* Un cuadro fijo para los 3 golpes. */
 
 static u8 a_estado, a_cuadro, a_reloj;
 static u8 m_estado, m_cuadro;
@@ -75,6 +76,7 @@ static const u8 *tira_de(u8 e)
         case ESTADO_CAMINANDO: return (const u8 *)&tarou_caminar_p16;
         case ESTADO_SALTANDO:  return (const u8 *)&tarou_saltar_p16;
         case ESTADO_CAYENDO:   return (const u8 *)&tarou_caer_p16;
+        case ESTADO_ATACANDO:  return (const u8 *)&tarou_atacar_p16;
         default:               return (const u8 *)&tarou_reposo_p16;
     }
 }

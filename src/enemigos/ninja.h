@@ -8,7 +8,7 @@
       posición en el carril (x, y de los pies, como el Cuerpo de juego/mundo.h), mira hacia
       el protagonista y camina hacia él: en x un píxel por frame hasta NINJA_DISTANCIA y en
       y un píxel cada dos frames hasta su carril. Aún no ataca, ni recibe golpes: eso es
-      combate.c (siguiente paso); hoy A los «derrota» a todos (provisional, pantalla_fase1.c).
+      combate.c: el golpe de Tarou llama a ninja_recibir. Los ninjas aún no atacan.
       Hay NINJAS_MAX ranuras fijas: la oleada rellena las libres. El dibujo es de
       enemigos/ninja_sprite.c: cada ranura tiene su hueco de tiles en la VRAM.
 
@@ -27,6 +27,10 @@
       reloj       u8   frames que lleva en ese cuadro; también reparte el paso en y
       estado      u8   NINJA_PARADO o NINJA_ANDANDO
       dentro      u8   1 desde que entró en la pantalla (a partir de ahí ya no puede salir)
+      vida        u8   puntos de vida (NINJA_VIDA al nacer; a 0, cae y desaparece)
+      id_golpe    u8   último tajo que le dio (juego/mundo.h: Cuerpo.id): un tajo no pega dos veces
+      timer       u8   cuadros que le quedan en RECIBIR / DERRIBADO
+      empuje      u8   hacia dónde lo empujó el golpe: NINJA_EMPUJE_IZQ o NINJA_EMPUJE_DER
     → glosario: Oleada, IA, Carril
 ---------------------------------------------------------------------------------*/
 #ifndef NINJA_H
@@ -39,6 +43,11 @@
 #define NINJA_FRAMES_CUADRO 4            /* Cada cuántos frames cambia de cuadro.           */
 #define NINJA_PASO_X 1                   /* Anda más lento que Tarou (2): se le puede huir. */
 #define NINJA_DISTANCIA 40               /* Se detiene a esta distancia en x del objetivo.  */
+#define NINJA_VIDA 4                     /* Combo de Tarou: 1 + 1 + 2 de daño = justo.      */
+#define NINJA_RECIBIR_FRAMES 16          /* Aturdido tras un golpe normal.                  */
+#define NINJA_DERRIBO_FRAMES 36          /* Caído (derribo, o el golpe que lo remata).      */
+#define NINJA_EMPUJE_IZQ 1
+#define NINJA_EMPUJE_DER 2
 #define NINJA_ENTRADA 40                 /* Aparece a esta distancia fuera del borde.       */
 #define NINJA_ANCHO 64                   /* Celda de 64x96 con el cuerpo en el centro.      */
 #define NINJA_ALTO 96
@@ -46,7 +55,9 @@
 typedef enum
 {
     NINJA_PARADO = 0,
-    NINJA_ANDANDO
+    NINJA_ANDANDO,
+    NINJA_RECIBIR,                       /* Aturdido: retrocede un poco y no hace nada.     */
+    NINJA_DERRIBADO                      /* Derribado: sale despedido y cae; sin vida, desaparece. */
 } EstadoNinja;
 
 typedef struct
@@ -59,7 +70,11 @@ typedef struct
     u8 reloj;
     u8 estado;
     u8 dentro;
-    u16 libre2[3];                       /* Relleno hasta 16 bytes.                         */
+    u8 vida;
+    u8 id_golpe;
+    u8 timer;
+    u8 empuje;
+    u16 libre2;                          /* Relleno hasta 16 bytes.                         */
 } Ninja;
 
 /* Deja las NINJAS_MAX ranuras libres. */
@@ -77,6 +92,12 @@ void ninja_actualizar(Ninja *n, u16 obj_x, u16 obj_y);
    un margen) ya no puede salir de ahí; mientras viene de fuera, no se toca. Así no se queda
    esperando fuera de la pantalla cuando el protagonista está pegado al borde. */
 void ninja_limitar_x(Ninja *n, u16 x_min, u16 x_max);
+
+/* El ninja recibe un golpe de `danio` puntos: pierde vida, se pone aturdido (o derribado si
+   `derribo` vale 1 o se queda sin vida) y lo empuja hacia la izquierda si `hacia_izq` es 1 (si
+   no, hacia la derecha), mirando hacia donde venía el golpe. `id` es el tajo: si ya lo recibió,
+   no hace nada. Devuelve 1 si el golpe lo derribó o lo remató, 0 si solo lo aturdió o no contó. */
+u8 ninja_recibir(Ninja *n, u8 danio, u8 derribo, u8 hacia_izq, u8 id);
 
 /* Cuántos están vivos. */
 u8 ninja_vivos(const Ninja *n);

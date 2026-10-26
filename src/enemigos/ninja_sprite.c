@@ -5,7 +5,8 @@
       Cada frame, para cada ranura: (1) si no está viva, sus dos entidades se apagan (n = 0)
       y se olvida el cuadro que tenía en la VRAM; (2) si está viva y su cuadro no es el que
       hay en su hueco, se sube entero (turno: solo UN ninja por frame, en rotación);
-      (3) se coloca el cuerpo (x0, y0 en pantalla), la mirada (espejo y tabla de piezas
+      (3) un ninja tocado (RECIBIR / DERRIBADO) parpadea: cada dos cuadros su cuerpo se
+      manda fuera de la pantalla (no hay arte de «recibir golpe» todavía); (4) se coloca el cuerpo (x0, y0 en pantalla), la mirada (espejo y tabla de piezas
       espejada) y la sombra. Al final, sprites_ordenar() deja todo en orden por profundidad.
       Es el mismo método que midió la prueba de carga (pantallas/prueba_carga.c).
 
@@ -135,6 +136,10 @@ void ninja_sprite_actualizar(const Ninja *n, u16 camara)
         }
         s->x0 = (u16)(p->x - camara - NINJA_ANCHO / 2);   /* x de pantalla del borde izquierdo. */
         s->y0 = (u16)(p->y - NINJA_ALTO);            /* Los pies, en la y del carril.       */
+        if ((p->estado == NINJA_RECIBIR || p->estado == NINJA_DERRIBADO) && (p->reloj & 2))
+        {
+            s->y0 = 240;                             /* Tocado: parpadea (cada 2 cuadros, fuera de pantalla). */
+        }
         s->borde = sprites_borde(s->x0, s->y0, NINJA_ANCHO, NINJA_ALTO);
         s->atrib = (u8)(SPRITE_PRIORIDAD(PRIORIDAD) | SPRITE_PALETA(k + 1) |
                         (p->mira_izq ? SPRITE_HFLIP : 0));

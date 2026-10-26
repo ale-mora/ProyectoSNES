@@ -7,8 +7,10 @@
       sigue a Tarou solo hacia delante, se bloquea en el punto de cada zona (juego/oleadas.c)
       y no se libera hasta vencer la oleada. Al bloquearse salen los NINJAS de la zona
       (enemigos/ninja.c: caminan hacia Tarou y se quedan a distancia de ataque); la oleada se
-      vence cuando no queda ninguno. Aún no hay golpes: A los derrota a todos (provisional).
-      Tampoco Bárbara; cada uno se cuelga de
+      vence cuando no queda ninguno. Tarou GOLPEA con A: combo de tres golpes (juego/mundo.c),
+      caja de golpe y daño (juego/combate.c); el ninja se aturde, retrocede y parpadea, y el tercer
+      golpe lo derriba. Al conectar hay «parada de impacto» (el mundo se congela 3-5 cuadros).
+      Los ninjas aún no pegan, ni hay vida de Tarou ni Bárbara; cada uno se cuelga de
       este bucle en su módulo (§10). El fondo es provisional: la capa cercana y la lejana
       del nivel 1 del plataformas (2048 px, la lejana a la mitad de velocidad).
       Por frame: mando_leer → mundo_actualizar → límites de pantalla → cámara y zonas →
@@ -19,7 +21,7 @@
 
     SE CONECTA CON
       Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h, juego/mando.h,
-                juego/mundo.h, juego/camara.h, juego/oleadas.h, juego/protagonista_sprite.h,
+                juego/mundo.h, juego/camara.h, juego/oleadas.h, juego/combate.h, juego/protagonista_sprite.h,
                 enemigos/ninja.h, enemigos/ninja_sprite.h,
                 juego/sprites.h, juego/fondo_nivel.h, juego/dma_lista.h, juego/hud_debug.h,
                 nivel1_datos.h.
@@ -38,6 +40,7 @@
       ninjas      Ninja[3]  las ranuras de enemigos (enemigos/ninja.h)
       camara      u16       scroll horizontal; se calcula en el frame y se escribe en el VBlank
       hud_visible u8        1 si SELECT encendió el HUD
+      parada      u8        cuadros de parada de impacto que quedan; a_guardada: A pulsada en la parada
       fila_hud    u8        qué fila del HUD toca preparar este frame (0..3)
     → glosario: Carril, Cámara, Zona, Oleada, Parallax, Máquina de estados
 ---------------------------------------------------------------------------------*/
@@ -50,6 +53,7 @@
 #include "juego/mundo.h"
 #include "juego/camara.h"
 #include "juego/oleadas.h"
+#include "juego/combate.h"
 #include "juego/protagonista_sprite.h"
 #include "enemigos/ninja.h"
 #include "enemigos/ninja_sprite.h"
@@ -74,6 +78,8 @@ static Oleadas oleadas;
 static Ninja ninjas[NINJAS_MAX];
 static u16 camara;
 static u8 hud_visible;
+static u8 parada;                    /* Cuadros de parada de impacto que quedan.          */
+static u8 a_guardada;                /* 1 si se pulsó A durante la parada.                */
 static u8 fila_hud;
 
 /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
@@ -119,7 +125,7 @@ static void hud(void)
         p = hud_debug_numero(p, (s16)oleadas.actual);
         if (oleadas.bloqueada)
         {
-            hud_debug_texto(p, "  BLOQ");            /* Oleada viva: A la vence (provisional). */
+            hud_debug_texto(p, "  BLOQ");            /* Oleada viva: hay que vencerla.      */
         }
         else
         {
@@ -129,7 +135,9 @@ static void hud(void)
     else                                             /* NINJAS 2                            */
     {
         p = hud_debug_texto(p, "NINJAS ");
-        hud_debug_numero(p, (s16)ninja_vivos(ninjas));
+        p = hud_debug_numero(p, (s16)ninja_vivos(ninjas));
+        p = hud_debug_texto(p, "  GOLPE ");
+        hud_debug_numero(p, (s16)cuerpo.golpe);
     }
     hud_debug_enviar(fila_hud);
     fila_hud++;
@@ -163,6 +171,8 @@ void pantalla_fase1_iniciar(void)
     mundo_iniciar(&cuerpo, X_INICIAL, Y_INICIAL);
     oleadas_iniciar(&oleadas);
     ninja_iniciar_todos(ninjas);                     /* Sin ninjas hasta la primera oleada. */
+    parada = 0;
+    a_guardada = 0;
     ninja_sprite_cargar();                           /* Sus paletas y entidades (tras Tarou). */
     do                                               /* Primer cuadro antes del fade in, y  */
     {                                                /* sus tiles a la VRAM YA (la pantalla */
@@ -195,31 +205,47 @@ void pantalla_fase1_actualizar(void)
         hud_visible ^= 1;
     }
 
-    /*--- Lógica pura: el cuerpo, y la cámara y las zonas que lo acompañan ------------*/
-    mundo_actualizar(&cuerpo, &mando);
-    mundo_limitar_x(&cuerpo, (u16)(camara + MARGEN_PANTALLA),      /* Sin salir de la pantalla  */
-                    (u16)(camara + ANCHO_PANTALLA - MARGEN_PANTALLA)); /* ni volver atrás.      */
-    camara = camara_avanzar(camara, cuerpo.x, oleadas_limite(&oleadas));
-    if (oleadas_actualizar(&oleadas, camara))        /* ¿Llegó al punto de una zona? Bloquea */
+    /*--- Parada de impacto: al conectar un golpe, el mundo se congela unos cuadros (se sigue
+           dibujando). Un A pulsado durante la parada se guarda y vale en cuanto acaba. ---*/
+    if (parada)
     {
-        ninja_oleada(ninjas, camara, oleadas.actual);   /* y salen los ninjas de esa oleada. */
-    }
-    if (mando.atacar_pulsado)                        /* Provisional: A derrota a todos los  */
-    {                                                /* ninjas (el combate llegará luego).  */
-        ninja_derrotar_todos(ninjas);
-    }
-    for (k = 0; k < NINJAS_MAX; k++)                 /* IA: cada ninja vivo va hacia Tarou. */
-    {
-        if (ninjas[k].vivo)
+        parada--;
+        if (mando.atacar_pulsado)
         {
-            ninja_actualizar(ninjas + k, cuerpo.x, cuerpo.y);
-            ninja_limitar_x(ninjas + k, (u16)(camara + MARGEN_NINJA),   /* Sin salirse de la    */
-                            (u16)(camara + ANCHO_PANTALLA - MARGEN_NINJA)); /* pantalla.       */
+            a_guardada = 1;
         }
     }
-    if (oleadas.bloqueada && ninja_vivos(ninjas) == 0)   /* Oleada sin ninjas: vencida.    */
+    else
     {
-        oleadas_vencer(&oleadas);
+        if (a_guardada)
+        {
+            mando.atacar_pulsado = 1;
+            a_guardada = 0;
+        }
+
+        /*--- Lógica pura: el cuerpo, la cámara y las zonas, y los golpes ----------------*/
+        mundo_actualizar(&cuerpo, &mando);
+        mundo_limitar_x(&cuerpo, (u16)(camara + MARGEN_PANTALLA),      /* Sin salir de la pantalla  */
+                        (u16)(camara + ANCHO_PANTALLA - MARGEN_PANTALLA)); /* ni volver atrás.      */
+        camara = camara_avanzar(camara, cuerpo.x, oleadas_limite(&oleadas));
+        if (oleadas_actualizar(&oleadas, camara))    /* ¿Llegó al punto de una zona? Bloquea */
+        {
+            ninja_oleada(ninjas, camara, oleadas.actual);   /* y salen los ninjas de esa oleada. */
+        }
+        parada = combate_resolver(&cuerpo, ninjas);  /* ¿Conectó el golpe de Tarou?          */
+        for (k = 0; k < NINJAS_MAX; k++)             /* IA: cada ninja vivo va hacia Tarou.  */
+        {
+            if (ninjas[k].vivo)
+            {
+                ninja_actualizar(ninjas + k, cuerpo.x, cuerpo.y);
+                ninja_limitar_x(ninjas + k, (u16)(camara + MARGEN_NINJA),   /* Sin salirse de la    */
+                                (u16)(camara + ANCHO_PANTALLA - MARGEN_NINJA)); /* pantalla.       */
+            }
+        }
+        if (oleadas.bloqueada && ninja_vivos(ninjas) == 0)   /* Oleada sin ninjas: vencida.    */
+        {
+            oleadas_vencer(&oleadas);
+        }
     }
 
     /*--- Lo que va a la pantalla: Tarou primero en la lista de DMA, luego el fondo ---*/
