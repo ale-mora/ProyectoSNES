@@ -23,7 +23,7 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
 
 ## Diseño (qué hace el juego y por qué)
 
-- **`diseno-beat-em-up.md`** — La especificación de la **Revisión 3** (vigente):
+- **`diseno-beat-em-up.md`** — La especificación de la **Revisión 3** (vigente, v14, 58 decisiones):
   el juego pasa a ser un beat 'em up de carril con Tarou y Bárbara, relevo,
   combate estilo *Final Fight*, 3 apoyos, la fase 1 (aldea, bosque, monasterio,
   dojo) y el presupuesto de hardware que manda (ranuras por línea, VRAM de

@@ -424,6 +424,13 @@ del plataformas (tag `plataformas-r2`).
   pantalla.
 - **Apoyo** — uno de los 3 aliados (Lucinda, la gata samurái; Rex, el perro
   monje, y Fenrir, el husky bruto) que hace un ataque a toda la pantalla con la barra llena.
+- **Director de fase** — el módulo (`juego/fase.c`) que une relevo, apoyos, oleadas, enemigos y
+  marcador en una partida y devuelve eventos (escena, salida de zona, STAGE CLEAR...) que la pantalla
+  aplica. No dibuja nada, así que se prueba entero en el PC.
+- **Bloqueo de cámara** — mientras hay una oleada en combate, la cámara no pasa de la x de esa oleada;
+  al vencerla sale «GO →» y vuelve a avanzar. La cámara nunca retrocede.
+- **Diálogo** — los cuadros de texto de una escena (quién habla y hasta dos líneas de 26 caracteres);
+  salen sobre la imagen apagada y pixelada por el motor de escenas.
 - **Barra de ataque** — se llena al conectar golpes y gasta su carga en un
   apoyo. Se activa en el monasterio de Rex.
 - **Caja de golpe / caja de daño** — rectángulos por cuadro de animación: la
