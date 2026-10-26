@@ -1,0 +1,6 @@
+Puntaje del nivel 1 (indice 0): 120
+Puntaje del nivel 3 (indice 2): 90
+Puntaje total: 1325
+Vidas (guardadas en 1 byte): 3
+Bytes: u8=1 u16=2 s16=2 int=4
+Bytes del array: 10 (5 elementos de 2 bytes)

@@ -1,0 +1,45 @@
+diff --git a/tests/prueba_tarou.c b/tests/prueba_tarou.c
+index e9c63dd..1ae6609 100644
+--- a/tests/prueba_tarou.c
++++ b/tests/prueba_tarou.c
+@@ -464,6 +464,32 @@ static void prueba_atacar_prohibido(void)
+     COMPROBAR(t.estado == ESTADO_AGACHADO);             /* Agachado tampoco.              */
+ }
+ 
++/* Unidad 02 de aprendizaje/: la espada es una variable APARTE del estado. Sale en
++   DESENVAINANDO (que ignora el mando: ni B ni Derecha hacen nada), y sigue fuera
++   al pasar por PARADO, SALTANDO y CAMINANDO. Las cuentas de frames usan la copia
++   fija tests/tarou_anim.h (desenvainar: 4 cuadros x 5 frames = 20). */
++static void prueba_espada_persiste_entre_estados(void)
++{
++    Tarou t; Mando m;
++    preparar(&t, &m, 100);
++    m.espada_pulsado = 1; m.actividad = 1;
++    frames(&t, &m, 1);                                  /* Frame 1: R.                    */
++    COMPROBAR(t.estado == ESTADO_DESENVAINANDO);
++    m.espada_pulsado = 0;
++    m.saltar_pulsado = 1; m.saltar = 1; m.derecha = 1;  /* B y Derecha mientras saca...   */
++    frames(&t, &m, FRAMES_DESENVAINAR - 1);             /* ...hasta el frame 20.          */
++    COMPROBAR(t.estado == ESTADO_DESENVAINANDO && t.en_suelo == 1 && t.x_fp == PF(100));
++    frames(&t, &m, 1);                                  /* Frame 21: termina la animación:*/
++    COMPROBAR(t.estado == ESTADO_PARADO && t.espada == ESPADA_FUERA); /* PARADO, sin saltar.*/
++    frames(&t, &m, 1);                                  /* Frame 22: ahora sí lee B.      */
++    COMPROBAR(t.estado == ESTADO_SALTANDO);
++    COMPROBAR(t.espada == ESPADA_FUERA);                /* En el aire, sigue fuera.       */
++    m.saltar_pulsado = 0;
++    frames(&t, &m, 48);                                 /* Aterriza (47 frames de salto)  */
++    COMPROBAR(t.en_suelo == 1 && t.estado == ESTADO_CAMINANDO);  /* con Derecha: camina...*/
++    COMPROBAR(t.espada == ESPADA_FUERA);                /* ...y con la espada fuera.      */
++}
++
+ /* Punto de atención 3: R y A el mismo frame → gana R. */
+ static void prueba_prioridad_espada(void)
+ {
+@@ -606,6 +632,7 @@ void pruebas_tarou(void)
+     prueba_atacar_caminando();
+     prueba_atacar_prohibido();
+     prueba_prioridad_espada();
++    prueba_espada_persiste_entre_estados();
+ 
+     prueba_inicio();
+     prueba_caminar();

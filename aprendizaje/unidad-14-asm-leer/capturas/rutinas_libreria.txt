@@ -1,0 +1,78 @@
+# Rutinas de PVSnesLib leídas directamente de los bytes de la ROM del juego
+# (clon E:\ProyectoSNES_trabajo\u14, compilación normal, 2026-10-22).
+# Direcciones del .sym; LoROM: desplazamiento en el .sfc = banco_sin_bit7 * $8000 + (dir - $8000).
+
+## Direcciones (.sym) de ESTA compilación (hecha con los parches de la unidad 15
+## aplicados en el clon: no tocan la librería, sus bytes son los mismos).
+## memset, tcc__* y VBlank salieron en la misma dirección en las cinco compilaciones
+## de las unidades 14 y 15 (u14_juego, u15_guion_hud_c, u15_guion_asm_completo, esta
+## y la mini-ROM unidad15); WaitForVBlank y las funciones del juego se mueven
+## (WaitForVBlank: $8E:D550 en u14_juego, $8E:D98B en u15_guion_hud_c, $80:B1B8 en la
+## mini-ROM). Por eso el desplazamiento de WaitForVBlank de abajo vale solo para esta ROM.
+00818371 memset
+00818000 tcc__mul
+008180f6 tcc__udiv
+0081814f tcc__div
+008081af VBlank           (vector NMI de hdr.asm: "NMI VBlank")
+008081b3 FVBlank
+008ed43b WaitForVBlank    (en esta compilación)
+00000030 vblank_flag      (página 0 de la WRAM)
+00000000 tcc__r0 / 00000002 tcc__r0h / 00000004 tcc__r1 / 00000018 tcc__r9 / 0000001c tcc__r10
+00000100 tcc__registers_nmi_isr
+
+## memset en $81:8371 (xxd -s 0x8371 -l 25 ProyectoSNES.sfc)
+00008371: a304 8500 a306 8502 a30a f00c a8a3 08e2
+00008381: 2088 9700 d0fb c220 6b
+  a3 04      lda 4,s        ; puntero, 16 bits bajos
+  85 00      sta $00        ; tcc__r0
+  a3 06      lda 6,s        ; puntero, banco
+  85 02      sta $02        ; tcc__r0h
+  a3 0a      lda 10,s       ; n (bytes)
+  f0 0c      beq +12        ; 0 bytes: a la salida
+  a8         tay            ; Y = n
+  a3 08      lda 8,s        ; el valor de relleno
+  e2 20      sep #$20       ; A de 8 bits
+  88         dey            ; <- BUCLE: 3 instrucciones por byte
+  97 00      sta [$00],y    ;
+  d0 fb      bne -5         ;
+  c2 20      rep #$20
+  6b         rtl
+
+## WaitForVBlank en $8E:D43B (xxd -s 0x7543B -l 20 ProyectoSNES.sfc)
+0007543b: 08e2 2048 a901 8f30 0000 cbaf 3000 00d0
+0007544b: f968 286b
+  08         php
+  e2 20      sep #$20
+  48         pha
+  a9 01      lda #1
+  8f 30 00 00 sta.l $000030 ; vblank_flag = 1: "estoy esperando"
+  cb         wai            ; <- la CPU se duerme hasta la siguiente interrupción (NMI)
+  af 30 00 00 lda.l $000030 ; ¿la borró ya el NMI?
+  d0 f9      bne -7         ; no: a dormir otra vez
+  68         pla
+  28         plp
+  6b         rtl
+
+## VBlank (manejador de NMI) en $80:81AF (xxd -s 0x01AF -l 40 ProyectoSNES.sfc), el principio
+000001af: 5cb3 8180 c238 8b0b da5a 48a9 0001 5bf4
+000001bf: 807e abe2 10ae 3000 f01f 9c02 21a9 0004
+000001cf: 8d70 43a9 2002 8d75
+  5c b3 81 80 jml $8081B3   ; FastROM: salta a FVBlank, en la copia rápida del banco $80
+  c2 38      rep #$38       ; 16 bits, modo decimal apagado
+  8b 0b da 5a 48            ; phb phd phx phy pha: guarda TODO lo del programa interrumpido
+  a9 00 01   lda #$0100
+  5b         tcd            ; D = $0100: su propia página directa (tcc__registers_nmi_isr),
+                            ;   para no pisar los tcc__rN del programa interrumpido
+  f4 80 7e   pea $7E80
+  ab         plb            ; DB = $80
+  e2 10      sep #$10
+  ae 30 00   ldx $0030      ; vblank_flag
+  f0 1f      beq ...        ; 0: el programa no llegó a WaitForVBlank (frame perdido):
+                            ;   no copia la OAM
+  9c 02 21   stz $2102      ; OAMADD = 0
+  a9 00 04   lda #$0400
+  8d 70 43   sta $4370      ; DMA canal 7: modo 0, destino $2104 (OAMDATA)
+  a9 20 02   lda #$0220
+  8d 75 ..   sta $4375      ; 544 bytes: la OAM entera
+  ...        (según el fuente: dispara el DMA, llama a la rutina de nmiSet con
+             jsl, incrementa snes_vblank_count, lee los mandos y vuelve con rti)

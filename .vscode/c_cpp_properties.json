@@ -4,6 +4,7 @@
             "name": "SNES",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/src",
                 "E:/ProyectoSNES/tools/pvsneslib/pvsneslib/include"
             ],
             "defines": [

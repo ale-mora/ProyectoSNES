@@ -1,0 +1,21 @@
+Compilación de las variantes de la mini-ROM de la unidad 05 (2026-10-22, PowerShell; todas recompiladas al final de la sesión, cada una con este resumen)
+
+1) rom/ tal cual (mando real):             make
+   No warnings or errors found.               -> roms\u05_botones.sfc
+2) rom/ con guion de mando:                $env:CFLAGS="-DGUION_MANDO"; make clean; make; $env:CFLAGS=$null
+   No warnings or errors found.               -> roms\u05_botones_guion.sfc
+3) solucion/botones.c (copia de rom/ con la solución), mando real:   make
+   No warnings or errors found.               -> roms\u05_contador_b.sfc
+4) solucion/botones.c con guion de mando:  $env:CFLAGS="-DGUION_MANDO"; make clean; make
+   No warnings or errors found.               -> roms\u05_contador_b_guion.sfc
+
+Lo que debe verse con el guion (calculado de la tabla GUION; pendiente de captura en Mesen):
+  frames 60..119   HELD con B; LAST DOWN "B" AT FRAME 60; ACTION JUMP (retenida 30 frames)
+  frame 120        LAST UP "B" AT FRAME 120
+  frames 150..159  segundo toque de B
+  frames 200..259  HELD con RT; ACTION WALK, salvo ATTACK desde el frame 220 (A gana a la
+                   dirección) durante 30 frames
+  frames 300..309  tercer toque de B
+  frames 330..399  HELD con DN y LT: ACTION CROUCH (Abajo gana a la dirección), salvo SWORD
+                   desde el frame 350 (R gana a todo lo demás) durante 30 frames
+  desde el 400     nada mantenido: ACTION IDLE. En la solución: B PRESSES 3.

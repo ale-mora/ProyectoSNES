@@ -1,0 +1,14 @@
+Clon E:\ProyectoSNES_trabajo\u19, 2026-10-22. Todas las ROM con CFLAGS=-DGUION_PRUEBA (se juegan solas):
+
+make clean; make   (solución B: fondo_cerca.png con la zarza de ejemplo, HUNDIR_PIES 2)
+No warnings or errors found.   -> E:\ProyectoSNES_trabajo\roms\u19_zarza_guion.sfc
+
+fondo_cerca.png versionado (marcador de zarza); HUNDIR_PIES cambiado en tarou_sprite.c y "make":
+HUNDIR_PIES 2 : No warnings or errors found.   -> u19_hundir2_guion.sfc
+HUNDIR_PIES 0 : No warnings or errors found.   -> u19_hundir0_guion.sfc
+HUNDIR_PIES 4 : No warnings or errors found.   -> u19_hundir4_guion.sfc
+(las cuatro ROM tienen hashes SHA-256 distintos; HUNDIR_PIES vuelto a 2 después)
+
+python -m unittest (las 4 suites de scripts/pruebas/): Ran 39 tests ... OK   (35 de antes + 4 nuevas)
+make -C tests; .\tests\pruebas.exe: 367 pruebas, 0 fallos
+python demo_19_arte.py y ejercicio_19_cuentas.py (esqueleto y solución): se ejecutan sin errores.

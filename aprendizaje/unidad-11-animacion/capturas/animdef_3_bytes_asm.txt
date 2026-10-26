@@ -1,0 +1,17 @@
+ANIMACIONES[t->estado] en avanzar_animacion (AnimDef = 3 bytes), ensamblador de tcc816 (make src/juego/tarou.asm en el clon u11, 2026-10-22):
+llamadas a tcc__mul en tarou.asm: 0
+El indice se multiplica por 3 con un desplazamiento y una suma (estado*2 + estado):
+lda.w #0
+sep #$20
+lda.b [tcc__r0]
+rep #$20
+sta.b tcc__r1
+asl a
+clc
+adc.b tcc__r1
+sta.b tcc__r1
+lda.w #:ANIMACIONES
+sta.b tcc__r0h
+lda.w #ANIMACIONES + 0
+clc
+adc.b tcc__r1

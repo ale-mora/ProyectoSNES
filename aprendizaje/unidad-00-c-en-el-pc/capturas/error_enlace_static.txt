@@ -1,0 +1,3 @@
+$ gcc -std=c99 -Wall -Wextra -o demo_07.exe demo_07/main.c demo_07/reloj.c    (main.c con "extern u8 frames_del_segundo;", que en reloj.c es static; rutas acortadas)
+ld: ccXXXXXX.o:main.c:(.rdata$.refptr.frames_del_segundo[.refptr.frames_del_segundo]+0x0): undefined reference to `frames_del_segundo'
+collect2.exe: error: ld returned 1 exit status

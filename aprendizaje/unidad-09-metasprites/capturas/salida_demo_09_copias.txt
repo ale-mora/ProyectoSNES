@@ -1,0 +1,73 @@
+== 1. Piezas de un cuadro y su espejo ==
+correr, cuadro 0: 6 piezas
+  pieza 0: dx= 0 dy= 0 bloque= 0 atributo=0x30
+  pieza 1: dx=32 dy= 0 bloque= 1 atributo=0x30
+  pieza 2: dx=64 dy= 0 bloque= 2 atributo=0x30
+  pieza 3: dx= 0 dy=32 bloque=24 atributo=0x30
+  pieza 4: dx=32 dy=32 bloque=25 atributo=0x30
+  pieza 5: dx=64 dy=32 bloque=26 atributo=0x30
+correr, cuadro 0 ESPEJADO: 6 piezas
+  pieza 0: dx=64 dy= 0 bloque= 0 atributo=0x70
+  pieza 1: dx=32 dy= 0 bloque= 1 atributo=0x70
+  pieza 2: dx= 0 dy= 0 bloque= 2 atributo=0x70
+  pieza 3: dx=64 dy=32 bloque=24 atributo=0x70
+  pieza 4: dx=32 dy=32 bloque=25 atributo=0x70
+  pieza 5: dx= 0 dy=32 bloque=26 atributo=0x70
+dormido, cuadro 0: 4 piezas
+  pieza 0: dx=32 dy= 0 bloque= 1 atributo=0x30
+  pieza 1: dx= 0 dy=32 bloque=27 atributo=0x30
+  pieza 2: dx=32 dy=32 bloque=28 atributo=0x30
+  pieza 3: dx=64 dy=32 bloque=29 atributo=0x30
+
+== 2. Plan de copias (metasprite_copias) y reparto en VBlanks ==
+correr, cuadro 0: 8 copias
+  copia  0: tira+    0 -> VRAM 0x0000  384 bytes
+  copia  1: tira+  512 -> VRAM 0x0100  384 bytes
+  copia  2: tira+ 1024 -> VRAM 0x0200  384 bytes
+  copia  3: tira+ 1536 -> VRAM 0x0300  384 bytes
+    -- VBlank 1: 1536 bytes, unas 9 lineas de DMA
+  copia  4: tira+12288 -> VRAM 0x0400  384 bytes
+  copia  5: tira+12800 -> VRAM 0x0500  384 bytes
+  copia  6: tira+13312 -> VRAM 0x0600  384 bytes
+  copia  7: tira+13824 -> VRAM 0x0700  384 bytes
+    -- VBlank 2: 1536 bytes, unas 9 lineas de DMA
+  total 3072 bytes = 18 lineas de DMA (redondeado) si fuera de una vez (de las 37 del VBlank)
+
+correr, cuadro 1: 16 copias
+  copia  0: tira+  384 -> VRAM 0x0000  128 bytes
+  copia  1: tira+  896 -> VRAM 0x0100  128 bytes
+  copia  2: tira+ 1408 -> VRAM 0x0200  128 bytes
+  copia  3: tira+ 1920 -> VRAM 0x0300  128 bytes
+  copia  4: tira+ 2048 -> VRAM 0x0040  256 bytes
+  copia  5: tira+ 2560 -> VRAM 0x0140  256 bytes
+  copia  6: tira+ 3072 -> VRAM 0x0240  256 bytes
+  copia  7: tira+ 3584 -> VRAM 0x0340  256 bytes
+    -- VBlank 1: 1536 bytes, unas 9 lineas de DMA
+  copia  8: tira+12672 -> VRAM 0x0400  128 bytes
+  copia  9: tira+13184 -> VRAM 0x0500  128 bytes
+  copia 10: tira+13696 -> VRAM 0x0600  128 bytes
+  copia 11: tira+14208 -> VRAM 0x0700  128 bytes
+  copia 12: tira+14336 -> VRAM 0x0440  256 bytes
+  copia 13: tira+14848 -> VRAM 0x0540  256 bytes
+  copia 14: tira+15360 -> VRAM 0x0640  256 bytes
+  copia 15: tira+15872 -> VRAM 0x0740  256 bytes
+    -- VBlank 2: 1536 bytes, unas 9 lineas de DMA
+  total 3072 bytes = 18 lineas de DMA (redondeado) si fuera de una vez (de las 37 del VBlank)
+
+dormido, cuadro 0: 12 copias
+  copia  0: tira+  128 -> VRAM 0x0040  128 bytes
+  copia  1: tira+  640 -> VRAM 0x0140  128 bytes
+  copia  2: tira+ 1152 -> VRAM 0x0240  128 bytes
+  copia  3: tira+ 1664 -> VRAM 0x0340  128 bytes
+  copia  4: tira+12672 -> VRAM 0x0400  128 bytes
+  copia  5: tira+13184 -> VRAM 0x0500  128 bytes
+  copia  6: tira+13696 -> VRAM 0x0600  128 bytes
+  copia  7: tira+14208 -> VRAM 0x0700  128 bytes
+  copia  8: tira+14336 -> VRAM 0x0440  256 bytes
+  copia  9: tira+14848 -> VRAM 0x0540  256 bytes
+    -- VBlank 1: 1536 bytes, unas 9 lineas de DMA
+  copia 10: tira+15360 -> VRAM 0x0640  256 bytes
+  copia 11: tira+15872 -> VRAM 0x0740  256 bytes
+    -- VBlank 2: 512 bytes, unas 3 lineas de DMA
+  total 2048 bytes = 12 lineas de DMA (redondeado) si fuera de una vez (de las 37 del VBlank)
+

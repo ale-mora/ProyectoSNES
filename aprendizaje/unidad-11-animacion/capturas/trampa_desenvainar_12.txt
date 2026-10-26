@@ -1,0 +1,13 @@
+Trampa de la unidad 11 (clon u11, 2026-10-22): desenvainar a 12 frames por cuadro en animaciones.c
+y FRAMES_DESENVAINAR (4 * 12) en tests/prueba_tarou.c. Las 367 pruebas pasan con la copia fija;
+el recorrido con el arte real (9 cuadros x 12 = 108 frames > los 100 entre R y A del guion) no rompe el tronco.
+Orden: dos_pruebas.ps1 (ver ejercicio_11.md, parte C).
+
+--- con la copia fija tests/tarou_anim.h (make -C tests) ---
+367 pruebas, 0 fallos
+--- con el tarou_anim.h REAL (res/personajes/tarou), solo prueba_recorrido ---
+FALLO prueba_recorrido.c:66: tronco_roto == 1
+FALLO prueba_recorrido.c:67: e == PARTIDA_SALIDA
+FALLO prueba_recorrido.c:68: cuadro == GUION_TUTORIAL_FIN
+FALLO prueba_recorrido.c:69: p.reaparicion == controles[NIVEL1_CONTROLES - 1]
+367 pruebas, 22 fallos

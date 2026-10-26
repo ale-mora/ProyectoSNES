@@ -1,0 +1,11 @@
+Anio 0: Tarou es cachorro
+Anio 1: Tarou es cachorro
+Anio 2: Tarou es cachorro
+Anio 3: Tarou es adulto
+Anio 4: Tarou es adulto
+Anio 5: Tarou es adulto
+Anio 6: Tarou es adulto
+Anio 7: Tarou es adulto
+Anio 8: Tarou es viejo
+Anio 9: Tarou es viejo
+Anio 10: Tarou es viejo

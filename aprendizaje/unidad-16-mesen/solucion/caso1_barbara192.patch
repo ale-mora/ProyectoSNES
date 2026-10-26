@@ -1,0 +1,15 @@
+diff --git a/src/pantallas/personajes.c b/src/pantallas/personajes.c
+index 3a5e8c8..9265b99 100644
+--- a/src/pantallas/personajes.c
++++ b/src/pantallas/personajes.c
+@@ -80,8 +80,8 @@ extern char barbara_samurai_pal;                        /* paleta de la samurái
+ #define CUADROS_TAROU 2                /* La tira estática trae SIEMPRE 2 (cabecera). */
+ #define BYTES_POR_CUADRO 3072          /* 96 tiles x 32 bytes.                        */
+ #define CUADROS_BARBARA 4              /* Cuadros de reposo (de los 5 del pack).      */
+-#define TILE_BASE_BARBARA 256          /* Segunda tabla de tiles: ver LÍMITE arriba.  */
+-#define VRAM_BARBARA 0x1000            /* Tile 256 x 16 palabras por tile (4bpp).     */
++#define TILE_BASE_BARBARA 192          /* Segunda tabla de tiles: ver LÍMITE arriba.  */
++#define VRAM_BARBARA 0x0C00            /* Tile 256 x 16 palabras por tile (4bpp).     */
+ #define FRAMES_POR_CUADRO 8            /* Cambia de cuadro cada 8 frames (7,5 c/s).   */
+ #define PALETA_TAROU 0                 /* Paleta de sprites 0 (CGRAM 128..143).       */
+ #define PALETA_BARBARA 1               /* Paleta de sprites 1 (CGRAM 144..159).       */

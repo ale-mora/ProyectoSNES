@@ -1,0 +1,24 @@
+diff --git a/src/juego/guion.c b/src/juego/guion.c
+index 539b96c..260aaa7 100644
+--- a/src/juego/guion.c
++++ b/src/juego/guion.c
+@@ -24,14 +24,15 @@
+     tamaño de un TramoGuion, 5 bytes). Con guion[i], tcc816 calcula i * 5 con su
+     rutina de multiplicar (tcc__mul) en cada acceso: 72 multiplicaciones por frame,
+     medio frame de la SNES. */
+-static u8 mantenidos(const TramoGuion *t, u8 n, u16 cuadro)
++static u8 mantenidos(const TramoGuion *guion, u8 n, u16 cuadro)
+ {
+     u8 b = 0;
+-    for (; n != 0; n--, t++)
++    u8 i;
++    for (i = 0; i < n; i++)
+     {
+-        if (cuadro >= t->desde && cuadro < t->hasta)
++        if (cuadro >= guion[i].desde && cuadro < guion[i].hasta)   /* EXPERIMENTO: guion[i] */
+         {
+-            b |= t->botones;                         /* Este tramo está activo.             */
++            b |= guion[i].botones;                   /* Este tramo está activo.             */
+         }
+     }
+     return b;

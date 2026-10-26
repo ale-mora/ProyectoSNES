@@ -1,0 +1,70 @@
+diff --git a/src/juego/camara.c b/src/juego/camara.c
+index c2b6cea..9062aab 100644
+--- a/src/juego/camara.c
++++ b/src/juego/camara.c
+@@ -21,10 +21,10 @@
+ #include "juego/camara.h"
+ #include "juego/nivel.h"
+ 
+-#define CAMARA_MAX (ANCHO_NIVEL - ANCHO_PANTALLA)   /* 256: la última posición con nivel. */
+-
+-u16 camara_para(u16 x_pix)
++u16 camara_para_ancho(u16 x_pix, u16 ancho_nivel)
+ {
++    /* El tope ya no es una constante: la última posición con nivel a la vista. */
++    s16 maximo = (s16)(ancho_nivel - ANCHO_PANTALLA);
+     /* En s16 para que la resta pueda dar negativo cerca del borde izquierdo:
+        con u16, 10 + 48 - 128 "daría la vuelta" a 65466 en vez de -70. */
+     s16 camara = (s16)x_pix + (ANCHO_CELDA / 2) - (ANCHO_PANTALLA / 2);
+@@ -32,9 +32,14 @@ u16 camara_para(u16 x_pix)
+     {
+         camara = 0;                     /* Borde izquierdo: la cámara no retrocede.   */
+     }
+-    if (camara > CAMARA_MAX)
++    if (camara > maximo)
+     {
+-        camara = CAMARA_MAX;            /* Borde derecho: ya no hay más nivel.        */
++        camara = maximo;                /* Borde derecho: ya no hay más nivel.        */
+     }
+     return (u16)camara;
+ }
++
++u16 camara_para(u16 x_pix)
++{
++    return camara_para_ancho(x_pix, ANCHO_NIVEL);   /* El nivel 1: 2048 px.          */
++}
+diff --git a/src/juego/camara.h b/src/juego/camara.h
+index 9b4144f..4aac774 100644
+--- a/src/juego/camara.h
++++ b/src/juego/camara.h
+@@ -29,4 +29,9 @@
+    a 0..ANCHO_NIVEL - ANCHO_PANTALLA. Devuelve píxeles enteros. */
+ u16 camara_para(u16 x_pix);
+ 
++/* La misma regla para un nivel de `ancho_nivel` px (>= ANCHO_PANTALLA): recorte a
++   0..ancho_nivel - ANCHO_PANTALLA. camara_para(x) es camara_para_ancho(x, ANCHO_NIVEL).
++   Existe para poder probar la regla con otros anchos (tests/prueba_camara.c). */
++u16 camara_para_ancho(u16 x_pix, u16 ancho_nivel);
++
+ #endif /* CAMARA_H */
+diff --git a/tests/prueba_camara.c b/tests/prueba_camara.c
+index ce511c0..9a42475 100644
+--- a/tests/prueba_camara.c
++++ b/tests/prueba_camara.c
+@@ -33,6 +33,16 @@ void pruebas_camara(void)
+     COMPROBAR(camara_para(1872) == 1792);         /* 1872 + 48 - 128 = 1792: el límite.   */
+     COMPROBAR(camara_para(1952) == 1792);         /* Más allá (el tope de Tarou), sigue.  */
+ 
++    /* Otros anchos de nivel (camara_para_ancho): el tope es ancho - 256. */
++    COMPROBAR(camara_para_ancho(1872, 2048) == 1792); /* El de siempre, por la nueva.  */
++    COMPROBAR(camara_para_ancho(500, 1024) == 420);   /* 500 + 48 - 128, sin tope.      */
++    COMPROBAR(camara_para_ancho(848, 1024) == 768);   /* 848 + 48 - 128 = 768: el tope. */
++    COMPROBAR(camara_para_ancho(900, 1024) == 768);   /* Más allá, sigue en 1024 - 256. */
++    COMPROBAR(camara_para_ancho(10, 1024) == 0);      /* El borde izquierdo no cambia.  */
++    COMPROBAR(camara_para_ancho(200, 256) == 0);      /* Nivel de una pantalla: quieta. */
++    COMPROBAR(camara_para_ancho(81, 512) == 1);       /* Un nivel de 512 (el anillo)... */
++    COMPROBAR(camara_para_ancho(400, 512) == 256);    /* ...para en 256.                */
++
+     /* Constantes del escenario. */
+     COMPROBAR(SUELO_Y == 176);                    /* Suelo base: tres filas de celdas.    */
+     COMPROBAR(ANCHO_NIVEL == 2048);               /* El tutorial: 8 pantallas.            */

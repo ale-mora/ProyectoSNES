@@ -1,0 +1,11 @@
+gfx4snes 2.2.0 (PVSnesLib 4.6.0), 2026-10-22. Bytes del .pic / 32 = tiles de 4bpp.
+
+res/nivel1/fondo_cerca.png (2080x256 = 8320 celdas), opciones del Makefile (-s 8 -o 16 -u 16 -e 1 -p -m):
+  normal.pic                8992 bytes =   281 tiles      <- lo que usa el juego
+  sinreducir.pic (-R)     266240 bytes =  8320 tiles
+  volteos.pic (-F)          8320 bytes =   260 tiles      (.map: 1337 celdas con algún volteo; 875 con voltH, 893 con voltV)
+  el .map del juego (sin -F): 0 celdas con algún bit de volteo
+
+res/titulo/fondo_lejos.png (256x224 = 896 celdas), -e 2:
+  montanas.pic              8224 bytes =   257 tiles      <- la mini-ROM de esta unidad
+  montanas_volteos.pic (-F) 7936 bytes =   248 tiles

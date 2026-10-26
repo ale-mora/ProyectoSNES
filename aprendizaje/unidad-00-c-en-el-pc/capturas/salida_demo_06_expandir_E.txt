@@ -1,0 +1,8 @@
+int main(void)
+{
+    int a = ((3) * 60);
+    int b = ((2 + 1) * (2 + 1));
+    int c = 2 + 1 * 2 + 1;
+    int d = 0;
+    return (a - 180) + (b - 9) + (c - 5) + d;
+}

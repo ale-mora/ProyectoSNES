@@ -1,0 +1,13 @@
+diff --git a/src/juego/hud_debug.c b/src/juego/hud_debug.c
+index 986423a..df332e3 100644
+--- a/src/juego/hud_debug.c
++++ b/src/juego/hud_debug.c
+@@ -82,7 +82,7 @@
+ /* Tile de un carácter ASCII, paleta 0 y el bit de PRIORIDAD (bit 13, 0x2000): en Mode 1
+    con BG3_MODE1_PRIORITY_HIGH, solo los tiles de BG3 con ese bit van delante de todo.
+    Sin él, el techo del túnel del tutorial (capa cercana, arriba del todo) tapaba el texto. */
+-#define TILE(c) ((u16)(((c) - 32) | 0x2000))
++#define TILE(c) ((u16)((c) - 32))
+ /* Si al llegar al HUD el haz va por debajo de esta línea, la fila espera: una fila
+    cuesta de 24 a 63 líneas (medido) y el VBlank empieza en la 225: 225 - 63 - 12. */
+ #define HUD_LINEA_MAX 150

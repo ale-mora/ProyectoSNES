@@ -1,0 +1,35 @@
+Resumen de la compilación del juego (clon E:\ProyectoSNES_trabajo\u03, commit 9a7234c, 2026-10-22; make tras clonar: 87 s)
+Líneas de ProyectoSNES.log con 'ROM bank' de los bancos usados, y el resumen:
+ROM bank 0 (10 bytes (0.03%) free)
+ROM bank 1 (0 bytes (0.00%) free)
+ROM bank 2 (4 bytes (0.01%) free)
+ROM bank 3 (0 bytes (0.00%) free)
+ROM bank 4 (0 bytes (0.00%) free)
+ROM bank 5 (0 bytes (0.00%) free)
+ROM bank 6 (0 bytes (0.00%) free)
+ROM bank 7 (1 bytes (0.00%) free)
+ROM bank 8 (2 bytes (0.01%) free)
+ROM bank 9 (3 bytes (0.01%) free)
+ROM bank 10 (5 bytes (0.02%) free)
+ROM bank 11 (0 bytes (0.00%) free)
+ROM bank 12 (2 bytes (0.01%) free)
+ROM bank 13 (3 bytes (0.01%) free)
+ROM bank 14 (10723 bytes (32.72%) free)
+ROM bank 15 (32768 bytes (100.00%) free)
+ROM bank 16..127 (32768 bytes (100.00%) free)   [113 bancos vacíos, omitidos]
+RAM slot 0 bank 126 (24445 bytes (74.60%) free)
+RAM slot 1 bank 0 (7995 bytes (97.60%) free)
+RAM slot 2 bank 126 (55567 bytes (96.90%) free)
+RAM slot 3 bank 127 (64958 bytes (99.12%) free)
+ROM: 3713537 bytes (88.54%) free of total 4194304.
+RAM: 152965 bytes (93.36%) free of total 163840.
+
+Etiquetas del .sym (dirección de 24 bits = banco + 16 bits):
+007f0150 ANIMACIONES
+008ecbc7 camara_para
+008ed147 main
+007e26e9 frames_en_pantalla
+0080839a tcc__start
+00000039 pad_keys
+008081af VBlank
+008ed550 WaitForVBlank

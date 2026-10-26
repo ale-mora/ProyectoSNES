@@ -1,0 +1,148 @@
+diff --git a/src/juego/hud_debug.c b/src/juego/hud_debug.c
+index 986423a..7322e00 100644
+--- a/src/juego/hud_debug.c
++++ b/src/juego/hud_debug.c
+@@ -172,12 +172,68 @@ static u16 *numero(u16 *p, s16 valor)
+     return p;
+ }
+ 
++/*--- NUMERO: qué versión de numero usa el HUD (unidad 15) ---------------------------
++    Con -DHUD_NUMERO_ASM, la de ensamblador (juego/hud_numero.asm); si no, la de C.
++    La de C se queda siempre: comprobar_numero la usa de referencia. */
++#ifdef HUD_NUMERO_ASM
++extern u16 *hud_numero(u16 *p, s16 valor);   /* En juego/hud_numero.asm.               */
++#define NUMERO hud_numero
++/* Valores de prueba: ceros, cambios de cifra, negativos y los dos extremos de s16. */
++static const s16 PRUEBAS_NUMERO[14] = {0, 9, 10, 99, 100, 1234, 10000, 32767,
++                                       -1, -9, -10, -1000, -32767, -32768};
++static u8 numero_iguales;          /* Cuántos de los 14 valores dan lo mismo en C y asm. */
++static u16 numero_c[8];            /* Lo que escribe la versión en C...                  */
++static u16 numero_asm[8];          /* ...y la de ensamblador.                            */
++
++/*--- comprobar_numero: C frente a asm con los 14 valores, una vez al empezar ------*/
++static void comprobar_numero(void)
++{
++    const s16 *v = PRUEBAS_NUMERO;
++    u16 *fin_c;
++    u16 *fin_asm;
++    u8 k;
++    u8 j;
++    u8 largo;
++
++    numero_iguales = 0;
++    for (k = 0; k < 14; k++, v++)
++    {
++        memset(numero_c, 0xFF, sizeof(numero_c));        /* Basura igual en los dos,  */
++        memset(numero_asm, 0xFF, sizeof(numero_asm));    /* para ver si sobra algo.   */
++        fin_c = numero(numero_c, *v);
++        fin_asm = hud_numero(numero_asm, *v);
++        largo = (u8)((u16)fin_c - (u16)numero_c);        /* Bytes escritos en C (restar
++                                                            punteros dividiría por 2). */
++        if (largo != (u8)((u16)fin_asm - (u16)numero_asm))
++        {
++            continue;                                    /* Distinto largo: falla.    */
++        }
++        for (j = 0; j < 8; j++)
++        {
++            if (numero_c[j] != numero_asm[j])
++            {
++                break;                                   /* Una palabra distinta.     */
++            }
++        }
++        if (j == 8)
++        {
++            numero_iguales++;                            /* Idénticos, sobras incluidas. */
++        }
++    }
++}
++#else
++#define NUMERO numero
++#endif
++
+ void hud_debug_iniciar(void)
+ {
+     u8 k;
+ 
+     visible = 0;
+     turno = 0;
++#ifdef HUD_NUMERO_ASM
++    comprobar_numero();                              /* C frente a asm (unidad 15).         */
++#endif
+     for (k = 0; k < FILAS_HUD; k++)
+     {
+         empezar_fila(k);                             /* Nuestras filas, en blanco.          */
+@@ -232,15 +288,15 @@ void hud_debug_dibujar(const Tarou *t, u16 camara)
+     {
+         case 0:                                      /* X 123  VX -16                       */
+             p = texto(p, "X ");
+-            p = numero(p, (s16)PF_ENTERO(t->x_fp));
++            p = NUMERO(p, (s16)PF_ENTERO(t->x_fp));
+             p = texto(p, "  VX ");
+-            numero(p, t->vx_fp);
++            NUMERO(p, t->vx_fp);
+             break;
+         case 1:                                      /* Y 144  VY 0                         */
+             p = texto(p, "Y ");
+-            p = numero(p, (s16)PF_ENTERO(t->y_fp));
++            p = NUMERO(p, (s16)PF_ENTERO(t->y_fp));
+             p = texto(p, "  VY ");
+-            numero(p, t->vy_fp);
++            NUMERO(p, t->vy_fp);
+             break;
+         case 2:                                      /* EST CAMINANDO                       */
+             p = texto(p, "EST ");
+@@ -268,37 +324,42 @@ void hud_debug_dibujar(const Tarou *t, u16 camara)
+             break;
+         case 4:                                      /* CAM 0  F 1234 (frames en el nivel)  */
+             p = texto(p, "CAM ");
+-            p = numero(p, (s16)camara);
++            p = NUMERO(p, (s16)camara);
+             p = texto(p, "  F ");
+-            numero(p, (s16)(frames_en_pantalla & 0x7FFF));
++            p = NUMERO(p, (s16)(frames_en_pantalla & 0x7FFF));
++#ifdef HUD_NUMERO_ASM
++            p = texto(p, "  ASM ");                  /* ASM 14/14: C y asm coinciden.       */
++            p = NUMERO(p, (s16)numero_iguales);
++            p = texto(p, "/14");
++#endif
+             break;
+         case 6:                                      /* LIN a b c                           */
+             p = texto(p, "LIN ");
+-            p = numero(p, (s16)diag_linea[0]);
++            p = NUMERO(p, (s16)diag_linea[0]);
+             p = texto(p, " ");
+-            p = numero(p, (s16)diag_linea[1]);
++            p = NUMERO(p, (s16)diag_linea[1]);
+             p = texto(p, " ");
+-            numero(p, (s16)diag_linea[2]);
++            NUMERO(p, (s16)diag_linea[2]);
+             break;
+         case 7:                                      /* V5 20  VB n                         */
+             p = texto(p, "V");                       /* Coste del VBlank: entrada y salida. */
+-            p = numero(p, (s16)diag_vblank[0]);
++            p = NUMERO(p, (s16)diag_vblank[0]);
+             p = texto(p, " ");
+-            p = numero(p, (s16)diag_vblank[1]);
++            p = NUMERO(p, (s16)diag_vblank[1]);
+             p = texto(p, "  VB ");
+-            numero(p, (s16)(snes_vblank_count & 0x7FFF));
++            NUMERO(p, (s16)(snes_vblank_count & 0x7FFF));
+             break;
+         default:                                     /* GOLPE 167 168 28 16  o  GOLPE -     */
+             p = texto(p, "GOLPE ");
+             if (tarou_caja_golpe(t, &golpe))
+             {
+-                p = numero(p, golpe.x);
++                p = NUMERO(p, golpe.x);
+                 p = texto(p, " ");
+-                p = numero(p, golpe.y);
++                p = NUMERO(p, golpe.y);
+                 p = texto(p, " ");
+-                p = numero(p, (s16)golpe.ancho);
++                p = NUMERO(p, (s16)golpe.ancho);
+                 p = texto(p, " ");
+-                numero(p, (s16)golpe.alto);
++                NUMERO(p, (s16)golpe.alto);
+             }
+             else
+             {

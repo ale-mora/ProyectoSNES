@@ -1,0 +1,8 @@
+Pantallas del nivel: 8
+MAX(5, 1 + 2) * 2 = 10
+MAX(7, 2) = 7
+ENTRE(130, 128, 255) = 1
+ENTRE(300, 128, 255) = 0
+ENTRE(128, 128, 255) = 1
+Vidas iniciales: 5
+Mando: guion

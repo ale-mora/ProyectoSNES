@@ -1,0 +1,18 @@
+> demo_16.exe u16_guion_hud.sym camara_para
+$8ECFC0  ($8E:CFC0)  camara_para
+1 etiquetas
+> demo_16.exe u16_guion_hud.sym asm_tarou 11
+$7E263C  ($7E:263C)  tccs_src/pantallas/pantalla_nivel1.asm_tarou + 11
+1 etiquetas
+> demo_16.exe u16_guion_hud.sym nivel1_colision
+$86F900  ($86:F900)  nivel1_colision
+1 etiquetas
+> demo_16.exe u16_guion_hud.sym _vblank
+$81FFEF  ($81:FFEF)  pantalla_nintendo_vblank
+$8ED70F  ($8E:D70F)  tccs_src/pantallas/pantalla_nivel1.asm_desde_vblank
+$8CFFD9  ($8C:FFD9)  pantalla_nivel1_vblank
+$7E262B  ($7E:262B)  diag_vblank
+$8ED6E5  ($8E:D6E5)  secuencia_vblank
+$00008D  ($00:008D)  snes_vblank_count_svg
+$000037  ($00:0037)  snes_vblank_count
+7 etiquetas

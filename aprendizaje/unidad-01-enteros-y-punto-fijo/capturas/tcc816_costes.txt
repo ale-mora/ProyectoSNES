@@ -1,0 +1,204 @@
+Salida de 816-tcc (PVSnesLib 4.6.0, tools/pvsneslib/devkitsnes/bin/816-tcc.exe -Wall -c X.c -F -o X.ps),
+medida el 2026-10-22. Es el .ps del compilador, ANTES del optimizador de snes_rules: el .asm final
+puede ser algo más corto, pero las llamadas a tcc__udiv / tcc__div siguen ahí.
+
+=== costes.c ===
+typedef unsigned short u16;
+typedef signed short s16;
+u16 a, b, r1, r2, r3, r4, r5;
+s16 v;
+void costes(void)
+{
+    r1 = a / b;
+    r2 = a % b;
+    r3 = a / 16;
+    r4 = a >> 4;
+    r5 = a * 3;
+    v = v >> 4;
+}
+
+=== costes.ps (la función entera) ===
+costes:
+; sub sp,#__costes_locals
+.ifgr __costes_locals 0
+tsa
+sec
+sbc #__costes_locals
+tas
+.endif
+; load 0
+; type 16 reg 0x3f0 extra 0x0
+; ld2 [a + 0], tcc__r0
+lda.l a + 0
+sta.b tcc__r0
+; load 1
+; type 16 reg 0x3f0 extra 0x0
+; ld2 [b + 0], tcc__r1
+lda.l b + 0
+sta.b tcc__r1
+; gen_opi len 2 op 0xb0
+; div tcc__r1,tcc__r0
+ldx.b tcc__r0
+lda.b tcc__r1
+jsr.l tcc__udiv
+lda.b tcc__r9
+sta.b tcc__r0
+; store r 0x0 fr 0x3f0 ft 0x10 fc 0x0
+; st2 tcc__r0, [r1,0]
+lda.b tcc__r0
+sta.l r1 + 0
+; load 0
+; type 16 reg 0x3f0 extra 0x0
+; ld2 [a + 0], tcc__r0
+lda.l a + 0
+sta.b tcc__r0
+; load 1
+; type 16 reg 0x3f0 extra 0x0
+; ld2 [b + 0], tcc__r1
+lda.l b + 0
+sta.b tcc__r1
+; gen_opi len 2 op 0xb1
+; div tcc__r1,tcc__r0
+ldx.b tcc__r0
+lda.b tcc__r1
+jsr.l tcc__udiv
+stx.b tcc__r0
+; store r 0x0 fr 0x3f0 ft 0x10 fc 0x0
+; st2 tcc__r0, [r2,0]
+lda.b tcc__r0
+sta.l r2 + 0
+; load 0
+; type 16 reg 0x3f0 extra 0x0
+; ld2 [a + 0], tcc__r0
+lda.l a + 0
+sta.b tcc__r0
+; gen_opi len 2 op 0xcd
+; shr tcc__r0, #4
+lda.b tcc__r0
+lsr a
+lsr a
+lsr a
+lsr a
+sta.b tcc__r0
+; store r 0x0 fr 0x3f0 ft 0x10 fc 0x0
+; st2 tcc__r0, [r3,0]
+lda.b tcc__r0
+sta.l r3 + 0
+; load 0
+; type 16 reg 0x3f0 extra 0x0
+; ld2 [a + 0], tcc__r0
+lda.l a + 0
+sta.b tcc__r0
+; gen_opi len 2 op 0xcd
+; shr tcc__r0, #4
+lda.b tcc__r0
+lsr a
+lsr a
+lsr a
+lsr a
+sta.b tcc__r0
+; store r 0x0 fr 0x3f0 ft 0x10 fc 0x0
+; st2 tcc__r0, [r4,0]
+lda.b tcc__r0
+sta.l r4 + 0
+; load 0
+; type 16 reg 0x3f0 extra 0x0
+; ld2 [a + 0], tcc__r0
+lda.l a + 0
+sta.b tcc__r0
+; gen_opi len 2 op *
+; mul #3 (optimized: x*2+x)
+lda.b tcc__r0
+asl a
+clc
+adc.b tcc__r0
+sta.b tcc__r0
+; store r 0x0 fr 0x3f0 ft 0x10 fc 0x0
+; st2 tcc__r0, [r5,0]
+lda.b tcc__r0
+sta.l r5 + 0
+; load 0
+; type 0 reg 0x3f0 extra 0x0
+; ld2 [v + 0], tcc__r0
+lda.l v + 0
+sta.b tcc__r0
+; gen_opi len 2 op 
+; sar tcc__r0, #4
+lda.b tcc__r0
+cmp #$8000
+ror a
+cmp #$8000
+ror a
+cmp #$8000
+ror a
+cmp #$8000
+ror a
+sta.b tcc__r0
+; store r 0x0 fr 0x3f0 ft 0x0 fc 0x0
+; st2 tcc__r0, [v,0]
+lda.b tcc__r0
+sta.l v + 0
+; gsym_addr t 0 a 2005 ind 2005
+; ERROR no jump found to patch
+; add sp, #__costes_locals
+.ifgr __costes_locals 0
+tsa
+clc
+adc #__costes_locals
+tas
+.endif
+rtl
+
+=== costes2.c ===
+typedef unsigned short u16;
+typedef signed short s16;
+u16 a, r6;
+s16 v, w, k1, k2;
+void costes2(void)
+{
+    r6 = a % 16;
+    w = v / 16;
+    k1 = (255 * 256) / 32;
+    k2 = ((255 * 128) / 32) * 2;
+}
+
+=== costes2.ps (líneas clave) ===
+; umod #16 (power of 2), tcc__r0 => and #15
+and #15
+; div #16, tcc__r0
+jsr.l tcc__div
+; ld2 #2040,tcc__r0
+; ld2 #2040,tcc__r0
+
+=== costes5.c (tamaño de int y producto en el frame) ===
+typedef unsigned short u16;
+typedef signed short s16;
+typedef unsigned char u8;
+const u16 tam_int = sizeof(int);
+const u16 tam_long = sizeof(long);
+u8 h; u16 fr; s16 r;
+void g(void) { r = (s16)(h * 256 / fr); }
+
+=== costes5.ps (líneas clave) ===
+xba
+tam_int: .db $2,$0
+tam_long: .db $2,$0
+
+=== costes4.c (la macro RAMPA con *256 y con *128...*2) ===
+typedef unsigned short u16;
+typedef signed short s16;
+typedef unsigned char u8;
+typedef struct { u16 cuadro; u16 frames; u8 pista; u8 hasta; s16 paso; } Ev;
+#define RAMPA_MAL(c, f, p, d, h) {(c), (f), (p), (h), (s16)((((s16)(h) - (s16)(d)) * 256 / (f)))}
+#define RAMPA(c, f, p, d, h) {(c), (f), (p), (h), (s16)((((s16)(h) - (s16)(d)) * 128 / (f)) * 2)}
+const Ev tabla[] = {
+  RAMPA_MAL(0, 32, 2, 0, 255),
+  RAMPA(0, 32, 2, 0, 255),
+  RAMPA_MAL(0, 32, 0, 15, 0),
+  RAMPA(0, 32, 0, 15, 0),
+  RAMPA_MAL(0, 100, 2, 255, 0),
+  RAMPA(0, 100, 2, 255, 0),
+};
+
+=== costes4.ps (la tabla: 8 bytes por evento; paso = los dos últimos) ===
+tabla: .db $0,$0,$20,$0,$2,$ff,$f8,$7,$0,$0,$20,$0,$2,$ff,$f8,$7,$0,$0,$20,$0,$0,$0,$88,$ff,$0,$0,$20,$0,$0,$0,$88,$ff,$0,$0,$64,$0,$2,$0,$74,$fd,$0,$0,$64,$0,$2,$0,$74,$fd

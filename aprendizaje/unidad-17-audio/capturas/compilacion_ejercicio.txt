@@ -1,0 +1,22 @@
+Debug mode: DISABLED
+Enable it with: export PVSNESLIB_DEBUG=1
+LoROM SlowROM compilation is enabled
+--- COMPILATION SUMMARY ---
+No warnings or errors found.
+---------------------------
+           Total: [17441 bytes]   *40516 bytes free*
+ROM bank 0 (16259 bytes (49.62%) free)
+ROM bank 1 (28550 bytes (87.13%) free)
+ROM bank 2 (32768 bytes (100.00%) free)
+ROM bank 3 (32768 bytes (100.00%) free)
+ROM bank 4 (32768 bytes (100.00%) free)
+ROM bank 5 (32768 bytes (100.00%) free)
+ROM bank 6 (32768 bytes (100.00%) free)
+ROM bank 7 (32768 bytes (100.00%) free)
+RAM slot 0 bank 126 (25120 bytes (76.66%) free)
+RAM slot 1 bank 0 (7995 bytes (97.60%) free)
+RAM slot 2 bank 126 (57324 bytes (99.97%) free)
+RAM slot 3 bank 127 (65536 bytes (100.00%) free)
+ROM: 241417 bytes (92.09%) free of total 262144.
+RAM: 155975 bytes (95.20%) free of total 163840.
+

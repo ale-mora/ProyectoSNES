@@ -1,0 +1,3 @@
+Vidas originales: 3
+Vidas duplicadas (power-up): 6
+Hola, soy Tarou y tengo 5 anios.

@@ -1,0 +1,61 @@
+diff --git a/src/juego/tarou.h b/src/juego/tarou.h
+index 8e99637..54ae40a 100644
+--- a/src/juego/tarou.h
++++ b/src/juego/tarou.h
+@@ -48,9 +48,10 @@
+ #define ACEL_SUELO 2                 /* 8 frames hasta caminar, 16 hasta correr.          */
+ #define FRENADO_SUELO 2              /* 8 frames hasta parar desde caminar.               */
+ #define ACEL_AIRE 1                  /* Control aéreo suave.                              */
+-#define GRAVEDAD 4                   /* 0,25 px por frame cada frame.                     */
++#define GRAVEDAD 6                   /* 0,375 px por frame cada frame (antes 4).          */
+ #define VEL_TERMINAL PF(6)           /* 96: velocidad máxima de caída.                    */
+-#define VEL_SALTO (-96)              /* -6,0 px por frame al despegar (~72 px de altura). */
++#define VEL_SALTO (-120)             /* -7,5 px por frame al despegar: 71,25 px de altura,
++                                        apogeo en el frame 19-20 (antes -96: 69 px, 24). */
+ #define VEL_SALTO_CORTE (-32)        /* Al soltar B subiendo, la subida se recorta a esto.*/
+ #define FRAMES_PARA_DORMIR 600       /* 10 s sin actividad.                               */
+ 
+diff --git a/tests/prueba_tarou.c b/tests/prueba_tarou.c
+index e9c63dd..dd5304c 100644
+--- a/tests/prueba_tarou.c
++++ b/tests/prueba_tarou.c
+@@ -157,9 +157,9 @@ static void prueba_despegue(void)
+     m.saltar_pulsado = 1; m.saltar = 1; m.actividad = 1;
+     frames(&t, &m, 1);
+     COMPROBAR(t.estado == ESTADO_SALTANDO);
+-    COMPROBAR(t.vy_fp == VEL_SALTO + GRAVEDAD);         /* -96 + 4: la gravedad ya actúa. */
++    COMPROBAR(t.vy_fp == VEL_SALTO + GRAVEDAD);         /* -120 + 6: ya actúa la gravedad.*/
+     COMPROBAR(t.en_suelo == 0);
+-    COMPROBAR(t.y_fp == PF(144) + VEL_SALTO + GRAVEDAD);/* Sube 92/16 px el primer frame. */
++    COMPROBAR(t.y_fp == PF(144) + VEL_SALTO + GRAVEDAD);/* Sube 114/16 px el primer frame.*/
+ }
+ 
+ static void prueba_apogeo_y_altura(void)
+@@ -170,15 +170,15 @@ static void prueba_apogeo_y_altura(void)
+     preparar(&t, &m, 100);
+     m.saltar_pulsado = 1; m.saltar = 1; m.actividad = 1;
+     y_minimo = t.y_fp;
+-    for (i = 0; i < 24; i++)
++    for (i = 0; i < 20; i++)
+     {
+         tarou_actualizar(&t, &m);
+         m.saltar_pulsado = 0;                           /* Solo baja en el primer frame.  */
+         if (t.y_fp < y_minimo) y_minimo = t.y_fp;
+     }
+-    COMPROBAR(t.vy_fp >= 0);                            /* Frame 24: -96 + 4*24 = 0.      */
++    COMPROBAR(t.vy_fp >= 0);                            /* Frame 20: -120 + 6*20 = 0.     */
+     COMPROBAR(t.estado == ESTADO_CAYENDO);              /* Ya no sube: cae.               */
+-    COMPROBAR(PF_ENTERO(y_minimo) >= 73 && PF_ENTERO(y_minimo) <= 77); /* 144 - 69 = 75.  */
++    COMPROBAR(PF_ENTERO(y_minimo) >= 70 && PF_ENTERO(y_minimo) <= 74); /* 144 - 71,25: 72.*/
+ }
+ 
+ /* Punto de atención 2: soltar B en el primer frame recorta la subida, no la anula. */
+@@ -225,7 +225,7 @@ static void prueba_aterrizaje(void)
+     m.saltar_pulsado = 1; m.saltar = 1; m.actividad = 1;
+     frames(&t, &m, 1);
+     m.saltar_pulsado = 0;
+-    frames(&t, &m, 49);                                 /* Aterriza en el frame 47.       */
++    frames(&t, &m, 49);                                 /* Aterriza en el frame 40.       */
+     COMPROBAR(t.y_fp == PF(144));                       /* Pies exactamente en el suelo.  */
+     COMPROBAR(t.vy_fp == 0);
+     COMPROBAR(t.en_suelo == 1);

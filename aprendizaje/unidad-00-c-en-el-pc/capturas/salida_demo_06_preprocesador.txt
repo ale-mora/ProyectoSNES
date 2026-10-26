@@ -1,0 +1,13 @@
+1. El nivel mide 2048 px = 8 pantallas de 256 px
+1. SEGUNDOS(3) = 180 frames
+2. CUADRADO(2 + 1)     = 9
+2. CUADRADO_MAL(2 + 1) = 5
+2. SUMA(1, 2) * 10     = 30
+2. SUMA_MAL(1, 2) * 10 = 21
+2. OBJ_PRIO(prio)      = 32
+2. OBJ_PRIO(prio & 3)  = 0
+2. OBJ_PRIO((prio & 3)) = 32
+3. Caja de demo_06_caja.h: 52x50 (ancho maximo 96)
+4. GUION_PRUEBA sin definir: el mando lo da el jugador
+4. PRUEBAS_PC sin definir
+5. VIDAS_INICIALES = 3

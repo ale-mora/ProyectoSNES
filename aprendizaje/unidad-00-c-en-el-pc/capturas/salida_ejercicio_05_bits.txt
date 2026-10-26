@@ -1,0 +1,10 @@
+Frame 0: pad=0x0000 derecha=0 correr=0 saltar=0 saltar_pulsado=0
+Frame 1: pad=0x0100 derecha=1 correr=0 saltar=0 saltar_pulsado=0
+Frame 2: pad=0x8100 derecha=1 correr=0 saltar=1 saltar_pulsado=1
+Frame 3: pad=0x8100 derecha=1 correr=0 saltar=1 saltar_pulsado=0
+Frame 4: pad=0xC000 derecha=0 correr=1 saltar=1 saltar_pulsado=0
+Encender A y START: 0x1080
+Apagar A: 0x1000
+Apagar A otra vez: 0x1000
+Atributo 0x67: paleta=3 espejo=0x27 espejo del espejo=0x67
+Atributo 0x8E: paleta=7 espejo=0xCE espejo del espejo=0x8E

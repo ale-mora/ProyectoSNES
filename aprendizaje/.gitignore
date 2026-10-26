@@ -1,0 +1,10 @@
+# Salidas de conversión de assets de las mini-ROM (gfx4snes / smconv / snesbrr; las regenera make)
+**/rom/res/**/*.pic
+**/rom/res/**/*.pal
+**/rom/res/**/*.map
+**/rom/res/**/*.inc
+**/rom/res/**/*_data.as
+**/rom/res/**/*.brr
+**/rom/**/soundbank.*
+# Capturas de Mesen de tanda_mesen.ps1 (34 MB): no se versionan, la tanda las regenera
+**/capturas/mesen_*/

@@ -1,0 +1,6 @@
+Compilacion de la ROM que se juega sola con la solucion de la parte B (GRAVEDAD 6, VEL_SALTO -120), clon u10, 2026-10-22:
+  make clean; $env:CFLAGS="-DGUION_PRUEBA"; make; $env:CFLAGS=$null
+--- COMPILATION SUMMARY ---
+No warnings or errors found.
+---------------------------
+(4 MB, LoROM FastROM; copiada como E:/ProyectoSNES_trabajo/roms/u10_salto_g6_v120_guion.sfc)
