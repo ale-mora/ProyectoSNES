@@ -3,8 +3,10 @@
 
     PROPÓSITO
       ninja_actualizar, cada frame: (1) mira hacia el objetivo; (2) si está a más de
-      NINJA_DISTANCIA en x, avanza NINJA_PASO_X (si aún no ha entrado en la pantalla, no se
-      detiene hasta entrar: ver ninja_limitar_x); (3) cada dos frames corrige un píxel su y
+      NINJA_DISTANCIA en x, avanza NINJA_PASO_X (si aún no ha entrado en la pantalla, anda recto
+      hacia dentro, hacia donde mira al nacer, sin pararse ni sobre el objetivo, hasta que
+      ninja_limitar_x lo da por dentro: si Tarou está pegado al borde, más cerca de él que
+      MARGEN_NINJA, el ninja que lo seguía se quedaba fuera para siempre); (3) cada dos frames corrige un píxel su y
       hacia la del objetivo (así se colocan en su carril sin ir en diagonal rápida); (4) anda
       si se movió y se queda en el cuadro 0 si no; (5) la animación avanza de cuadro cada
       NINJA_FRAMES_CUADRO frames (potencia de 2: se mira con un AND, no con %). Sin
@@ -171,11 +173,17 @@ void ninja_actualizar(Ninja *n, u16 obj_x, u16 obj_y)
     }
 
     /*--- 1 y 2. Mirar hacia el objetivo y acercarse en x hasta NINJA_DISTANCIA ------*/
-    if (n->x > obj_x)
+    if (!n->dentro)                                  /* Aún fuera de la pantalla: sigue recto  */
+    {                                                /* hacia dentro (hacia donde mira desde que */
+        n->x = (u16)(n->mira_izq ? n->x - NINJA_PASO_X     /* nació) sin pararse, ni siquiera */
+                                 : n->x + NINJA_PASO_X);   /* sobre el objetivo, hasta que     */
+        anda = 1;                                    /* ninja_limitar_x lo da por dentro.      */
+    }
+    else if (n->x > obj_x)
     {
         n->mira_izq = 1;
-        if (n->x - obj_x > NINJA_DISTANCIA || (!n->dentro && n->x != obj_x))   /* Hasta que entre en     */
-        {                                            /* pantalla no se detiene (ninja_limitar_x). */
+        if (n->x - obj_x > NINJA_DISTANCIA)
+        {
             n->x = (u16)(n->x - NINJA_PASO_X);
             anda = 1;
         }
@@ -183,7 +191,7 @@ void ninja_actualizar(Ninja *n, u16 obj_x, u16 obj_y)
     else
     {
         n->mira_izq = 0;
-        if (obj_x - n->x > NINJA_DISTANCIA || (!n->dentro && n->x != obj_x))
+        if (obj_x - n->x > NINJA_DISTANCIA)
         {
             n->x = (u16)(n->x + NINJA_PASO_X);
             anda = 1;

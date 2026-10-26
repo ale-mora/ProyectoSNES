@@ -120,6 +120,12 @@ podría atacar (exige `dentro`) ni ser golpeado, y la oleada no se vencería nun
 > `capturas/hallazgo_margenes.txt`. No es un bloqueo duro (Tarou puede golpearlo o
 > apartarse; el golpe no lo probé), pero es una grieta entre dos constantes que viven en
 > archivos distintos: una prueba que recorriera el borde la encontraría.
+>
+> **Corregido después en el juego (2026-10-26).** Ahora, mientras no está dentro, el ninja
+> anda recto hacia donde mira al nacer (hacia dentro de la pantalla) sin pararse sobre
+> Tarou, hasta que `ninja_limitar_x` lo da por dentro; `tests/prueba_ninja.c` tiene la
+> prueba de este caso (Tarou en `camara + 24`). Esta unidad describe `641d7c0`: para repetir
+> el experimento, haz el clon en ese commit.
 
 ### El testigo de ataque (turnos)
 

@@ -103,14 +103,33 @@ void pruebas_ninja(void)
     ninja_limitar_x(n + 1, 316, 540);
     COMPROBAR(n[1].x == 316);
 
-    /* Mientras viene de fuera no se detiene a NINJA_DISTANCIA: sigue hasta entrar. */
+    /* Mientras viene de fuera no se detiene a NINJA_DISTANCIA ni en el objetivo: sigue hacia
+       dentro de la pantalla (hacia donde mira al nacer) hasta entrar. */
     ninja_iniciar_todos(n);
-    n[0].vivo = 1; n[0].x = 600; n[0].y = 200; n[0].reloj = 0;
-    for (f = 0; f < 20; f++)
+    n[0].vivo = 1; n[0].x = 600; n[0].y = 200; n[0].reloj = 0; n[0].mira_izq = 1;
+    for (f = 0; f < 30; f++)
     {
         ninja_actualizar(n, 580, 200);               /* A 20 px del objetivo (< 40)...      */
     }
-    COMPROBAR(n[0].x == 580);                        /* ...sigue andando hasta alcanzarlo.  */
+    COMPROBAR(n[0].x == 570 && n[0].mira_izq == 1);  /* ...y lo pasa: aún no ha entrado.    */
+
+    /* Tarou pegado al borde izquierdo (cámara + MARGEN_PANTALLA = 24) y un ninja que llega por la
+       izquierda: el ninja no puede pararse fuera ni encima de Tarou sin entrar (antes se quedaba
+       en x = 280 < 288, sin entrar nunca y sin atacar). */
+    {
+        u16 cam = 256;
+        ninja_iniciar_todos(n);
+        ninja_oleada(n, cam, 0);                     /* [0] nace a la izquierda.            */
+        for (f = 0; f < 200; f++)
+        {
+            ninja_actualizar(n, cam + 24, 200);
+            ninja_limitar_x(n, cam + 32, cam + 224);
+        }
+        COMPROBAR(n[0].dentro == 1);
+        COMPROBAR(n[0].x >= cam + 32 && n[0].x <= cam + 224);
+        n[0].espera = 0;
+        COMPROBAR(ninja_intentar_atacar(n, cam + 24, 200, 1) == 1);   /* Y ya puede atacar. */
+    }
 
     /* El primer paso de y es en frames impares del reloj (reparte los pasos). */
     for (k = 0; k < NINJAS_MAX; k++)
