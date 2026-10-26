@@ -60,7 +60,9 @@ extern u8 sombra_banco;
 /* Qué animación de Tarou enseña cada EstadoCuerpo (mundo.h): el orden es el del enum. */
 static const u8 ESTADO_ANIM[CUERPO_ESTADOS] = {ESTADO_PARADO, ESTADO_CAMINANDO,
                                                ESTADO_SALTANDO, ESTADO_CAYENDO,
-                                               ESTADO_ATACANDO};   /* Un cuadro fijo para los 3 golpes. */
+                                               ESTADO_ATACANDO,    /* Un cuadro fijo para los 3 golpes. */
+                                               ESTADO_PARADO,      /* Aturdido: reposo (parpadea).      */
+                                               ESTADO_CAYENDO};    /* Caído (KO): el cuadro de caer.    */
 
 static u8 a_estado, a_cuadro, a_reloj;
 static u8 m_estado, m_cuadro;
@@ -191,6 +193,11 @@ void protagonista_sprite_actualizar(const Cuerpo *c, u16 camara)
     s->x0 = (u16)(c->x - camara - ANCHO_CELDA / 2);  /* x de pantalla, centrado (puede ser < 0). */
     s->y0 = (u16)(c->y - ALTO_CELDA + 2 - mundo_altura(c));   /* 2 px hundido, como en el nivel. */
     s->borde = sprites_borde(s->x0, s->y0, ANCHO_CELDA, ALTO_CELDA);
+    if (c->inv != 0 && (c->inv & 2))                 /* Invulnerable: parpadea (cada 2 cuadros fuera). */
+    {
+        s->y0 = 240;                                 /* y >= 224: sus piezas no se dibujan. */
+        s->borde = 1;
+    }
     s->tile = (u16)(bufer ? TILE_TAROU_B : TILE_TAROU_A);
     s->atrib = (u8)(SPRITE_PRIORIDAD(PRIORIDAD) | SPRITE_PALETA(0) |
                     (c->mira_izq ? SPRITE_HFLIP : 0));

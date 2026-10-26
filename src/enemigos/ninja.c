@@ -40,6 +40,8 @@ void ninja_iniciar_todos(Ninja *n)
         n->id_golpe = 0;
         n->timer = 0;
         n->empuje = 0;
+        n->espera = 0;
+        n->conecto = 0;
         n->x = 0;
         n->y = 0;
         n++;                                         /* Siguiente ranura: sin a[k] (tcc__mul). */
@@ -73,6 +75,8 @@ u8 ninja_oleada(Ninja *n, u16 camara, u8 zona)
             n->id_golpe = 0;                         /* Ningún tajo lo ha tocado todavía.   */
             n->timer = 0;
             n->empuje = 0;
+            n->espera = (u8)(NINJA_ESPERA_INICIAL + (k << 4) - k);   /* 30, 45, 60: no atacan juntos. */
+            n->conecto = 0;
             nacidos++;
         }
         n++;
@@ -147,6 +151,24 @@ void ninja_actualizar(Ninja *n, u16 obj_x, u16 obj_y)
         aturdido(n);                                 /* Sin IA mientras está tocado.        */
         return;
     }
+    if (n->estado == NINJA_ATACANDO)                 /* El tajo sigue hasta acabar.         */
+    {
+        n->timer++;
+        n->reloj++;
+        n->cuadro = (u8)(NINJA_CUADROS + (n->timer >> 2));   /* 4 cuadros de juego por dibujo. */
+        if (n->timer >= NINJA_ATAQUE_FRAMES)
+        {
+            n->estado = NINJA_PARADO;                /* Acabó: descansa antes del siguiente. */
+            n->cuadro = 0;
+            n->timer = 0;
+            n->espera = NINJA_ESPERA;
+        }
+        return;
+    }
+    if (n->espera != 0)
+    {
+        n->espera--;                                 /* El descanso se gasta andando o parado. */
+    }
 
     /*--- 1 y 2. Mirar hacia el objetivo y acercarse en x hasta NINJA_DISTANCIA ------*/
     if (n->x > obj_x)
@@ -210,6 +232,45 @@ void ninja_limitar_x(Ninja *n, u16 x_min, u16 x_max)
     {
         n->x = x_max;
     }
+}
+
+u8 ninja_atacando(const Ninja *n)
+{
+    u8 k, cuantos = 0;
+
+    for (k = 0; k < NINJAS_MAX; k++)
+    {
+        cuantos = (u8)(cuantos + (n->vivo && n->estado == NINJA_ATACANDO));
+        n++;
+    }
+    return cuantos;
+}
+
+u8 ninja_intentar_atacar(Ninja *n, u16 obj_x, u16 obj_y, u8 turno_libre)
+{
+    u16 dx, dy;
+
+    if (!turno_libre || !n->vivo || !n->dentro || n->estado != NINJA_PARADO || n->espera != 0)
+    {
+        return 0;                                    /* Sin turno, andando, o descansando.  */
+    }
+    dx = (u16)(n->x > obj_x ? n->x - obj_x : obj_x - n->x);
+    dy = (u16)(n->y > obj_y ? n->y - obj_y : obj_y - n->y);
+    if (dx > NINJA_DISTANCIA + 8 || dy > 8)
+    {
+        return 0;                                    /* Aún lejos para acertar.             */
+    }
+    n->estado = NINJA_ATACANDO;
+    n->timer = 0;
+    n->cuadro = NINJA_CUADROS;                       /* El primer cuadro de la tira de ataque. */
+    n->conecto = 0;
+    return 1;
+}
+
+u8 ninja_golpe_activo(const Ninja *n)
+{
+    return (u8)(n->vivo && n->estado == NINJA_ATACANDO && !n->conecto &&
+                n->timer >= NINJA_GOLPE_DESDE && n->timer < NINJA_GOLPE_HASTA);
 }
 
 u8 ninja_vivos(const Ninja *n)

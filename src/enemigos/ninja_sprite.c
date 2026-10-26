@@ -33,8 +33,8 @@
 #include "juego/p16.h"
 #include "juego/dma_lista.h"
 
-extern char ninja64_andar, ninja_pal, sombra_piezas;
-extern u8 ninja_bancos[];            /* Andar, ataque (solo se usa el de andar).          */
+extern char ninja64_andar, ninja64_ataque, ninja_pal, sombra_piezas;
+extern u8 ninja_bancos[];            /* Banco de la tira de andar y de la de ataque.      */
 extern u8 sombra_banco;
 
 #define ENT_NINJA 2                  /* Entradas 2..4: los cuerpos.                       */
@@ -48,6 +48,20 @@ extern u8 sombra_banco;
 #define VRAM_TILE(t) ((u16)(VRAM_SPRITES + ((u16)(t) << 4)))   /* 16 palabras por tile.  */
 
 static const u16 HUECOS[NINJAS_MAX] = {192, 288, 384};   /* Primer tile de cada hueco.   */
+
+/*--- tira_de: de qué tira es un cuadro (0..7 andar, 8..14 ataque), cuál es dentro de ella y su banco ---*/
+static const u8 *tira_de(u8 cuadro, u8 *f, u8 *banco)
+{
+    if (cuadro < NINJA_CUADROS)
+    {
+        *f = cuadro;
+        *banco = ninja_bancos[0];
+        return (const u8 *)&ninja64_andar;
+    }
+    *f = (u8)(cuadro - NINJA_CUADROS);               /* El cuadro 8 es el primero del ataque. */
+    *banco = ninja_bancos[1];
+    return (const u8 *)&ninja64_ataque;
+}
 
 static u8 muestra[NINJAS_MAX];
 static u8 mirada[NINJAS_MAX];
@@ -88,7 +102,8 @@ static void subir(const Ninja *n)
     P16Cuadro cu;
     const Copia *copias;
     const Ninja *p;
-    u8 i, k, cuantas;
+    const u8 *tira;
+    u8 i, k, cuantas, f, banco;
 
     k = turno;
     for (i = 0; i < NINJAS_MAX; i++)
@@ -96,11 +111,12 @@ static void subir(const Ninja *n)
         p = n + k;                                   /* 16 bytes por ranura: sin tcc__mul.  */
         if (p->vivo && p->cuadro != muestra[k])
         {
-            p16_cuadro((const u8 *)&ninja64_andar, p->cuadro, &cu);
-            subida_empezar(&subida, cu.n, (u16)((u16)&ninja64_andar + cu.tiles),
-                           VRAM_TILE(HUECOS[k]), ninja_bancos[0]);
+            tira = tira_de(p->cuadro, &f, &banco);
+            p16_cuadro(tira, f, &cu);
+            subida_empezar(&subida, cu.n, (u16)((u16)tira + cu.tiles),
+                           VRAM_TILE(HUECOS[k]), banco);
             subida_tomar(&subida, 0xFFFF, &copias, &cuantas);    /* Todo, en este VBlank. */
-            dma_lista_copias(copias, cuantas, ninja_bancos[0]);
+            dma_lista_copias(copias, cuantas, banco);
             muestra[k] = p->cuadro;
             mirada[k] = 0xFF;                        /* Fuerza recalcular las piezas.       */
             turno = (u8)(k + 1 >= NINJAS_MAX ? 0 : k + 1);   /* El siguiente tiene la preferencia. */
@@ -119,7 +135,8 @@ void ninja_sprite_actualizar(const Ninja *n, u16 camara)
     P16Cuadro cu;
     SpriteEnt *s, *sombra;
     const Ninja *p;
-    u8 k;
+    const u8 *tira;
+    u8 k, f, banco;
 
     subir(n);
     for (k = 0; k < NINJAS_MAX; k++)
@@ -147,8 +164,10 @@ void ninja_sprite_actualizar(const Ninja *n, u16 camara)
         {
             if (mirada[k] != p->mira_izq)            /* Cambió el cuadro o la mirada.       */
             {
-                p16_cuadro((const u8 *)&ninja64_andar, muestra[k], &cu);
-                s->piezas = (u16)((u16)&ninja64_andar + (p->mira_izq ? cu.espejo : cu.piezas));
+                tira = tira_de(muestra[k], &f, &banco);
+                p16_cuadro(tira, f, &cu);
+                s->piezas = (u16)((u16)tira + (p->mira_izq ? cu.espejo : cu.piezas));
+                s->banco = banco;                    /* La tabla de piezas está en el banco de su tira. */
                 s->n = cu.n;
                 mirada[k] = p->mira_izq;
             }

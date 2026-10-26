@@ -3,6 +3,7 @@
 
     PROPÓSITO
       Cada frame, en este orden:
+        0. Si está aturdido (stun) o KO (vida 0): solo retrocede y cuenta el tiempo (paso_aturdido).
         A. Si hay un golpe en curso (c->golpe != 0): solo avanza el golpe (paso_golpe) y el
            cuerpo se queda quieto; no se anda ni se salta hasta acabar el combo.
         B. Si no: (1) en el suelo, A empieza el golpe 1; si no, B salta; (2) en el suelo, la
@@ -40,6 +41,10 @@ void mundo_iniciar(Cuerpo *c, u16 x, u16 y)
     c->reloj = 0;
     c->cola = 0;
     c->id = 0;
+    c->vida = VIDA_TAROU;                            /* Con la barra llena.                 */
+    c->inv = 0;
+    c->stun = 0;
+    c->empuje = 0;
 }
 
 u16 mundo_altura(const Cuerpo *c)
@@ -57,6 +62,33 @@ void mundo_limitar_x(Cuerpo *c, u16 x_min, u16 x_max)
     {
         c->x = x_max;
     }
+}
+
+u8 mundo_recibir(Cuerpo *c, u8 danio, u8 hacia_izq)
+{
+    if (c->inv != 0 || c->vida == 0)
+    {
+        return 0;                                    /* Invulnerable o ya KO: el golpe no cuenta. */
+    }
+    c->vida = (u8)(c->vida > danio ? c->vida - danio : 0);
+    c->golpe = 0;                                    /* Se le corta el golpe que diera.     */
+    c->reloj = 0;
+    c->cola = 0;
+    c->z = 0;                                        /* Cae al suelo si estaba en el aire.  */
+    c->vz = 0;
+    c->empuje = (u8)(hacia_izq ? 1 : 2);             /* Lo empuja hacia donde va el golpe.  */
+    c->inv = INVULNERABLE_FRAMES;
+    if (c->vida == 0)
+    {
+        c->estado = CUERPO_DERRIBADO;
+        c->stun = DERRIBO_FRAMES;
+    }
+    else
+    {
+        c->estado = CUERPO_RECIBIR;
+        c->stun = RECIBIR_FRAMES;
+    }
+    return 1;
 }
 
 u8 mundo_golpe_activo(const Cuerpo *c)
@@ -96,9 +128,58 @@ static void paso_golpe(Cuerpo *c, const Mando *m)
     }
 }
 
+/*--- paso_aturdido: un cuadro de RECIBIR o DERRIBADO (retrocede y cuenta el tiempo) --*/
+static void paso_aturdido(Cuerpo *c)
+{
+    u8 desliza;                                      /* Píxeles por cuadro que lo empuja.   */
+
+    if (c->estado == CUERPO_DERRIBADO)
+    {
+        desliza = (u8)(c->stun > DERRIBO_FRAMES - 10 ? 3 : 0);    /* Sale despedido.       */
+    }
+    else
+    {
+        desliza = (u8)(c->stun > RECIBIR_FRAMES - 6 ? 2 : 0);     /* Un pequeño retroceso. */
+    }
+    if (c->empuje == 1)
+    {
+        c->x = (u16)(c->x > desliza ? c->x - desliza : 0);
+    }
+    else
+    {
+        c->x = (u16)(c->x + desliza);
+    }
+    if (c->stun != 0)
+    {
+        c->stun--;
+    }
+    if (c->stun == 0 && c->vida != 0)
+    {
+        c->estado = CUERPO_PARADO;                   /* Se recupera (sin vida se queda caído). */
+    }
+}
+
 void mundo_actualizar(Cuerpo *c, const Mando *m)
 {
     u8 aire = (u8)(c->z > 0 || c->vz < 0);           /* ¿Ya está en el aire?                */
+
+    if (c->inv != 0)
+    {
+        c->inv--;                                    /* La invulnerabilidad se gasta sola.  */
+    }
+    if (c->stun != 0 || c->vida == 0)                /* Aturdido, caído o KO: no controla.  */
+    {
+        paso_aturdido(c);
+        if (c->x < MUNDO_X_MIN || c->x > 0x8000)
+        {
+            c->x = MUNDO_X_MIN;                      /* Los empujones no sacan del nivel.   */
+        }
+        else if (c->x > MUNDO_X_MAX)
+        {
+            c->x = MUNDO_X_MAX;
+        }
+        return;
+    }
 
     /*--- A. Golpe en curso: el cuerpo se queda quieto ---------------------------------*/
     if (c->golpe != 0)

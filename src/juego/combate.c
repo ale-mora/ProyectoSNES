@@ -30,35 +30,60 @@ u8 combate_derriba(u8 golpe)
     return (u8)(golpe >= GOLPES);                    /* El último del combo.                */
 }
 
-u8 combate_en_caja(const Cuerpo *c, u16 tx, u16 ty)
+u8 combate_caja(u16 ax, u16 ay, u8 mira_izq, u16 alcance, u16 profundidad, u16 tx, u16 ty)
 {
     u16 dx, dy;
 
-    /* Profundidad: |ty − y| <= COMBATE_PROFUNDIDAD (sin valor absoluto: dos comparaciones). */
-    dy = (u16)(ty > c->y ? ty - c->y : c->y - ty);
-    if (dy > COMBATE_PROFUNDIDAD)
+    /* Profundidad: |ty - ay| <= profundidad (sin valor absoluto: dos comparaciones). */
+    dy = (u16)(ty > ay ? ty - ay : ay - ty);
+    if (dy > profundidad)
     {
         return 0;
     }
     /* x: «delante» es hacia donde mira; el objetivo cuenta desde COMBATE_ATRAS detrás de los
-       pies hasta COMBATE_ALCANCE delante. */
-    if (c->mira_izq)
+       pies hasta `alcance` delante. */
+    if (mira_izq)
     {
-        if (tx > c->x)                               /* Detrás (a la derecha): solo el margen. */
+        if (tx > ax)                                 /* Detrás (a la derecha): solo el margen. */
         {
-            dx = (u16)(tx - c->x);
+            dx = (u16)(tx - ax);
             return (u8)(dx <= COMBATE_ATRAS);
         }
-        dx = (u16)(c->x - tx);                       /* Delante (a la izquierda).           */
-        return (u8)(dx <= COMBATE_ALCANCE);
+        dx = (u16)(ax - tx);                         /* Delante (a la izquierda).           */
+        return (u8)(dx <= alcance);
     }
-    if (tx < c->x)                                   /* Detrás (a la izquierda).            */
+    if (tx < ax)                                     /* Detrás (a la izquierda).            */
     {
-        dx = (u16)(c->x - tx);
+        dx = (u16)(ax - tx);
         return (u8)(dx <= COMBATE_ATRAS);
     }
-    dx = (u16)(tx - c->x);                           /* Delante (a la derecha).             */
-    return (u8)(dx <= COMBATE_ALCANCE);
+    dx = (u16)(tx - ax);                             /* Delante (a la derecha).             */
+    return (u8)(dx <= alcance);
+}
+
+u8 combate_en_caja(const Cuerpo *c, u16 tx, u16 ty)
+{
+    return combate_caja(c->x, c->y, c->mira_izq, COMBATE_ALCANCE, COMBATE_PROFUNDIDAD, tx, ty);
+}
+
+u8 combate_ninjas_resolver(Ninja *n, Cuerpo *c)
+{
+    u8 k, parada = 0;
+
+    for (k = 0; k < NINJAS_MAX; k++)
+    {
+        if (ninja_golpe_activo(n) &&
+            combate_caja(n->x, n->y, n->mira_izq, NINJA_ALCANCE, NINJA_PROFUNDIDAD, c->x, c->y))
+        {
+            n->conecto = 1;                          /* Este tajo ya no pega más.           */
+            if (mundo_recibir(c, NINJA_DANIO, n->mira_izq))   /* El golpe va hacia donde mira el ninja. */
+            {
+                parada = (u8)(c->vida == 0 ? PARADA_DERRIBO : PARADA_GOLPE);
+            }
+        }
+        n++;
+    }
+    return parada;
 }
 
 u8 combate_resolver(const Cuerpo *c, Ninja *n)

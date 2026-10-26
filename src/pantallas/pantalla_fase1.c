@@ -10,7 +10,10 @@
       vence cuando no queda ninguno. Tarou GOLPEA con A: combo de tres golpes (juego/mundo.c),
       caja de golpe y daño (juego/combate.c); el ninja se aturde, retrocede y parpadea, y el tercer
       golpe lo derriba. Al conectar hay «parada de impacto» (el mundo se congela 3-5 cuadros).
-      Los ninjas aún no pegan, ni hay vida de Tarou ni Bárbara; cada uno se cuelga de
+      Los ninjas también ATACAN (tajo de shinai, como mucho dos a la vez): cada golpe quita 2 de
+      los 24 puntos de vida de Tarou, lo aturde y lo deja parpadeando e invulnerable ~1 s; la barra
+      de vida está en la fila 0 de la capa de texto (hud/hud_juego.c). Sin vida cae KO y 2,5 s
+      después vuelve al título (provisional). Aún no hay Bárbara; cada uno se cuelga de
       este bucle en su módulo (§10). El fondo es provisional: la capa cercana y la lejana
       del nivel 1 del plataformas (2048 px, la lejana a la mitad de velocidad).
       Por frame: mando_leer → mundo_actualizar → límites de pantalla → cámara y zonas →
@@ -41,6 +44,7 @@
       camara      u16       scroll horizontal; se calcula en el frame y se escribe en el VBlank
       hud_visible u8        1 si SELECT encendió el HUD
       parada      u8        cuadros de parada de impacto que quedan; a_guardada: A pulsada en la parada
+      ko_reloj    u8        cuadros que lleva Tarou KO (a los KO_ESPERA vuelve al título)
       fila_hud    u8        qué fila del HUD toca preparar este frame (0..3)
     → glosario: Carril, Cámara, Zona, Oleada, Parallax, Máquina de estados
 ---------------------------------------------------------------------------------*/
@@ -61,6 +65,7 @@
 #include "juego/fondo_nivel.h"
 #include "juego/dma_lista.h"
 #include "juego/hud_debug.h"
+#include "hud/hud_juego.h"
 #include "nivel1_datos.h"            /* Solo el parche del tronco del fondo provisional.  */
 
 extern char nivel1_lejos_til, nivel1_lejos_til_end, nivel1_lejos_pal;
@@ -70,6 +75,7 @@ extern const unsigned char hdmaGradcieloList[];   /* Tabla HDMA del cielo (gfx4s
 #define X_INICIAL 64                 /* Donde nace Tarou: a la izquierda.                 */
 #define Y_INICIAL 200                /* En medio del carril (184..216).                   */
 #define FILAS_HUD 4
+#define KO_ESPERA 150                /* Tras caer KO, 2,5 s y vuelve al título (provisional). */
 #define MARGEN_NINJA 32              /* Un ninja ya dentro no pasa de este margen del borde: su celda de 64 px cabe entera. */
 
 static Cuerpo cuerpo;
@@ -80,6 +86,7 @@ static u16 camara;
 static u8 hud_visible;
 static u8 parada;                    /* Cuadros de parada de impacto que quedan.          */
 static u8 a_guardada;                /* 1 si se pulsó A durante la parada.                */
+static u8 ko_reloj;                  /* Cuadros que lleva Tarou KO (caído sin vida).      */
 static u8 fila_hud;
 
 /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
@@ -137,7 +144,9 @@ static void hud(void)
         p = hud_debug_texto(p, "NINJAS ");
         p = hud_debug_numero(p, (s16)ninja_vivos(ninjas));
         p = hud_debug_texto(p, "  GOLPE ");
-        hud_debug_numero(p, (s16)cuerpo.golpe);
+        p = hud_debug_numero(p, (s16)cuerpo.golpe);
+        p = hud_debug_texto(p, "  VIDA ");
+        hud_debug_numero(p, (s16)cuerpo.vida);
     }
     hud_debug_enviar(fila_hud);
     fila_hud++;
@@ -159,6 +168,7 @@ void pantalla_fase1_iniciar(void)
     bgSetScroll(1, camara >> 1, 0);                  /* La lejana, a la mitad de velocidad. */
     fuente_2bpp(2);                                  /* Texto del HUD en el fondo 2...      */
     hud_debug_iniciar();                             /* ...apagado hasta que lo pida SELECT.*/
+    hud_juego_iniciar();                             /* Fila 0: la barra de vida (capa encendida). */
     hud_visible = 0;
     fila_hud = 0;
 #ifdef GUION_FASE1
@@ -173,6 +183,7 @@ void pantalla_fase1_iniciar(void)
     ninja_iniciar_todos(ninjas);                     /* Sin ninjas hasta la primera oleada. */
     parada = 0;
     a_guardada = 0;
+    ko_reloj = 0;
     ninja_sprite_cargar();                           /* Sus paletas y entidades (tras Tarou). */
     do                                               /* Primer cuadro antes del fade in, y  */
     {                                                /* sus tiles a la VRAM YA (la pantalla */
@@ -189,9 +200,10 @@ void pantalla_fase1_iniciar(void)
 
 void pantalla_fase1_actualizar(void)
 {
-    u8 k;
+    u8 k, turnos, golpe_ninja;
 
     dma_lista_vaciar();                              /* La lista de copias de este frame.   */
+    hud_juego_actualizar(cuerpo.vida);               /* La barra: la primera de la lista (64 B). */
 
     mando_leer(&mando);
     if (mando.salir_pulsado)                         /* START: volver al título.            */
@@ -202,6 +214,7 @@ void pantalla_fase1_actualizar(void)
     if (mando.hud_pulsado)                           /* SELECT: HUD de depuración sí/no.    */
     {
         hud_debug_alternar();
+        hud_juego_reparar();                         /* La capa y la barra, de nuevo.       */
         hud_visible ^= 1;
     }
 
@@ -233,6 +246,7 @@ void pantalla_fase1_actualizar(void)
             ninja_oleada(ninjas, camara, oleadas.actual);   /* y salen los ninjas de esa oleada. */
         }
         parada = combate_resolver(&cuerpo, ninjas);  /* ¿Conectó el golpe de Tarou?          */
+        turnos = ninja_atacando(ninjas);             /* Cuántos están dando un tajo ahora.  */
         for (k = 0; k < NINJAS_MAX; k++)             /* IA: cada ninja vivo va hacia Tarou.  */
         {
             if (ninjas[k].vivo)
@@ -240,6 +254,25 @@ void pantalla_fase1_actualizar(void)
                 ninja_actualizar(ninjas + k, cuerpo.x, cuerpo.y);
                 ninja_limitar_x(ninjas + k, (u16)(camara + MARGEN_NINJA),   /* Sin salirse de la    */
                                 (u16)(camara + ANCHO_PANTALLA - MARGEN_NINJA)); /* pantalla.       */
+                if (ninja_intentar_atacar(ninjas + k, cuerpo.x, cuerpo.y,   /* Si hay turno y está  */
+                                          (u8)(turnos < NINJA_TURNOS)))     /* cerca, ataca.        */
+                {
+                    turnos++;
+                }
+            }
+        }
+        golpe_ninja = combate_ninjas_resolver(ninjas, &cuerpo);   /* ¿Le dio algún tajo a Tarou? */
+        if (golpe_ninja > parada)
+        {
+            parada = golpe_ninja;                    /* Parada de impacto (la mayor).       */
+        }
+        if (cuerpo.vida == 0 && cuerpo.stun == 0)    /* KO: espera un poco y vuelve al título. */
+        {
+            ko_reloj++;
+            if (ko_reloj >= KO_ESPERA)
+            {
+                salir(PANTALLA_TITULO);
+                return;
             }
         }
         if (oleadas.bloqueada && ninja_vivos(ninjas) == 0)   /* Oleada sin ninjas: vencida.    */

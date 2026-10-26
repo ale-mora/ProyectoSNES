@@ -45,6 +45,17 @@ u8 combate_derriba(u8 golpe);
    (sin mirar si el golpe está activo). */
 u8 combate_en_caja(const Cuerpo *c, u16 tx, u16 ty);
 
+/* 1 si un objetivo con los pies en (tx, ty) está dentro de una caja de golpe que parte de los
+   pies (ax, ay) hacia donde mira `mira_izq`: de COMBATE_ATRAS px detrás a `alcance` delante, con
+   una tolerancia de `profundidad` en y. Es la caja de los dos lados (Tarou y los ninjas). */
+u8 combate_caja(u16 ax, u16 ay, u8 mira_izq, u16 alcance, u16 profundidad, u16 tx, u16 ty);
+
+/* Un frame de combate de los ninjas contra Tarou: cada ninja con el tajo activo cuyo golpe
+   alcanza a Tarou le hace NINJA_DANIO (mundo_recibir) y no vuelve a pegar en ese tajo (aunque
+   Tarou fuera invulnerable: el golpe se pierde). Devuelve PARADA_GOLPE si alguno le dio,
+   PARADA_DERRIBO si lo dejó KO, 0 si ninguno. */
+u8 combate_ninjas_resolver(Ninja *n, Cuerpo *c);
+
 /* Un frame de combate de Tarou contra las NINJAS_MAX ranuras: si su golpe está activo, cada
    ninja vivo dentro de la caja que no haya recibido ya este tajo es golpeado. Devuelve los
    cuadros de parada de impacto que hay que aplicar (0 si no conectó nada). */

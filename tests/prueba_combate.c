@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------------
-    prueba_combate.c — Pruebas del combo de Tarou (mundo.c), la caja de golpe (combate.c) y
-    el ninja que recibe golpes (ninja.c).
+    prueba_combate.c — Pruebas del combo de Tarou (mundo.c), la caja de golpe (combate.c), el ninja
+    que recibe golpes y ataca (ninja.c) y Tarou que recibe daño (mundo_recibir).
 
     PROPÓSITO
       Fijar las reglas del primer combate (docs/diseno-beat-em-up.md §5.3): A empieza un golpe
@@ -223,4 +223,166 @@ void pruebas_combate(void)
         cuadro(&c, 0);
     }
     COMPROBAR(combate_resolver(&c, n) == 0 && n[0].vida == NINJA_VIDA);
+
+    /*--- Tarou recibe daño: vida, aturdido, invulnerable, KO ------------------------------*/
+    mundo_iniciar(&c, 400, 200);
+    COMPROBAR(c.vida == VIDA_TAROU && c.inv == 0 && c.stun == 0);
+    COMPROBAR(mundo_recibir(&c, 2, 1) == 1);         /* Un golpe que lo empuja a la izquierda. */
+    COMPROBAR(c.vida == VIDA_TAROU - 2 && c.estado == CUERPO_RECIBIR);
+    COMPROBAR(c.inv == INVULNERABLE_FRAMES && c.stun == RECIBIR_FRAMES && c.empuje == 1);
+    COMPROBAR(mundo_recibir(&c, 2, 1) == 0 && c.vida == VIDA_TAROU - 2);   /* Invulnerable. */
+    {
+        u16 x0 = c.x;
+        for (k = 0; k < RECIBIR_FRAMES; k++)
+        {
+            cuadro(&c, 1);                           /* Aturdido: A no hace nada.           */
+        }
+        COMPROBAR(c.x < x0 && c.x >= x0 - 2 * 6);    /* Retrocedió hacia donde lo empujaron. */
+        COMPROBAR(c.golpe == 0 && c.estado == CUERPO_PARADO && c.stun == 0);
+    }
+    COMPROBAR(c.inv == INVULNERABLE_FRAMES - RECIBIR_FRAMES);   /* Sigue parpadeando.      */
+    for (k = 0; k < INVULNERABLE_FRAMES; k++)
+    {
+        cuadro(&c, 0);
+    }
+    COMPROBAR(c.inv == 0 && mundo_recibir(&c, 2, 0) == 1);       /* Ya puede recibir otro.  */
+    COMPROBAR(c.empuje == 2);
+    /* Un golpe corta el que Tarou estuviera dando. */
+    mundo_iniciar(&c, 400, 200);
+    cuadro(&c, 1);
+    COMPROBAR(c.golpe == 1);
+    mundo_recibir(&c, 2, 1);
+    COMPROBAR(c.golpe == 0 && c.estado == CUERPO_RECIBIR);
+    /* KO: sin vida cae y se queda en el suelo, sin hacer caso del mando. */
+    mundo_iniciar(&c, 400, 200);
+    c.vida = 2;
+    COMPROBAR(mundo_recibir(&c, 2, 0) == 1 && c.vida == 0);
+    COMPROBAR(c.estado == CUERPO_DERRIBADO && c.stun == DERRIBO_FRAMES);
+    for (k = 0; k < 200; k++)
+    {
+        cuadro(&c, 1);
+    }
+    COMPROBAR(c.estado == CUERPO_DERRIBADO && c.vida == 0 && c.golpe == 0);
+    COMPROBAR(mundo_recibir(&c, 2, 0) == 0);         /* KO: ya no recibe más.               */
+    /* La vida no baja de 0 con un golpe de más. */
+    mundo_iniciar(&c, 400, 200);
+    mundo_recibir(&c, 200, 0);
+    COMPROBAR(c.vida == 0);
+
+    /*--- El ninja ataca: turno, cadencia, tajo y caja -------------------------------------*/
+    ninja_iniciar_todos(n);
+    ninja_oleada(n, 300, 0);
+    n[0].x = 440; n[0].y = 200; n[0].dentro = 1; n[0].estado = NINJA_PARADO;
+    COMPROBAR(n[0].espera == NINJA_ESPERA_INICIAL);              /* Al nacer, espera.       */
+    COMPROBAR(ninja_intentar_atacar(n, 400, 200, 1) == 0);       /* Descansando: no.        */
+    n[0].espera = 0;
+    COMPROBAR(ninja_intentar_atacar(n, 400, 200, 0) == 0);       /* Sin turno: no.          */
+    COMPROBAR(ninja_intentar_atacar(n, 100, 200, 1) == 0);       /* Lejos: no.              */
+    COMPROBAR(ninja_intentar_atacar(n, 400, 230, 1) == 0);       /* Otro carril: no.        */
+    COMPROBAR(ninja_intentar_atacar(n, 400, 200, 1) == 1);       /* Cerca, con turno.       */
+    COMPROBAR(n[0].estado == NINJA_ATACANDO && n[0].cuadro == NINJA_CUADROS);
+    COMPROBAR(ninja_atacando(n) == 1 && !ninja_golpe_activo(n)); /* Aún sin caja: arranque. */
+    /* El tajo: cuadros de arte 8..14, caja activa de GOLPE_DESDE a GOLPE_HASTA. */
+    {
+        u8 activos = 0, cuadro_max = 0;
+        for (k = 0; k < NINJA_ATAQUE_FRAMES - 1; k++)
+        {
+            ninja_actualizar(n, 400, 200);
+            if (ninja_golpe_activo(n))
+            {
+                activos++;
+            }
+            if (n[0].cuadro > cuadro_max)
+            {
+                cuadro_max = n[0].cuadro;
+            }
+        }
+        COMPROBAR(activos == NINJA_GOLPE_HASTA - NINJA_GOLPE_DESDE);
+        COMPROBAR(cuadro_max == NINJA_CUADROS + NINJA_CUADROS_ATAQUE - 1);   /* Hasta el 14. */
+    }
+    ninja_actualizar(n, 400, 200);                   /* El último cuadro del tajo.          */
+    COMPROBAR(n[0].estado == NINJA_PARADO && n[0].espera == NINJA_ESPERA && n[0].cuadro == 0);
+    COMPROBAR(ninja_intentar_atacar(n, 400, 200, 1) == 0);       /* Descansa tras el tajo.  */
+    /* Los turnos: con dos ya atacando, el tercero espera. */
+    ninja_iniciar_todos(n);
+    ninja_oleada(n, 300, 2);
+    for (k = 0; k < NINJAS_MAX; k++)
+    {
+        n[k].x = 440; n[k].y = 200; n[k].dentro = 1; n[k].espera = 0; n[k].estado = NINJA_PARADO;
+    }
+    COMPROBAR(ninja_atacando(n) == 0);
+    for (k = 0; k < NINJAS_MAX; k++)
+    {
+        ninja_intentar_atacar(n + k, 400, 200, (u8)(ninja_atacando(n) < NINJA_TURNOS));
+    }
+    COMPROBAR(ninja_atacando(n) == NINJA_TURNOS);    /* Solo dos a la vez.                  */
+    /* Un golpe recibido cancela el tajo. */
+    ninja_recibir(n, 1, 0, 0, 5);
+    COMPROBAR(n[0].estado == NINJA_RECIBIR && ninja_atacando(n) == NINJA_TURNOS - 1);
+
+    /*--- El tajo del ninja alcanza a Tarou (una sola vez) ----------------------------------*/
+    mundo_iniciar(&c, 400, 200);
+    ninja_iniciar_todos(n);
+    ninja_oleada(n, 300, 0);
+    n[0].x = 440; n[0].y = 200; n[0].dentro = 1; n[0].espera = 0; n[0].estado = NINJA_PARADO;
+    n[0].mira_izq = 1;                               /* Mira a Tarou (a su izquierda).      */
+    ninja_intentar_atacar(n, 400, 200, 1);
+    golpes_vistos = 0;
+    parada = 0;
+    for (k = 0; k < NINJA_ATAQUE_FRAMES + 2; k++)
+    {
+        u8 p = combate_ninjas_resolver(n, &c);
+        if (p)
+        {
+            golpes_vistos++;
+            parada = p;
+        }
+        ninja_actualizar(n, 400, 200);
+        cuadro(&c, 0);
+    }
+    COMPROBAR(golpes_vistos == 1 && parada == PARADA_GOLPE);     /* Un tajo, un golpe.      */
+    COMPROBAR(c.vida == VIDA_TAROU - NINJA_DANIO && c.empuje == 1);   /* Empujado a la izquierda. */
+    /* Fuera de alcance no acierta. */
+    mundo_iniciar(&c, 100, 200);
+    ninja_iniciar_todos(n);
+    ninja_oleada(n, 300, 0);
+    n[0].x = 440; n[0].y = 200; n[0].dentro = 1; n[0].espera = 0; n[0].estado = NINJA_PARADO;
+    n[0].mira_izq = 1;
+    ninja_intentar_atacar(n, 440, 200, 1);           /* (Ataca al aire: Tarou está lejos.)  */
+    for (k = 0; k < NINJA_ATAQUE_FRAMES; k++)
+    {
+        combate_ninjas_resolver(n, &c);
+        ninja_actualizar(n, 440, 200);
+    }
+    COMPROBAR(c.vida == VIDA_TAROU);
+    /* Un ninja que ataca de espaldas (mirando al otro lado) tampoco acierta. */
+    mundo_iniciar(&c, 400, 200);
+    ninja_iniciar_todos(n);
+    ninja_oleada(n, 300, 0);
+    n[0].x = 440; n[0].y = 200; n[0].dentro = 1; n[0].espera = 0; n[0].estado = NINJA_PARADO;
+    ninja_intentar_atacar(n, 400, 200, 1);
+    n[0].mira_izq = 0;                               /* Mira a la derecha, Tarou queda detrás. */
+    for (k = 0; k < NINJA_ATAQUE_FRAMES; k++)
+    {
+        combate_ninjas_resolver(n, &c);
+        n[0].timer++;
+    }
+    COMPROBAR(c.vida == VIDA_TAROU);
+    /* Un golpe que le da a Tarou invulnerable se pierde sin repetirse. */
+    mundo_iniciar(&c, 400, 200);
+    c.inv = 30;
+    ninja_iniciar_todos(n);
+    ninja_oleada(n, 300, 0);
+    n[0].x = 440; n[0].y = 200; n[0].dentro = 1; n[0].espera = 0; n[0].estado = NINJA_PARADO;
+    n[0].mira_izq = 1;
+    ninja_intentar_atacar(n, 400, 200, 1);
+    for (k = 0; k < NINJA_GOLPE_DESDE; k++)
+    {
+        ninja_actualizar(n, 400, 200);
+    }
+    combate_ninjas_resolver(n, &c);                  /* Pega, pero está invulnerable.       */
+    COMPROBAR(c.vida == VIDA_TAROU && n[0].conecto == 1);
+    c.inv = 0;
+    combate_ninjas_resolver(n, &c);                  /* El mismo tajo no pega otra vez.     */
+    COMPROBAR(c.vida == VIDA_TAROU);
 }

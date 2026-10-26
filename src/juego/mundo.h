@@ -20,12 +20,13 @@
     HARDWARE QUE TOCA
       ninguno.
 
-    VARIABLES (campos de Cuerpo; 16 bytes: potencia de 2)
+    VARIABLES (campos de Cuerpo; hay uno solo, no hace falta que mida una potencia de 2)
       x, y      u16   pies: x en el mundo; y, línea de pantalla del suelo (CARRIL_Y_MIN..MAX)
       z, vz     s16   altura y velocidad vertical en 12.4 (16 = 1 px): z = 0 en el suelo
       mira_izq  u8    1 si mira a la izquierda
       estado    u8    CUERPO_PARADO / ANDANDO / SUBIENDO / BAJANDO / ATACANDO
       golpe, reloj, cola, id   u8   el combo: golpe en curso, cuadros en él, A ya pulsada, tajo
+      vida, inv, stun, empuje  u8   puntos de vida, cuadros invulnerable, aturdido y hacia dónde lo empujaron
     → glosario: Carril, Profundidad, Altura (z), Punto fijo
 ---------------------------------------------------------------------------------*/
 #ifndef MUNDO_H
@@ -52,6 +53,12 @@
 #define GRAVEDAD 8                       /* 0,5 px/frame²: salto de 36 px y 24 frames.    */
 
 /*--- El combo de Tarou (A, A, A: el último derriba; cifras a ajustar jugando) --------*/
+/*--- Vida de Tarou y lo que pasa al recibir un golpe (cifras a ajustar jugando) ---------*/
+#define VIDA_TAROU 24                    /* 12 celdas de barra de 2 puntos cada una.       */
+#define RECIBIR_FRAMES 16                /* Aturdido tras un golpe normal.                 */
+#define DERRIBO_FRAMES 36                /* Caído al quedarse sin vida (y, luego, KO).     */
+#define INVULNERABLE_FRAMES 60           /* Tras un golpe no recibe otro: parpadea.        */
+
 #define GOLPES 3                         /* Golpes del combo.                             */
 #define GOLPE_FRAMES 14                  /* Duración de los golpes 1 y 2.                 */
 #define GOLPE_ULTIMO_FRAMES 20           /* El último tarda más en recuperarse.           */
@@ -66,6 +73,8 @@ typedef enum
     CUERPO_SUBIENDO,                     /* En el aire, vz < 0.                           */
     CUERPO_BAJANDO,                      /* En el aire, vz >= 0.                          */
     CUERPO_ATACANDO,                     /* Dando un golpe del combo (golpe 1..3).        */
+    CUERPO_RECIBIR,                      /* Aturdido: retrocede un poco y no puede actuar.*/
+    CUERPO_DERRIBADO,                    /* Caído sin vida (KO): se queda en el suelo.    */
     CUERPO_ESTADOS
 } EstadoCuerpo;
 
@@ -81,7 +90,10 @@ typedef struct
     u8 reloj;                            /* Cuadros que lleva en ese golpe.               */
     u8 cola;                             /* 1 = ya pulsó A a tiempo: encadena al acabar.  */
     u8 id;                               /* Identificador del tajo (1..254, cambia en cada golpe). */
-    u16 libre;                           /* Relleno hasta 16 bytes.                       */
+    u8 vida;                             /* Puntos de vida (VIDA_TAROU al empezar; 0 = KO). */
+    u8 inv;                              /* Cuadros de invulnerabilidad que quedan (parpadeo). */
+    u8 stun;                             /* Cuadros que le quedan aturdido o caído.       */
+    u8 empuje;                           /* 1 = el golpe lo empujó a la izquierda, 2 = a la derecha. */
 } Cuerpo;
 
 /* Pone el cuerpo en el suelo, quieto, mirando a la derecha. */
@@ -94,6 +106,12 @@ void mundo_actualizar(Cuerpo *c, const Mando *m);
    MARGEN_PANTALLA y cámara + 256 − MARGEN_PANTALLA), para que el protagonista no salga de
    ella ni vuelva atrás de lo ya recorrido. Después de mundo_actualizar. */
 void mundo_limitar_x(Cuerpo *c, u16 x_min, u16 x_max);
+
+/* El cuerpo recibe un golpe de `danio` puntos que viene de la izquierda si `hacia_izq` es 0
+   (lo empuja a la derecha) o de la derecha si es 1. Devuelve 1 si el golpe contó; 0 si estaba
+   invulnerable, caído o sin vida. Corta el golpe que estuviera dando; pierde la vida y queda
+   aturdido (RECIBIR) o, sin vida, caído (DERRIBADO); empieza a parpadear (INVULNERABLE_FRAMES). */
+u8 mundo_recibir(Cuerpo *c, u8 danio, u8 hacia_izq);
 
 /* 1 si el cuerpo está dando un golpe y su caja de golpe está activa en este cuadro. */
 u8 mundo_golpe_activo(const Cuerpo *c);
