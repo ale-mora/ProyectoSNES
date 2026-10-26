@@ -65,8 +65,15 @@ u8 ninja_oleada(Ninja *n, u16 camara, u8 zona)
         if (!n->vivo)
         {
             n->vivo = 1;
-            n->x = (u16)((nacidos & 1) ? camara + ANCHO_PANTALLA + NINJA_ENTRADA
-                                       : camara - NINJA_ENTRADA);   /* Izquierda o derecha. */
+            if (nacidos & 1)
+            {
+                n->x = (u16)(camara + ANCHO_PANTALLA + NINJA_ENTRADA);   /* Por la derecha. */
+            }
+            else
+            {
+                n->x = (u16)(camara > NINJA_ENTRADA ? camara - NINJA_ENTRADA : 0);   /* Por la  */
+            }                                        /* izquierda, sin bajar de 0: en u16, 10 − 40 */
+                                                     /* daría la vuelta a 65506 (el otro extremo). */
             n->y = CARRIL_ENTRADA[k];
             n->mira_izq = (u8)(nacidos & 1);         /* Mirando hacia dentro de la pantalla. */
             n->cuadro = 0;

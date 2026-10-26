@@ -70,4 +70,27 @@ void pruebas_oleadas(void)
         camara = camara_avanzar(camara, x, oleadas_limite(&o));
     }
     COMPROBAR(camara > 256 && camara <= 640);       /* ...hasta la zona 1 como mucho.     */
+
+    /* Un punto de zona más allá de donde llega la cámara (CAMARA_MAX = 1792) se bloquea en el
+       final del nivel; antes, con 1800, la cámara se quedaba en 1792 y la zona no salía nunca. */
+    COMPROBAR(oleadas_alcanzable(1800) == CAMARA_MAX);
+    COMPROBAR(oleadas_alcanzable(0xFFFF) == CAMARA_MAX);
+    COMPROBAR(oleadas_alcanzable(1536) == 1536);     /* Los que caben no cambian.          */
+    COMPROBAR(oleadas_alcanzable(CAMARA_MAX) == CAMARA_MAX);
+
+    /* Y todas las zonas de la tabla se bloquean de verdad: la cámara, persiguiendo a un
+       protagonista que corre hacia el final, llega a cada una. */
+    oleadas_iniciar(&o);
+    camara = 0;
+    avisos = 0;
+    for (x = 0; x < 6000; x++)
+    {
+        camara = camara_avanzar(camara, 2047, oleadas_limite(&o));
+        if (oleadas_actualizar(&o, camara))
+        {
+            avisos++;
+            oleadas_vencer(&o);                      /* Vencida al momento: a la siguiente. */
+        }
+    }
+    COMPROBAR(avisos == OLEADAS_ZONAS && o.actual == OLEADAS_ZONAS);
 }

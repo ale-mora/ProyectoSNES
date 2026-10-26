@@ -43,6 +43,17 @@ void pruebas_ninja(void)
     /* Nacen fuera de la pantalla: el primero a la izquierda, el segundo a la derecha. */
     COMPROBAR(n[0].x == 300 - NINJA_ENTRADA && n[0].mira_izq == 0);
     COMPROBAR(n[1].x == 300 + 256 + NINJA_ENTRADA && n[1].mira_izq == 1);
+
+    /* Con la cámara a menos de NINJA_ENTRADA del principio del nivel, el de la izquierda nace
+       en x = 0 (el borde del nivel): antes, cámara − 40 daba la vuelta en u16 (10 → 65506) y
+       el ninja aparecía al otro lado del nivel. */
+    ninja_derrotar_todos(n);
+    ninja_oleada(n, 10, 1);
+    COMPROBAR(n[0].x == 0 && n[0].mira_izq == 0);
+    COMPROBAR(n[1].x == 10 + 256 + NINJA_ENTRADA);
+    ninja_derrotar_todos(n);
+    ninja_oleada(n, NINJA_ENTRADA, 0);               /* Justo en el límite: x = 0, sin recorte. */
+    COMPROBAR(n[0].x == 0);
     COMPROBAR(n[0].y != n[1].y && n[1].y != n[2].y && n[0].y != n[2].y);  /* Carriles distintos. */
 
     /* Una oleada con ranuras ocupadas solo rellena las libres. */

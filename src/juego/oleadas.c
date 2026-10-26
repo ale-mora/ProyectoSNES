@@ -6,10 +6,12 @@
       BLOQUEADA (oleada viva: la cámara no se mueve). Llegar al punto bloquea;
       oleadas_vencer libera y pasa a la zona siguiente. Los puntos son posiciones de la
       cámara (píxeles del nivel) y son PROVISIONALES: se mueven al dibujar la fase 1 en
-      Tiled (docs/diseno-beat-em-up.md §7: objetos `oleada`).
+      Tiled (docs/diseno-beat-em-up.md §7: objetos `oleada`). Cada punto se recorta a
+      CAMARA_MAX con oleadas_alcanzable: la cámara nunca pasa de ahí, y un punto mayor
+      (p. ej. 1800) no se alcanzaría nunca y la zona no saldría.
 
     SE CONECTA CON
-      Incluye:  juego/oleadas.h.
+      Incluye:  juego/oleadas.h, juego/camara.h (CAMARA_MAX).
       Lo usan:  pantallas/pantalla_fase1.c y tests/prueba_oleadas.c.
 
     HARDWARE QUE TOCA
@@ -20,9 +22,15 @@
     → glosario: Zona, Oleada
 ---------------------------------------------------------------------------------*/
 #include "juego/oleadas.h"
+#include "juego/camara.h"
 
 /* static const: se queda en la ROM (una const global se copiaría a la WRAM al arrancar). */
 static const u16 ZONA_CAMARA[OLEADAS_ZONAS] = {256, 640, 1024, 1536};
+
+u16 oleadas_alcanzable(u16 punto)
+{
+    return (u16)(punto > CAMARA_MAX ? CAMARA_MAX : punto);    /* La cámara no pasa de ahí. */
+}
 
 void oleadas_iniciar(Oleadas *o)
 {
@@ -38,12 +46,12 @@ u16 oleadas_limite(const Oleadas *o)
     {
         return 0xFFFF;                               /* Sin zonas: solo el final del nivel. */
     }
-    return ZONA_CAMARA[o->actual];
+    return oleadas_alcanzable(ZONA_CAMARA[o->actual]);
 }
 
 u8 oleadas_actualizar(Oleadas *o, u16 camara)
 {
-    if (!o->bloqueada && o->actual < OLEADAS_ZONAS && camara >= ZONA_CAMARA[o->actual])
+    if (!o->bloqueada && o->actual < OLEADAS_ZONAS && camara >= oleadas_alcanzable(ZONA_CAMARA[o->actual]))
     {
         o->bloqueada = 1;                            /* Llegó: la cámara se para y salen... */
         return 1;                                    /* ...los enemigos de esta oleada.     */

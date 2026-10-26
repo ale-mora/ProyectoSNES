@@ -23,6 +23,9 @@
 #define CAMARA_H
 
 #include "sistema/tipos.h"
+#include "juego/nivel.h"               /* ANCHO_NIVEL, ANCHO_PANTALLA.            */
+
+#define CAMARA_MAX (ANCHO_NIVEL - ANCHO_PANTALLA)   /* 1792: la última posición con nivel. */
 
 /* Desplazamiento horizontal de la cámara para un protagonista cuya celda empieza
    en x_pix: su centro (x + 48) queda en el centro de la pantalla (128), recortado

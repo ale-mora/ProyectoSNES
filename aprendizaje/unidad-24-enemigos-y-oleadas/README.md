@@ -218,6 +218,14 @@ Dos consecuencias que se verificaron en el PC:
   `camara − 40` con `u16`, que da la vuelta (con cámara 10, `x = 65506`). Las cuatro zonas de hoy
   están lejos de eso; si pasas una oleada a Tiled, el script debería rechazarlo.
 
+> **Corregido después en el juego (2026-10-26).** Las dos cosas están arregladas en la rama
+> principal, con pruebas: `oleadas_alcanzable` (en `oleadas.c`) recorta cada punto de zona a
+> `CAMARA_MAX`, que ahora está en `camara.h`. Así, un punto más allá del final se bloquea en el
+> final. `ninja_oleada` hace nacer al de la izquierda en `x = 0` si la cámara está a menos de
+> `NINJA_ENTRADA` del principio. Esta unidad describe `641d7c0`: para repetir los
+> experimentos, haz el clon en ese commit. El ejercicio de la quinta zona (1792) sigue
+> valiendo tal cual.
+
 ### Cómo se dibuja un ninja: `ninja_sprite.c`
 
 El dibujo está separado de la lógica (la lógica es pura y se prueba en el PC; esto toca la

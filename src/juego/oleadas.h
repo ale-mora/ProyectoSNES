@@ -41,6 +41,10 @@ typedef struct
 /* Antes de la primera zona, sin bloqueo. */
 void oleadas_iniciar(Oleadas *o);
 
+/* El punto de una zona recortado a donde la cámara puede llegar (CAMARA_MAX): un punto más
+   allá del final del nivel se bloquea en el final, en vez de no bloquearse nunca. */
+u16 oleadas_alcanzable(u16 punto);
+
 /* Hasta dónde puede llegar la cámara: la posición de la zona en curso, o 0xFFFF si ya
    no quedan zonas (solo manda el final del nivel). */
 u16 oleadas_limite(const Oleadas *o);
