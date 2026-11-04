@@ -34,8 +34,9 @@
 ;     .rodata_nivel1_banco  nivel1_cerca_col_banco (1 byte: el banco del mapa por columnas)
 ;     .rodata_nivel1_colision  nivel1_colision (rejilla de 128x14 bytes)
 ;     .rodata_p16_*      tarou_<anim>_p16 (14 tiras en piezas de 16x16) y tarou_p16_bancos
-;     .rodata_bp16_*     barbara_<anim>_p16 (9 tiras, celda 144x112), barbara_pal y barbara_p16_bancos
+;     .rodata_bp16_*     barbara_<anim>_p16 (9 tiras, celda 112x96), barbara_pal y barbara_p16_bancos
 ;     .rodata_np16_*     ninja1_<anim>_p16 (7 tiras de «Ninja 1», celda 96x96), ninja1_pal y ninja1_p16_bancos
+;     .rodata_n2p16_*, .rodata_n3p16_*  ninja2_/ninja3_<anim>_p16 (mediano y grande, 128x112), sus _pal y _p16_bancos
 ;     .rodata_prueba_*   ninja64_andar, ninja64_ataque, ninja_pal, sombra_til, sombra_piezas,
 ;                        sombra_banco, ninja_bancos
 ;                        (solo la ROM de prueba de carga, -DPRUEBA_CARGA)
@@ -316,7 +317,7 @@ tarou_p16_bancos: .db :tarou_reposo_p16, :tarou_caminar_p16, :tarou_correr_p16, 
                   .db :tarou_desenvainar_p16, :tarou_envainar_p16, :tarou_atacar_p16, :tarou_echarse_p16, :tarou_dormido_p16, :tarou_despertar_p16, :tarou_guardia_p16
 .ends
 
-; --- Bárbara en piezas de 16x16 (formato .p16, celda de 144x112) ---------------------
+; --- Bárbara en piezas de 16x16 (formato .p16, celda de 112x96) -----------------------
 ; Las tiras de los estados que ya tiene la fase 1 (Makefile: BARBARA_ANIMS). Cada una
 ; en su sección (un banco de 32 KB). barbara_p16_bancos va en el orden de las tiras de
 ; Bárbara de juego/personaje.h (BARBARA_TIRA_*).
@@ -379,6 +380,60 @@ ninja1_ko_p16: .incbin "res/personajes/ninja/ninja_ko.p16"
 .section ".rodata_np16_varios" superfree
 ninja1_pal:           .incbin "res/personajes/ninja/ninja_guardia.pal"
 ninja1_p16_bancos:    .db :ninja1_guardia_p16, :ninja1_caminar_p16, :ninja1_ataque_1_p16, :ninja1_recibir_p16, :ninja1_derribado_p16, :ninja1_levantarse_p16, :ninja1_ko_p16
+.ends
+
+; --- El ninja mediano en piezas de 16x16 (celda de 128x112): mismas tiras y orden que «Ninja 1».
+.section ".rodata_n2p16_guardia" superfree
+ninja2_guardia_p16: .incbin "res/personajes/ninja_mediano/ninja_mediano_guardia.p16"
+.ends
+.section ".rodata_n2p16_caminar" superfree
+ninja2_caminar_p16: .incbin "res/personajes/ninja_mediano/ninja_mediano_caminar.p16"
+.ends
+.section ".rodata_n2p16_ataque_1" superfree
+ninja2_ataque_1_p16: .incbin "res/personajes/ninja_mediano/ninja_mediano_ataque_1.p16"
+.ends
+.section ".rodata_n2p16_recibir" superfree
+ninja2_recibir_p16: .incbin "res/personajes/ninja_mediano/ninja_mediano_recibir.p16"
+.ends
+.section ".rodata_n2p16_derribado" superfree
+ninja2_derribado_p16: .incbin "res/personajes/ninja_mediano/ninja_mediano_derribado.p16"
+.ends
+.section ".rodata_n2p16_levantarse" superfree
+ninja2_levantarse_p16: .incbin "res/personajes/ninja_mediano/ninja_mediano_levantarse.p16"
+.ends
+.section ".rodata_n2p16_ko" superfree
+ninja2_ko_p16: .incbin "res/personajes/ninja_mediano/ninja_mediano_ko.p16"
+.ends
+.section ".rodata_n2p16_varios" superfree
+ninja2_pal:           .incbin "res/personajes/ninja_mediano/ninja_mediano_guardia.pal"
+ninja2_p16_bancos:    .db :ninja2_guardia_p16, :ninja2_caminar_p16, :ninja2_ataque_1_p16, :ninja2_recibir_p16, :ninja2_derribado_p16, :ninja2_levantarse_p16, :ninja2_ko_p16
+.ends
+
+; --- El ninja grande en piezas de 16x16 (celda de 128x112): mismas tiras y orden que «Ninja 1».
+.section ".rodata_n3p16_guardia" superfree
+ninja3_guardia_p16: .incbin "res/personajes/ninja_grande/ninja_grande_guardia.p16"
+.ends
+.section ".rodata_n3p16_caminar" superfree
+ninja3_caminar_p16: .incbin "res/personajes/ninja_grande/ninja_grande_caminar.p16"
+.ends
+.section ".rodata_n3p16_ataque_1" superfree
+ninja3_ataque_1_p16: .incbin "res/personajes/ninja_grande/ninja_grande_ataque_1.p16"
+.ends
+.section ".rodata_n3p16_recibir" superfree
+ninja3_recibir_p16: .incbin "res/personajes/ninja_grande/ninja_grande_recibir.p16"
+.ends
+.section ".rodata_n3p16_derribado" superfree
+ninja3_derribado_p16: .incbin "res/personajes/ninja_grande/ninja_grande_derribado.p16"
+.ends
+.section ".rodata_n3p16_levantarse" superfree
+ninja3_levantarse_p16: .incbin "res/personajes/ninja_grande/ninja_grande_levantarse.p16"
+.ends
+.section ".rodata_n3p16_ko" superfree
+ninja3_ko_p16: .incbin "res/personajes/ninja_grande/ninja_grande_ko.p16"
+.ends
+.section ".rodata_n3p16_varios" superfree
+ninja3_pal:           .incbin "res/personajes/ninja_grande/ninja_grande_guardia.pal"
+ninja3_p16_bancos:    .db :ninja3_guardia_p16, :ninja3_caminar_p16, :ninja3_ataque_1_p16, :ninja3_recibir_p16, :ninja3_derribado_p16, :ninja3_levantarse_p16, :ninja3_ko_p16
 .ends
 
 ; --- ROM de prueba de carga (docs/diseno-beat-em-up.md §9) ---------------------------

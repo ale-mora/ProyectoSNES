@@ -36,8 +36,12 @@
 
 extern char ninja1_guardia_p16, ninja1_caminar_p16, ninja1_ataque_1_p16, ninja1_recibir_p16;
 extern char ninja1_derribado_p16, ninja1_levantarse_p16, ninja1_ko_p16;
-extern char ninja1_pal, sombra_piezas;
-extern u8 ninja1_p16_bancos[];       /* Banco de cada tira, en el orden de abajo.          */
+extern char ninja2_guardia_p16, ninja2_caminar_p16, ninja2_ataque_1_p16, ninja2_recibir_p16;
+extern char ninja2_derribado_p16, ninja2_levantarse_p16, ninja2_ko_p16;
+extern char ninja3_guardia_p16, ninja3_caminar_p16, ninja3_ataque_1_p16, ninja3_recibir_p16;
+extern char ninja3_derribado_p16, ninja3_levantarse_p16, ninja3_ko_p16;
+extern char ninja1_pal, ninja2_pal, ninja3_pal, sombra_piezas;
+extern u8 ninja1_p16_bancos[], ninja2_p16_bancos[], ninja3_p16_bancos[];   /* Banco de cada tira. */
 extern u8 sombra_banco;
 
 #define ENT_NINJA 2                  /* Entradas 2..4: los cuerpos.                       */
@@ -52,48 +56,67 @@ extern u8 sombra_banco;
 
 static const u16 HUECOS[NINJAS_MAX] = {192, 288, 384};   /* Primer tile de cada hueco.   */
 
-/*--- tira_de: de qué tira es un dibujo (NINJA_DIB_*), cuál es dentro de ella y su banco ---*/
-static const u8 *tira_de(u8 dibujo, u8 *f, u8 *banco)
+/* Cada tipo (normal, mediano, grande): su celda. */
+static const u8 ANCHO_TIPO[NINJA_TIPOS] = {NINJA_ANCHO, 128, 128};
+static const u8 ALTO_TIPO[NINJA_TIPOS] = {NINJA_ALTO, 112, 112};
+
+/*--- tira_tipo: la tira número s (0 guardia .. 6 KO) de un tipo, y su banco ----------*/
+static const u8 *tira_tipo(u8 tipo, u8 s, u8 *banco)
 {
-    if (dibujo >= NINJA_DIB_KO)
+    if (tipo == NINJA_GRANDE)
     {
-        *f = (u8)(dibujo - NINJA_DIB_KO);
-        *banco = ninja1_p16_bancos[6];
-        return (const u8 *)&ninja1_ko_p16;
+        *banco = ninja3_p16_bancos[s];
+        switch (s)
+        {
+            case 1: return (const u8 *)&ninja3_caminar_p16;
+            case 2: return (const u8 *)&ninja3_ataque_1_p16;
+            case 3: return (const u8 *)&ninja3_recibir_p16;
+            case 4: return (const u8 *)&ninja3_derribado_p16;
+            case 5: return (const u8 *)&ninja3_levantarse_p16;
+            case 6: return (const u8 *)&ninja3_ko_p16;
+            default: return (const u8 *)&ninja3_guardia_p16;
+        }
     }
-    if (dibujo >= NINJA_DIB_LEVANTARSE)
+    if (tipo == NINJA_MEDIANO)
     {
-        *f = (u8)(dibujo - NINJA_DIB_LEVANTARSE);
-        *banco = ninja1_p16_bancos[5];
-        return (const u8 *)&ninja1_levantarse_p16;
+        *banco = ninja2_p16_bancos[s];
+        switch (s)
+        {
+            case 1: return (const u8 *)&ninja2_caminar_p16;
+            case 2: return (const u8 *)&ninja2_ataque_1_p16;
+            case 3: return (const u8 *)&ninja2_recibir_p16;
+            case 4: return (const u8 *)&ninja2_derribado_p16;
+            case 5: return (const u8 *)&ninja2_levantarse_p16;
+            case 6: return (const u8 *)&ninja2_ko_p16;
+            default: return (const u8 *)&ninja2_guardia_p16;
+        }
     }
-    if (dibujo >= NINJA_DIB_DERRIBADO)
+    *banco = ninja1_p16_bancos[s];
+    switch (s)
     {
-        *f = (u8)(dibujo - NINJA_DIB_DERRIBADO);
-        *banco = ninja1_p16_bancos[4];
-        return (const u8 *)&ninja1_derribado_p16;
+        case 1: return (const u8 *)&ninja1_caminar_p16;
+        case 2: return (const u8 *)&ninja1_ataque_1_p16;
+        case 3: return (const u8 *)&ninja1_recibir_p16;
+        case 4: return (const u8 *)&ninja1_derribado_p16;
+        case 5: return (const u8 *)&ninja1_levantarse_p16;
+        case 6: return (const u8 *)&ninja1_ko_p16;
+        default: return (const u8 *)&ninja1_guardia_p16;
     }
-    if (dibujo >= NINJA_DIB_RECIBIR)
-    {
-        *f = (u8)(dibujo - NINJA_DIB_RECIBIR);
-        *banco = ninja1_p16_bancos[3];
-        return (const u8 *)&ninja1_recibir_p16;
-    }
-    if (dibujo >= NINJA_DIB_ATAQUE)
-    {
-        *f = (u8)(dibujo - NINJA_DIB_ATAQUE);
-        *banco = ninja1_p16_bancos[2];
-        return (const u8 *)&ninja1_ataque_1_p16;
-    }
-    if (dibujo >= NINJA_DIB_CAMINAR)
-    {
-        *f = (u8)(dibujo - NINJA_DIB_CAMINAR);
-        *banco = ninja1_p16_bancos[1];
-        return (const u8 *)&ninja1_caminar_p16;
-    }
-    *f = dibujo;
-    *banco = ninja1_p16_bancos[0];
-    return (const u8 *)&ninja1_guardia_p16;
+}
+
+/*--- tira_de: de qué tira es un dibujo (NINJA_DIB_*) de un tipo, qué cuadro y su banco ---*/
+static const u8 *tira_de(u8 tipo, u8 dibujo, u8 *f, u8 *banco)
+{
+    u8 s;
+
+    if (dibujo >= NINJA_DIB_KO)              { s = 6; *f = (u8)(dibujo - NINJA_DIB_KO); }
+    else if (dibujo >= NINJA_DIB_LEVANTARSE) { s = 5; *f = (u8)(dibujo - NINJA_DIB_LEVANTARSE); }
+    else if (dibujo >= NINJA_DIB_DERRIBADO)  { s = 4; *f = (u8)(dibujo - NINJA_DIB_DERRIBADO); }
+    else if (dibujo >= NINJA_DIB_RECIBIR)    { s = 3; *f = (u8)(dibujo - NINJA_DIB_RECIBIR); }
+    else if (dibujo >= NINJA_DIB_ATAQUE)     { s = 2; *f = (u8)(dibujo - NINJA_DIB_ATAQUE); }
+    else if (dibujo >= NINJA_DIB_CAMINAR)    { s = 1; *f = (u8)(dibujo - NINJA_DIB_CAMINAR); }
+    else                                     { s = 0; *f = dibujo; }
+    return tira_tipo(tipo, s, banco);
 }
 
 static u8 muestra[NINJAS_MAX];
@@ -106,17 +129,17 @@ void ninja_sprite_cargar(void)
     SpriteEnt *s;
     u8 k;
 
-    for (k = 0; k < NINJAS_MAX; k++)                 /* Paletas de sprites 1..3: la misma   */
-    {                                                /* (aún sin colores de traje).         */
-        dmaCopyCGram((u8 *)&ninja1_pal, (u16)(128 + 16 + ((u16)k << 4)), 32);
-    }
+    /* Paletas de sprites 1..3: la ranura k es el tipo k, con su traje (rojo, amarillo, morado). */
+    dmaCopyCGram((u8 *)&ninja1_pal, 128 + 16, 32);
+    dmaCopyCGram((u8 *)&ninja2_pal, 128 + 32, 32);
+    dmaCopyCGram((u8 *)&ninja3_pal, 128 + 48, 32);
     sprites_usar(ENTIDADES);                         /* Ahora la tabla tiene 8 entradas.    */
     for (k = 0; k < NINJAS_MAX; k++)
     {
         s = sprites_ent + ENT_NINJA + k;             /* El cuerpo: sin piezas hasta subir.  */
         s->n = 0;
         s->tile = HUECOS[k];
-        s->banco = ninja1_p16_bancos[0];
+        s->banco = ninja1_p16_bancos[0];          /* (Se corrige al subir su primer cuadro.) */
         s->atrib = (u8)(SPRITE_PRIORIDAD(PRIORIDAD) | SPRITE_PALETA(k + 1));
         s = sprites_ent + ENT_SOMBRA_NINJA + k;      /* La sombra: la misma que la de Tarou. */
         s->piezas = (u16)&sombra_piezas;
@@ -148,7 +171,7 @@ static void subir(const Ninja *n)
         dibujo = p->vivo ? ninja_dibujo(p) : SIN_CUADRO;
         if (p->vivo && dibujo != muestra[k])
         {
-            tira = tira_de(dibujo, &f, &banco);
+            tira = tira_de(p->tipo, dibujo, &f, &banco);
             p16_cuadro(tira, f, &cu);
             subida_empezar(&subida, cu.n, (u16)((u16)tira + cu.tiles),
                            VRAM_TILE(HUECOS[k]), banco);
@@ -173,7 +196,7 @@ void ninja_sprite_actualizar(const Ninja *n, u16 camara)
     SpriteEnt *s, *sombra;
     const Ninja *p;
     const u8 *tira;
-    u8 k, f, banco;
+    u8 k, f, banco, ancho, alto;
 
     subir(n);
     for (k = 0; k < NINJAS_MAX; k++)
@@ -188,20 +211,22 @@ void ninja_sprite_actualizar(const Ninja *n, u16 camara)
             muestra[k] = SIN_CUADRO;
             continue;
         }
-        s->x0 = (u16)(p->x - camara - NINJA_ANCHO / 2);   /* x de pantalla del borde izquierdo. */
-        s->y0 = (u16)(p->y - NINJA_ALTO);            /* Los pies, en la y del carril.       */
+        ancho = ANCHO_TIPO[p->tipo];                 /* La celda de su tipo.                */
+        alto = ALTO_TIPO[p->tipo];
+        s->x0 = (u16)(p->x - camara - (ancho >> 1)); /* x de pantalla del borde izquierdo.  */
+        s->y0 = (u16)(p->y - alto);                  /* Los pies, en la y del carril.       */
         if (ninja_parpadea(p))
         {
             s->y0 = 240;                             /* KO tumbado: parpadea antes de irse. */
         }
-        s->borde = sprites_borde(s->x0, s->y0, NINJA_ANCHO, NINJA_ALTO);
+        s->borde = sprites_borde(s->x0, s->y0, ancho, alto);
         s->atrib = (u8)(SPRITE_PRIORIDAD(PRIORIDAD) | SPRITE_PALETA(k + 1) |
                         (p->mira_izq ? SPRITE_HFLIP : 0));
         if (muestra[k] != SIN_CUADRO)                /* Hay un cuadro entero que enseñar.   */
         {
             if (mirada[k] != p->mira_izq)            /* Cambió el cuadro o la mirada.       */
             {
-                tira = tira_de(muestra[k], &f, &banco);
+                tira = tira_de(p->tipo, muestra[k], &f, &banco);
                 p16_cuadro(tira, f, &cu);
                 s->piezas = (u16)((u16)tira + (p->mira_izq ? cu.espejo : cu.piezas));
                 s->banco = banco;                    /* La tabla de piezas está en el banco de su tira. */

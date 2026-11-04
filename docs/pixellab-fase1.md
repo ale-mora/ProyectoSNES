@@ -61,9 +61,10 @@ Medido sobre el arte real de Tarou: su figura de pie mide **57 px de alto** y
 | Tarou | 96×64 | **57** (♻) | su arte actual |
 | Rex, Fenrir (perros) | 96×64 | **56–57**, como Tarou | ver §4 |
 | Lucinda (gata) | 64×64 | **52** | ver §4 |
-| Bárbara | **144×112** (2026-11-04) | **90–93** (el arte definitivo de «Bárbara 2», con katana) | con la katana mide hasta 133 px de ancho |
+| Bárbara | **112×96** (2026-11-04) | **~70** (el arte definitivo, «Bárbara pequeña»: mayor que Tarou y menor que todos los ninjas) | con la katana llega a ~55 px del centro |
 | Nikoraemon | 64×96 | **88–90** | prueba de carga (93) |
-| Ninjas, kendokas | **96×96** (2026-11-04) | **74–81** (el arte definitivo de «Ninja 1») | tumbado mide hasta 88 px de ancho |
+| Ninja normal (rojo), kendokas | **96×96** (2026-11-04) | **74–81** («Ninja 1») | tumbado mide hasta 88 px de ancho |
+| Ninja mediano (amarillo) y grande (morado) | **128×112** | **~90** y **~100** | personajes nuevos con el diseño de «Ninja 1» |
 | Gomasuri-dono (jefe) | 96×96 | **90** (riesgo de presupuesto, §3.1) | ver §3 |
 
 **Aviso:** `res/personajes/barbara_samurai.png` (el sprite de Bárbara de la
@@ -157,7 +158,12 @@ Base del prompt, común a todas las de combate:
 Las **cajas** de golpe de los ataques (`.cajas.json`) se hacen sobre el arte
 una vez salido, no antes.
 
-### 1.2 Bárbara (144×112, altura 90–93) [x]
+### 1.2 Bárbara (112×96, altura ~70) [x]
+
+**Segunda versión (2026-11-04):** para que quede entre Tarou y los ninjas se regeneró más
+pequeña, «Bárbara pequeña» (pro flash de Pixellab con el aspecto de «Bárbara 2»), con sus
+23 animaciones en el estado Idle. Lo que sigue describe la versión anterior (~92 px, celda
+144×112), cuyo export local está en `pixellab/barbara_grande_r3/`.
 
 **Hecho (2026-11-04).** «Bárbara 2» con katana es la definitiva. Las 25
 animaciones salen del estado `Fighting_pose_with_a` (21 generadas con el MCP,
@@ -224,7 +230,16 @@ Prompt base de busto: `pixel art bust portrait, head and shoulders, facing right
 
 ---
 
-## 2. Enemigos: ninjas (celda 96×96, altura 74–81)
+## 2. Enemigos: ninjas (tres tamaños y colores)
+
+**Tres tipos (2026-11-04)**, uno por ranura, con colores chillones de los ninjas de las
+películas de Cannon de los 80: **normal** rojo (~80 px, «Ninja 1», vida 4, daño 2),
+**mediano** amarillo (~90 px, vida 6, daño 3) y **grande** morado (~100 px, vida 8, daño 4,
+anda 3 de cada 4 frames). Salen por zonas: zona 1 un normal; zona 2 normal + mediano; desde
+la 3, los tres. El color es la paleta del traje: `preparar_personaje.py` (`recolor`) pasa el
+blanco y los grises a la rampa del color y deja la piel y los negros.
+
+### Ninja normal (celda 96×96, altura 74–81)
 
 **Celda (2026-11-04): 96×96, no 64×96.** De pie, «Ninja 1» mide 74–81 px de alto
 y 42–55 de ancho, pero derribado, en el suelo y en el KO llega a 73–88 px de

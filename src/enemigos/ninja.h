@@ -21,7 +21,7 @@
     HARDWARE QUE TOCA
       ninguno.
 
-    VARIABLES (campos de Ninja; 16 bytes: potencia de 2)
+    VARIABLES (campos de Ninja; 32 bytes: potencia de 2)
       x, y        u16  pies: x en el mundo, y línea de pantalla del suelo
       vivo        u8   1 si la ranura está en uso
       mira_izq    u8   1 si mira a la izquierda (hacia el protagonista)
@@ -35,6 +35,7 @@
       empuje      u8   hacia dónde lo empujó el golpe: NINJA_EMPUJE_IZQ o NINJA_EMPUJE_DER
       espera      u8   descanso que le queda antes del próximo ataque
       conecto     u8   1 si el tajo en curso ya acertó
+      tipo        u8   NINJA_NORMAL / _MEDIANO / _GRANDE: su tamaño, color, vida y daño
     → glosario: Oleada, IA, Carril
 ---------------------------------------------------------------------------------*/
 #ifndef NINJA_H
@@ -47,7 +48,7 @@
 #define NINJA_FRAMES_CUADRO 4            /* Cada cuántos frames cambia de cuadro.           */
 #define NINJA_PASO_X 1                   /* Anda más lento que Tarou (2): se le puede huir. */
 #define NINJA_DISTANCIA 40               /* Se detiene a esta distancia en x del objetivo.  */
-#define NINJA_VIDA 4                     /* Combo de Tarou: 1 + 1 + 2 de daño = justo.      */
+#define NINJA_VIDA 4                     /* El normal: combo de Tarou 1 + 1 + 2 = justo.    */
 #define NINJA_RECIBIR_FRAMES 16          /* Aturdido tras un golpe normal.                  */
 #define NINJA_DERRIBO_FRAMES 64          /* Caído: cae (21), en el suelo (20) y se levanta (20);
                                             sin vida: KO (21) y parpadea tumbado hasta irse. */
@@ -59,7 +60,7 @@
 #define NINJA_GOLPE_HASTA 20             /* ...hasta aquí (sin incluir): 8 cuadros.         */
 #define NINJA_ALCANCE 48                 /* Hasta dónde llega por delante de sus pies.      */
 #define NINJA_PROFUNDIDAD 12             /* Tolerancia en y para acertar.                   */
-#define NINJA_DANIO 2                    /* Puntos de vida que quita (Tarou tiene 24).      */
+#define NINJA_DANIO 2                    /* Lo que quita el normal (Tarou tiene 24).        */
 #define NINJA_ESPERA 50                  /* Cuadros de descanso entre un ataque y el siguiente. */
 #define NINJA_ESPERA_INICIAL 30          /* Al nacer espera esto, +15 por ranura.           */
 #define NINJA_TURNOS 2                   /* Como mucho dos atacan a la vez (§6 de la spec). */
@@ -79,6 +80,17 @@
 #define NINJA_DIB_LEVANTARSE 30          /* 5.                                              */
 #define NINJA_DIB_KO 35                  /* 7.                                              */
 #define NINJA_DIBUJOS 42
+
+/*--- Los tres tipos (2026-11-04): uno por ranura, cada uno con su tamaño y su color -----
+    La ranura k nace siempre como el tipo k, así que la oleada de la zona 0 trae un
+    normal, la de la zona 1 un normal y un mediano, y desde la 2 los tres. */
+typedef enum
+{
+    NINJA_NORMAL = 0,                    /* ~80 px, rojo: vida 4, daño 2.                   */
+    NINJA_MEDIANO,                       /* ~90 px, amarillo: vida 6, daño 3.               */
+    NINJA_GRANDE,                        /* ~100 px, morado: vida 8, daño 4, más lento.     */
+    NINJA_TIPOS
+} TipoNinja;
 
 typedef enum
 {
@@ -105,6 +117,8 @@ typedef struct
     u8 empuje;
     u8 espera;                           /* Cuadros de descanso antes de poder atacar.      */
     u8 conecto;                          /* 1 si el tajo en curso ya acertó (no pega dos veces). */
+    u8 tipo;                             /* TipoNinja (= su ranura).                        */
+    u8 libre[15];                        /* Relleno hasta 32 bytes (potencia de 2: n + k sin tcc__mul). */
 } Ninja;
 
 /* Deja las NINJAS_MAX ranuras libres. */
@@ -146,6 +160,9 @@ u8 ninja_dibujo(const Ninja *n);
 
 /* 1 si este frame el cuerpo no se dibuja: el ninja KO parpadea tumbado antes de irse. */
 u8 ninja_parpadea(const Ninja *n);
+
+/* Lo que quita su golpe al protagonista: 2, 3 o 4 según el tipo. */
+u8 ninja_danio(const Ninja *n);
 
 /* Cuántos están vivos. */
 u8 ninja_vivos(const Ninja *n);

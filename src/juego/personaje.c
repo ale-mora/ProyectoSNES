@@ -63,12 +63,12 @@ const AnimProta *personaje_anims(u8 personaje)
 
 u8 personaje_ancho(u8 personaje)
 {
-    return (u8)(personaje == PERSONAJE_BARBARA ? 144 : 96);
+    return (u8)(personaje == PERSONAJE_BARBARA ? 112 : 96);
 }
 
 u8 personaje_alto(u8 personaje)
 {
-    return (u8)(personaje == PERSONAJE_BARBARA ? 112 : 64);
+    return (u8)(personaje == PERSONAJE_BARBARA ? 96 : 64);
 }
 
 u16 personaje_alcance(u8 personaje)

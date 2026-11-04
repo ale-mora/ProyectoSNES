@@ -146,15 +146,15 @@ res/personajes/tarou/%.p16: res/personajes/tarou/%.png scripts/piezas16.py
 	python scripts/piezas16.py $< $@ --celda 96x64 --rejilla-optima
 
 # Bárbara (Revisión 3): las tiras de los estados que la fase 1 ya tiene, en piezas de
-# 16x16 con la celda de 144x112 y la rejilla óptima (como mucho 24 piezas por cuadro:
+# 16x16 con la celda de 112x96 (Bárbara de ~70 px) y la rejilla óptima (como mucho 24 piezas por cuadro:
 # el búfer de la protagonista). Cada .p16 escribe también su .pal (la misma en todas).
 BARBARA_ANIMS := guardia caminar saltar caer golpe_1 golpe_2 golpe_3 recibir ko
 BARBARA_P16 := $(foreach a,$(BARBARA_ANIMS),res/personajes/barbara/barbara_$(a).p16)
 res/personajes/barbara/%.p16: res/personajes/barbara/%.png scripts/piezas16.py
 	@echo convert pieces16 ... $(notdir $<)
-	python scripts/piezas16.py $< $@ --celda 144x112 --rejilla-optima --pal $(@:.p16=.pal)
+	python scripts/piezas16.py $< $@ --celda 112x96 --rejilla-optima --pal $(@:.p16=.pal)
 
-# «Ninja 1» (2026-11-04): las tiras de los estados que el ninja ya tiene, celda de
+# «Ninja 1», el ninja normal (rojo; 2026-11-04): las tiras de los estados que el ninja ya tiene, celda de
 # 96x96 y rejilla óptima (12-15 piezas por cuadro: entra entero en un VBlank).
 NINJA_ANIMS := guardia caminar ataque_1 recibir derribado levantarse ko
 NINJA_P16 := $(foreach a,$(NINJA_ANIMS),res/personajes/ninja/ninja_$(a).p16)
@@ -162,7 +162,18 @@ res/personajes/ninja/%.p16: res/personajes/ninja/%.png scripts/piezas16.py
 	@echo convert pieces16 ... $(notdir $<)
 	python scripts/piezas16.py $< $@ --celda 96x96 --rejilla-optima --pal $(@:.p16=.pal)
 
-ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin $(TAROU_PICS) $(TAROU_P16) $(BARBARA_P16) $(NINJA_P16)
+# Los ninjas mediano (amarillo) y grande (morado), celda de 128x112 (2026-11-04).
+NINJA_TIPO_ANIMS := guardia caminar ataque_1 recibir derribado levantarse ko
+NINJA2_P16 := $(foreach a,$(NINJA_TIPO_ANIMS),res/personajes/ninja_mediano/ninja_mediano_$(a).p16)
+NINJA3_P16 := $(foreach a,$(NINJA_TIPO_ANIMS),res/personajes/ninja_grande/ninja_grande_$(a).p16)
+res/personajes/ninja_mediano/%.p16: res/personajes/ninja_mediano/%.png scripts/piezas16.py
+	@echo convert pieces16 ... $(notdir $<)
+	python scripts/piezas16.py $< $@ --celda 128x112 --rejilla-optima --pal $(@:.p16=.pal)
+res/personajes/ninja_grande/%.p16: res/personajes/ninja_grande/%.png scripts/piezas16.py
+	@echo convert pieces16 ... $(notdir $<)
+	python scripts/piezas16.py $< $@ --celda 128x112 --rejilla-optima --pal $(@:.p16=.pal)
+
+ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin $(TAROU_PICS) $(TAROU_P16) $(BARBARA_P16) $(NINJA_P16) $(NINJA2_P16) $(NINJA3_P16)
 
 .PHONY: bitmaps cleanGfxRes
 bitmaps: $(ASSETS)

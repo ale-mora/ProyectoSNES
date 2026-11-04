@@ -115,38 +115,57 @@ MAPEOS_PIXELLAB = {
     },
     # PROVISIONAL (2026-11-04): solo lo que ya trae la primera exportación; el
     # resto sale como marcador. Los tramos se ajustarán al revisar el arte.
-    # Bárbara definitiva (2026-11-04): «Bárbara 2» CON KATANA. Todo sale del estado
-    # Fighting_pose_with_a (guardia con katana) salvo golpe_3 (estado Attack_1) y el especial
-    # (estado Fighting_pose_with_a_2, katana en llamas). Las animaciones nuevas se generaron con el
-    # MCP de Pixellab (skeleton-v3, solo el este); el cuadro 0 es la pose de partida.
+    # Bárbara definitiva (2026-11-04, segunda versión): «Bárbara pequeña», ~70 px de alto
+    # (entre Tarou, 57, y el ninja normal, 80), regenerada con Pixellab (pro flash con el
+    # aspecto de «Bárbara 2») y sus 23 animaciones en el estado Idle (skeleton-v3, solo el
+    # este). El cuadro 0 de cada animación es la pose de partida.
     "barbara": {
-        "guardia": ("Fighting_pose_with_a/Idle", "east", 0, None, False),            # 8
-        "caminar": ("Fighting_pose_with_a/caminar", "east", 0, None, False),         # 8
-        "correr": ("Fighting_pose_with_a/correr", "east", 0, None, False),           # 8
-        "saltar": ("Fighting_pose_with_a/salto", "east", 2, 5, False),               # impulso y subida (3)
-        "caer": ("Fighting_pose_with_a/salto", "east", 5, 8, False),                 # bajada (3)
-        "golpe_1": ("Fighting_pose_with_a/golpe_1", "east", 0, None, False),         # 5
-        "golpe_2": ("Fighting_pose_with_a/golpe_2", "east", 0, None, False),         # 5
-        # golpe_3 sin los cuadros 6-7 y especial sin el 2 y el 4: pasaban de las 24
-        # piezas del búfer de la protagonista incluso con la rejilla óptima.
-        "golpe_3": ("Attack_1", "east", [0, 1, 2, 3, 4, 5, 8], None, False),  # tajo descendente (7)
-        "aereo": ("Fighting_pose_with_a/aereo", "east", 0, None, False),             # 5
-        "agarre": ("Fighting_pose_with_a/agarre", "east", 1, 3, False),              # 2
-        "golpe_agarre": ("Fighting_pose_with_a/golpe_agarre", "east", 1, None, False),  # 3
-        "lanzamiento": ("Fighting_pose_with_a/lanzamiento", "east", 0, None, False), # 7
-        "agarrada": ("Fighting_pose_with_a/agarrada", "east", 1, 3, False),          # 2
-        "recibir": ("Fighting_pose_with_a/recibir", "east", 0, None, False),         # 6
-        "derribada": ("Fighting_pose_with_a/derribada_b", "east", 0, None, False),   # sin soltar la katana (7)
-        "en_suelo": ("Fighting_pose_with_a/derribada_b", "east", [6], None, False),  # el último de derribada (1)
-        "levantarse": ("Fighting_pose_with_a/levantarse", "east", 0, None, False),   # 5
-        "especial": ("Fighting_pose_with_a_2/especial", "east", [0, 1, 3, 5, 6, 7], None, False),  # corte en llamas (6)
-        "lanzar_arma": ("Fighting_pose_with_a/lanzar_arma", "east", 0, None, False), # 5
-        "recoger": ("Fighting_pose_with_a/recoger", "east", [0, 2, 3, 4], None, False),  # sin el 1 (25 piezas) (4)
-        "entrada_relevo": ("Fighting_pose_with_a/entrada_relevo", "east", 0, None, False),  # 6
-        "invocar": ("Fighting_pose_with_a/invocar", "east", 0, None, False),         # 4
-        "ko": ("Fighting_pose_with_a/ko", "east", 0, 5, False),                      # sin el último (cabeza deformada) (5)
-        "victoria": ("Fighting_pose_with_a/victoria", "east", 0, None, False),       # 6
-        "intro_venganza": ("Fighting_pose_with_a/intro_venganza", "east", 0, None, False),  # 4
+        "guardia": ("Idle/guardia", "east", 0, None, False),            # 8
+        "caminar": ("Idle/caminar", "east", 0, None, False),            # 8
+        "correr": ("Idle/correr", "east", 0, None, False),              # 8
+        "saltar": ("Idle/salto", "east", 2, 5, False),                  # impulso y subida (3)
+        "caer": ("Idle/salto", "east", 5, 8, False),                    # bajada (3)
+        "golpe_1": ("Idle/golpe_1", "east", 0, None, False),            # 5
+        "golpe_2": ("Idle/golpe_2", "east", 0, None, False),            # 5
+        "golpe_3": ("Idle/golpe_3", "east", 0, None, False),            # tajo descendente (7)
+        "aereo": ("Idle/aereo", "east", 0, None, False),                # 5
+        "agarre": ("Idle/agarre", "east", 1, 3, False),                 # 2
+        "golpe_agarre": ("Idle/golpe_agarre", "east", 1, None, False),  # 3
+        "lanzamiento": ("Idle/lanzamiento", "east", 0, None, False),    # 7
+        "agarrada": ("Idle/agarrada", "east", 1, 3, False),             # 2
+        "recibir": ("Idle/recibir", "east", 0, None, False),            # 6
+        "derribada": ("Idle/derribada", "east", 0, None, False),        # 7
+        "en_suelo": ("Idle/derribada", "east", [6], None, False),       # el último de derribada (1)
+        "levantarse": ("Idle/levantarse", "east", 0, None, False),      # 5
+        "especial": ("Idle/especial", "east", 0, None, False),          # corte circular (8)
+        "lanzar_arma": ("Idle/lanzar_arma", "east", 0, None, False),    # 5
+        "recoger": ("Idle/recoger", "east", 0, None, False),            # 5
+        "entrada_relevo": ("Idle/entrada_relevo", "east", 0, None, False),  # 6
+        "invocar": ("Idle/invocar", "east", 0, None, False),            # 4
+        "ko": ("Idle/ko", "east", 0, None, False),                      # 6
+        "victoria": ("Idle/victoria", "east", 0, None, False),          # 6
+        "intro_venganza": ("Idle/intro_venganza", "east", 0, None, False),  # 4
+    },
+    # Los ninjas mediano (~90 px) y grande (~100 px) del 2026-11-04: personajes nuevos de
+    # Pixellab con el mismo diseño, animados con plantillas (skeleton-v3, solo el este).
+    # El KO usa la misma caída que el derribo (falling-back-death).
+    "ninja_mediano": {
+        "guardia": ("Idle/guardia", "east", 0, None, False),       # 8
+        "caminar": ("Idle/caminar", "east", 0, None, False),       # 6
+        "ataque_1": ("Idle/ataque_1", "east", 0, None, False),     # 3
+        "recibir": ("Idle/recibir", "east", 0, None, False),       # 6
+        "derribado": ("Idle/derribado", "east", 0, None, False),   # 7
+        "levantarse": ("Idle/levantarse", "east", 0, None, False), # 5
+        "ko": ("Idle/derribado", "east", 0, None, False),          # 7 (la misma caída)
+    },
+    "ninja_grande": {
+        "guardia": ("Idle/guardia", "east", 0, None, False),       # 8
+        "caminar": ("Idle/caminar", "east", 0, None, False),       # 6
+        "ataque_1": ("Idle/ataque_1", "east", 0, None, False),     # 3
+        "recibir": ("Idle/recibir", "east", 0, None, False),       # 6
+        "derribado": ("Idle/derribado", "east", 0, None, False),   # 7
+        "levantarse": ("Idle/levantarse", "east", 0, None, False), # 5
+        "ko": ("Idle/derribado", "east", 0, None, False),          # 7 (la misma caída)
     },
     "ninja": {
         "guardia": ("Fighting_stance/Fight_Stance_Idle", "east", 0, None, False),  # 8 (se pidieron 4)
@@ -188,6 +207,12 @@ ANIMACIONES_NINJA = [
     ("en_suelo", 1), ("levantarse", 5), ("agarrado", 2), ("ko", 4),
 ]
 
+# Las de los ninjas mediano y grande: solo los estados que el juego ya tiene.
+ANIMACIONES_NINJA_TIPO = [
+    ("guardia", 8), ("caminar", 6), ("ataque_1", 3), ("recibir", 6), ("derribado", 7),
+    ("levantarse", 5), ("ko", 7),
+]
+
 # Cada personaje: celda (ancho, alto), animaciones, si lleva la tira estática de
 # reposo (solo Tarou: la usa src/pantallas/personajes.c) y los colores FIJOS.
 # Los fijos van primero en la paleta (índices 1..n, siempre los mismos) y se
@@ -197,15 +222,13 @@ ANIMACIONES_NINJA = [
 PERSONAJES = {
     "tarou": {"celda": (96, 64), "animaciones": ANIMACIONES, "estatico": True, "fijos": []},
     "barbara": {
-        # 144x112 (2026-11-04): con la katana mide hasta 133 px de ancho y 106 de
-        # alto. La celda es solo el marco: las piezas vacías no se guardan, y el
-        # tope real son las 24 piezas del búfer de la protagonista (piezas16.py
-        # --rejilla-optima las ajusta por cuadro).
-        "celda": (144, 112), "animaciones": ANIMACIONES_BARBARA, "estatico": False,
+        # 112x96 (2026-11-04, Bárbara pequeña): ~70 px de alto; con la katana llega a
+        # ~55 px del centro. Las piezas vacías no se guardan.
+        "celda": (112, 96), "animaciones": ANIMACIONES_BARBARA, "estatico": False,
         "fijos": [
-            (248, 204, 173), (209, 132, 111), (175, 102, 90),   # piel: luz, medio, sombra
-            (83, 58, 46),                                       # pelo castaño
-            (255, 255, 255), (182, 188, 189), (104, 106, 112),  # acero de la katana y placa del cinturón
+            (241, 185, 152), (216, 140, 117), (183, 104, 88),   # piel: luz, medio, sombra
+            (100, 63, 56), (119, 71, 63),                       # pelo castaño
+            (250, 250, 250), (173, 178, 186), (120, 124, 137),  # acero de la katana
         ],
     },
     "ninja": {
@@ -218,6 +241,20 @@ PERSONAJES = {
             (244, 164, 107), (208, 112, 79), (176, 82, 68),     # piel alrededor de los ojos
             (68, 16, 13),                                       # línea oscura del ojo
         ],
+        "recolor": (230, 30, 40),                           # traje rojo chillón (el normal)
+    },
+    # 128x112: de pie 85-102 px de alto; el puñetazo del mediano y la caída llegan a
+    # ~65 px del centro. Traje amarillo (mediano) y morado (grande), como los ninjas de
+    # las películas de Cannon de los 80 (decisión del 2026-11-04).
+    "ninja_mediano": {
+        "celda": (128, 112), "animaciones": ANIMACIONES_NINJA_TIPO, "estatico": False,
+        "fijos": [(218, 132, 97), (190, 94, 76), (151, 63, 58)],    # piel
+        "recolor": (255, 215, 0),
+    },
+    "ninja_grande": {
+        "celda": (128, 112), "animaciones": ANIMACIONES_NINJA_TIPO, "estatico": False,
+        "fijos": [(242, 166, 124), (221, 128, 97), (175, 79, 70), (110, 44, 43)],   # piel
+        "recolor": (150, 40, 220),
     },
 }
 # Un nombre que no está en PERSONAJES se trata como Tarou (celda 96x64, 14 animaciones).
@@ -411,6 +448,26 @@ def paleta_comun(cuadros: list, fijos: list = ()) -> list:
     return fijos + sorted(mejor)
 
 
+def recolorear(colores: list, n_fijos: int, objetivo: tuple) -> list:
+    """La paleta con el TRAJE recoloreado (2026-11-04: ninjas de colores chillones de las
+    películas de Cannon de los 80). Los colores fijos (piel) no se tocan; de los demás,
+    los claros y grises (luminancia ≥ 90, poca saturación: el traje blanco) pasan a una
+    rampa del color `objetivo` con la misma luz, y los oscuros (contorno, cinta y
+    cinturón negros) se quedan. Solo cambia la paleta: los índices de los píxeles, no."""
+    salida = list(colores)
+    for i in range(n_fijos, len(colores)):
+        r, g, b = colores[i]
+        luz = (299 * r + 587 * g + 114 * b) // 1000
+        if luz < 90 or max(r, g, b) - min(r, g, b) > 70:
+            continue                                      # oscuro o con color propio: se queda
+        f = (luz - 60) / (235 - 60)                       # 0 en sombra, 1 en el blanco del traje
+        tono = [min(255, int(c * (0.35 + 0.65 * min(f, 1.0)))) for c in objetivo]
+        if f > 1.0:                                       # brillo por encima del blanco: hacia blanco
+            tono = [min(255, int(c + (255 - c) * (f - 1.0) * 2)) for c in tono]
+        salida[i] = tuple(tono)
+    return salida
+
+
 def indexar(tira_rgba: Image.Image, colores: list) -> Image.Image:
     """Tira en modo P: índice 0 = transparente (magenta en la paleta), 1.. = colores."""
     paleta = list(TRANSPARENTE) + [c for col in colores for c in col]
@@ -526,13 +583,22 @@ def preparar(nombre: str, entrada: Path, salida: Path) -> dict:
     con_arte = [c for a, cuadros in alineados.items() if por_animacion[a][1] != "marcador" for c in cuadros]
     colores = paleta_comun(con_arte or [c for cuadros in alineados.values() for c in cuadros], config["fijos"])
 
+    # Con "recolor", la paleta que se GUARDA lleva el traje de otro color; los píxeles se
+    # asignan con la original (indexar busca el color más cercano en `colores`).
+    guardada = (recolorear(colores, len(config["fijos"]), config["recolor"])
+                if config.get("recolor") else None)
+
     salida.mkdir(parents=True, exist_ok=True)
     resultado = {}
     for animacion, cuadros in alineados.items():
         tira = Image.new("RGBA", (CELDA_ANCHO * len(cuadros), CELDA_ALTO), (0, 0, 0, 0))
         for k, c in enumerate(cuadros):
             tira.paste(c, (k * CELDA_ANCHO, 0), c)
-        indexar(tira, colores).save(salida / f"{nombre}_{animacion}.png", format="PNG")
+        im = indexar(tira, colores)
+        if guardada:
+            im.putpalette(list(TRANSPARENTE) + [v for col in guardada for v in col]
+                          + [0, 0, 0] * (256 - 1 - len(guardada)))
+        im.save(salida / f"{nombre}_{animacion}.png", format="PNG")
         resultado[animacion] = len(cuadros)
         print(f"  {nombre}_{animacion}.png  {len(cuadros)} cuadros  ({por_animacion[animacion][1]})")
     # Tira ESTÁTICA de reposo para intro y título (src/pantallas/personajes.c):

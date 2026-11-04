@@ -13,7 +13,7 @@
       ninguno.
 
     VARIABLES (constantes)
-      BARBARA_<ANIMACION>_CUADROS  1..10  cuadros de 144x112 de esa tira
+      BARBARA_<ANIMACION>_CUADROS  1..10  cuadros de 112x96 de esa tira
       BARBARA_ANIMACIONES          25      cuántas animaciones hay
 ---------------------------------------------------------------------------------*/
 #ifndef BARBARA_ANIM_H
@@ -36,12 +36,12 @@
 #define BARBARA_DERRIBADA_CUADROS 7
 #define BARBARA_EN_SUELO_CUADROS 1
 #define BARBARA_LEVANTARSE_CUADROS 5
-#define BARBARA_ESPECIAL_CUADROS 6
+#define BARBARA_ESPECIAL_CUADROS 8
 #define BARBARA_LANZAR_ARMA_CUADROS 5
-#define BARBARA_RECOGER_CUADROS 4
+#define BARBARA_RECOGER_CUADROS 5
 #define BARBARA_ENTRADA_RELEVO_CUADROS 6
 #define BARBARA_INVOCAR_CUADROS 4
-#define BARBARA_KO_CUADROS 5
+#define BARBARA_KO_CUADROS 6
 #define BARBARA_VICTORIA_CUADROS 6
 #define BARBARA_INTRO_VENGANZA_CUADROS 4
 

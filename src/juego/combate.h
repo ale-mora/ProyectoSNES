@@ -51,7 +51,7 @@ u8 combate_en_caja(const Cuerpo *c, u16 tx, u16 ty);
 u8 combate_caja(u16 ax, u16 ay, u8 mira_izq, u16 alcance, u16 profundidad, u16 tx, u16 ty);
 
 /* Un frame de combate de los ninjas contra Tarou: cada ninja con el tajo activo cuyo golpe
-   alcanza a Tarou le hace NINJA_DANIO (mundo_recibir) y no vuelve a pegar en ese tajo (aunque
+   alcanza a Tarou le hace ninja_danio() (2, 3 o 4 según el tipo) (mundo_recibir) y no vuelve a pegar en ese tajo (aunque
    Tarou fuera invulnerable: el golpe se pierde). Devuelve PARADA_GOLPE si alguno le dio,
    PARADA_DERRIBO si lo dejó KO, 0 si ninguno. */
 u8 combate_ninjas_resolver(Ninja *n, Cuerpo *c);

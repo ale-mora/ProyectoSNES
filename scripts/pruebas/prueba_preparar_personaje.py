@@ -314,39 +314,56 @@ class PruebasCeldaYPaletaFija(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_barbara_celda_144x112_sin_escalar(self):
-        """Bárbara (celda 144x112): una figura de 40x80 en un lienzo de 144 px no se
-        reduce, queda centrada en la columna 72 con los pies en la fila 111, sale
-        de "estado/animación" (Fighting_pose_with_a/caminar), las animaciones sin
-        arte son marcadores de 144x112 y no hay tira estática."""
-        carpeta = self.entrada / "Fighting_pose_with_a" / "animations" / "caminar" / "east"
+    def test_barbara_celda_112x96_sin_escalar(self):
+        """Bárbara (celda 112x96, la de ~70 px): una figura de 40x80 en un lienzo de 112 px
+        no se reduce, queda centrada en la columna 56 con los pies en la fila 95, sale de
+        "estado/animación" (Idle/caminar), las animaciones sin arte son marcadores de
+        112x96 y no hay tira estática."""
+        carpeta = self.entrada / "Idle" / "animations" / "caminar" / "east"
         carpeta.mkdir(parents=True)
         for k in range(6):
-            im = Image.new("RGBA", (144, 144), (0, 0, 0, 0))
-            ImageDraw.Draw(im).rectangle((52, 48, 91, 127), fill=COLORES_CUADRO[k] + (255,))
+            im = Image.new("RGBA", (112, 112), (0, 0, 0, 0))
+            ImageDraw.Draw(im).rectangle((36, 16, 75, 95), fill=COLORES_CUADRO[k] + (255,))
             im.save(carpeta / f"frame_{k:03d}.png")
         resultado = pp.preparar("barbara", self.entrada, self.salida)
         self.assertEqual(resultado["caminar"], 6)
         self.assertEqual(len(resultado), len(pp.ANIMACIONES_BARBARA))
         with Image.open(self.salida / "barbara_caminar.png") as im:
-            self.assertEqual(im.size, (144 * 6, 112))
-            b = im.crop((0, 0, 144, 112)).point(lambda i: 255 if i != 0 else 0).getbbox()
+            self.assertEqual(im.size, (112 * 6, 96))
+            b = im.crop((0, 0, 112, 96)).point(lambda i: 255 if i != 0 else 0).getbbox()
             self.assertEqual((b[2] - b[0], b[3] - b[1]), (40, 80))     # sin escalar
-            self.assertEqual(b[3], 112)                                  # pies en la fila 111
-            self.assertEqual((b[0] + b[2]) // 2, 72)                     # centrado
+            self.assertEqual(b[3], 96)                                   # pies en la fila 95
+            self.assertEqual((b[0] + b[2]) // 2, 56)                     # centrado
         with Image.open(self.salida / "barbara_agarre.png") as im:      # marcador
-            self.assertEqual(im.size, (144 * 2, 112))
+            self.assertEqual(im.size, (112 * 2, 96))
         self.assertFalse((self.salida / "barbara_reposo_estatico.png").exists())
         texto = (self.salida / "barbara_anim.h").read_text(encoding="utf-8")
         self.assertIn("#define BARBARA_ANIMACIONES 25", texto)
-        self.assertIn("cuadros de 144x112", texto)
+        self.assertIn("cuadros de 112x96", texto)
+
+    def test_recolor_cambia_solo_el_traje(self):
+        """recolorear: los fijos (piel) y los oscuros se quedan; el blanco y los grises
+        del traje pasan al color pedido con su luz."""
+        colores = [(244, 164, 107), (3, 3, 4), (235, 237, 235), (125, 130, 155)]
+        nuevos = pp.recolorear(colores, 1, (230, 30, 40))
+        self.assertEqual(nuevos[0], colores[0])                  # fijo: piel
+        self.assertEqual(nuevos[1], colores[1])                  # oscuro: contorno
+        r, g, b = nuevos[2]
+        self.assertTrue(r > 200 and g < 80 and b < 80)           # el blanco, rojo vivo
+        r, g, b = nuevos[3]
+        self.assertTrue(r > g and r > b and r < nuevos[2][0])    # el gris, rojo más oscuro
 
     def test_ninja_celda_96x96_y_lista_de_cuadros(self):
         """El ninja va en 96x96 para que quepa tumbado: una figura de 88x30 (en el
         suelo) no se recorta. ataque_2 toma una LISTA de cuadros y salta el 6."""
         exportar_pixellab(self.entrada, "Walking", "east", 6, lienzo=(128, 128), ancho=88, alto=30)
         exportar_pixellab(self.entrada, "Throwing_shuriken", "east", 9, lienzo=(128, 128), ancho=40, alto=80)
-        resultado = pp.preparar("ninja", self.entrada, self.salida)
+        recolor = pp.PERSONAJES["ninja"].pop("recolor", None)   # los colores de prueba, tal cual
+        try:
+            resultado = pp.preparar("ninja", self.entrada, self.salida)
+        finally:
+            if recolor:
+                pp.PERSONAJES["ninja"]["recolor"] = recolor
         with Image.open(self.salida / "ninja_caminar.png") as im:
             self.assertEqual(im.size, (96 * 6, 96))
             b = im.crop((0, 0, 96, 96)).point(lambda i: 255 if i != 0 else 0).getbbox()

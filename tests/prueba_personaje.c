@@ -58,9 +58,9 @@ void pruebas_personaje(void)
 
     /* Celdas y alcances. */
     COMPROBAR(personaje_ancho(PERSONAJE_TAROU) == 96 && personaje_alto(PERSONAJE_TAROU) == 64);
-    COMPROBAR(personaje_ancho(PERSONAJE_BARBARA) == 144 && personaje_alto(PERSONAJE_BARBARA) == 112);
+    COMPROBAR(personaje_ancho(PERSONAJE_BARBARA) == 112 && personaje_alto(PERSONAJE_BARBARA) == 96);
     COMPROBAR(personaje_alcance(PERSONAJE_TAROU) == COMBATE_ALCANCE);
-    COMPROBAR(personaje_alcance(PERSONAJE_BARBARA) == 72);
+    COMPROBAR(personaje_alcance(PERSONAJE_BARBARA) == ALCANCE_BARBARA && ALCANCE_BARBARA > COMBATE_ALCANCE);
 
     /* Avance: cambiar de animación empieza en el cuadro 0 sin contar ese frame. */
     memset(&e, 0, sizeof(e));

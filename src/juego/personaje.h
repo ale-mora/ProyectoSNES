@@ -87,14 +87,14 @@ typedef struct
 } AnimEstado;
 
 #define ALCANCE_TAROU 52                 /* Px por delante de los pies (combate.h).       */
-#define ALCANCE_BARBARA 72               /* Hasta la punta de su katana.                  */
+#define ALCANCE_BARBARA 60               /* Hasta la punta de su katana (~55 px desde que mide ~70). */
 
 extern u8 personaje_elegido;
 
 /* La tabla de animaciones del personaje (ANIM_PROTA_CANTIDAD entradas). */
 const AnimProta *personaje_anims(u8 personaje);
 
-/* Ancho y alto de su celda (Tarou 96x64, Bárbara 144x112). */
+/* Ancho y alto de su celda (Tarou 96x64, Bárbara 112x96). */
 u8 personaje_ancho(u8 personaje);
 u8 personaje_alto(u8 personaje);
 

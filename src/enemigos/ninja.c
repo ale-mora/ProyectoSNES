@@ -30,6 +30,10 @@
 /* static const: se queda en la ROM. Tres carriles repartidos entre CARRIL_Y_MIN y MAX. */
 static const u16 CARRIL_ENTRADA[NINJAS_MAX] = {200, 188, 212};
 
+/* Vida y daño de cada tipo (normal, mediano, grande). */
+static const u8 VIDA_TIPO[NINJA_TIPOS] = {NINJA_VIDA, 6, 8};
+static const u8 DANIO_TIPO[NINJA_TIPOS] = {NINJA_DANIO, 3, 4};
+
 /* El puñetazo, por grupos de 4 frames del ataque: carga (0), a medio camino (1), puño fuera
    (2) mientras la caja golpea (frames 12..19), y vuelta. */
 static const u8 ATAQUE_DIBUJO[NINJA_ATAQUE_FRAMES >> 2] = {0, 0, 1, 2, 2, 1, 0};
@@ -63,6 +67,7 @@ void ninja_iniciar_todos(Ninja *n)
         n->empuje = 0;
         n->espera = 0;
         n->conecto = 0;
+        n->tipo = k;
         n->x = 0;
         n->y = 0;
         n++;                                         /* Siguiente ranura: sin a[k] (tcc__mul). */
@@ -99,7 +104,8 @@ u8 ninja_oleada(Ninja *n, u16 camara, u8 zona)
             n->reloj = k;                            /* Desfasados: no pisan el mismo paso. */
             n->estado = NINJA_PARADO;
             n->dentro = 0;                           /* Viene de fuera de la pantalla.      */
-            n->vida = NINJA_VIDA;
+            n->tipo = k;                             /* La ranura k es el tipo k.           */
+            n->vida = VIDA_TIPO[k];
             n->id_golpe = 0;                         /* Ningún tajo lo ha tocado todavía.   */
             n->timer = 0;
             n->empuje = 0;
@@ -197,8 +203,14 @@ void ninja_actualizar(Ninja *n, u16 obj_x, u16 obj_y)
         n->espera--;                                 /* El descanso se gasta andando o parado. */
     }
 
-    /*--- 1 y 2. Mirar hacia el objetivo y acercarse en x hasta NINJA_DISTANCIA ------*/
-    if (!n->dentro)                                  /* Aún fuera de la pantalla: sigue recto  */
+    /*--- 1 y 2. Mirar hacia el objetivo y acercarse en x hasta NINJA_DISTANCIA ------
+        El grande es más lento: uno de cada cuatro frames no da el paso en x. */
+    if (n->tipo == NINJA_GRANDE && (n->reloj & 3) == 0 && n->dentro)
+    {
+        n->mira_izq = (u8)(n->x > obj_x);            /* Solo mira; da el paso el siguiente, */
+        anda = (u8)((n->x > obj_x ? n->x - obj_x : obj_x - n->x) > NINJA_DISTANCIA);   /* pero */
+    }                                                /* sigue andando (sin saltos al dibujo de guardia). */
+    else if (!n->dentro)                                  /* Aún fuera de la pantalla: sigue recto  */
     {                                                /* hacia dentro (hacia donde mira desde que */
         n->x = (u16)(n->mira_izq ? n->x - NINJA_PASO_X     /* nació) sin pararse, ni siquiera */
                                  : n->x + NINJA_PASO_X);   /* sobre el objetivo, hasta que     */
@@ -346,6 +358,11 @@ u8 ninja_parpadea(const Ninja *n)
     }
     pasado = (u8)(NINJA_DERRIBO_FRAMES - n->timer);
     return (u8)(pasado >= KO_PARPADEO_DESDE && (n->reloj & 2));
+}
+
+u8 ninja_danio(const Ninja *n)
+{
+    return DANIO_TIPO[n->tipo];
 }
 
 u8 ninja_vivos(const Ninja *n)

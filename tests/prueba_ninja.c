@@ -208,4 +208,24 @@ void pruebas_ninja(void)
         k = ninja_dibujo(&n[0]);
         COMPROBAR(k >= NINJA_DIB_KO && k < NINJA_DIBUJOS);
     }
+
+    /* Los tres tipos (2026-11-04): la ranura k es el tipo k, con su vida y su daño. */
+    ninja_iniciar_todos(n);
+    COMPROBAR(ninja_oleada(n, 0, 2) == 3);
+    COMPROBAR(n[0].tipo == NINJA_NORMAL && n[0].vida == 4 && ninja_danio(&n[0]) == 2);
+    COMPROBAR(n[1].tipo == NINJA_MEDIANO && n[1].vida == 6 && ninja_danio(&n[1]) == 3);
+    COMPROBAR(n[2].tipo == NINJA_GRANDE && n[2].vida == 8 && ninja_danio(&n[2]) == 4);
+    /* Zona 1: un normal y un mediano. */
+    ninja_iniciar_todos(n);
+    COMPROBAR(ninja_oleada(n, 0, 1) == 2 && n[0].tipo == NINJA_NORMAL && n[1].tipo == NINJA_MEDIANO);
+    /* El grande avanza 3 de cada 4 frames y no deja de andar (sin saltar a la guardia). */
+    ninja_iniciar_todos(n);
+    n[2].vivo = 1; n[2].tipo = NINJA_GRANDE; n[2].dentro = 1; n[2].x = 500; n[2].y = 200;
+    n[2].reloj = 0; n[2].estado = NINJA_PARADO;
+    for (f = 0; f < 40; f++)
+    {
+        ninja_actualizar(&n[2], 300, 200);
+        COMPROBAR(n[2].estado == NINJA_ANDANDO);
+    }
+    COMPROBAR(n[2].x == 500 - 30);
 }

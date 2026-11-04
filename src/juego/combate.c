@@ -76,7 +76,7 @@ u8 combate_ninjas_resolver(Ninja *n, Cuerpo *c)
             combate_caja(n->x, n->y, n->mira_izq, NINJA_ALCANCE, NINJA_PROFUNDIDAD, c->x, c->y))
         {
             n->conecto = 1;                          /* Este tajo ya no pega más.           */
-            if (mundo_recibir(c, NINJA_DANIO, n->mira_izq))   /* El golpe va hacia donde mira el ninja. */
+            if (mundo_recibir(c, ninja_danio(n), n->mira_izq))   /* El golpe va hacia donde mira el ninja. */
             {
                 parada = (u8)(c->vida == 0 ? PARADA_DERRIBO : PARADA_GOLPE);
             }
