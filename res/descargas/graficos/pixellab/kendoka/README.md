@@ -9,7 +9,8 @@ que usa las mismas paletas 1 a 3 en varios colores de bogu.
 
 ## Formato de la celda
 
-- **Celda de 64×96**, figura de **88 px** con los pies en la última fila.
+- **Celda de 96×96**, como el ninja (tumbado no cabe en 64), figura de
+  **74–81 px** como «Ninja 1», con los pies en la última fila.
 - Mirando a la **derecha**; **15 colores + transparente**, una paleta, sin
   sombra ni suelo. Hasta **21 piezas de 16×16** por cuadro; el shinai dentro
   de la celda.

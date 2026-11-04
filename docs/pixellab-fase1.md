@@ -61,7 +61,8 @@ Medido sobre el arte real de Tarou: su figura de pie mide **57 px de alto** y
 | Tarou | 96×64 | **57** (♻) | su arte actual |
 | Rex, Fenrir (perros) | 96×64 | **56–57**, como Tarou | ver §4 |
 | Lucinda (gata) | 64×64 | **52** | ver §4 |
-| Bárbara, ninjas, Nikoraemon | 64×96 | **88–90** | prueba de carga (93) |
+| Bárbara, Nikoraemon | 64×96 | **88–90** | prueba de carga (93) |
+| Ninjas, kendokas | **96×96** (2026-11-04) | **74–81** (el arte definitivo de «Ninja 1») | tumbado mide hasta 88 px de ancho |
 | Gomasuri-dono (jefe) | 96×96 | **90** (riesgo de presupuesto, §3.1) | ver §3 |
 
 **Aviso:** `res/personajes/barbara_samurai.png` (el sprite de Bárbara de la
@@ -78,7 +79,8 @@ como mucho, sin contar las vacías.
 | Celda | Bytes por cuadro lleno | Cuadros por tira (≤ 32 KB) | Tope de trabajo |
 |---|---|---|---|
 | 96×64 (Tarou, Rex, Fenrir) | ≤ 3 KB | 10 | 10 |
-| 64×96 (Bárbara, ninjas, Nikoraemon) | ≤ 2,7 KB | 10 | 10 |
+| 64×96 (Bárbara, Nikoraemon) | ≤ 2,7 KB | 10 | 10 |
+| 96×96 (ninjas, kendokas) | ≤ 2,7 KB: siguen siendo ≤ 21 piezas, las vacías no se guardan | 10 | 10 |
 | 96×96 (Gomasuri-dono) | ~4,6 KB si está lleno | ~6 | **6** por tira; si hace falta más, partirla en dos |
 | 64×64 (Lucinda) | ≤ 2 KB | 10 | 10 |
 
@@ -210,7 +212,13 @@ Prompt base de busto: `pixel art bust portrait, head and shoulders, facing right
 
 ---
 
-## 2. Enemigos: ninjas (celda 64×96, altura 88)
+## 2. Enemigos: ninjas (celda 96×96, altura 74–81)
+
+**Celda (2026-11-04): 96×96, no 64×96.** De pie, «Ninja 1» mide 74–81 px de alto
+y 42–55 de ancho, pero derribado, en el suelo y en el KO llega a 73–88 px de
+ancho y en 64 se recortaba. Las piezas vacías no se guardan, así que la celda
+más ancha no cuesta VRAM; solo las poses anchas usan más sprites por línea.
+Al integrar el arte, `NINJA_ANCHO` (`src/enemigos/ninja.h`) pasa de 64 a 96.
 
 **Actualizado (2026-10-26):** los enemigos normales son **ninjas de varios colores
 de traje**. Los **kendokas** (con bogu y shinai) aparecen **solo con el jefe**
@@ -264,7 +272,7 @@ kendokas). Confirmar al ver el arte.
 
 ### 2.3 Presupuesto de un cuadro
 
-Un ninja de 64×96 a 88 px de alto cabe en **15–21 piezas** no vacías (la prueba
+Un ninja de 88 px de alto cabe en **15–21 piezas** no vacías (la prueba
 de carga, `diseno-beat-em-up.md` §9.2). **La espada del ataque se queda dentro de la
 celda**: si sale del borde, el cuadro se pasa de piezas.
 
@@ -284,7 +292,7 @@ celda**: si sale del borde, el cuadro se pasa de piezas.
 Los kendokas tienen **varios colores de traje**, como los ninjas, y **aparecen solo
 en la pelea del jefe**, donde no hay ninjas (decidido). Por eso usan las paletas 1
 a 3 sin conflicto. Son humanos con **bogu** (armadura de kendo) y **shinai**; su
-celda es 64×96 y su altura de figura 88 px, igual que los ninjas.
+celda es 96×96, igual que la de los ninjas (tumbados tampoco caben en 64).
 
 Prompt base: `pixel art, full body side view facing right, Japanese kendo fighter in [COLOR] bogu armor with a men mask, holding a bamboo shinai, a flat-colored belt in one solid color, limited palette of 15 colors, flat shading, no anti-aliasing, transparent background, no ground, no shadow`
 

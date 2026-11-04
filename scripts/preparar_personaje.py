@@ -90,7 +90,8 @@ ANIMACIONES = [
 
 # De qué parte de la exportación NATIVA de Pixellab sale cada animación del juego
 # (decisión del 2026-10-19, docs/diseno-demo-jugable.md §10). Cada entrada es
-# (estado de Pixellab [o "estado/animación" si el estado tiene varias], dirección, primer cuadro, cuadro final sin incluir o None
+# (estado de Pixellab [o "estado/animación" si el estado tiene varias], dirección,
+# primer cuadro [o una LISTA de cuadros, para saltar alguno], cuadro final sin incluir o None
 # = hasta el último, al revés). primer cuadro = None significa una pose FIJA: la
 # imagen <estado>/rotations/<dirección>.png como único cuadro. Todo mira al este
 # (la izquierda la hace el espejo del hardware) salvo dormir: Pixellab solo
@@ -124,17 +125,21 @@ MAPEOS_PIXELLAB = {
         # Generadas el 2026-11-04 con el MCP de Pixellab (skeleton-v3, solo el este)
         # sobre el estado Fighting_stance. El cuadro 0 es la pose de partida.
         "bloqueo": ("Fighting_stance/bloqueo", "east", 1, 3, False),     # brazos arriba (2)
-        # agarre y lanzamiento, "en el sitio": sin avanzar, para que quepan en 64 px
-        # (el juego mueve al ninja); las versiones que avanzaban se salían 10-12 px.
+        # agarre y lanzamiento, "en el sitio": sin avanzar (el juego mueve al
+        # ninja); las versiones que avanzaban se salían 10-12 px de los 64 de entonces.
         "agarre": ("Fighting_stance/agarre_sitio", "east", 1, 3, False),     # estira y cierra las manos (2)
         "lanzamiento": ("Fighting_stance/lanzamiento_corto", "east", 0, None, False),  # encoge y empuja (6)
         "agarrado": ("Fighting_stance/agarrado", "east", 1, 3, False),   # forcejea agachado (2)
         "caminar": ("Walking", "east", 0, None, False),                # 6 (se pidieron 8)
         "ataque_1": ("Jab_Punch", "east", 0, None, False),             # puñetazo, sin espada
-        "ataque_2": ("Throwing_shuriken", "east", 0, None, False),     # 9
+        # Sin el cuadro 6: es una estela blanca enorme (22 piezas, el tope es 21).
+        # La estela y el shuriken son efectos aparte (paletas 5 y 7, pixellab-fase1 §5).
+        "ataque_2": ("Throwing_shuriken", "east", [0, 1, 2, 3, 4, 5, 7, 8], None, False),  # 8
         "recibir": ("Taking_Punch", "east", 0, None, False),           # 6 (se pidieron 2)
         "derribado": ("Falling_back", "east", 0, None, False),         # 7
-        "en_suelo": ("Defeated", "east", None, None, False),           # pose fija, tumbado
+        # en_suelo = el último cuadro de derribado. La pose fija Defeated está dibujada
+        # con otro estilo (más grande y con la cara naranja al reducir la paleta).
+        "en_suelo": ("Falling_back", "east", [6], None, False),       # tumbado (1)
         "levantarse": ("Get_up", "east", 0, None, False),              # 5
         "ko": ("Falling_defeated", "east", 0, None, False),            # 7
     },
@@ -172,7 +177,11 @@ PERSONAJES = {
         ],
     },
     "ninja": {
-        "celda": (64, 96), "animaciones": ANIMACIONES_NINJA, "estatico": False,
+        # 96x96 (2026-11-04): de pie mide 74-81 px de alto y 42-55 de ancho, pero
+        # tumbado (en_suelo, derribado, ko) llega a 88 px de ancho y no cabe en 64.
+        # Las piezas vacías no se guardan, así que la celda más ancha no gasta VRAM:
+        # solo las poses anchas ocupan más sprites por línea.
+        "celda": (96, 96), "animaciones": ANIMACIONES_NINJA, "estatico": False,
         "fijos": [
             (244, 164, 107), (208, 112, 79), (176, 82, 68),     # piel alrededor de los ojos
             (68, 16, 13),                                       # línea oscura del ojo
@@ -269,7 +278,10 @@ def cargar_pixellab(entrada: Path, regla: tuple, celda_wh: tuple = (CELDA_ANCHO,
     for f in archivos:
         with Image.open(f) as im:
             cuadros.append(im.convert("RGBA"))
-    cuadros = cuadros[desde:hasta]
+    if isinstance(desde, (list, tuple)):              # lista de cuadros: salta los que sobran
+        cuadros = [cuadros[i] for i in desde]
+    else:
+        cuadros = cuadros[desde:hasta]
     if al_reves:
         cuadros = cuadros[::-1]
     return anclar(cuadros, celda_wh, nombre) if cuadros else None

@@ -315,25 +315,47 @@ class PruebasCeldaYPaletaFija(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_celda_64x96_sin_escalar(self):
-        """El ninja (celda 64x96): una figura de 40x80 en un lienzo de 128 px no se
+        """Bárbara (celda 64x96): una figura de 40x80 en un lienzo de 128 px no se
         reduce, queda centrada en la columna 32 con los pies en la fila 95, las
         animaciones sin arte son marcadores de 64x96 y no hay tira estática."""
         exportar_pixellab(self.entrada, "Walking", "east", 6, lienzo=(128, 128), ancho=40, alto=80)
-        resultado = pp.preparar("ninja", self.entrada, self.salida)
+        resultado = pp.preparar("barbara", self.entrada, self.salida)
         self.assertEqual(resultado["caminar"], 6)
-        self.assertEqual(len(resultado), len(pp.ANIMACIONES_NINJA))
-        with Image.open(self.salida / "ninja_caminar.png") as im:
+        self.assertEqual(len(resultado), len(pp.ANIMACIONES_BARBARA))
+        with Image.open(self.salida / "barbara_caminar.png") as im:
             self.assertEqual(im.size, (64 * 6, 96))
             b = im.crop((0, 0, 64, 96)).point(lambda i: 255 if i != 0 else 0).getbbox()
             self.assertEqual((b[2] - b[0], b[3] - b[1]), (40, 80))     # sin escalar
             self.assertEqual(b[3], 96)                                   # pies en la fila 95
             self.assertEqual((b[0] + b[2]) // 2, 32)                     # centrado
-        with Image.open(self.salida / "ninja_bloqueo.png") as im:       # marcador
+        with Image.open(self.salida / "barbara_agarre.png") as im:      # marcador
             self.assertEqual(im.size, (64 * 2, 96))
-        self.assertFalse((self.salida / "ninja_reposo_estatico.png").exists())
-        texto = (self.salida / "ninja_anim.h").read_text(encoding="utf-8")
-        self.assertIn("#define NINJA_ANIMACIONES 13", texto)
+        self.assertFalse((self.salida / "barbara_reposo_estatico.png").exists())
+        texto = (self.salida / "barbara_anim.h").read_text(encoding="utf-8")
+        self.assertIn("#define BARBARA_ANIMACIONES 25", texto)
         self.assertIn("cuadros de 64x96", texto)
+
+    def test_ninja_celda_96x96_y_lista_de_cuadros(self):
+        """El ninja va en 96x96 para que quepa tumbado: una figura de 88x30 (en el
+        suelo) no se recorta. ataque_2 toma una LISTA de cuadros y salta el 6."""
+        exportar_pixellab(self.entrada, "Walking", "east", 6, lienzo=(128, 128), ancho=88, alto=30)
+        exportar_pixellab(self.entrada, "Throwing_shuriken", "east", 9, lienzo=(128, 128), ancho=40, alto=80)
+        resultado = pp.preparar("ninja", self.entrada, self.salida)
+        with Image.open(self.salida / "ninja_caminar.png") as im:
+            self.assertEqual(im.size, (96 * 6, 96))
+            b = im.crop((0, 0, 96, 96)).point(lambda i: 255 if i != 0 else 0).getbbox()
+            self.assertEqual((b[2] - b[0], b[3] - b[1]), (88, 30))     # entero, sin recorte
+            self.assertEqual((b[0] + b[2]) // 2, 48)                     # centrado en 96
+        self.assertEqual(resultado["ataque_2"], 8)
+        with Image.open(self.salida / "ninja_ataque_2.png") as im:
+            rgb = im.convert("RGB")
+            vistos = []
+            for k in range(8):
+                c = rgb.getpixel((k * 96 + 48, 60))
+                vistos.append(min(range(len(COLORES_CUADRO)),
+                                  key=lambda j: sum((a - q) ** 2 for a, q in zip(c, COLORES_CUADRO[j]))))
+            self.assertEqual(vistos, [0, 1, 2, 3, 4, 5, 7, 8])
+        self.assertIn("cuadros de 96x96", (self.salida / "ninja_anim.h").read_text(encoding="utf-8"))
 
     def test_color_fijo_sobrevive(self):
         """Un color de pocos píxeles (la piel) junto a 30 grises que llenarían los
