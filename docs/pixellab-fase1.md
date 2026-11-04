@@ -61,7 +61,8 @@ Medido sobre el arte real de Tarou: su figura de pie mide **57 px de alto** y
 | Tarou | 96×64 | **57** (♻) | su arte actual |
 | Rex, Fenrir (perros) | 96×64 | **56–57**, como Tarou | ver §4 |
 | Lucinda (gata) | 64×64 | **52** | ver §4 |
-| Bárbara, Nikoraemon | 64×96 | **88–90** | prueba de carga (93) |
+| Bárbara | **144×112** (2026-11-04) | **90–93** (el arte definitivo de «Bárbara 2», con katana) | con la katana mide hasta 133 px de ancho |
+| Nikoraemon | 64×96 | **88–90** | prueba de carga (93) |
 | Ninjas, kendokas | **96×96** (2026-11-04) | **74–81** (el arte definitivo de «Ninja 1») | tumbado mide hasta 88 px de ancho |
 | Gomasuri-dono (jefe) | 96×96 | **90** (riesgo de presupuesto, §3.1) | ver §3 |
 
@@ -79,7 +80,8 @@ como mucho, sin contar las vacías.
 | Celda | Bytes por cuadro lleno | Cuadros por tira (≤ 32 KB) | Tope de trabajo |
 |---|---|---|---|
 | 96×64 (Tarou, Rex, Fenrir) | ≤ 3 KB | 10 | 10 |
-| 64×96 (Bárbara, Nikoraemon) | ≤ 2,7 KB | 10 | 10 |
+| 64×96 (Nikoraemon) | ≤ 2,7 KB | 10 | 10 |
+| 144×112 (Bárbara) | ≤ 3 KB: el tope son las **24 piezas** del búfer de la protagonista, no la celda | 10 | 10 |
 | 96×96 (ninjas, kendokas) | ≤ 2,7 KB: siguen siendo ≤ 21 piezas, las vacías no se guardan | 10 | 10 |
 | 96×96 (Gomasuri-dono) | ~4,6 KB si está lleno | ~6 | **6** por tira; si hace falta más, partirla en dos |
 | 64×64 (Lucinda) | ≤ 2 KB | 10 | 10 |
@@ -155,7 +157,17 @@ Base del prompt, común a todas las de combate:
 Las **cajas** de golpe de los ataques (`.cajas.json`) se hacen sobre el arte
 una vez salido, no antes.
 
-### 1.2 Bárbara (64×96, altura 88–90) [ ]
+### 1.2 Bárbara (144×112, altura 90–93) [x]
+
+**Hecho (2026-11-04).** «Bárbara 2» con katana es la definitiva. Las 25
+animaciones salen del estado `Fighting_pose_with_a` (21 generadas con el MCP,
+skeleton-v3, solo el este), salvo `golpe_3` (estado `Attack_1`) y `especial`
+(estado `Fighting_pose_with_a_2`, katana en llamas). Celda de **144×112**: la
+katana llega a 133 px de ancho. Cada cuadro cabe en las **24 piezas** del búfer de
+la protagonista con `piezas16.py --rejilla-optima`; para eso se quitaron 5
+cuadros (golpe_3 6–7, especial 2 y 4, recoger 1) y el último del KO, que salió
+deformado. El mapeo está en `MAPEOS_PIXELLAB["barbara"]`. Lo de abajo es el
+encargo original.
 
 Bárbara no tiene arte de juego. El `res/personajes/barbara_samurai.png` es un
 sprite de pack de 64×64 (figura de 36 px): **no es referencia de escala**. Hay

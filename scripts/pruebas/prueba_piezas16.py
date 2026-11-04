@@ -89,5 +89,38 @@ class PruebaFormato(unittest.TestCase):
         self.assertEqual(pal[2:4], bytes((0x1F, 0x00)))
 
 
+class PruebaRejillaOptima(unittest.TestCase):
+    def test_bloque_desplazado_cabe_en_una_pieza(self):
+        """Un bloque de 16×16 en (8, 8): con la rejilla de siempre ocupa 4 piezas,
+        con la óptima 1, en (8, 8), y el espejo sigue dentro de la celda."""
+        img = Image.new("P", (48, 48), 0)
+        for y in range(8, 24):
+            for x in range(8, 24):
+                img.putpixel((x, y), 3)
+        self.assertEqual(len(p16.piezas_no_vacias(img)), 4)
+        self.assertEqual(p16.piezas_rejilla_optima(img), [(8, 8)])
+        datos, listas = p16.construir_p16([img], rejilla_optima=True)
+        dp, dt, n, _, de = struct.unpack_from("<HHBBH", datos, 0)
+        self.assertEqual(n, 1)
+        self.assertEqual(datos[dp:dp + 2], bytes((8, 8)))
+        self.assertEqual(datos[de:de + 2], bytes((48 - 16 - 8, 8)))      # espejo
+        # Color 3 en toda la pieza: planos 0 y 1 llenos (0xFF), 2 y 3 vacíos.
+        self.assertEqual(datos[dt:dt + 128].count(0xFF), 64)
+
+    def test_sin_ganancia_deja_la_rejilla_de_siempre(self):
+        """Si ningún desplazamiento ahorra piezas, la lista es la de siempre."""
+        img = cuadro_con_piezas(3)
+        self.assertEqual(p16.piezas_rejilla_optima(img), p16.piezas_no_vacias(img))
+
+    def test_no_sale_de_la_celda(self):
+        """Un píxel en la esquina (0, 0) obliga a la rejilla (0, 0): la pieza no
+        puede empezar en x o y negativas."""
+        img = Image.new("P", (32, 32), 0)
+        img.putpixel((0, 0), 1)
+        img.putpixel((17, 17), 1)
+        for dx, dy in p16.piezas_rejilla_optima(img):
+            self.assertTrue(0 <= dx <= 32 - 16 and 0 <= dy <= 32 - 16)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -115,10 +115,38 @@ MAPEOS_PIXELLAB = {
     },
     # PROVISIONAL (2026-11-04): solo lo que ya trae la primera exportación; el
     # resto sale como marcador. Los tramos se ajustarán al revisar el arte.
+    # Bárbara definitiva (2026-11-04): «Bárbara 2» CON KATANA. Todo sale del estado
+    # Fighting_pose_with_a (guardia con katana) salvo golpe_3 (estado Attack_1) y el especial
+    # (estado Fighting_pose_with_a_2, katana en llamas). Las animaciones nuevas se generaron con el
+    # MCP de Pixellab (skeleton-v3, solo el este); el cuadro 0 es la pose de partida.
     "barbara": {
-        "guardia": ("Fighting_pose_with_a", "east", 0, None, False),  # guardia con katana (8)
-        "caminar": ("Walking", "east", 0, None, False),                # 6 (se pidieron 8)
-        "golpe_3": ("Attack_1", "east", 0, None, False),               # tajo descendente (9)
+        "guardia": ("Fighting_pose_with_a/Idle", "east", 0, None, False),            # 8
+        "caminar": ("Fighting_pose_with_a/caminar", "east", 0, None, False),         # 8
+        "correr": ("Fighting_pose_with_a/correr", "east", 0, None, False),           # 8
+        "saltar": ("Fighting_pose_with_a/salto", "east", 2, 5, False),               # impulso y subida (3)
+        "caer": ("Fighting_pose_with_a/salto", "east", 5, 8, False),                 # bajada (3)
+        "golpe_1": ("Fighting_pose_with_a/golpe_1", "east", 0, None, False),         # 5
+        "golpe_2": ("Fighting_pose_with_a/golpe_2", "east", 0, None, False),         # 5
+        # golpe_3 sin los cuadros 6-7 y especial sin el 2 y el 4: pasaban de las 24
+        # piezas del búfer de la protagonista incluso con la rejilla óptima.
+        "golpe_3": ("Attack_1", "east", [0, 1, 2, 3, 4, 5, 8], None, False),  # tajo descendente (7)
+        "aereo": ("Fighting_pose_with_a/aereo", "east", 0, None, False),             # 5
+        "agarre": ("Fighting_pose_with_a/agarre", "east", 1, 3, False),              # 2
+        "golpe_agarre": ("Fighting_pose_with_a/golpe_agarre", "east", 1, None, False),  # 3
+        "lanzamiento": ("Fighting_pose_with_a/lanzamiento", "east", 0, None, False), # 7
+        "agarrada": ("Fighting_pose_with_a/agarrada", "east", 1, 3, False),          # 2
+        "recibir": ("Fighting_pose_with_a/recibir", "east", 0, None, False),         # 6
+        "derribada": ("Fighting_pose_with_a/derribada_b", "east", 0, None, False),   # sin soltar la katana (7)
+        "en_suelo": ("Fighting_pose_with_a/derribada_b", "east", [6], None, False),  # el último de derribada (1)
+        "levantarse": ("Fighting_pose_with_a/levantarse", "east", 0, None, False),   # 5
+        "especial": ("Fighting_pose_with_a_2/especial", "east", [0, 1, 3, 5, 6, 7], None, False),  # corte en llamas (6)
+        "lanzar_arma": ("Fighting_pose_with_a/lanzar_arma", "east", 0, None, False), # 5
+        "recoger": ("Fighting_pose_with_a/recoger", "east", [0, 2, 3, 4], None, False),  # sin el 1 (25 piezas) (4)
+        "entrada_relevo": ("Fighting_pose_with_a/entrada_relevo", "east", 0, None, False),  # 6
+        "invocar": ("Fighting_pose_with_a/invocar", "east", 0, None, False),         # 4
+        "ko": ("Fighting_pose_with_a/ko", "east", 0, 5, False),                      # sin el último (cabeza deformada) (5)
+        "victoria": ("Fighting_pose_with_a/victoria", "east", 0, None, False),       # 6
+        "intro_venganza": ("Fighting_pose_with_a/intro_venganza", "east", 0, None, False),  # 4
     },
     "ninja": {
         "guardia": ("Fighting_stance/Fight_Stance_Idle", "east", 0, None, False),  # 8 (se pidieron 4)
@@ -169,7 +197,11 @@ ANIMACIONES_NINJA = [
 PERSONAJES = {
     "tarou": {"celda": (96, 64), "animaciones": ANIMACIONES, "estatico": True, "fijos": []},
     "barbara": {
-        "celda": (64, 96), "animaciones": ANIMACIONES_BARBARA, "estatico": False,
+        # 144x112 (2026-11-04): con la katana mide hasta 133 px de ancho y 106 de
+        # alto. La celda es solo el marco: las piezas vacías no se guardan, y el
+        # tope real son las 24 piezas del búfer de la protagonista (piezas16.py
+        # --rejilla-optima las ajusta por cuadro).
+        "celda": (144, 112), "animaciones": ANIMACIONES_BARBARA, "estatico": False,
         "fijos": [
             (248, 204, 173), (209, 132, 111), (175, 102, 90),   # piel: luz, medio, sombra
             (83, 58, 46),                                       # pelo castaño

@@ -143,7 +143,7 @@ res/personajes/tarou/%.pic: res/personajes/tarou/%.png
 TAROU_P16 := $(foreach a,$(TAROU_ANIMS),res/personajes/tarou/tarou_$(a).p16)
 res/personajes/tarou/%.p16: res/personajes/tarou/%.png scripts/piezas16.py
 	@echo convert pieces16 ... $(notdir $<)
-	python scripts/piezas16.py $< $@ --celda 96x64
+	python scripts/piezas16.py $< $@ --celda 96x64 --rejilla-optima
 
 ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin $(TAROU_PICS) $(TAROU_P16)
 

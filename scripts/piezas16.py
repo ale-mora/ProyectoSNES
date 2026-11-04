@@ -29,6 +29,11 @@
         tiles: n·128 bytes por cuadro, en orden de subida
       El número de cuadros lo sabe el código (tarou_anim.h y similares).
 
+      Con --rejilla-optima (2026-11-04) cada cuadro elige el desplazamiento de la
+      rejilla de 16×16 (0..15 px) que deja menos piezas: el formato y el motor no
+      cambian, porque cada pieza ya lleva su (dx, dy). Con el arte de Bárbara
+      baja de 24 a 4 los cuadros que pasaban del tope de 24 piezas.
+
     SE CONECTA CON
       Lo usan:  el Makefile (las tiras de Tarou: res/personajes/tarou/*.png →
                 *.p16), scripts/preparar_prueba_carga.py (los ninjas) y
@@ -100,6 +105,46 @@ def piezas_no_vacias(cuadro):
     return piezas
 
 
+def piezas_rejilla_optima(cuadro):
+    """Como piezas_no_vacias, pero la rejilla de 16×16 se desplaza (0..15 px en x y
+    en y) hasta la posición que deja MENOS piezas. Cada pieza guarda su (dx, dy),
+    así que el motor no cambia: solo cambian los números de la tabla. Las piezas
+    siguen dentro de la celda en x (0 ≤ dx ≤ ancho-16) para que el espejo
+    (ancho-16-dx) siga siendo válido; en y pueden asomar por debajo (dy < alto). Con empate gana el desplazamiento
+    más pequeño, y (0, 0) es la rejilla de siempre."""
+    try:
+        import numpy as np
+    except ImportError:                              # sin numpy: la rejilla normal
+        return piezas_no_vacias(cuadro)
+    opaco = np.array(cuadro) != 0
+    ys, xs = np.nonzero(opaco)
+    if len(xs) == 0:
+        return []
+    mejor = None
+    for oy in range(PIEZA):
+        for ox in range(PIEZA):
+            # La pieza que contiene el píxel x empieza en 16·((x+ox)//16) - ox.
+            cx = (xs + ox) // PIEZA
+            cy = (ys + oy) // PIEZA
+            x0 = cx.min() * PIEZA - ox
+            y0 = cy.min() * PIEZA - oy
+            x1 = cx.max() * PIEZA - ox
+            y1 = cy.max() * PIEZA - oy
+            # En x la pieza debe quedar dentro (el espejo es ancho-16-dx). En y puede
+            # asomar por debajo de la celda: esas filas son transparentes, y si no,
+            # con los pies en la última fila la rejilla nunca podría moverse en y.
+            if x0 < 0 or y0 < 0 or x1 > cuadro.width - PIEZA or y1 > cuadro.height - 1:
+                continue                             # alguna pieza saldría de la celda
+            n = len(np.unique(cy * 64 + cx))
+            if mejor is None or n < mejor[0]:
+                mejor = (n, ox, oy)
+    if mejor is None or (mejor[1], mejor[2]) == (0, 0):
+        return piezas_no_vacias(cuadro)
+    _, ox, oy = mejor
+    claves = sorted(set(zip(((ys + oy) // PIEZA).tolist(), ((xs + ox) // PIEZA).tolist())))
+    return [(cx * PIEZA - ox, cy * PIEZA - oy) for cy, cx in claves]   # filas, luego columnas
+
+
 def tile_de_pieza(k):
     """Tile (dentro del bloque del cuadro en la VRAM) de la pieza k."""
     return (k // POR_PAR) * 32 + (k % POR_PAR) * 2
@@ -137,10 +182,12 @@ def cuadros_de_tira(tira, ancho, alto):
     return [tira.crop((i * ancho, 0, i * ancho + ancho, alto)) for i in range(tira.width // ancho)]
 
 
-def construir_p16(cuadros):
-    """Bytes del archivo .p16 para una lista de cuadros indexados."""
+def construir_p16(cuadros, rejilla_optima=False):
+    """Bytes del archivo .p16 para una lista de cuadros indexados. Con
+    rejilla_optima, cada cuadro usa el desplazamiento de rejilla con menos piezas."""
     n_cuadros = len(cuadros)
-    listas = [piezas_no_vacias(c) for c in cuadros]
+    elegir = piezas_rejilla_optima if rejilla_optima else piezas_no_vacias
+    listas = [elegir(c) for c in cuadros]
     tablas = bytearray()
     tiles = bytearray()
     registros = []
@@ -181,12 +228,14 @@ def main(argv=None):
     p.add_argument("salida", help="archivo .p16")
     p.add_argument("--celda", default="96x64", help="ancho x alto de un cuadro (por defecto 96x64)")
     p.add_argument("--pal", help="escribe además la paleta (32 bytes BGR555)")
+    p.add_argument("--rejilla-optima", action="store_true",
+                   help="desplaza la rejilla de cada cuadro hasta la que deja menos piezas")
     a = p.parse_args(argv)
     ancho, alto = (int(v) for v in a.celda.lower().split("x"))
     tira = Image.open(a.entrada)
     if tira.mode != "P":
         sys.exit("%s no es una imagen indexada" % a.entrada)
-    datos, listas = construir_p16(cuadros_de_tira(tira, ancho, alto))
+    datos, listas = construir_p16(cuadros_de_tira(tira, ancho, alto), a.rejilla_optima)
     if len(datos) > BANCO:
         sys.exit("%s: %d bytes, no cabe en un banco de 32 KB" % (a.salida, len(datos)))
     with open(a.salida, "wb") as f:
