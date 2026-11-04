@@ -10,6 +10,11 @@ máquina. Cada fila tiene una casilla de estado para ir marcándola.
 Leyenda de estado: `[ ]` por pedir · `[~]` placeholder · `[x]` arte real en
 el juego · `♻` se reutiliza lo que ya hay.
 
+Los encargos concretos para Pixellab (celda, altura de la figura, paleta,
+prompts en inglés y preguntas abiertas) están en
+[`pixellab-fase1.md`](pixellab-fase1.md). Este documento sigue siendo la lista
+de qué arte hace falta y para qué truco de hardware.
+
 ## 0. Reglas para todo el arte
 
 - **Personajes**: una sola paleta de 15 colores + transparente; todo mirando

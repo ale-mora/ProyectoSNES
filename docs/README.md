@@ -31,6 +31,10 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
 - **`arte-beat-em-up.md`** — La lista de trabajo del arte de la Revisión 3:
   animaciones por personaje, enemigos, apoyos, objetos, escenografía por zona,
   HUD e intro, cada pieza con el truco de la SNES que usa y su estado.
+- **`pixellab-fase1.md`** — El encargo de Pixellab de la fase 1: por personaje
+  y por zona, la celda, la altura de la figura, la paleta, las animaciones con
+  su número de cuadros y un prompt en inglés para cada una, más las preguntas
+  abiertas para el autor.
 - *Históricos (plataformas, tag `plataformas-r2`):* los dos siguientes.
 - **`diseno-demo-jugable.md`** — La especificación de la **Revisión 1**:
   Tarou adulto en el nivel 1 con ocho mecánicas, mando, estados, física en

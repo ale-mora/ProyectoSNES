@@ -35,7 +35,8 @@ Todo el texto en pantalla va en **inglés sencillo con honoríficos japoneses**
 | **Tarou cachorro** | Cachorro marrón, pañuelo rojo. | Solo para flashbacks (el hallazgo del Señor Pimentón). |
 | **Nikoraemon** | Humano barbudo de gi azul, el villano. | Jefe de la federación. Necio, quiere el ritual para controlar **todos los dojos del país**. |
 | **Gomasuri-dono** | Humano gordo y pomposo, armadura de samurái de colores chillones. | Lugarteniente, jefe de la fase 1. Adulador que dice que sí a todo («gomasuri» = adulador). |
-| **Ninjas genéricos** | Kendokas con armadura bogu negra. | Enemigos comunes. Un mismo sprite base con **paleta distinta según el rango** (cinturón). Usan shinai o bokken. Torpes y cómicos. |
+| **Ninjas genéricos** | Ninjas de la federación, con trajes de **varios colores**. | Enemigos comunes. Un mismo personaje base con **paleta de traje distinta** (hasta 3 colores por oleada). Torpes y cómicos. |
+| **Kendokas** | Kendokas con armadura bogu y shinai. Varios colores, como los ninjas. | Escolta del jefe: aparecen **solo con Gomasuri-dono** en el dojo. Torpes y cómicos. |
 
 Los jefes de las fases 2 a 4 aún no tienen nombre ni diseño; cada uno encarna un vicio
 distinto de la corte (pendiente, ver §10).
@@ -60,7 +61,7 @@ juguete. Arranca la fase 1.
    dice que no vayan por la violencia y la venganza sino por las palabras. Se une al grupo
    para hablar con el villano con mirada pacifista. (El tono es un chiste recurrente:
    intentan hablar y los ninjas responden a golpes; la pelea es defensa propia.)
-4. **Dojo**: jefe **Gomasuri-dono**. Al vencerlo, Nikoraemon huye con el Señor Pimentón.
+4. **Dojo**: jefe **Gomasuri-dono**, con su escolta de kendokas (sin ninjas en esa pelea). Al vencerlo, Nikoraemon huye con el Señor Pimentón.
 
 Los hermanos habían ido a pedir consejo a Rex al verse sin juguete; la fase 1 es ese viaje.
 
@@ -92,7 +93,7 @@ Los hermanos habían ido a pedir consejo a Rex al verse sin juguete; la fase 1 e
 La portada (*Tarou: A Dog's Journey*, Don Pollo Studios) fija el aspecto: cerezos, torii,
 cascada, castillo bajo luna llena y el rostro de Nikoraemon sobre el paisaje. Los sprites
 de Rex, Fenrir, Señor Pimentón, Bárbara, Lucinda, Tarou, Tarou cachorro y Nikoraemon
-ya existen. Faltan Gomasuri-dono, los ninjas genéricos y los jefes de las fases 2 a 4.
+ya existen. Faltan Gomasuri-dono, los ninjas genéricos, los kendokas y los jefes de las fases 2 a 4.
 
 ## 9. Cambios respecto a la spec de beat 'em up (Revisión 3)
 
@@ -107,8 +108,11 @@ ya existen. Faltan Gomasuri-dono, los ninjas genéricos y los jefes de las fases
 - **El juguete es una reliquia real**, no un error del villano.
 - **El final cambia**: la spec lo dejaba como gancho con el villano huyendo; ahora la
   historia tiene cierre completo en la fase 5.
-- Los ninjas son kendokas con **rangos por paleta**, y todos los jefes comparten el
-  rasgo de lealtad irracional.
+- **Revisión 2 (2026-10-26):** los enemigos comunes son **ninjas de varios colores de
+  traje** (un personaje base, paleta por color). Los **kendokas** (bogu y shinai) son
+  la escolta de los jefes, con varios colores y solo en esas peleas. Los rangos por
+  cinturón de la Revisión 1 se retiran. Todos los jefes comparten el rasgo de lealtad
+  irracional.
 - CLAUDE.md sigue describiendo el Tarou del plataformas (arte Pixellab actual) hasta que
   llegue el código del beat 'em up.
 
@@ -116,6 +120,7 @@ ya existen. Faltan Gomasuri-dono, los ninjas genéricos y los jefes de las fases
 
 - Nombres y diseños de los jefes de las fases 2 a 4 (un vicio de la corte cada uno).
 - Nombre de la nueva federación de Bárbara.
-- Diseño de Gomasuri-dono y de los ninjas genéricos (paletas de rango).
+- Diseño de Gomasuri-dono, de los ninjas genéricos (colores de traje) y de los kendokas
+  (escolta del jefe). Pixellab: la lista está en `docs/pixellab-fase1.md`.
 - Textos exactos en inglés de cada escena.
 - Hecho: `diseno-beat-em-up.md` (v5) y `arte-beat-em-up.md` ajustados a §9.

@@ -1,27 +1,43 @@
-# Pixellab → Bárbara (segunda protagonista, Revisión 2)
+# Pixellab → Bárbara (segunda protagonista, Revisión 3)
 
-Misma mecánica que `../tarou/README.md`: deja aquí las animaciones exportadas
-desde Pixellab (git las ignora) y ejecuta, desde la raíz del repositorio:
+Deja aquí la exportación de Pixellab de Bárbara (git ignora todo lo que pongas
+aquí salvo este README). La lista de animaciones, cuadros y prompts está en
+[`docs/pixellab-fase1.md`](../../../../../docs/pixellab-fase1.md) §1.2; el
+reparto del arte en general, en `docs/arte-beat-em-up.md` §1.2.
+
+Cuando las animaciones estén aquí, desde la raíz del repositorio:
 
 ```
 python scripts/preparar_personaje.py barbara
 ```
 
-Salida: `res/personajes/barbara/barbara_<animación>.png` y
-`res/personajes/barbara/barbara_anim.h`. Hasta la Revisión 2 el juego no usa
-estos archivos: en la secuencia de arranque Bárbara sigue siendo el sprite de
-la samurái del pack (`res/personajes/barbara_samurai.png`).
+Salida prevista: `res/personajes/barbara/barbara_<animación>.png` y
+`res/personajes/barbara/barbara_anim.h`. Hasta que el juego use esta carpeta,
+en la secuencia de arranque Bárbara sigue siendo el sprite de pack de 64×64
+(`res/personajes/barbara_samurai.png`), que **no es referencia de escala**.
+
+## Formato de la celda (Revisión 3)
+
+- **Celda de 64×96** (vertical), no 64×64. El script necesita el parámetro de
+  tamaño de celda (`arte-beat-em-up.md` §0).
+- **Altura de la figura: unos 88–90 px**, con los pies en la última fila de la
+  celda. El script no escala.
+- Todo mirando a la **derecha** (el espejo del hardware hace la izquierda).
+- Máximo **15 colores + transparente** con una sola paleta, sin sombra ni suelo.
+- **Máximo 10 cuadros por animación** (cada cuadro lleno son unos 2,7 KB y cada
+  tira va en un banco de 32 KB). Hasta **21 piezas de 16×16 no vacías** por cuadro.
+- Las animaciones de ataque llevan un `<animación>.cajas.json` junto a la
+  exportación: dónde golpea la katana, en qué cuadro, y la caja de daño
+  (`arte-beat-em-up.md` §1.4).
 
 ## Nombres de archivo
 
-Usa los mismos nombres base que Tarou (`reposo`, `caminar`, `correr`, `saltar`,
-`caer`, `agachado`, `agachado_caminar`, `desenvainar`, `envainar`, `atacar`,
-`echarse`, `dormido`, `despertar`). Si las mecánicas de Bárbara terminan siendo
-distintas, la lista se amplía en el diseño de la Revisión 2; el script acepta
-cualquier nombre que esté en su tabla de animaciones.
+Nombres de la Revisión 3, de `docs/pixellab-fase1.md` §1.2: `guardia`,
+`caminar`, `correr`, `saltar`, `caer`, `golpe_1`, `golpe_2`, `golpe_3`,
+`aereo`, `agarre`, `golpe_agarre`, `lanzamiento`, `agarrada`, `recibir`,
+`derribada`, `en_suelo`, `levantarse`, `especial`, `lanzar_arma`, `recoger`,
+`entrada_relevo`, `invocar`, `ko`, `victoria`, `intro_venganza`.
 
-## Formatos y reglas
-
-Los mismos del README de Tarou: tira PNG, carpeta de cuadros o GIF; 64×64 por
-cuadro, mirando a la derecha, máximo 15 colores + transparente con una sola
-paleta, máximo 15 cuadros por animación.
+El script acepta cualquier nombre que esté en su tabla de animaciones
+(`MAPEOS_PIXELLAB` en `scripts/preparar_personaje.py`); estos nombres se añaden
+allí al importar el arte.
