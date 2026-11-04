@@ -50,8 +50,6 @@ res/descargas/audio/*
 # Exportaciones de Pixellab por personaje: se ignoran, salvo el README de cada carpeta
 !res/descargas/graficos/pixellab/
 res/descargas/graficos/pixellab/*
-!res/descargas/graficos/pixellab/tarou/
-!res/descargas/graficos/pixellab/barbara/
-!res/descargas/graficos/pixellab/suelo/
+!res/descargas/graficos/pixellab/*/
 res/descargas/graficos/pixellab/*/*
 !res/descargas/graficos/pixellab/*/README.md
