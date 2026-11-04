@@ -303,5 +303,56 @@ class PruebasPixellabNativo(unittest.TestCase):
             self.assertEqual((b[0] + b[2]) // 2, ANCHO // 2)   # centrado
 
 
+class PruebasCeldaYPaletaFija(unittest.TestCase):
+    """Revisión 3: Bárbara y los ninjas van en celdas de 64x96 y llevan colores fijos."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.entrada = Path(self.tmp.name) / "ninja"
+        self.salida = Path(self.tmp.name) / "salida"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_celda_64x96_sin_escalar(self):
+        """El ninja (celda 64x96): una figura de 40x80 en un lienzo de 128 px no se
+        reduce, queda centrada en la columna 32 con los pies en la fila 95, las
+        animaciones sin arte son marcadores de 64x96 y no hay tira estática."""
+        exportar_pixellab(self.entrada, "Walking", "east", 6, lienzo=(128, 128), ancho=40, alto=80)
+        resultado = pp.preparar("ninja", self.entrada, self.salida)
+        self.assertEqual(resultado["caminar"], 6)
+        self.assertEqual(len(resultado), len(pp.ANIMACIONES_NINJA))
+        with Image.open(self.salida / "ninja_caminar.png") as im:
+            self.assertEqual(im.size, (64 * 6, 96))
+            b = im.crop((0, 0, 64, 96)).point(lambda i: 255 if i != 0 else 0).getbbox()
+            self.assertEqual((b[2] - b[0], b[3] - b[1]), (40, 80))     # sin escalar
+            self.assertEqual(b[3], 96)                                   # pies en la fila 95
+            self.assertEqual((b[0] + b[2]) // 2, 32)                     # centrado
+        with Image.open(self.salida / "ninja_bloqueo.png") as im:       # marcador
+            self.assertEqual(im.size, (64 * 2, 96))
+        self.assertFalse((self.salida / "ninja_reposo_estatico.png").exists())
+        texto = (self.salida / "ninja_anim.h").read_text(encoding="utf-8")
+        self.assertIn("#define NINJA_ANIMACIONES 13", texto)
+        self.assertIn("cuadros de 64x96", texto)
+
+    def test_color_fijo_sobrevive(self):
+        """Un color de pocos píxeles (la piel) junto a 30 grises que llenarían los
+        15 huecos: con fijos, la piel es el primer color de la paleta y sus tonos
+        vecinos no gastan otro hueco; los 14 restantes son grises."""
+        piel = (244, 164, 107)
+        im = Image.new("RGBA", (30 * 20, 2), (0, 0, 0, 0))
+        for g in range(30):                                   # 30 grises, 20 px cada uno
+            for x in range(20):
+                im.putpixel((g * 20 + x, 0), (g * 8, g * 8, g * 8, 255))
+        for x, c in enumerate([piel, piel, (238, 158, 100), (250, 170, 112)]):
+            im.putpixel((x, 1), c + (255,))                   # 4 px de piel y tonos vecinos
+        colores = pp.paleta_comun([im], [piel])
+        self.assertEqual(colores[0], piel)
+        self.assertLessEqual(len(colores), pp.COLORES)
+        for c in colores[1:]:
+            self.assertEqual(c[0], c[1], f"{c} no es gris")           # no hay otro tono cálido
+            self.assertEqual(c[1], c[2], f"{c} no es gris")
+
+
 if __name__ == "__main__":
     unittest.main()

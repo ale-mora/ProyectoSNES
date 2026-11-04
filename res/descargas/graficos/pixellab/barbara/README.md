@@ -18,8 +18,9 @@ en la secuencia de arranque Bárbara sigue siendo el sprite de pack de 64×64
 
 ## Formato de la celda (Revisión 3)
 
-- **Celda de 64×96** (vertical), no 64×64. El script necesita el parámetro de
-  tamaño de celda (`arte-beat-em-up.md` §0).
+- **Celda de 64×96** (vertical), no 64×64. El script ya la usa
+  (`PERSONAJES["barbara"]` en `scripts/preparar_personaje.py`), junto con los
+  colores fijos de piel, pelo y acero de la katana.
 - **Altura de la figura: unos 88–90 px**, con los pies en la última fila de la
   celda. El script no escala.
 - Todo mirando a la **derecha** (el espejo del hardware hace la izquierda).
@@ -38,6 +39,6 @@ Nombres de la Revisión 3, de `docs/pixellab-fase1.md` §1.2: `guardia`,
 `derribada`, `en_suelo`, `levantarse`, `especial`, `lanzar_arma`, `recoger`,
 `entrada_relevo`, `invocar`, `ko`, `victoria`, `intro_venganza`.
 
-El script acepta cualquier nombre que esté en su tabla de animaciones
-(`MAPEOS_PIXELLAB` en `scripts/preparar_personaje.py`); estos nombres se añaden
-allí al importar el arte.
+De qué exportación sale cada animación lo dice `MAPEOS_PIXELLAB["barbara"]` en
+`scripts/preparar_personaje.py`. Por ahora solo `guardia`, `caminar` y
+`golpe_3` (provisional); el resto sale como marcador hasta que llegue su arte.
