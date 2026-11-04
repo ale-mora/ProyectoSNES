@@ -29,6 +29,7 @@
 #include "sistema/secuencia.h"   /* Nuestra máquina de estados: secuencia_iniciar/actualizar. */
 #include "sistema/comun.h"       /* video_texto_mode1() y el reparto de la VRAM.             */
 #include "pantallas/personajes.h"  /* personajes_ocultar() al arrancar.                        */
+#include "juego/personaje.h"        /* personaje_elegido: Tarou hasta que se elija otro.        */
 #ifdef PRUEBA_CARGA
 #include "pantallas/prueba_carga.h"  /* La ROM de prueba de carga (docs/diseno-beat-em-up.md §9). */
 #endif
@@ -52,6 +53,12 @@ int main(void)
 
     /*--- 2. Arranque de la secuencia ----------------------------------------------
         Entra en la primera pantalla (Nintendo): dibuja su contenido y hace fade in. */
+    /* crt0 no deja las variables a 0: la protagonista de partida, a mano. */
+#if defined(GUION_BARBARA)
+    personaje_elegido = PERSONAJE_BARBARA;   /* ROM de prueba con Bárbara (-DGUION_BARBARA). */
+#else
+    personaje_elegido = PERSONAJE_TAROU;
+#endif
 #if defined(PRUEBA_CARGA)
     prueba_carga_ejecutar();          /* ROM de prueba de carga (make con -DPRUEBA_CARGA):
                                          su propio bucle, no vuelve (pantallas/prueba_carga.h). */

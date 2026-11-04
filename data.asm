@@ -34,6 +34,7 @@
 ;     .rodata_nivel1_banco  nivel1_cerca_col_banco (1 byte: el banco del mapa por columnas)
 ;     .rodata_nivel1_colision  nivel1_colision (rejilla de 128x14 bytes)
 ;     .rodata_p16_*      tarou_<anim>_p16 (14 tiras en piezas de 16x16) y tarou_p16_bancos
+;     .rodata_bp16_*     barbara_<anim>_p16 (9 tiras, celda 144x112), barbara_pal y barbara_p16_bancos
 ;     .rodata_prueba_*   ninja64_andar, ninja64_ataque, ninja_pal, sombra_til, sombra_piezas,
 ;                        sombra_banco, ninja_bancos
 ;                        (solo la ROM de prueba de carga, -DPRUEBA_CARGA)
@@ -312,6 +313,42 @@ tarou_guardia_p16: .incbin "res/personajes/tarou/tarou_guardia.p16"
 .section ".rodata_p16_bancos" superfree
 tarou_p16_bancos: .db :tarou_reposo_p16, :tarou_caminar_p16, :tarou_correr_p16, :tarou_saltar_p16, :tarou_caer_p16, :tarou_agachado_p16, :tarou_agachado_caminar_p16
                   .db :tarou_desenvainar_p16, :tarou_envainar_p16, :tarou_atacar_p16, :tarou_echarse_p16, :tarou_dormido_p16, :tarou_despertar_p16, :tarou_guardia_p16
+.ends
+
+; --- Bárbara en piezas de 16x16 (formato .p16, celda de 144x112) ---------------------
+; Las tiras de los estados que ya tiene la fase 1 (Makefile: BARBARA_ANIMS). Cada una
+; en su sección (un banco de 32 KB). barbara_p16_bancos va en el orden de las tiras de
+; Bárbara de juego/personaje.h (BARBARA_TIRA_*).
+.section ".rodata_bp16_guardia" superfree
+barbara_guardia_p16: .incbin "res/personajes/barbara/barbara_guardia.p16"
+.ends
+.section ".rodata_bp16_caminar" superfree
+barbara_caminar_p16: .incbin "res/personajes/barbara/barbara_caminar.p16"
+.ends
+.section ".rodata_bp16_saltar" superfree
+barbara_saltar_p16: .incbin "res/personajes/barbara/barbara_saltar.p16"
+.ends
+.section ".rodata_bp16_caer" superfree
+barbara_caer_p16: .incbin "res/personajes/barbara/barbara_caer.p16"
+.ends
+.section ".rodata_bp16_golpe_1" superfree
+barbara_golpe_1_p16: .incbin "res/personajes/barbara/barbara_golpe_1.p16"
+.ends
+.section ".rodata_bp16_golpe_2" superfree
+barbara_golpe_2_p16: .incbin "res/personajes/barbara/barbara_golpe_2.p16"
+.ends
+.section ".rodata_bp16_golpe_3" superfree
+barbara_golpe_3_p16: .incbin "res/personajes/barbara/barbara_golpe_3.p16"
+.ends
+.section ".rodata_bp16_recibir" superfree
+barbara_recibir_p16: .incbin "res/personajes/barbara/barbara_recibir.p16"
+.ends
+.section ".rodata_bp16_ko" superfree
+barbara_ko_p16: .incbin "res/personajes/barbara/barbara_ko.p16"
+.ends
+.section ".rodata_bp16_varios" superfree
+barbara_pal:          .incbin "res/personajes/barbara/barbara_guardia.pal"
+barbara_p16_bancos:   .db :barbara_guardia_p16, :barbara_caminar_p16, :barbara_saltar_p16, :barbara_caer_p16, :barbara_golpe_1_p16, :barbara_golpe_2_p16, :barbara_golpe_3_p16, :barbara_recibir_p16, :barbara_ko_p16
 .ends
 
 ; --- ROM de prueba de carga (docs/diseno-beat-em-up.md §9) ---------------------------

@@ -13,7 +13,8 @@
       Los ninjas también ATACAN (tajo de shinai, como mucho dos a la vez): cada golpe quita 2 de
       los 24 puntos de vida de Tarou, lo aturde y lo deja parpadeando e invulnerable ~1 s; la barra
       de vida está en la fila 0 de la capa de texto (hud/hud_juego.c). Sin vida cae KO y 2,5 s
-      después vuelve al título (provisional). Aún no hay Bárbara; cada uno se cuelga de
+      después vuelve al título (provisional). La protagonista es la que se eligió en el
+      selector (juego/personaje.h: Tarou o Bárbara, con su arte y su alcance); cada uno se cuelga de
       este bucle en su módulo (§10). El fondo es provisional: la capa cercana y la lejana
       del nivel 1 del plataformas (2048 px, la lejana a la mitad de velocidad).
       Por frame: mando_leer → mundo_actualizar → límites de pantalla → cámara y zonas →
@@ -58,6 +59,7 @@
 #include "juego/camara.h"
 #include "juego/oleadas.h"
 #include "juego/combate.h"
+#include "juego/personaje.h"
 #include "juego/protagonista_sprite.h"
 #include "enemigos/ninja.h"
 #include "enemigos/ninja_sprite.h"
@@ -79,6 +81,7 @@ extern const unsigned char hdmaGradcieloList[];   /* Tabla HDMA del cielo (gfx4s
 #define MARGEN_NINJA 32              /* Un ninja ya dentro no pasa de este margen del borde: su celda de 64 px cabe entera. */
 
 static Cuerpo cuerpo;
+static ProtaSprite prota;             /* Cómo se dibuja la protagonista elegida.           */
 static Mando mando;
 static Oleadas oleadas;
 static Ninja ninjas[NINJAS_MAX];
@@ -177,7 +180,11 @@ void pantalla_fase1_iniciar(void)
 #endif
 
     mando_iniciar();                                 /* (Solo hace algo en la ROM de prueba.) */
-    protagonista_sprite_cargar();                    /* OAM, paletas, sombra.               */
+    protagonista_escena_cargar();                    /* OAM, sombra y matemática de color.  */
+    protagonista_sprite_cargar(&prota, personaje_elegido, 0, 0, 96, 0, 1536);   /* La elegida en
+                                                        el selector: entidades 0-1, tiles 0-191,
+                                                        paleta 0, 1,5 KB por VBlank.         */
+    sprites_usar(2);                                 /* El cuerpo y su sombra.              */
     mundo_iniciar(&cuerpo, X_INICIAL, Y_INICIAL);
     oleadas_iniciar(&oleadas);
     ninja_iniciar_todos(ninjas);                     /* Sin ninjas hasta la primera oleada. */
@@ -188,9 +195,9 @@ void pantalla_fase1_iniciar(void)
     do                                               /* Primer cuadro antes del fade in, y  */
     {                                                /* sus tiles a la VRAM YA (la pantalla */
         dma_lista_vaciar();                          /* sigue apagada): media celda por     */
-        protagonista_sprite_actualizar(&cuerpo, camara);   /* vuelta.                       */
+        protagonista_sprite_actualizar(&prota, &cuerpo, camara);   /* vuelta.               */
         dma_lista_ejecutar();
-    } while (!protagonista_sprite_al_dia());
+    } while (!protagonista_sprite_al_dia(&prota));
     ninja_sprite_actualizar(ninjas, camara);         /* Todas las ranuras apagadas.         */
     sprites_dibujar();                               /* La OAM, lista para el primer frame. */
 
@@ -245,7 +252,7 @@ void pantalla_fase1_actualizar(void)
         {
             ninja_oleada(ninjas, camara, oleadas.actual);   /* y salen los ninjas de esa oleada. */
         }
-        parada = combate_resolver(&cuerpo, ninjas);  /* ¿Conectó el golpe de Tarou?          */
+        parada = combate_resolver(&cuerpo, ninjas, personaje_alcance(prota.personaje));  /* ¿Conectó el golpe de Tarou?          */
         turnos = ninja_atacando(ninjas);             /* Cuántos están dando un tajo ahora.  */
         for (k = 0; k < NINJAS_MAX; k++)             /* IA: cada ninja vivo va hacia Tarou.  */
         {
@@ -282,7 +289,7 @@ void pantalla_fase1_actualizar(void)
     }
 
     /*--- Lo que va a la pantalla: Tarou primero en la lista de DMA, luego el fondo ---*/
-    protagonista_sprite_actualizar(&cuerpo, camara); /* Animación, subida y entidades.      */
+    protagonista_sprite_actualizar(&prota, &cuerpo, camara);   /* Animación, subida y entidades. */
     ninja_sprite_actualizar(ninjas, camara);         /* Sus cuadros (tras Tarou en la lista). */
     fondo_nivel_actualizar(camara);                  /* Las columnas que entran.            */
     sprites_dibujar();                               /* UNA llamada: toda la OAM.           */

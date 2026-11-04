@@ -25,6 +25,7 @@
 #include <snes.h>
 #include "hud/hud_juego.h"
 #include "juego/hud_debug.h"
+#include "juego/personaje.h"      /* personaje_elegido: el nombre de la barra. */
 
 #define FILA_BARRA 4                 /* Fila propia del HUD de depuración (0..7) de la barra. */
 #define CELDAS 12                    /* Celdas de la barra: 24 de vida / 2 puntos por celda. */
@@ -77,7 +78,15 @@ void hud_juego_actualizar(u8 vida)
     }
     barra[CELDAS] = 0;
     p = hud_debug_empezar(FILA_BARRA);               /* La fila en blanco y su primer sitio. */
-    p = hud_debug_texto(p, "TAROU [");
+    /* El nombre de la protagonista (if y no ?: con cadenas: tcc816 se atraganta). */
+    if (personaje_elegido == PERSONAJE_BARBARA)
+    {
+        p = hud_debug_texto(p, "BARBARA [");
+    }
+    else
+    {
+        p = hud_debug_texto(p, "TAROU [");
+    }
     p = hud_debug_texto(p, barra);
     hud_debug_texto(p, "]");
     hud_debug_enviar(FILA_BARRA);                    /* 64 bytes a la lista de DMA.         */

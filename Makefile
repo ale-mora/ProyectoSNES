@@ -40,7 +40,7 @@ include ${PVSNESLIB_HOME}/devkitsnes/snes_rules
 # CFLAGS al ejecutarse, no al definirse. Decisión 13 de docs/diseno-demo-jugable.md.
 CFLAGS += -Isrc
 # tarou_anim.h (cuántos cuadros tiene cada animación) lo genera el pipeline en res/.
-CFLAGS += -Ires/personajes/tarou -Ires/nivel1
+CFLAGS += -Ires/personajes/tarou -Ires/personajes/barbara -Ires/nivel1
 
 .PHONY: all clean
 
@@ -145,7 +145,16 @@ res/personajes/tarou/%.p16: res/personajes/tarou/%.png scripts/piezas16.py
 	@echo convert pieces16 ... $(notdir $<)
 	python scripts/piezas16.py $< $@ --celda 96x64 --rejilla-optima
 
-ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin $(TAROU_PICS) $(TAROU_P16)
+# Bárbara (Revisión 3): las tiras de los estados que la fase 1 ya tiene, en piezas de
+# 16x16 con la celda de 144x112 y la rejilla óptima (como mucho 24 piezas por cuadro:
+# el búfer de la protagonista). Cada .p16 escribe también su .pal (la misma en todas).
+BARBARA_ANIMS := guardia caminar saltar caer golpe_1 golpe_2 golpe_3 recibir ko
+BARBARA_P16 := $(foreach a,$(BARBARA_ANIMS),res/personajes/barbara/barbara_$(a).p16)
+res/personajes/barbara/%.p16: res/personajes/barbara/%.png scripts/piezas16.py
+	@echo convert pieces16 ... $(notdir $<)
+	python scripts/piezas16.py $< $@ --celda 144x112 --rejilla-optima --pal $(@:.p16=.pal)
+
+ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin $(TAROU_PICS) $(TAROU_P16) $(BARBARA_P16)
 
 .PHONY: bitmaps cleanGfxRes
 bitmaps: $(ASSETS)
@@ -159,6 +168,7 @@ data.obj: $(ASSETS)
 src/juego/tarou_sprite.obj: $(TAROU_PICS)
 src/pantallas/personajes.obj: res/personajes/tarou/tarou_reposo_estatico.pic
 src/juego/animaciones.obj: res/personajes/tarou/tarou_anim.h
+src/juego/personaje.obj: res/personajes/tarou/tarou_anim.h res/personajes/barbara/barbara_anim.h
 src/pantallas/pantalla_nivel1.obj: res/nivel1/nivel1_datos.h
 src/pantallas/pantalla_fase1.obj: res/nivel1/nivel1_datos.h
 

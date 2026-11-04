@@ -86,7 +86,7 @@ u8 combate_ninjas_resolver(Ninja *n, Cuerpo *c)
     return parada;
 }
 
-u8 combate_resolver(const Cuerpo *c, Ninja *n)
+u8 combate_resolver(const Cuerpo *c, Ninja *n, u16 alcance)
 {
     u8 k, antes, parada = 0;
     u8 derribo = combate_derriba(c->golpe);
@@ -97,7 +97,7 @@ u8 combate_resolver(const Cuerpo *c, Ninja *n)
     }
     for (k = 0; k < NINJAS_MAX; k++)
     {
-        if (n->vivo && combate_en_caja(c, n->x, n->y))
+        if (n->vivo && combate_caja(c->x, c->y, c->mira_izq, alcance, COMBATE_PROFUNDIDAD, n->x, n->y))
         {
             antes = n->id_golpe;                     /* Para saber si este tajo era nuevo.  */
             if (ninja_recibir(n, combate_danio(c->golpe), derribo, c->mira_izq, c->id))

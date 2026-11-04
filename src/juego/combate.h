@@ -29,7 +29,7 @@
 #include "juego/mundo.h"
 #include "enemigos/ninja.h"
 
-#define COMBATE_ALCANCE 52               /* Tarou: alcance corto (Bárbara tendrá más).    */
+#define COMBATE_ALCANCE 52               /* Tarou: alcance corto (Bárbara, 72: personaje.h). */
 #define COMBATE_ATRAS 8                  /* La caja empieza un poco detrás de los pies.   */
 #define COMBATE_PROFUNDIDAD 14           /* Diferencia máxima de y entre golpeador y golpeado. */
 #define PARADA_GOLPE 3                   /* Cuadros de «parada de impacto» al conectar.   */
@@ -56,9 +56,11 @@ u8 combate_caja(u16 ax, u16 ay, u8 mira_izq, u16 alcance, u16 profundidad, u16 t
    PARADA_DERRIBO si lo dejó KO, 0 si ninguno. */
 u8 combate_ninjas_resolver(Ninja *n, Cuerpo *c);
 
-/* Un frame de combate de Tarou contra las NINJAS_MAX ranuras: si su golpe está activo, cada
-   ninja vivo dentro de la caja que no haya recibido ya este tajo es golpeado. Devuelve los
-   cuadros de parada de impacto que hay que aplicar (0 si no conectó nada). */
-u8 combate_resolver(const Cuerpo *c, Ninja *n);
+/* Un frame de combate de la protagonista contra las NINJAS_MAX ranuras: si su golpe está
+   activo, cada ninja vivo dentro de la caja (de `alcance` px por delante: COMBATE_ALCANCE
+   para Tarou, personaje_alcance() en general) que no haya recibido ya este tajo es
+   golpeado. Devuelve los cuadros de parada de impacto que hay que aplicar (0 si no
+   conectó nada). */
+u8 combate_resolver(const Cuerpo *c, Ninja *n, u16 alcance);
 
 #endif /* COMBATE_H */

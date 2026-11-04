@@ -190,7 +190,7 @@ void pruebas_combate(void)
     cuadro(&c, 1);                                   /* Golpe 1.                            */
     for (k = 0; k < 90; k++)                         /* Pulsa A cada 10 cuadros (encadena).  */
     {
-        u8 p = combate_resolver(&c, n);
+        u8 p = combate_resolver(&c, n, COMBATE_ALCANCE);
         if (p)
         {
             golpes_vistos++;
@@ -222,7 +222,7 @@ void pruebas_combate(void)
     {
         cuadro(&c, 0);
     }
-    COMPROBAR(combate_resolver(&c, n) == 0 && n[0].vida == NINJA_VIDA);
+    COMPROBAR(combate_resolver(&c, n, COMBATE_ALCANCE) == 0 && n[0].vida == NINJA_VIDA);
 
     /*--- Tarou recibe daño: vida, aturdido, invulnerable, KO ------------------------------*/
     mundo_iniciar(&c, 400, 200);
@@ -398,7 +398,7 @@ void pruebas_combate(void)
         for (t = 0; t < 120; t++)
         {
             cuadro(&c, (u8)(t == 0 || (c.estado == CUERPO_ATACANDO && c.reloj == GOLPE_ENCADENAR_DESDE)));
-            if (combate_resolver(&c, n) && c.id != antes)
+            if (combate_resolver(&c, n, COMBATE_ALCANCE) && c.id != antes)
             {
                 golpes++;
             }
