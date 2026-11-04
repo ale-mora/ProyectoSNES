@@ -90,7 +90,7 @@ ANIMACIONES = [
 
 # De qué parte de la exportación NATIVA de Pixellab sale cada animación del juego
 # (decisión del 2026-10-19, docs/diseno-demo-jugable.md §10). Cada entrada es
-# (estado de Pixellab, dirección, primer cuadro, cuadro final sin incluir o None
+# (estado de Pixellab [o "estado/animación" si el estado tiene varias], dirección, primer cuadro, cuadro final sin incluir o None
 # = hasta el último, al revés). primer cuadro = None significa una pose FIJA: la
 # imagen <estado>/rotations/<dirección>.png como único cuadro. Todo mira al este
 # (la izquierda la hace el espejo del hardware) salvo dormir: Pixellab solo
@@ -120,7 +120,15 @@ MAPEOS_PIXELLAB = {
         "golpe_3": ("Attack_1", "east", 0, None, False),               # tajo descendente (9)
     },
     "ninja": {
-        "guardia": ("Fighting_stance", "east", 0, None, False),        # 8 (se pidieron 4)
+        "guardia": ("Fighting_stance/Fight_Stance_Idle", "east", 0, None, False),  # 8 (se pidieron 4)
+        # Generadas el 2026-11-04 con el MCP de Pixellab (skeleton-v3, solo el este)
+        # sobre el estado Fighting_stance. El cuadro 0 es la pose de partida.
+        "bloqueo": ("Fighting_stance/bloqueo", "east", 1, 3, False),     # brazos arriba (2)
+        # agarre y lanzamiento, "en el sitio": sin avanzar, para que quepan en 64 px
+        # (el juego mueve al ninja); las versiones que avanzaban se salían 10-12 px.
+        "agarre": ("Fighting_stance/agarre_sitio", "east", 1, 3, False),     # estira y cierra las manos (2)
+        "lanzamiento": ("Fighting_stance/lanzamiento_corto", "east", 0, None, False),  # encoge y empuja (6)
+        "agarrado": ("Fighting_stance/agarrado", "east", 1, 3, False),   # forcejea agachado (2)
         "caminar": ("Walking", "east", 0, None, False),                # 6 (se pidieron 8)
         "ataque_1": ("Jab_Punch", "east", 0, None, False),             # puñetazo, sin espada
         "ataque_2": ("Throwing_shuriken", "east", 0, None, False),     # 9
@@ -247,7 +255,11 @@ def cargar_pixellab(entrada: Path, regla: tuple, celda_wh: tuple = (CELDA_ANCHO,
             return None
         with Image.open(pose) as im:
             return anclar([im.convert("RGBA")], celda_wh, nombre)
-    carpetas = sorted((entrada / estado / "animations").glob(f"*/{direccion}"))
+    # "Estado/animación" elige una animación concreta cuando el estado tiene varias
+    # (al ninja se le añadieron bloqueo, agarre... al estado Fighting_stance).
+    estado, _, animacion = estado.partition("/")
+    patron = f"{animacion}/{direccion}" if animacion else f"*/{direccion}"
+    carpetas = sorted((entrada / estado / "animations").glob(patron))
     if not carpetas:
         return None
     if len(carpetas) > 1:

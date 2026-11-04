@@ -20,6 +20,15 @@ las escenas). Lo que sigue en duda está al final, en §9.
 
 ## 0. Reglas comunes (todo lo que sale de Pixellab)
 
+- **Documentación oficial del MCP de Pixellab: <https://api.pixellab.ai/mcp/docs>.**
+  Hay que tenerla en cuenta antes de generar con el MCP (configurado desde el
+  2026-11-04 como servidor `pixellab`): qué herramienta usar para cada cosa
+  (`create_character_state`, `animate_character` y sus modos `template`,
+  `v3`, `skeleton-v3`, `pixminimax`), cuánto cuesta cada una y cómo se
+  descarga el resultado. Manda sobre lo que diga este documento si chocan.
+  Los trabajos tardan 2–5 minutos y no bloquean; la descarga es
+  `/mcp/characters/{id}/download` (un ZIP con la misma estructura que la
+  exportación a mano, que `scripts/preparar_personaje.py` ya lee).
 - **Una paleta de 15 colores + transparente por personaje.** Todo mira al
   **este** (la derecha): el espejo del hardware hace el oeste. Sin sombra
   proyectada ni suelo; fondo transparente de verdad (alfa 0 o 255, sin

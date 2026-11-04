@@ -26,5 +26,7 @@ lanzar shuriken), `bloqueo` (2), `agarre` (2), `lanzamiento` (6), `recibir`
 
 Para importarlo: `python scripts/preparar_personaje.py ninja`. La celda de
 64×96 y los colores fijos de la piel están en `PERSONAJES["ninja"]`, y de qué
-exportación sale cada animación, en `MAPEOS_PIXELLAB["ninja"]` (provisional:
-faltan `bloqueo`, `agarre`, `lanzamiento` y `agarrado`, que salen como marcador).
+exportación sale cada animación, en `MAPEOS_PIXELLAB["ninja"]`. «Ninja 1» es
+el personaje definitivo. `bloqueo`, `agarre_sitio`, `lanzamiento_corto` y
+`agarrado` se generaron con el MCP (2026-11-04, solo el este) dentro del estado
+`Fighting_stance`; agarre y lanzamiento van «en el sitio» para caber en 64 px.
