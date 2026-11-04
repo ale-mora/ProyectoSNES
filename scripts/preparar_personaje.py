@@ -47,6 +47,8 @@
       COLORES       int    15                colores opacos (el 16.º es el transparente)
       TOLERANCIA_FIJOS int 32                distancia RGB a un color fijo por debajo de la cual
                                              un píxel ya está "cubierto" y no cuenta para el resto
+      UNIFICAR_DISTANCIA int 8               colores de median cut más cercanos que esto se unifican
+      UNIFICAR_INTENTOS int 12               tamaños de median cut que se prueban para llenar los huecos
       TRANSPARENTE  tuple  magenta           color que marca el índice 0 al guardar
       ANIMACIONES   list   (nombre, cuadros) las 14 animaciones de Tarou y sus cuadros por defecto
       ANIMACIONES_BARBARA, ANIMACIONES_NINJA las de la Revisión 3 (docs/pixellab-fase1.md §1.2, §2.2)
@@ -72,6 +74,8 @@ MAX_CUADROS = 10
 CUADROS_ESTATICOS = 2
 COLORES = 15
 TOLERANCIA_FIJOS = 32
+UNIFICAR_DISTANCIA = 8      # dos colores a esta distancia RGB o menos son "el mismo"
+UNIFICAR_INTENTOS = 12      # cuántos k de median cut se prueban para llenar los huecos
 TRANSPARENTE = (255, 0, 255)
 
 # Las 13 animaciones de la Revisión 1 (docs/diseno-demo-jugable.md §7) más la pose
@@ -328,10 +332,27 @@ def paleta_comun(cuadros: list, fijos: list = ()) -> list:
         return fijos + [c for c in resto if c not in fijos]
     fila = Image.new("RGB", (len(pixeles), 1))
     fila.putdata(pixeles)
-    q = fila.quantize(colors=libres, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
-    pal = q.getpalette()[: libres * 3]
-    colores = [tuple(pal[i * 3: i * 3 + 3]) for i in range(libres)]
-    return fijos + sorted(set(colores) - set(fijos))
+    # Median cut a veces parte una zona grande (el negro del contorno) en tonos
+    # casi idénticos: (0,0,0), (1,0,0), (0,0,1)... que gastan huecos sin que se
+    # note la diferencia. Se unifican (gana el tono con más píxeles) y se vuelve
+    # a cuantizar con un color más, hasta llenar los huecos libres.
+    mejor = []
+    for k in range(libres, libres + UNIFICAR_INTENTOS):
+        q = fila.quantize(colors=k, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+        pal = q.getpalette()
+        usos = sorted(q.getcolors(), reverse=True)    # (píxeles, índice), los más usados primero
+        aceptados = []
+        for _, i in usos:
+            c = tuple(pal[i * 3: i * 3 + 3])
+            if all(_distancia2(c, a) > UNIFICAR_DISTANCIA ** 2 for a in fijos + aceptados):
+                aceptados.append(c)
+        if len(aceptados) > libres:                   # este k ya se pasa: vale el anterior
+            break
+        if len(aceptados) > len(mejor):
+            mejor = aceptados
+        if len(mejor) == libres:
+            break
+    return fijos + sorted(mejor)
 
 
 def indexar(tira_rgba: Image.Image, colores: list) -> Image.Image:

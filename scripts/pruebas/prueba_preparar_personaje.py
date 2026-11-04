@@ -354,5 +354,26 @@ class PruebasCeldaYPaletaFija(unittest.TestCase):
             self.assertEqual(c[1], c[2], f"{c} no es gris")
 
 
+class PruebasUnificarCasiIguales(unittest.TestCase):
+    def test_negros_casi_identicos_no_gastan_huecos(self):
+        """Tres negros casi iguales que ocupan mucha superficie (el contorno) no
+        gastan tres huecos: se unifican y la paleta se llena con 15 colores
+        separados entre sí más de UNIFICAR_DISTANCIA."""
+        negros = [(0, 0, 0), (1, 0, 0), (0, 0, 1)]
+        im = Image.new("RGBA", (3000 + 30 * 20, 1), (0, 0, 0, 0))
+        for i, c in enumerate(negros):                     # 1000 px de cada negro
+            for x in range(1000):
+                im.putpixel((i * 1000 + x, 0), c + (255,))
+        for g in range(30):                                # 30 grises, 20 px cada uno
+            for x in range(20):
+                v = 20 + g * 7
+                im.putpixel((3000 + g * 20 + x, 0), (v, v, v, 255))
+        colores = pp.paleta_comun([im])
+        self.assertEqual(len(colores), pp.COLORES)
+        for i, a in enumerate(colores):
+            for b in colores[i + 1:]:
+                self.assertGreater(sum((p - q) ** 2 for p, q in zip(a, b)), pp.UNIFICAR_DISTANCIA ** 2, f"{a} {b}")
+
+
 if __name__ == "__main__":
     unittest.main()
