@@ -1,0 +1,4 @@
+# Exclusiones del índice de codebase-memory (sintaxis de .gitignore).
+# examples/ son ejemplos de PVSnesLib copiados como referencia: no son código
+# del juego y ensucian las búsquedas por símbolo.
+examples/
