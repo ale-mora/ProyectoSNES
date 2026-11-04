@@ -5,8 +5,9 @@
       Cada frame, para cada ranura: (1) si no está viva, sus dos entidades se apagan (n = 0)
       y se olvida el cuadro que tenía en la VRAM; (2) si está viva y su cuadro no es el que
       hay en su hueco, se sube entero (turno: solo UN ninja por frame, en rotación);
-      (3) un ninja tocado (RECIBIR / DERRIBADO) parpadea: cada dos cuadros su cuerpo se
-      manda fuera de la pantalla (no hay arte de «recibir golpe» todavía); (4) se coloca el cuerpo (x0, y0 en pantalla), la mirada (espejo y tabla de piezas
+      (3) el arte es el de «Ninja 1» (celda de 96x96): ninja_dibujo() dice qué dibujo toca
+      (guardia, caminar, puñetazo, recibir, derribado, levantarse, KO) y solo el KO tumbado
+      parpadea antes de irse (ninja_parpadea); (4) se coloca el cuerpo (x0, y0 en pantalla), la mirada (espejo y tabla de piezas
       espejada) y la sombra. Al final, sprites_ordenar() deja todo en orden por profundidad.
       Es el mismo método que midió la prueba de carga (pantallas/prueba_carga.c).
 
@@ -33,8 +34,10 @@
 #include "juego/p16.h"
 #include "juego/dma_lista.h"
 
-extern char ninja64_andar, ninja64_ataque, ninja_pal, sombra_piezas;
-extern u8 ninja_bancos[];            /* Banco de la tira de andar y de la de ataque.      */
+extern char ninja1_guardia_p16, ninja1_caminar_p16, ninja1_ataque_1_p16, ninja1_recibir_p16;
+extern char ninja1_derribado_p16, ninja1_levantarse_p16, ninja1_ko_p16;
+extern char ninja1_pal, sombra_piezas;
+extern u8 ninja1_p16_bancos[];       /* Banco de cada tira, en el orden de abajo.          */
 extern u8 sombra_banco;
 
 #define ENT_NINJA 2                  /* Entradas 2..4: los cuerpos.                       */
@@ -49,18 +52,48 @@ extern u8 sombra_banco;
 
 static const u16 HUECOS[NINJAS_MAX] = {192, 288, 384};   /* Primer tile de cada hueco.   */
 
-/*--- tira_de: de qué tira es un cuadro (0..7 andar, 8..14 ataque), cuál es dentro de ella y su banco ---*/
-static const u8 *tira_de(u8 cuadro, u8 *f, u8 *banco)
+/*--- tira_de: de qué tira es un dibujo (NINJA_DIB_*), cuál es dentro de ella y su banco ---*/
+static const u8 *tira_de(u8 dibujo, u8 *f, u8 *banco)
 {
-    if (cuadro < NINJA_CUADROS)
+    if (dibujo >= NINJA_DIB_KO)
     {
-        *f = cuadro;
-        *banco = ninja_bancos[0];
-        return (const u8 *)&ninja64_andar;
+        *f = (u8)(dibujo - NINJA_DIB_KO);
+        *banco = ninja1_p16_bancos[6];
+        return (const u8 *)&ninja1_ko_p16;
     }
-    *f = (u8)(cuadro - NINJA_CUADROS);               /* El cuadro 8 es el primero del ataque. */
-    *banco = ninja_bancos[1];
-    return (const u8 *)&ninja64_ataque;
+    if (dibujo >= NINJA_DIB_LEVANTARSE)
+    {
+        *f = (u8)(dibujo - NINJA_DIB_LEVANTARSE);
+        *banco = ninja1_p16_bancos[5];
+        return (const u8 *)&ninja1_levantarse_p16;
+    }
+    if (dibujo >= NINJA_DIB_DERRIBADO)
+    {
+        *f = (u8)(dibujo - NINJA_DIB_DERRIBADO);
+        *banco = ninja1_p16_bancos[4];
+        return (const u8 *)&ninja1_derribado_p16;
+    }
+    if (dibujo >= NINJA_DIB_RECIBIR)
+    {
+        *f = (u8)(dibujo - NINJA_DIB_RECIBIR);
+        *banco = ninja1_p16_bancos[3];
+        return (const u8 *)&ninja1_recibir_p16;
+    }
+    if (dibujo >= NINJA_DIB_ATAQUE)
+    {
+        *f = (u8)(dibujo - NINJA_DIB_ATAQUE);
+        *banco = ninja1_p16_bancos[2];
+        return (const u8 *)&ninja1_ataque_1_p16;
+    }
+    if (dibujo >= NINJA_DIB_CAMINAR)
+    {
+        *f = (u8)(dibujo - NINJA_DIB_CAMINAR);
+        *banco = ninja1_p16_bancos[1];
+        return (const u8 *)&ninja1_caminar_p16;
+    }
+    *f = dibujo;
+    *banco = ninja1_p16_bancos[0];
+    return (const u8 *)&ninja1_guardia_p16;
 }
 
 static u8 muestra[NINJAS_MAX];
@@ -73,14 +106,17 @@ void ninja_sprite_cargar(void)
     SpriteEnt *s;
     u8 k;
 
-    dmaCopyCGram((u8 *)&ninja_pal, 128 + 16, 32 * 3);   /* Paletas de sprites 1..3.       */
+    for (k = 0; k < NINJAS_MAX; k++)                 /* Paletas de sprites 1..3: la misma   */
+    {                                                /* (aún sin colores de traje).         */
+        dmaCopyCGram((u8 *)&ninja1_pal, (u16)(128 + 16 + ((u16)k << 4)), 32);
+    }
     sprites_usar(ENTIDADES);                         /* Ahora la tabla tiene 8 entradas.    */
     for (k = 0; k < NINJAS_MAX; k++)
     {
         s = sprites_ent + ENT_NINJA + k;             /* El cuerpo: sin piezas hasta subir.  */
         s->n = 0;
         s->tile = HUECOS[k];
-        s->banco = ninja_bancos[0];
+        s->banco = ninja1_p16_bancos[0];
         s->atrib = (u8)(SPRITE_PRIORIDAD(PRIORIDAD) | SPRITE_PALETA(k + 1));
         s = sprites_ent + ENT_SOMBRA_NINJA + k;      /* La sombra: la misma que la de Tarou. */
         s->piezas = (u16)&sombra_piezas;
@@ -103,21 +139,22 @@ static void subir(const Ninja *n)
     const Copia *copias;
     const Ninja *p;
     const u8 *tira;
-    u8 i, k, cuantas, f, banco;
+    u8 i, k, cuantas, f, banco, dibujo;
 
     k = turno;
     for (i = 0; i < NINJAS_MAX; i++)
     {
         p = n + k;                                   /* 16 bytes por ranura: sin tcc__mul.  */
-        if (p->vivo && p->cuadro != muestra[k])
+        dibujo = p->vivo ? ninja_dibujo(p) : SIN_CUADRO;
+        if (p->vivo && dibujo != muestra[k])
         {
-            tira = tira_de(p->cuadro, &f, &banco);
+            tira = tira_de(dibujo, &f, &banco);
             p16_cuadro(tira, f, &cu);
             subida_empezar(&subida, cu.n, (u16)((u16)tira + cu.tiles),
                            VRAM_TILE(HUECOS[k]), banco);
             subida_tomar(&subida, 0xFFFF, &copias, &cuantas);    /* Todo, en este VBlank. */
             dma_lista_copias(copias, cuantas, banco);
-            muestra[k] = p->cuadro;
+            muestra[k] = dibujo;
             mirada[k] = 0xFF;                        /* Fuerza recalcular las piezas.       */
             turno = (u8)(k + 1 >= NINJAS_MAX ? 0 : k + 1);   /* El siguiente tiene la preferencia. */
             return;                                  /* Solo uno por frame.                 */
@@ -153,9 +190,9 @@ void ninja_sprite_actualizar(const Ninja *n, u16 camara)
         }
         s->x0 = (u16)(p->x - camara - NINJA_ANCHO / 2);   /* x de pantalla del borde izquierdo. */
         s->y0 = (u16)(p->y - NINJA_ALTO);            /* Los pies, en la y del carril.       */
-        if ((p->estado == NINJA_RECIBIR || p->estado == NINJA_DERRIBADO) && (p->reloj & 2))
+        if (ninja_parpadea(p))
         {
-            s->y0 = 240;                             /* Tocado: parpadea (cada 2 cuadros, fuera de pantalla). */
+            s->y0 = 240;                             /* KO tumbado: parpadea antes de irse. */
         }
         s->borde = sprites_borde(s->x0, s->y0, NINJA_ANCHO, NINJA_ALTO);
         s->atrib = (u8)(SPRITE_PRIORIDAD(PRIORIDAD) | SPRITE_PALETA(k + 1) |

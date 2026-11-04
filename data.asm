@@ -35,6 +35,7 @@
 ;     .rodata_nivel1_colision  nivel1_colision (rejilla de 128x14 bytes)
 ;     .rodata_p16_*      tarou_<anim>_p16 (14 tiras en piezas de 16x16) y tarou_p16_bancos
 ;     .rodata_bp16_*     barbara_<anim>_p16 (9 tiras, celda 144x112), barbara_pal y barbara_p16_bancos
+;     .rodata_np16_*     ninja1_<anim>_p16 (7 tiras de «Ninja 1», celda 96x96), ninja1_pal y ninja1_p16_bancos
 ;     .rodata_prueba_*   ninja64_andar, ninja64_ataque, ninja_pal, sombra_til, sombra_piezas,
 ;                        sombra_banco, ninja_bancos
 ;                        (solo la ROM de prueba de carga, -DPRUEBA_CARGA)
@@ -349,6 +350,35 @@ barbara_ko_p16: .incbin "res/personajes/barbara/barbara_ko.p16"
 .section ".rodata_bp16_varios" superfree
 barbara_pal:          .incbin "res/personajes/barbara/barbara_guardia.pal"
 barbara_p16_bancos:   .db :barbara_guardia_p16, :barbara_caminar_p16, :barbara_saltar_p16, :barbara_caer_p16, :barbara_golpe_1_p16, :barbara_golpe_2_p16, :barbara_golpe_3_p16, :barbara_recibir_p16, :barbara_ko_p16
+.ends
+
+; --- «Ninja 1» en piezas de 16x16 (formato .p16, celda de 96x96) ----------------------
+; Las tiras de los estados del ninja (Makefile: NINJA_ANIMS). ninja1_p16_bancos va en el
+; orden de NinjaTira (enemigos/ninja.h). La sombra sigue siendo la de la prueba de carga.
+.section ".rodata_np16_guardia" superfree
+ninja1_guardia_p16: .incbin "res/personajes/ninja/ninja_guardia.p16"
+.ends
+.section ".rodata_np16_caminar" superfree
+ninja1_caminar_p16: .incbin "res/personajes/ninja/ninja_caminar.p16"
+.ends
+.section ".rodata_np16_ataque_1" superfree
+ninja1_ataque_1_p16: .incbin "res/personajes/ninja/ninja_ataque_1.p16"
+.ends
+.section ".rodata_np16_recibir" superfree
+ninja1_recibir_p16: .incbin "res/personajes/ninja/ninja_recibir.p16"
+.ends
+.section ".rodata_np16_derribado" superfree
+ninja1_derribado_p16: .incbin "res/personajes/ninja/ninja_derribado.p16"
+.ends
+.section ".rodata_np16_levantarse" superfree
+ninja1_levantarse_p16: .incbin "res/personajes/ninja/ninja_levantarse.p16"
+.ends
+.section ".rodata_np16_ko" superfree
+ninja1_ko_p16: .incbin "res/personajes/ninja/ninja_ko.p16"
+.ends
+.section ".rodata_np16_varios" superfree
+ninja1_pal:           .incbin "res/personajes/ninja/ninja_guardia.pal"
+ninja1_p16_bancos:    .db :ninja1_guardia_p16, :ninja1_caminar_p16, :ninja1_ataque_1_p16, :ninja1_recibir_p16, :ninja1_derribado_p16, :ninja1_levantarse_p16, :ninja1_ko_p16
 .ends
 
 ; --- ROM de prueba de carga (docs/diseno-beat-em-up.md §9) ---------------------------

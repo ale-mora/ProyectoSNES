@@ -30,6 +30,25 @@
 /* static const: se queda en la ROM. Tres carriles repartidos entre CARRIL_Y_MIN y MAX. */
 static const u16 CARRIL_ENTRADA[NINJAS_MAX] = {200, 188, 212};
 
+/* El puñetazo, por grupos de 4 frames del ataque: carga (0), a medio camino (1), puño fuera
+   (2) mientras la caja golpea (frames 12..19), y vuelta. */
+static const u8 ATAQUE_DIBUJO[NINJA_ATAQUE_FRAMES >> 2] = {0, 0, 1, 2, 2, 1, 0};
+
+/* Recibir: 6 dibujos en sus 16 frames (por frame transcurrido). */
+static const u8 RECIBIR_DIBUJO[NINJA_RECIBIR_FRAMES] = {0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5};
+
+/* Derribado con vida, por frame transcurrido (0..63): cae (7 dibujos a 3 frames), se queda
+   en el suelo (el último de derribado) 20 frames y se levanta (5 dibujos a 4 frames). */
+static const u8 DERRIBO_DIBUJO[NINJA_DERRIBO_FRAMES] = {
+    23, 23, 23, 24, 24, 24, 25, 25, 25, 26, 26, 26, 27, 27, 27, 28, 28, 28, 29, 29, 29,
+    29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29,
+    30, 30, 30, 30, 31, 31, 31, 31, 32, 32, 32, 32, 33, 33, 33, 33, 34, 34, 34, 34,
+    34, 34, 34};
+
+/* Sin vida (KO): cae con su tira de KO (7 dibujos a 3 frames) y se queda tumbado. */
+#define KO_CAIDA 21                      /* Frames de la caída del KO.                      */
+#define KO_PARPADEO_DESDE 24             /* Desde aquí parpadea tumbado hasta irse.         */
+
 void ninja_iniciar_todos(Ninja *n)
 {
     u8 k;
@@ -98,7 +117,7 @@ static void aturdido(Ninja *n)
 {
     u8 desliza;                                      /* Píxeles por cuadro que lo empuja.   */
 
-    n->reloj++;                                      /* (También hace parpadear el dibujo.) */
+    n->reloj++;                                      /* (También hace parpadear al KO.)     */
     if (n->estado == NINJA_DERRIBADO)
     {
         desliza = (u8)(n->timer > NINJA_DERRIBO_FRAMES - 14 ? 3 : 0);   /* Sale despedido.   */
@@ -164,7 +183,6 @@ void ninja_actualizar(Ninja *n, u16 obj_x, u16 obj_y)
     {
         n->timer++;
         n->reloj++;
-        n->cuadro = (u8)(NINJA_CUADROS + (n->timer >> 2));   /* 4 cuadros de juego por dibujo. */
         if (n->timer >= NINJA_ATAQUE_FRAMES)
         {
             n->estado = NINJA_PARADO;                /* Acabó: descansa antes del siguiente. */
@@ -277,7 +295,7 @@ u8 ninja_intentar_atacar(Ninja *n, u16 obj_x, u16 obj_y, u8 turno_libre)
     }
     n->estado = NINJA_ATACANDO;
     n->timer = 0;
-    n->cuadro = NINJA_CUADROS;                       /* El primer cuadro de la tira de ataque. */
+    n->cuadro = 0;
     n->conecto = 0;
     return 1;
 }
@@ -286,6 +304,48 @@ u8 ninja_golpe_activo(const Ninja *n)
 {
     return (u8)(n->vivo && n->estado == NINJA_ATACANDO && !n->conecto &&
                 n->timer >= NINJA_GOLPE_DESDE && n->timer < NINJA_GOLPE_HASTA);
+}
+
+u8 ninja_dibujo(const Ninja *n)
+{
+    u8 pasado;                                       /* Frames desde que empezó a caer o a recibir. */
+
+    switch (n->estado)
+    {
+        case NINJA_ANDANDO:
+            return (u8)(NINJA_DIB_CAMINAR + n->cuadro);
+        case NINJA_ATACANDO:
+            return (u8)(NINJA_DIB_ATAQUE + ATAQUE_DIBUJO[n->timer >> 2]);
+        case NINJA_RECIBIR:
+            pasado = (u8)(NINJA_RECIBIR_FRAMES - n->timer);
+            return (u8)(NINJA_DIB_RECIBIR + RECIBIR_DIBUJO[pasado & (NINJA_RECIBIR_FRAMES - 1)]);
+        case NINJA_DERRIBADO:
+            pasado = (u8)(NINJA_DERRIBO_FRAMES - n->timer);
+            pasado = (u8)(pasado & (NINJA_DERRIBO_FRAMES - 1));   /* 0..63 (potencia de 2).  */
+            if (n->vida != 0)
+            {
+                return DERRIBO_DIBUJO[pasado];
+            }
+            if (pasado < KO_CAIDA)                   /* 3 frames por dibujo, sin dividir:  */
+            {                                        /* el de la tabla de derribo menos 23  */
+                return (u8)(NINJA_DIB_KO + DERRIBO_DIBUJO[pasado] - NINJA_DIB_DERRIBADO);
+            }                                        /* da 0..6 en los mismos 21 frames.   */
+            return (u8)(NINJA_DIB_KO + 6);           /* Tumbado.                            */
+        default:                                     /* Parado: la guardia, 8 frames por dibujo. */
+            return (u8)(NINJA_DIB_GUARDIA + ((n->reloj >> 3) & 7));
+    }
+}
+
+u8 ninja_parpadea(const Ninja *n)
+{
+    u8 pasado;
+
+    if (n->estado != NINJA_DERRIBADO || n->vida != 0)
+    {
+        return 0;
+    }
+    pasado = (u8)(NINJA_DERRIBO_FRAMES - n->timer);
+    return (u8)(pasado >= KO_PARPADEO_DESDE && (n->reloj & 2));
 }
 
 u8 ninja_vivos(const Ninja *n)

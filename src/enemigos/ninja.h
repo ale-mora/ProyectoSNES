@@ -10,7 +10,7 @@
       y un píxel cada dos frames hasta su carril. Cuando llega, descansado y con turno
       (como mucho NINJA_TURNOS a la vez), da un tajo (ATACANDO): su caja de golpe está activa de
       NINJA_GOLPE_DESDE a NINJA_GOLPE_HASTA y pega UNA vez; juego/combate.c decide si acierta, y
-      el golpe de Tarou llama a ninja_recibir. El cuadro de dibujo es 0..7 andando y 8..14 atacando.
+      el golpe de Tarou llama a ninja_recibir. Qué dibujo de «Ninja 1» toca lo dice ninja_dibujo().
       Hay NINJAS_MAX ranuras fijas: la oleada rellena las libres. El dibujo es de
       enemigos/ninja_sprite.c: cada ranura tiene su hueco de tiles en la VRAM.
 
@@ -25,7 +25,7 @@
       x, y        u16  pies: x en el mundo, y línea de pantalla del suelo
       vivo        u8   1 si la ranura está en uso
       mira_izq    u8   1 si mira a la izquierda (hacia el protagonista)
-      cuadro      u8   cuadro de la tira de andar (0..NINJA_CUADROS-1)
+      cuadro      u8   cuadro de la tira de caminar (0..NINJA_CUADROS-1)
       reloj       u8   frames que lleva en ese cuadro; también reparte el paso en y
       estado      u8   NINJA_PARADO o NINJA_ANDANDO
       dentro      u8   1 desde que entró en la pantalla (a partir de ahí ya no puede salir)
@@ -43,18 +43,18 @@
 #include "sistema/tipos.h"
 
 #define NINJAS_MAX 3                     /* Ranuras (las que caben en la VRAM de sprites).  */
-#define NINJA_CUADROS 8                  /* Cuadros de la tira de andar (cuadro 0..7).      */
-#define NINJA_CUADROS_ATAQUE 7           /* Cuadros de la tira de ataque (cuadro 8..14).    */
+#define NINJA_CUADROS 6                  /* Dibujos de caminar de «Ninja 1» (cuadro 0..5).  */
 #define NINJA_FRAMES_CUADRO 4            /* Cada cuántos frames cambia de cuadro.           */
 #define NINJA_PASO_X 1                   /* Anda más lento que Tarou (2): se le puede huir. */
 #define NINJA_DISTANCIA 40               /* Se detiene a esta distancia en x del objetivo.  */
 #define NINJA_VIDA 4                     /* Combo de Tarou: 1 + 1 + 2 de daño = justo.      */
 #define NINJA_RECIBIR_FRAMES 16          /* Aturdido tras un golpe normal.                  */
-#define NINJA_DERRIBO_FRAMES 36          /* Caído (derribo, o el golpe que lo remata).      */
+#define NINJA_DERRIBO_FRAMES 64          /* Caído: cae (21), en el suelo (20) y se levanta (20);
+                                            sin vida: KO (21) y parpadea tumbado hasta irse. */
 #define NINJA_EMPUJE_IZQ 1
 #define NINJA_EMPUJE_DER 2
-/*--- El ataque del ninja (un tajo de shinai; cifras a ajustar jugando) ---------------*/
-#define NINJA_ATAQUE_FRAMES 28           /* Duración: 7 cuadros de arte x 4.                */
+/*--- El ataque del ninja (un puñetazo; cifras a ajustar jugando) ---------------------*/
+#define NINJA_ATAQUE_FRAMES 28           /* Carga, puño fuera (12..19) y vuelta.            */
 #define NINJA_GOLPE_DESDE 12             /* Su caja de golpe, activa de aquí...             */
 #define NINJA_GOLPE_HASTA 20             /* ...hasta aquí (sin incluir): 8 cuadros.         */
 #define NINJA_ALCANCE 48                 /* Hasta dónde llega por delante de sus pies.      */
@@ -64,8 +64,21 @@
 #define NINJA_ESPERA_INICIAL 30          /* Al nacer espera esto, +15 por ranura.           */
 #define NINJA_TURNOS 2                   /* Como mucho dos atacan a la vez (§6 de la spec). */
 #define NINJA_ENTRADA 40                 /* Aparece a esta distancia fuera del borde.       */
-#define NINJA_ANCHO 64                   /* Celda de 64x96 con el cuerpo en el centro.      */
+#define NINJA_ANCHO 96                   /* Celda de 96x96 de «Ninja 1» (tumbado mide 88 px). */
 #define NINJA_ALTO 96
+
+/*--- Los dibujos de «Ninja 1»: un número por dibujo, tira tras tira -----------------
+    ninja_dibujo() da cuál toca; enemigos/ninja_sprite.c lo traduce a tira y cuadro. Las
+    tiras van en el orden de ninja1_p16_bancos (data.asm). «En el suelo» es el último
+    dibujo de derribado. */
+#define NINJA_DIB_GUARDIA 0              /* 8 dibujos.                                      */
+#define NINJA_DIB_CAMINAR 8              /* 6.                                              */
+#define NINJA_DIB_ATAQUE 14              /* 3 (el puñetazo).                                */
+#define NINJA_DIB_RECIBIR 17             /* 6.                                              */
+#define NINJA_DIB_DERRIBADO 23           /* 7 (el último: en el suelo).                     */
+#define NINJA_DIB_LEVANTARSE 30          /* 5.                                              */
+#define NINJA_DIB_KO 35                  /* 7.                                              */
+#define NINJA_DIBUJOS 42
 
 typedef enum
 {
@@ -125,6 +138,14 @@ u8 ninja_intentar_atacar(Ninja *n, u16 obj_x, u16 obj_y, u8 turno_libre);
 
 /* 1 si el tajo está en los cuadros en que su caja de golpe es activa y aún no ha acertado. */
 u8 ninja_golpe_activo(const Ninja *n);
+
+/* Qué dibujo de «Ninja 1» toca (NINJA_DIB_*): guardia en bucle parado, caminar andando,
+   el puñetazo repartido en el ataque (puño fuera mientras golpea), recibir, y al caer
+   derribado → en el suelo → levantarse, o, sin vida, el KO. */
+u8 ninja_dibujo(const Ninja *n);
+
+/* 1 si este frame el cuerpo no se dibuja: el ninja KO parpadea tumbado antes de irse. */
+u8 ninja_parpadea(const Ninja *n);
 
 /* Cuántos están vivos. */
 u8 ninja_vivos(const Ninja *n);

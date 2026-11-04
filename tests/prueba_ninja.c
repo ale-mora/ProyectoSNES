@@ -148,4 +148,64 @@ void pruebas_ninja(void)
         n[k].vivo = 0;
     }
     COMPROBAR(ninja_vivos(n) == 0);
+
+    /* Los dibujos de «Ninja 1» (2026-11-04). */
+    ninja_iniciar_todos(n);
+    n[0].vivo = 1; n[0].vida = NINJA_VIDA; n[0].estado = NINJA_PARADO;
+    for (k = 0; k < 64; k++)                         /* Parado: la guardia, en bucle.       */
+    {
+        n[0].reloj = k;
+        COMPROBAR(ninja_dibujo(&n[0]) < NINJA_DIB_CAMINAR);
+    }
+    n[0].estado = NINJA_ANDANDO;                     /* Andando: sus 6 dibujos.             */
+    for (k = 0; k < NINJA_CUADROS; k++)
+    {
+        n[0].cuadro = k;
+        COMPROBAR(ninja_dibujo(&n[0]) == NINJA_DIB_CAMINAR + k);
+    }
+    n[0].estado = NINJA_ATACANDO;                    /* El puño fuera justo mientras golpea. */
+    for (f = 0; f < NINJA_ATAQUE_FRAMES; f++)
+    {
+        n[0].timer = (u8)f;
+        k = ninja_dibujo(&n[0]);
+        COMPROBAR(k >= NINJA_DIB_ATAQUE && k < NINJA_DIB_RECIBIR);
+        if (f >= NINJA_GOLPE_DESDE && f < NINJA_GOLPE_HASTA)
+        {
+            COMPROBAR(k == NINJA_DIB_ATAQUE + 2);
+        }
+    }
+    n[0].estado = NINJA_RECIBIR;                     /* Recibir: avanza y acaba en el último. */
+    n[0].timer = NINJA_RECIBIR_FRAMES;
+    COMPROBAR(ninja_dibujo(&n[0]) == NINJA_DIB_RECIBIR);
+    n[0].timer = 1;
+    COMPROBAR(ninja_dibujo(&n[0]) == NINJA_DIB_RECIBIR + 5);
+    /* Derribado con vida: cae, en el suelo, se levanta; nunca parpadea. */
+    n[0].estado = NINJA_DERRIBADO;
+    n[0].timer = NINJA_DERRIBO_FRAMES;
+    COMPROBAR(ninja_dibujo(&n[0]) == NINJA_DIB_DERRIBADO);
+    n[0].timer = NINJA_DERRIBO_FRAMES - 30;
+    COMPROBAR(ninja_dibujo(&n[0]) == NINJA_DIB_DERRIBADO + 6);   /* En el suelo.               */
+    n[0].timer = 1;
+    COMPROBAR(ninja_dibujo(&n[0]) == NINJA_DIB_LEVANTARSE + 4);  /* Ya de pie.                 */
+    for (f = 1; f <= NINJA_DERRIBO_FRAMES; f++)
+    {
+        n[0].timer = (u8)f;
+        n[0].reloj = (u8)f;
+        k = ninja_dibujo(&n[0]);
+        COMPROBAR(k >= NINJA_DIB_DERRIBADO && k < NINJA_DIB_KO && !ninja_parpadea(&n[0]));
+    }
+    /* Sin vida: el KO, tumbado al final, parpadea y no sale de su tira. */
+    n[0].vida = 0;
+    n[0].timer = NINJA_DERRIBO_FRAMES;
+    COMPROBAR(ninja_dibujo(&n[0]) == NINJA_DIB_KO && !ninja_parpadea(&n[0]));
+    n[0].timer = 1;
+    COMPROBAR(ninja_dibujo(&n[0]) == NINJA_DIB_KO + 6);
+    n[0].reloj = 2;
+    COMPROBAR(ninja_parpadea(&n[0]));
+    for (f = 1; f <= NINJA_DERRIBO_FRAMES; f++)
+    {
+        n[0].timer = (u8)f;
+        k = ninja_dibujo(&n[0]);
+        COMPROBAR(k >= NINJA_DIB_KO && k < NINJA_DIBUJOS);
+    }
 }

@@ -280,9 +280,9 @@ void pruebas_combate(void)
     COMPROBAR(ninja_intentar_atacar(n, 100, 200, 1) == 0);       /* Lejos: no.              */
     COMPROBAR(ninja_intentar_atacar(n, 400, 230, 1) == 0);       /* Otro carril: no.        */
     COMPROBAR(ninja_intentar_atacar(n, 400, 200, 1) == 1);       /* Cerca, con turno.       */
-    COMPROBAR(n[0].estado == NINJA_ATACANDO && n[0].cuadro == NINJA_CUADROS);
+    COMPROBAR(n[0].estado == NINJA_ATACANDO && ninja_dibujo(n) == NINJA_DIB_ATAQUE);
     COMPROBAR(ninja_atacando(n) == 1 && !ninja_golpe_activo(n)); /* Aún sin caja: arranque. */
-    /* El tajo: cuadros de arte 8..14, caja activa de GOLPE_DESDE a GOLPE_HASTA. */
+    /* El puñetazo: los 3 dibujos de ataque, caja activa de GOLPE_DESDE a GOLPE_HASTA. */
     {
         u8 activos = 0, cuadro_max = 0;
         for (k = 0; k < NINJA_ATAQUE_FRAMES - 1; k++)
@@ -292,13 +292,13 @@ void pruebas_combate(void)
             {
                 activos++;
             }
-            if (n[0].cuadro > cuadro_max)
+            if (ninja_dibujo(n) > cuadro_max)
             {
-                cuadro_max = n[0].cuadro;
+                cuadro_max = ninja_dibujo(n);
             }
         }
         COMPROBAR(activos == NINJA_GOLPE_HASTA - NINJA_GOLPE_DESDE);
-        COMPROBAR(cuadro_max == NINJA_CUADROS + NINJA_CUADROS_ATAQUE - 1);   /* Hasta el 14. */
+        COMPROBAR(cuadro_max == NINJA_DIB_ATAQUE + 2);   /* Hasta el puño fuera.           */
     }
     ninja_actualizar(n, 400, 200);                   /* El último cuadro del tajo.          */
     COMPROBAR(n[0].estado == NINJA_PARADO && n[0].espera == NINJA_ESPERA && n[0].cuadro == 0);

@@ -78,7 +78,7 @@ extern const unsigned char hdmaGradcieloList[];   /* Tabla HDMA del cielo (gfx4s
 #define Y_INICIAL 200                /* En medio del carril (184..216).                   */
 #define FILAS_HUD 4
 #define KO_ESPERA 150                /* Tras caer KO, 2,5 s y vuelve al título (provisional). */
-#define MARGEN_NINJA 32              /* Un ninja ya dentro no pasa de este margen del borde: su celda de 64 px cabe entera. */
+#define MARGEN_NINJA 32              /* Un ninja ya dentro no pasa de este margen del borde: su cuerpo (~50 px) se ve entero. */
 
 static Cuerpo cuerpo;
 static ProtaSprite prota;             /* Cómo se dibuja la protagonista elegida.           */

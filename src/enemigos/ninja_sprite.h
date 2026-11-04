@@ -17,7 +17,7 @@
     SE CONECTA CON
       Incluye:  sistema/tipos.h, enemigos/ninja.h.
       Lo usan:  pantallas/pantalla_fase1.c.
-      Lee de la ROM: ninja64_andar, ninja_pal, ninja_bancos, sombra_piezas, sombra_banco
+      Lee de la ROM: ninja1_<anim>_p16, ninja1_pal, ninja1_p16_bancos, sombra_piezas, sombra_banco
                 (data.asm; los .bin de res/prueba_carga/).
 
     HARDWARE QUE TOCA
