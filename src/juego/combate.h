@@ -34,6 +34,11 @@
 #define COMBATE_PROFUNDIDAD 14           /* Diferencia máxima de y entre golpeador y golpeado. */
 #define PARADA_GOLPE 3                   /* Cuadros de «parada de impacto» al conectar.   */
 #define PARADA_DERRIBO 5                 /* Y si el golpe derriba.                        */
+#define AGARRE_DISTANCIA 30              /* Hasta dónde llega el agarre por delante.      */
+#define AGARRE_DELANTE 26                /* El agarrado queda a estos px de los pies.     */
+#define DANIO_LANZAMIENTO 3
+#define DANIO_GOLPE_AGARRE 1
+#define DANIO_CHOQUE 2                   /* Un ninja lanzado contra otro.                 */
 
 /* Daño del golpe `golpe` (1..GOLPES) del combo: 1, 1 y 2. */
 u8 combate_danio(u8 golpe);
@@ -61,6 +66,13 @@ u8 combate_ninjas_resolver(Ninja *n, Cuerpo *c);
    para Tarou, personaje_alcance() en general) que no haya recibido ya este tajo es
    golpeado. Devuelve los cuadros de parada de impacto que hay que aplicar (0 si no
    conectó nada). */
-u8 combate_resolver(const Cuerpo *c, Ninja *n, u16 alcance);
+u8 combate_resolver(Cuerpo *c, Ninja *n, u16 alcance);
+
+/* El agarre, una vez por frame DESPUÉS de combate_ninjas_resolver: si el cuerpo anda
+   contra un ninja agarrable (delante, a 8..AGARRE_DISTANCIA px y ±6 de profundidad) durante
+   AGARRE_EMPUJE frames, lo agarra; mientras lo tiene, lo coloca delante; y atiende los
+   eventos del cuerpo (golpe de agarre: 1 de daño; soltar; lanzar: 3 de daño). Además, un
+   ninja lanzado derriba (2 de daño) a los otros que toca en su vuelo. */
+void combate_agarre(Cuerpo *c, Ninja *n);
 
 #endif /* COMBATE_H */

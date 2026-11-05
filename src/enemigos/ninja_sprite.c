@@ -55,7 +55,10 @@ extern u8 sombra_banco;
 #define SIN_CUADRO 0xFF
 #define VRAM_TILE(t) ((u16)(VRAM_SPRITES + ((u16)(t) << 4)))   /* 16 palabras por tile.  */
 
-static const u16 HUECOS[NINJAS_MAX] = {192, 288, 384};   /* Primer tile de cada hueco.   */
+static const u16 HUECOS[NINJAS_MAX] = {192, 256, 352};   /* Primer tile de cada hueco:   */
+                                                         /* 16, 24 y 24 piezas (ver .h). */
+static const u16 BLANCO[16] = {0, 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF,
+                               0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF};
 
 /* Cada tipo (normal, mediano, grande): su celda. */
 static const u8 ANCHO_TIPO[NINJA_TIPOS] = {NINJA_ANCHO, 128, 128};
@@ -122,6 +125,7 @@ static const u8 *tira_de(u8 tipo, u8 dibujo, u8 *f, u8 *banco)
 
 static u8 muestra[NINJAS_MAX];
 static u8 mirada[NINJAS_MAX];
+static u8 blanca[NINJAS_MAX];        /* 1 si la paleta de la ranura está ahora en blanco. */
 static u8 turno;
 static Subida subida;
 
@@ -152,8 +156,50 @@ void ninja_sprite_cargar(void)
         sprites_y[ENT_NINJA + k] = 0;
         muestra[k] = SIN_CUADRO;
         mirada[k] = 0;
+        blanca[k] = 0;
     }
     turno = 0;
+}
+
+/*--- paleta_ranura: la paleta normal de la ranura k (su tipo) ------------------------*/
+static const u8 *paleta_ranura(u8 k)
+{
+    if (k == NINJA_GRANDE)
+    {
+        return (const u8 *)&ninja3_pal;
+    }
+    if (k == NINJA_MEDIANO)
+    {
+        return (const u8 *)&ninja2_pal;
+    }
+    return (const u8 *)&ninja1_pal;
+}
+
+void ninja_sprite_vblank(const Ninja *n)
+{
+    u8 k, quiere;
+
+    for (k = 0; k < NINJAS_MAX; k++)
+    {
+        quiere = (u8)(n->vivo && n->destello != 0);  /* ¿Toca blanco este frame?            */
+        if (quiere != blanca[k])
+        {
+            dmaCopyCGram(quiere ? (u8 *)BLANCO : (u8 *)paleta_ranura(k),
+                         (u16)(128 + 16 + ((u16)k << 4)), 32);   /* Paletas 1..3.          */
+            blanca[k] = quiere;
+        }
+        n++;
+    }
+}
+
+void ninja_sprite_paletas_repuestas(void)
+{
+    u8 k;
+
+    for (k = 0; k < NINJAS_MAX; k++)
+    {
+        blanca[k] = 0;
+    }
 }
 
 /*--- subir: UN ninja sube su cuadro entero, por turnos -----------------------------*/

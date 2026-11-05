@@ -38,7 +38,7 @@
 ;                        hdmaGradatardecerList (la aldea de la fase 1); ambiente_til/_pal/
 ;                        _pieza/_banco (el humo y los pájaros)
 ;     .rodata_p16_*      tarou_<anim>_p16 (14 tiras en piezas de 16x16) y tarou_p16_bancos
-;     .rodata_bp16_*     barbara_<anim>_p16 (9 tiras, celda 112x96), barbara_pal y barbara_p16_bancos
+;     .rodata_bp16_*     barbara_<anim>_p16 (20 tiras, celda 112x96), barbara_pal y barbara_p16_bancos
 ;     .rodata_np16_*     ninja1_<anim>_p16 (7 tiras de «Ninja 1», celda 96x96), ninja1_pal y ninja1_p16_bancos
 ;     .rodata_n2p16_*, .rodata_n3p16_*  ninja2_/ninja3_<anim>_p16 (mediano y grande, 128x112), sus _pal y _p16_bancos
 ;     .rodata_prueba_*   ninja64_andar, ninja64_ataque, ninja_pal, sombra_til, sombra_piezas,
@@ -415,9 +415,42 @@ barbara_recibir_p16: .incbin "res/personajes/barbara/barbara_recibir.p16"
 .section ".rodata_bp16_ko" superfree
 barbara_ko_p16: .incbin "res/personajes/barbara/barbara_ko.p16"
 .ends
+.section ".rodata_bp16_correr" superfree
+barbara_correr_p16: .incbin "res/personajes/barbara/barbara_correr.p16"
+.ends
+.section ".rodata_bp16_aereo" superfree
+barbara_aereo_p16: .incbin "res/personajes/barbara/barbara_aereo.p16"
+.ends
+.section ".rodata_bp16_agarre" superfree
+barbara_agarre_p16: .incbin "res/personajes/barbara/barbara_agarre.p16"
+.ends
+.section ".rodata_bp16_golpe_agarre" superfree
+barbara_golpe_agarre_p16: .incbin "res/personajes/barbara/barbara_golpe_agarre.p16"
+.ends
+.section ".rodata_bp16_lanzamiento" superfree
+barbara_lanzamiento_p16: .incbin "res/personajes/barbara/barbara_lanzamiento.p16"
+.ends
+.section ".rodata_bp16_especial" superfree
+barbara_especial_p16: .incbin "res/personajes/barbara/barbara_especial.p16"
+.ends
+.section ".rodata_bp16_lanzar_arma" superfree
+barbara_lanzar_arma_p16: .incbin "res/personajes/barbara/barbara_lanzar_arma.p16"
+.ends
+.section ".rodata_bp16_derribada" superfree
+barbara_derribada_p16: .incbin "res/personajes/barbara/barbara_derribada.p16"
+.ends
+.section ".rodata_bp16_levantarse" superfree
+barbara_levantarse_p16: .incbin "res/personajes/barbara/barbara_levantarse.p16"
+.ends
+.section ".rodata_bp16_agarrada" superfree
+barbara_agarrada_p16: .incbin "res/personajes/barbara/barbara_agarrada.p16"
+.ends
+.section ".rodata_bp16_victoria" superfree
+barbara_victoria_p16: .incbin "res/personajes/barbara/barbara_victoria.p16"
+.ends
 .section ".rodata_bp16_varios" superfree
 barbara_pal:          .incbin "res/personajes/barbara/barbara_guardia.pal"
-barbara_p16_bancos:   .db :barbara_guardia_p16, :barbara_caminar_p16, :barbara_saltar_p16, :barbara_caer_p16, :barbara_golpe_1_p16, :barbara_golpe_2_p16, :barbara_golpe_3_p16, :barbara_recibir_p16, :barbara_ko_p16
+barbara_p16_bancos:   .db :barbara_guardia_p16, :barbara_caminar_p16, :barbara_saltar_p16, :barbara_caer_p16, :barbara_golpe_1_p16, :barbara_golpe_2_p16, :barbara_golpe_3_p16, :barbara_recibir_p16, :barbara_ko_p16, :barbara_correr_p16, :barbara_aereo_p16, :barbara_agarre_p16, :barbara_golpe_agarre_p16, :barbara_lanzamiento_p16, :barbara_especial_p16, :barbara_lanzar_arma_p16, :barbara_derribada_p16, :barbara_levantarse_p16, :barbara_agarrada_p16, :barbara_victoria_p16
 .ends
 
 ; --- «Ninja 1» en piezas de 16x16 (formato .p16, celda de 96x96) ----------------------

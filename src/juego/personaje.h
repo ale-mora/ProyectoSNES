@@ -50,6 +50,18 @@ typedef enum
     ANIM_GOLPE_3,
     ANIM_RECIBIR,                        /* Aturdida por un golpe.                        */
     ANIM_KO,                             /* Sin vida, en el suelo.                        */
+    ANIM_CORRER,                         /* Desde aquí, 2026-11-05 (mundo.h).             */
+    ANIM_AEREO,
+    ANIM_AGARRE,
+    ANIM_GOLPE_AGARRE,
+    ANIM_LANZAMIENTO,
+    ANIM_ESPECIAL,
+    ANIM_LANZAR_ARMA,
+    ANIM_DERRIBADO,                      /* Derribado con vida (luego se levanta).        */
+    ANIM_LEVANTARSE,
+    ANIM_AGARRADA,                       /* La tiene un enemigo.                          */
+    ANIM_VICTORIA,
+    ANIM_GOLPE_4,                        /* El cuarto del combo (Tarou).                  */
     ANIM_PROTA_CANTIDAD
 } AnimProtaId;
 
@@ -65,6 +77,17 @@ typedef enum
     BARBARA_TIRA_GOLPE_3,
     BARBARA_TIRA_RECIBIR,
     BARBARA_TIRA_KO,
+    BARBARA_TIRA_CORRER,                 /* Desde aquí, 2026-11-05.                       */
+    BARBARA_TIRA_AEREO,
+    BARBARA_TIRA_AGARRE,
+    BARBARA_TIRA_GOLPE_AGARRE,
+    BARBARA_TIRA_LANZAMIENTO,
+    BARBARA_TIRA_ESPECIAL,
+    BARBARA_TIRA_LANZAR_ARMA,
+    BARBARA_TIRA_DERRIBADA,
+    BARBARA_TIRA_LEVANTARSE,
+    BARBARA_TIRA_AGARRADA,
+    BARBARA_TIRA_VICTORIA,
     BARBARA_TIRAS
 } BarbaraTira;
 
@@ -109,6 +132,9 @@ u8 personaje_alto(u8 personaje);
 
 /* Alcance de su golpe en px (combate_resolver). */
 u16 personaje_alcance(u8 personaje);
+
+/* Golpes de su combo (Tarou 4, Bárbara 3: spec §4). */
+u8 personaje_golpes(u8 personaje);
 
 /* Qué animación toca según el cuerpo: el estado y, al atacar, el golpe del combo. */
 u8 personaje_anim_de(const Cuerpo *c);

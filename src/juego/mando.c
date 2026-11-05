@@ -353,7 +353,9 @@ void mando_leer(Mando *m)
         m->saltar = (u8)((teclas & G_SAL) != 0);
         m->saltar_pulsado = (u8)(m->saltar && !(teclas_antes & G_SAL));
         m->atacar_pulsado = (u8)((teclas & G_ATK) != 0 && !(teclas_antes & G_ATK));
+        m->atacar = (u8)((teclas & G_ATK) != 0);
         m->correr = m->espada_pulsado = 0;
+        m->invocar_pulsado = 0;
         m->hud_pulsado = (u8)((pulsados & KEY_SELECT) != 0);   /* Estos dos, del mando real. */
         m->salir_pulsado = (u8)((pulsados & KEY_START) != 0);
         m->actividad = (u8)(teclas != 0);
@@ -369,11 +371,13 @@ void mando_leer(Mando *m)
     m->arriba = (u8)((mantenidos & KEY_UP) != 0);    /* El carril del beat 'em up.          */
     m->correr = (u8)((mantenidos & KEY_Y) != 0);
     m->saltar = (u8)((mantenidos & KEY_B) != 0);
+    m->atacar = (u8)((mantenidos & KEY_A) != 0);     /* Con B: el especial.                 */
 
     /* Recién pulsados: acciones de un solo disparo. */
     m->saltar_pulsado = (u8)((pulsados & KEY_B) != 0);
     m->atacar_pulsado = (u8)((pulsados & KEY_A) != 0);
     m->espada_pulsado = (u8)((pulsados & KEY_R) != 0);
+    m->invocar_pulsado = (u8)((pulsados & KEY_X) != 0);   /* El apoyo.                     */
     m->hud_pulsado = (u8)((pulsados & KEY_SELECT) != 0);
     m->salir_pulsado = (u8)((pulsados & KEY_START) != 0);
 

@@ -38,11 +38,22 @@ void pruebas_personaje(void)
     c.estado = CUERPO_SUBIENDO;   COMPROBAR(personaje_anim_de(&c) == ANIM_SALTAR);
     c.estado = CUERPO_BAJANDO;    COMPROBAR(personaje_anim_de(&c) == ANIM_CAER);
     c.estado = CUERPO_RECIBIR;    COMPROBAR(personaje_anim_de(&c) == ANIM_RECIBIR);
-    c.estado = CUERPO_DERRIBADO;  COMPROBAR(personaje_anim_de(&c) == ANIM_KO);
+    c.estado = CUERPO_DERRIBADO;  COMPROBAR(personaje_anim_de(&c) == ANIM_DERRIBADO);   /* Con vida. */
+    c.vida = 0;                   COMPROBAR(personaje_anim_de(&c) == ANIM_KO);
+    c.vida = VIDA_TAROU;
+    c.estado = CUERPO_CORRIENDO;  COMPROBAR(personaje_anim_de(&c) == ANIM_CORRER);
+    c.estado = CUERPO_AEREO;      COMPROBAR(personaje_anim_de(&c) == ANIM_AEREO);
+    c.estado = CUERPO_AGARRANDO;  COMPROBAR(personaje_anim_de(&c) == ANIM_AGARRE);
+    c.estado = CUERPO_GOLPE_AGARRE; COMPROBAR(personaje_anim_de(&c) == ANIM_GOLPE_AGARRE);
+    c.estado = CUERPO_LANZANDO;   COMPROBAR(personaje_anim_de(&c) == ANIM_LANZAMIENTO);
+    c.estado = CUERPO_ESPECIAL;   COMPROBAR(personaje_anim_de(&c) == ANIM_ESPECIAL);
+    c.estado = CUERPO_LEVANTARSE; COMPROBAR(personaje_anim_de(&c) == ANIM_LEVANTARSE);
+    c.estado = CUERPO_AGARRADO;   COMPROBAR(personaje_anim_de(&c) == ANIM_AGARRADA);
     c.estado = CUERPO_ATACANDO;
     c.golpe = 1;                  COMPROBAR(personaje_anim_de(&c) == ANIM_GOLPE_1);
     c.golpe = 2;                  COMPROBAR(personaje_anim_de(&c) == ANIM_GOLPE_2);
     c.golpe = 3;                  COMPROBAR(personaje_anim_de(&c) == ANIM_GOLPE_3);
+    c.golpe = 4;                  COMPROBAR(personaje_anim_de(&c) == ANIM_GOLPE_4);
 
     /* Los golpes de Bárbara caben en el golpe: los dibujos se acaban como mucho un
        dibujo después de que acabe (el último se ve el tiempo que quede). */
@@ -53,8 +64,11 @@ void pruebas_personaje(void)
     /* Y cada tira de Bárbara es la suya, en el orden de barbara_p16_bancos. */
     for (k = 0; k < ANIM_PROTA_CANTIDAD; k++)
     {
-        COMPROBAR(b[k].tira == k && b[k].cuadros >= 1 && t[k].cuadros >= 1);
+        COMPROBAR((k == ANIM_GOLPE_4 ? b[k].tira == BARBARA_TIRA_GOLPE_3 : b[k].tira == k) &&
+                  b[k].cuadros >= 1 && t[k].cuadros >= 1);
     }
+    COMPROBAR((int)ANIM_GOLPE_4 == (int)BARBARA_TIRAS);            /* Las demás: una tira cada una. */
+    COMPROBAR(personaje_golpes(PERSONAJE_TAROU) == 4 && personaje_golpes(PERSONAJE_BARBARA) == 3);
 
     /* Celdas y alcances. */
     COMPROBAR(personaje_ancho(PERSONAJE_TAROU) == 96 && personaje_alto(PERSONAJE_TAROU) == 64);

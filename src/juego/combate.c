@@ -86,21 +86,37 @@ u8 combate_ninjas_resolver(Ninja *n, Cuerpo *c)
     return parada;
 }
 
-u8 combate_resolver(const Cuerpo *c, Ninja *n, u16 alcance)
+u8 combate_resolver(Cuerpo *c, Ninja *n, u16 alcance)
 {
-    u8 k, antes, parada = 0;
-    u8 derribo = combate_derriba(c->golpe);
+    u8 k, antes, parada = 0, hacia_izq, dentro;
+    u8 derribo, danio, alrededor;
 
     if (!mundo_golpe_activo(c))
     {
         return 0;
     }
+    derribo = mundo_golpe_derriba(c);                /* Combo, ataque aéreo o especial.     */
+    danio = mundo_golpe_danio(c);
+    alrededor = mundo_golpe_alrededor(c);            /* El especial: a los dos lados.       */
     for (k = 0; k < NINJAS_MAX; k++)
     {
-        if (n->vivo && combate_caja(c->x, c->y, c->mira_izq, alcance, COMBATE_PROFUNDIDAD, n->x, n->y))
+        hacia_izq = c->mira_izq;
+        dentro = (u8)(n->vivo && n->estado != NINJA_AGARRADO &&
+                      combate_caja(c->x, c->y, c->mira_izq, alcance, COMBATE_PROFUNDIDAD, n->x, n->y));
+        if (!dentro && alrededor && n->vivo &&
+            combate_caja(c->x, c->y, (u8)!c->mira_izq, alcance, COMBATE_PROFUNDIDAD, n->x, n->y))
+        {
+            dentro = 1;                              /* Detrás: el giro también le alcanza. */
+            hacia_izq = (u8)!c->mira_izq;
+        }
+        if (dentro)
         {
             antes = n->id_golpe;                     /* Para saber si este tajo era nuevo.  */
-            if (ninja_recibir(n, combate_danio(c->golpe), derribo, c->mira_izq, c->id))
+            if (alrededor && antes != c->id)
+            {
+                mundo_cobrar_especial(c);            /* Conectó: el especial cuesta vida.   */
+            }
+            if (ninja_recibir(n, danio, derribo, hacia_izq, c->id))
             {
                 parada = PARADA_DERRIBO;             /* Lo derribó o lo remató.             */
             }
@@ -112,4 +128,123 @@ u8 combate_resolver(const Cuerpo *c, Ninja *n, u16 alcance)
         n++;
     }
     return parada;
+}
+
+/*--- delante: el agarrado, delante de los pies del cuerpo -----------------------------*/
+static void colocar(const Cuerpo *c, Ninja *p)
+{
+    p->x = (u16)(c->mira_izq ? c->x - AGARRE_DELANTE : c->x + AGARRE_DELANTE);
+    p->y = c->y;
+    p->mira_izq = (u8)!c->mira_izq;                  /* Mirándolo.                          */
+}
+
+void combate_agarre(Cuerpo *c, Ninja *n)
+{
+    Ninja *p, *q;
+    u8 k, j;
+    u16 dx, dy;
+
+    /*--- 1. Si ya agarra a uno: sus eventos y colocarlo ---*/
+    if (c->agarra)
+    {
+        p = n + (c->agarra - 1);                     /* 32 bytes por ranura: sin tcc__mul.  */
+        if (!p->vivo || p->estado != NINJA_AGARRADO)
+        {
+            c->agarra = 0;                           /* Se fue (o lo derribó otro golpe).   */
+            if (c->estado == CUERPO_AGARRANDO || c->estado == CUERPO_GOLPE_AGARRE)
+            {
+                c->estado = CUERPO_PARADO;
+                c->accion = 0;
+            }
+        }
+        else if (c->evento == EVENTO_GOLPE_AGARRE)
+        {
+            p->vida = (u8)(p->vida > DANIO_GOLPE_AGARRE ? p->vida - DANIO_GOLPE_AGARRE : 0);
+            p->destello = NINJA_DESTELLO_FRAMES;
+            if (p->vida == 0)
+            {
+                ninja_lanzar(p, c->mira_izq, 0);     /* Sin vida: sale volando y cae KO.    */
+                c->agarra = 0;
+                c->estado = CUERPO_PARADO;
+                c->accion = 0;
+            }
+        }
+        else if (c->evento == EVENTO_LANZA_AGARRADO)
+        {
+            ninja_lanzar(p, c->mira_izq, DANIO_LANZAMIENTO);   /* Hacia donde mira.          */
+            c->agarra = 0;
+        }
+        else if (c->evento == EVENTO_SUELTA_AGARRADO)
+        {
+            ninja_soltar(p, (u8)(c->agarre_golpes >= AGARRE_GOLPES), c->mira_izq);
+            c->agarra = 0;
+        }
+        else if (c->estado == CUERPO_AGARRANDO || c->estado == CUERPO_GOLPE_AGARRE ||
+                 c->estado == CUERPO_LANZANDO)
+        {
+            colocar(c, p);
+        }
+    }
+    /*--- 2. Si anda contra uno agarrable, lo agarra a los AGARRE_EMPUJE frames ---*/
+    else if (c->estado == CUERPO_ANDANDO && c->z == 0)
+    {
+        p = n;
+        for (k = 0; k < NINJAS_MAX; k++)
+        {
+            dy = (u16)(p->y > c->y ? p->y - c->y : c->y - p->y);
+            dx = (u16)(c->mira_izq ? c->x - p->x : p->x - c->x);   /* Delante (si no, enorme). */
+            if (ninja_agarrable(p) && dy <= 6 && dx >= 8 && dx <= AGARRE_DISTANCIA)
+            {
+                break;
+            }
+            p++;
+        }
+        if (k < NINJAS_MAX)
+        {
+            c->empuja++;
+            if (c->empuja >= AGARRE_EMPUJE)
+            {
+                ninja_agarrar(p);
+                c->agarra = (u8)(k + 1);
+                c->estado = CUERPO_AGARRANDO;
+                c->accion = 0;
+                c->agarre_golpes = 0;
+                c->empuja = 0;
+                colocar(c, p);
+            }
+        }
+        else
+        {
+            c->empuja = 0;
+        }
+    }
+    else
+    {
+        c->empuja = 0;
+    }
+
+    /*--- 3. Un ninja volando derriba a los que toca ---*/
+    p = n;
+    for (k = 0; k < NINJAS_MAX; k++)
+    {
+        if (ninja_volando(p))
+        {
+            q = n;
+            for (j = 0; j < NINJAS_MAX; j++)
+            {
+                if (j != k && q->vivo && q->estado != NINJA_DERRIBADO)
+                {
+                    dx = (u16)(q->x > p->x ? q->x - p->x : p->x - q->x);
+                    dy = (u16)(q->y > p->y ? q->y - p->y : p->y - q->y);
+                    if (dx < 24 && dy < 12)
+                    {
+                        ninja_recibir(q, DANIO_CHOQUE, 1, (u8)(p->empuje == NINJA_EMPUJE_IZQ),
+                                      NINJA_GOLPE_LANZADO);
+                    }
+                }
+                q++;
+            }
+        }
+        p++;
+    }
 }

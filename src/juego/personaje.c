@@ -43,6 +43,20 @@ static const AnimProta ANIMS_TAROU[ANIM_PROTA_CANTIDAD] = {
     {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 3, 0},        /* 7 en 20: salto y mordisco. */
     {TAROU_TIRA_RECIBIR, TAROU_RECIBIR_CUADROS, 3, 0},        /* 5 dibujos en 16 frames.   */
     {TAROU_TIRA_KO, TAROU_KO_CUADROS, 6, 0},                  /* Cae y se queda tumbado.   */
+    /* Los movimientos nuevos: hasta que llegue su arte (punto 8 del 2026-11-05), con las
+       tiras que ya tiene. */
+    {ESTADO_CORRIENDO, TAROU_CORRER_CUADROS, 4, 1},           /* ANIM_CORRER (la del plataformas). */
+    {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 3, 0},        /* ANIM_AEREO                */
+    {TAROU_TIRA_GUARDIA_BU, 1, 8, 1},                         /* ANIM_AGARRE               */
+    {TAROU_TIRA_GOLPE_1, TAROU_GOLPE_1_CUADROS, 3, 0},        /* ANIM_GOLPE_AGARRE         */
+    {TAROU_TIRA_GOLPE_2, TAROU_GOLPE_2_CUADROS, 4, 0},        /* ANIM_LANZAMIENTO          */
+    {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 4, 0},        /* ANIM_ESPECIAL             */
+    {TAROU_TIRA_GOLPE_1, TAROU_GOLPE_1_CUADROS, 3, 0},        /* ANIM_LANZAR_ARMA          */
+    {TAROU_TIRA_KO, TAROU_KO_CUADROS, 6, 0},                  /* ANIM_DERRIBADO            */
+    {TAROU_TIRA_GUARDIA_BU, TAROU_GUARDIA_BU_CUADROS, 3, 0},  /* ANIM_LEVANTARSE           */
+    {TAROU_TIRA_RECIBIR, TAROU_RECIBIR_CUADROS, 6, 1},        /* ANIM_AGARRADA             */
+    {TAROU_TIRA_GUARDIA_BU, TAROU_GUARDIA_BU_CUADROS, 8, 1},  /* ANIM_VICTORIA             */
+    {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 3, 0},        /* ANIM_GOLPE_4              */
 };
 
 /* Bárbara: su arte de beat 'em up. */
@@ -56,6 +70,18 @@ static const AnimProta ANIMS_BARBARA[ANIM_PROTA_CANTIDAD] = {
     {BARBARA_TIRA_GOLPE_3, BARBARA_GOLPE_3_CUADROS, 3, 0},   /* 7 dibujos en 20 frames.   */
     {BARBARA_TIRA_RECIBIR, BARBARA_RECIBIR_CUADROS, 3, 0},   /* 6 dibujos en 16 frames.   */
     {BARBARA_TIRA_KO, BARBARA_KO_CUADROS, 6, 0},             /* Cae y se queda tumbada.   */
+    {BARBARA_TIRA_CORRER, BARBARA_CORRER_CUADROS, 4, 1},     /* ANIM_CORRER               */
+    {BARBARA_TIRA_AEREO, BARBARA_AEREO_CUADROS, 4, 0},       /* ANIM_AEREO                */
+    {BARBARA_TIRA_AGARRE, BARBARA_AGARRE_CUADROS, 8, 1},     /* ANIM_AGARRE               */
+    {BARBARA_TIRA_GOLPE_AGARRE, BARBARA_GOLPE_AGARRE_CUADROS, 5, 0},   /* 3 en 14 frames. */
+    {BARBARA_TIRA_LANZAMIENTO, BARBARA_LANZAMIENTO_CUADROS, 3, 0},     /* 7 en 21 frames. */
+    {BARBARA_TIRA_ESPECIAL, BARBARA_ESPECIAL_CUADROS, 3, 0},           /* 8 en 28 frames. */
+    {BARBARA_TIRA_LANZAR_ARMA, BARBARA_LANZAR_ARMA_CUADROS, 3, 0},     /* 5 en 16 frames. */
+    {BARBARA_TIRA_DERRIBADA, BARBARA_DERRIBADA_CUADROS, 5, 0},         /* 7 en 36 frames. */
+    {BARBARA_TIRA_LEVANTARSE, BARBARA_LEVANTARSE_CUADROS, 4, 0},       /* 5 en 20 frames. */
+    {BARBARA_TIRA_AGARRADA, BARBARA_AGARRADA_CUADROS, 8, 1},
+    {BARBARA_TIRA_VICTORIA, BARBARA_VICTORIA_CUADROS, 6, 0},
+    {BARBARA_TIRA_GOLPE_3, BARBARA_GOLPE_3_CUADROS, 3, 0},   /* ANIM_GOLPE_4 (no lo usa). */
 };
 
 const AnimProta *personaje_anims(u8 personaje)
@@ -78,19 +104,35 @@ u16 personaje_alcance(u8 personaje)
     return (u16)(personaje == PERSONAJE_BARBARA ? ALCANCE_BARBARA : ALCANCE_TAROU);
 }
 
+u8 personaje_golpes(u8 personaje)
+{
+    return (u8)(personaje == PERSONAJE_BARBARA ? GOLPES : GOLPES_TAROU);
+}
+
 u8 personaje_anim_de(const Cuerpo *c)
 {
     switch (c->estado)
     {
         case CUERPO_ANDANDO:   return ANIM_CAMINAR;
+        case CUERPO_CORRIENDO: return ANIM_CORRER;
+        case CUERPO_AEREO:     return ANIM_AEREO;
+        case CUERPO_AGARRANDO: return ANIM_AGARRE;
+        case CUERPO_GOLPE_AGARRE: return ANIM_GOLPE_AGARRE;
+        case CUERPO_LANZANDO:  return ANIM_LANZAMIENTO;
+        case CUERPO_ESPECIAL:  return ANIM_ESPECIAL;
+        case CUERPO_LANZAR_ARMA: return ANIM_LANZAR_ARMA;
+        case CUERPO_LEVANTARSE: return ANIM_LEVANTARSE;
+        case CUERPO_AGARRADO:  return ANIM_AGARRADA;
+        case CUERPO_VICTORIA:  return ANIM_VICTORIA;
         case CUERPO_SUBIENDO:  return ANIM_SALTAR;
         case CUERPO_BAJANDO:   return ANIM_CAER;
-        case CUERPO_ATACANDO:                        /* El golpe del combo: 1, 2 o 3.       */
+        case CUERPO_ATACANDO:                        /* El golpe del combo: 1..4.           */
+            if (c->golpe >= 4) return ANIM_GOLPE_4;
             if (c->golpe >= 3) return ANIM_GOLPE_3;
             if (c->golpe == 2) return ANIM_GOLPE_2;
             return ANIM_GOLPE_1;
         case CUERPO_RECIBIR:   return ANIM_RECIBIR;
-        case CUERPO_DERRIBADO: return ANIM_KO;       /* Solo se cae sin vida (mundo.c).     */
+        case CUERPO_DERRIBADO: return (u8)(c->vida == 0 ? ANIM_KO : ANIM_DERRIBADO);
         default:               return ANIM_GUARDIA;
     }
 }

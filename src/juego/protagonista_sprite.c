@@ -32,12 +32,13 @@
 #include "juego/p16.h"
 #include "juego/dma_lista.h"
 
-extern char tarou_reposo_p16, tarou_caminar_p16, tarou_saltar_p16, tarou_caer_p16, tarou_atacar_p16;
+extern char tarou_reposo_p16, tarou_caminar_p16, tarou_saltar_p16, tarou_caer_p16, tarou_atacar_p16, tarou_correr_p16;
 extern char tarou_guardia_bu_p16, tarou_golpe_1_p16, tarou_golpe_2_p16, tarou_golpe_3_p16;
 extern char tarou_recibir_p16, tarou_ko_p16;
 extern char barbara_guardia_p16, barbara_caminar_p16, barbara_saltar_p16, barbara_caer_p16;
 extern char barbara_golpe_1_p16, barbara_golpe_2_p16, barbara_golpe_3_p16;
 extern char barbara_recibir_p16, barbara_ko_p16;
+extern char barbara_correr_p16, barbara_aereo_p16, barbara_agarre_p16, barbara_golpe_agarre_p16, barbara_lanzamiento_p16, barbara_especial_p16, barbara_lanzar_arma_p16, barbara_derribada_p16, barbara_levantarse_p16, barbara_agarrada_p16, barbara_victoria_p16;
 extern char tarou_pal, barbara_pal, ninja_pal, sombra_til, sombra_piezas;
 extern u8 tarou_p16_bancos[];        /* Banco de cada tira .p16 de Tarou (enum Estado).   */
 extern u8 barbara_p16_bancos[];      /* Banco de cada tira de Bárbara (BarbaraTira).      */
@@ -65,6 +66,17 @@ static const u8 *tira_de(u8 personaje, u8 tira)
             case BARBARA_TIRA_GOLPE_3: return (const u8 *)&barbara_golpe_3_p16;
             case BARBARA_TIRA_RECIBIR: return (const u8 *)&barbara_recibir_p16;
             case BARBARA_TIRA_KO:      return (const u8 *)&barbara_ko_p16;
+            case BARBARA_TIRA_CORRER: return (const u8 *)&barbara_correr_p16;
+            case BARBARA_TIRA_AEREO: return (const u8 *)&barbara_aereo_p16;
+            case BARBARA_TIRA_AGARRE: return (const u8 *)&barbara_agarre_p16;
+            case BARBARA_TIRA_GOLPE_AGARRE: return (const u8 *)&barbara_golpe_agarre_p16;
+            case BARBARA_TIRA_LANZAMIENTO: return (const u8 *)&barbara_lanzamiento_p16;
+            case BARBARA_TIRA_ESPECIAL: return (const u8 *)&barbara_especial_p16;
+            case BARBARA_TIRA_LANZAR_ARMA: return (const u8 *)&barbara_lanzar_arma_p16;
+            case BARBARA_TIRA_DERRIBADA: return (const u8 *)&barbara_derribada_p16;
+            case BARBARA_TIRA_LEVANTARSE: return (const u8 *)&barbara_levantarse_p16;
+            case BARBARA_TIRA_AGARRADA: return (const u8 *)&barbara_agarrada_p16;
+            case BARBARA_TIRA_VICTORIA: return (const u8 *)&barbara_victoria_p16;
             default:                   return (const u8 *)&barbara_guardia_p16;
         }
     }
@@ -77,6 +89,7 @@ static const u8 *tira_de(u8 personaje, u8 tira)
         case TAROU_TIRA_RECIBIR: return (const u8 *)&tarou_recibir_p16;
         case TAROU_TIRA_KO:      return (const u8 *)&tarou_ko_p16;
         case ESTADO_CAMINANDO: return (const u8 *)&tarou_caminar_p16;
+        case ESTADO_CORRIENDO: return (const u8 *)&tarou_correr_p16;
         case ESTADO_SALTANDO:  return (const u8 *)&tarou_saltar_p16;
         case ESTADO_CAYENDO:   return (const u8 *)&tarou_caer_p16;
         case ESTADO_ATACANDO:  return (const u8 *)&tarou_atacar_p16;

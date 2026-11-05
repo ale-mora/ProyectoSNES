@@ -228,4 +228,40 @@ void pruebas_ninja(void)
         COMPROBAR(n[2].estado == NINJA_ANDANDO);
     }
     COMPROBAR(n[2].x == 500 - 30);
+
+    /* Game feel (2026-11-05): al recibir un golpe, NINJA_DESTELLO_FRAMES en blanco; al
+       levantarse de un derribo, NINJA_INV_LEVANTARSE invulnerable y parpadeando. */
+    ninja_iniciar_todos(n);
+    ninja_oleada(n, 0, 0);
+    n[0].dentro = 1;
+    COMPROBAR(ninja_recibir(&n[0], 1, 0, 0, 7) == 0 && n[0].destello == NINJA_DESTELLO_FRAMES);
+    for (f = 0; f < NINJA_DESTELLO_FRAMES; f++)
+    {
+        ninja_actualizar(&n[0], 300, 200);
+    }
+    COMPROBAR(n[0].destello == 0);
+    ninja_iniciar_todos(n);
+    ninja_oleada(n, 0, 0);
+    n[0].dentro = 1;
+    COMPROBAR(ninja_recibir(&n[0], 1, 1, 0, 8) == 1);           /* Derribado (con vida).   */
+    for (f = 0; f < NINJA_DERRIBO_FRAMES; f++)
+    {
+        ninja_actualizar(&n[0], 300, 200);
+    }
+    COMPROBAR(n[0].estado == NINJA_PARADO && n[0].inv == NINJA_INV_LEVANTARSE);
+    COMPROBAR(ninja_recibir(&n[0], 1, 0, 0, 9) == 0 && n[0].estado == NINJA_PARADO);   /* No cuenta. */
+    k = 0;
+    for (f = 0; f < 16; f++)
+    {
+        ninja_actualizar(&n[0], 300, 200);
+        k = (u8)(k + ninja_parpadea(&n[0]));
+    }
+    COMPROBAR(k > 0 && k < 16);                                  /* Parpadea, no desaparece. */
+    for (f = 0; f < NINJA_INV_LEVANTARSE; f++)
+    {
+        ninja_actualizar(&n[0], 300, 200);
+    }
+    COMPROBAR(n[0].inv == 0 && !ninja_parpadea(&n[0]));
+    ninja_recibir(&n[0], 1, 0, 0, 10);
+    COMPROBAR(n[0].estado == NINJA_RECIBIR);                     /* Ya se le puede pegar.   */
 }

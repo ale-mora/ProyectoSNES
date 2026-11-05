@@ -50,6 +50,11 @@
 #define NINJA_DISTANCIA 40               /* Se detiene a esta distancia en x del objetivo.  */
 #define NINJA_VIDA 4                     /* El normal: combo de Tarou 1 + 1 + 2 = justo.    */
 #define NINJA_RECIBIR_FRAMES 16          /* Aturdido tras un golpe normal.                  */
+#define NINJA_LANZADO_FRAMES 18           /* Lanzado: vuela estos frames (5 px/frame)...     */
+#define NINJA_LANZADO_PASO 5
+#define NINJA_GOLPE_LANZADO 255          /* ...y su choque cuenta como este tajo.           */
+#define NINJA_DESTELLO_FRAMES 3          /* En blanco al recibir un golpe (game feel).      */
+#define NINJA_INV_LEVANTARSE 40          /* Invulnerable (y parpadeando) tras levantarse.   */
 #define NINJA_DERRIBO_FRAMES 64          /* Caído: cae (21), en el suelo (20) y se levanta (20);
                                             sin vida: KO (21) y parpadea tumbado hasta irse. */
 #define NINJA_EMPUJE_IZQ 1
@@ -98,7 +103,8 @@ typedef enum
     NINJA_ANDANDO,
     NINJA_ATACANDO,                      /* Dando un tajo (su caja está activa en parte de él). */
     NINJA_RECIBIR,                       /* Aturdido: retrocede un poco y no hace nada.     */
-    NINJA_DERRIBADO                      /* Derribado: sale despedido y cae; sin vida, desaparece. */
+    NINJA_DERRIBADO,                     /* Derribado: sale despedido y cae; sin vida, desaparece. */
+    NINJA_AGARRADO                       /* Lo tiene agarrado el protagonista (combate.c lo coloca). */
 } EstadoNinja;
 
 typedef struct
@@ -118,7 +124,10 @@ typedef struct
     u8 espera;                           /* Cuadros de descanso antes de poder atacar.      */
     u8 conecto;                          /* 1 si el tajo en curso ya acertó (no pega dos veces). */
     u8 tipo;                             /* TipoNinja (= su ranura).                        */
-    u8 libre[15];                        /* Relleno hasta 32 bytes (potencia de 2: n + k sin tcc__mul). */
+    u8 destello;                         /* Frames que le quedan en blanco (acaba de recibir). */
+    u8 inv;                              /* Frames invulnerable tras levantarse (parpadea). */
+    u8 lanzado;                          /* 1 = lo lanzaron: vuela y derriba a los que toca. */
+    u8 libre[12];                        /* Relleno hasta 32 bytes (potencia de 2: n + k sin tcc__mul). */
 } Ninja;
 
 /* Deja las NINJAS_MAX ranuras libres. */
@@ -143,6 +152,22 @@ void ninja_limitar_x(Ninja *n, u16 x_min, u16 x_max);
    no hace nada. Devuelve 1 si el golpe lo derribó o lo remató, 0 si solo lo aturdió o no contó. */
 u8 ninja_recibir(Ninja *n, u8 danio, u8 derribo, u8 hacia_izq, u8 id);
 
+/* 1 si se le puede agarrar: vivo, dentro, quieto, andando o aturdido, y no recién levantado. */
+u8 ninja_agarrable(const Ninja *n);
+
+/* Lo agarran (queda en NINJA_AGARRADO hasta que lo suelten o lo lancen). */
+void ninja_agarrar(Ninja *n);
+
+/* Lo sueltan: con `derribo`, cae (tras los golpes de agarre); sin él, vuelve a la carga. */
+void ninja_soltar(Ninja *n, u8 derribo, u8 hacia_izq);
+
+/* Lo lanzan hacia la izquierda (`hacia_izq` 1) o la derecha: pierde `danio` y vuela
+   NINJA_LANZADO_FRAMES; mientras vuela, derriba a los que toca (combate.c). */
+void ninja_lanzar(Ninja *n, u8 hacia_izq, u8 danio);
+
+/* 1 si está volando tras un lanzamiento. */
+u8 ninja_volando(const Ninja *n);
+
 /* ¿Cuántos están dando un tajo? (reparte los turnos de ataque.) */
 u8 ninja_atacando(const Ninja *n);
 
@@ -158,7 +183,8 @@ u8 ninja_golpe_activo(const Ninja *n);
    derribado → en el suelo → levantarse, o, sin vida, el KO. */
 u8 ninja_dibujo(const Ninja *n);
 
-/* 1 si este frame el cuerpo no se dibuja: el ninja KO parpadea tumbado antes de irse. */
+/* 1 si este frame el cuerpo no se dibuja: el ninja KO parpadea tumbado antes de irse, y
+   el que se acaba de levantar parpadea mientras es invulnerable. */
 u8 ninja_parpadea(const Ninja *n);
 
 /* Lo que quita su golpe al protagonista: 2, 3 o 4 según el tipo. */

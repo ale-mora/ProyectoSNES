@@ -68,6 +68,9 @@ void ninja_iniciar_todos(Ninja *n)
         n->espera = 0;
         n->conecto = 0;
         n->tipo = k;
+        n->destello = 0;
+        n->inv = 0;
+        n->lanzado = 0;
         n->x = 0;
         n->y = 0;
         n++;                                         /* Siguiente ranura: sin a[k] (tcc__mul). */
@@ -111,6 +114,9 @@ u8 ninja_oleada(Ninja *n, u16 camara, u8 zona)
             n->empuje = 0;
             n->espera = (u8)(NINJA_ESPERA_INICIAL + (k << 4) - k);   /* 30, 45, 60: no atacan juntos. */
             n->conecto = 0;
+            n->destello = 0;
+            n->inv = 0;
+            n->lanzado = 0;
             nacidos++;
         }
         n++;
@@ -124,7 +130,15 @@ static void aturdido(Ninja *n)
     u8 desliza;                                      /* Píxeles por cuadro que lo empuja.   */
 
     n->reloj++;                                      /* (También hace parpadear al KO.)     */
-    if (n->estado == NINJA_DERRIBADO)
+    if (n->estado == NINJA_DERRIBADO && n->lanzado)
+    {
+        desliza = (u8)(n->timer > NINJA_DERRIBO_FRAMES - NINJA_LANZADO_FRAMES ? NINJA_LANZADO_PASO : 0);
+        if (desliza == 0)
+        {
+            n->lanzado = 0;                          /* Aterrizó: ya no derriba a nadie.    */
+        }
+    }
+    else if (n->estado == NINJA_DERRIBADO)
     {
         desliza = (u8)(n->timer > NINJA_DERRIBO_FRAMES - 14 ? 3 : 0);   /* Sale despedido.   */
     }
@@ -149,6 +163,10 @@ static void aturdido(Ninja *n)
         }
         else
         {
+            if (n->estado == NINJA_DERRIBADO)        /* Se acaba de levantar: un rato sin   */
+            {                                        /* que le peguen (y parpadeando).      */
+                n->inv = NINJA_INV_LEVANTARSE;
+            }
             n->estado = NINJA_PARADO;                /* Se recupera y vuelve a la carga.    */
             n->cuadro = 0;
         }
@@ -157,11 +175,12 @@ static void aturdido(Ninja *n)
 
 u8 ninja_recibir(Ninja *n, u8 danio, u8 derribo, u8 hacia_izq, u8 id)
 {
-    if (!n->vivo || n->id_golpe == id || n->estado == NINJA_DERRIBADO)
+    if (!n->vivo || n->id_golpe == id || n->estado == NINJA_DERRIBADO || n->inv != 0)
     {
-        return 0;                                    /* Ya lo golpeó este tajo, o está caído. */
-    }
+        return 0;                                    /* Ya lo golpeó este tajo, está caído o */
+    }                                                /* se acaba de levantar.               */
     n->id_golpe = id;
+    n->destello = NINJA_DESTELLO_FRAMES;             /* En blanco unos frames: el golpe se nota. */
     n->vida = (u8)(n->vida > danio ? n->vida - danio : 0);
     n->mira_izq = (u8)(hacia_izq ? 0 : 1);           /* Mira hacia el que le pegó.          */
     n->empuje = (u8)(hacia_izq ? NINJA_EMPUJE_IZQ : NINJA_EMPUJE_DER);
@@ -180,9 +199,22 @@ void ninja_actualizar(Ninja *n, u16 obj_x, u16 obj_y)
 {
     u8 anda = 0;
 
+    if (n->destello != 0)
+    {
+        n->destello--;                               /* El blanco del golpe se gasta solo.  */
+    }
+    if (n->inv != 0)
+    {
+        n->inv--;                                    /* Y la invulnerabilidad de levantarse. */
+    }
     if (n->estado == NINJA_RECIBIR || n->estado == NINJA_DERRIBADO)
     {
         aturdido(n);                                 /* Sin IA mientras está tocado.        */
+        return;
+    }
+    if (n->estado == NINJA_AGARRADO)
+    {
+        n->reloj++;                                  /* Agarrado: lo mueve combate.c.       */
         return;
     }
     if (n->estado == NINJA_ATACANDO)                 /* El tajo sigue hasta acabar.         */
@@ -279,6 +311,53 @@ void ninja_limitar_x(Ninja *n, u16 x_min, u16 x_max)
     }
 }
 
+u8 ninja_agarrable(const Ninja *n)
+{
+    return (u8)(n->vivo && n->dentro && n->inv == 0 && n->vida != 0 &&
+                (n->estado == NINJA_PARADO || n->estado == NINJA_ANDANDO || n->estado == NINJA_RECIBIR));
+}
+
+void ninja_agarrar(Ninja *n)
+{
+    n->estado = NINJA_AGARRADO;
+    n->timer = 0;
+    n->cuadro = 0;
+}
+
+void ninja_soltar(Ninja *n, u8 derribo, u8 hacia_izq)
+{
+    if (n->estado != NINJA_AGARRADO)
+    {
+        return;
+    }
+    if (derribo)
+    {
+        n->estado = NINJA_DERRIBADO;                 /* Tras los golpes de agarre: al suelo. */
+        n->timer = NINJA_DERRIBO_FRAMES;
+        n->empuje = (u8)(hacia_izq ? NINJA_EMPUJE_IZQ : NINJA_EMPUJE_DER);
+        return;
+    }
+    n->estado = NINJA_PARADO;                        /* Se escapa y vuelve a la carga.      */
+    n->espera = NINJA_ESPERA;
+    n->cuadro = 0;
+}
+
+void ninja_lanzar(Ninja *n, u8 hacia_izq, u8 danio)
+{
+    n->vida = (u8)(n->vida > danio ? n->vida - danio : 0);
+    n->estado = NINJA_DERRIBADO;
+    n->timer = NINJA_DERRIBO_FRAMES;
+    n->lanzado = 1;
+    n->destello = NINJA_DESTELLO_FRAMES;
+    n->empuje = (u8)(hacia_izq ? NINJA_EMPUJE_IZQ : NINJA_EMPUJE_DER);
+    n->mira_izq = (u8)(hacia_izq ? 0 : 1);           /* Vuela de espaldas.                  */
+}
+
+u8 ninja_volando(const Ninja *n)
+{
+    return (u8)(n->vivo && n->estado == NINJA_DERRIBADO && n->lanzado);
+}
+
 u8 ninja_atacando(const Ninja *n)
 {
     u8 k, cuantos = 0;
@@ -352,6 +431,10 @@ u8 ninja_parpadea(const Ninja *n)
 {
     u8 pasado;
 
+    if (n->inv != 0)
+    {
+        return (u8)((n->inv & 4) != 0);              /* Recién levantado: parpadea.         */
+    }
     if (n->estado != NINJA_DERRIBADO || n->vida != 0)
     {
         return 0;

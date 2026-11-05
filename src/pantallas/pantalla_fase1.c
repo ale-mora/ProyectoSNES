@@ -89,10 +89,12 @@ extern char ninja1_pal, ninja2_pal, ninja3_pal;   /* Las paletas de los ninjas (
 
 #define X_INICIAL 64                 /* Donde nace Tarou: a la izquierda.                 */
 #define Y_INICIAL 200                /* En medio del carril (184..216).                   */
-#define FILAS_HUD 4
+#define FILAS_HUD 5                  /* Filas del HUD de depuración: 0..3 y la 5 (la V).   */
+#define REG_SLHV (*(volatile u8 *)0x2137)   /* Leer congela los contadores del haz.         */
+#define REG_OPVCT (*(volatile u8 *)0x213D)  /* La línea del haz (dos lecturas: 8 + 1 bits). */
 #define FILA_AVISO 6                 /* Filas del HUD (6 y 7) de PAUSE, GAME OVER y STAGE CLEAR. */
 #define NOREN_CADA 7                 /* El noren cambia de cuadro cada 8 frames (máscara). */
-#define NOREN_HUECO 4096             /* Si la lista ya lleva más bytes, el noren espera.   */
+#define NOREN_HUECO 3072             /* Si la lista ya lleva más bytes, el noren espera.   */
 #define MARGEN_NINJA 32              /* Un ninja ya dentro no pasa de este margen del borde: su cuerpo (~50 px) se ve entero. */
 
 static Cuerpo cuerpo;
@@ -110,6 +112,9 @@ static u8 cambiar_luz;               /* 1 = en el próximo VBlank, poner o quita
 static u8 avisos;                    /* 1 si las filas de aviso tienen texto (hay que borrarlas). */
 static u16 oscuras[64];              /* Las paletas de sprites 0..3 a la mitad de brillo. */
 static u8 fila_hud;
+static u16 v_fin;                    /* Línea del VBlank en que acabó este (0 = su comienzo). */
+static u16 v_max;                    /* La peor de los últimos 64 frames (37 = el límite).  */
+static u8 v_reloj;                   /* Cuenta 64 frames para volver a medir el máximo.    */
 static u8 reloj_noren;               /* Frames para el noren (cada 8, el otro cuadro).    */
 static Ambiente ambiente;            /* El humo y los pájaros.                            */
 
@@ -122,13 +127,38 @@ static void salir(Pantalla siguiente)
     secuencia_cambiar(siguiente);
 }
 
-/*--- hud: una fila por frame (X Y / Z y estado / cámara y zona) ------------------*/
+/*--- leer_linea: línea del haz ahora mismo, contada desde el inicio del VBlank -------
+    (225 = 0). Lo que se escriba en la VRAM pasada la 37 se pierde sin avisar. */
+static u16 leer_linea(void)
+{
+    u16 linea;
+    u8 bajo, alto;
+
+    bajo = REG_SLHV;                                 /* Congela los contadores.             */
+    bajo = REG_OPVCT;                                /* Bits 0..7.                          */
+    alto = (u8)(REG_OPVCT & 1);                      /* Bit 8.                              */
+    linea = (u16)(bajo | ((u16)alto << 8));
+    return (u16)(linea >= 225 ? linea - 225 : linea + 37);
+}
+
+/*--- hud: una fila por frame (X Y / Z y estado / cámara y zona / V) ---------------*/
 static void hud(void)
 {
     u16 *p;
 
     if (!hud_visible)
     {
+        return;
+    }
+    if (fila_hud == 4)                               /* V 12  MAX 20: líneas del VBlank.    */
+    {
+        p = hud_debug_empezar(5);
+        p = hud_debug_texto(p, "V ");
+        p = hud_debug_numero(p, (s16)v_fin);
+        p = hud_debug_texto(p, "  MAX ");
+        hud_debug_numero(p, (s16)v_max);
+        hud_debug_enviar(5);
+        fila_hud = 0;
         return;
     }
     p = hud_debug_empezar(fila_hud);
@@ -250,6 +280,9 @@ void pantalla_fase1_iniciar(void)
     hud_juego_iniciar();                             /* Fila 0: la barra de vida (capa encendida). */
     hud_visible = 0;
     fila_hud = 0;
+    v_fin = 0;
+    v_max = 0;
+    v_reloj = 0;
 #ifdef GUION_FASE1
     hud_debug_alternar();                            /* ROM de prueba: el HUD, ya encendido. */
     hud_visible = 1;
@@ -257,11 +290,13 @@ void pantalla_fase1_iniciar(void)
 
     mando_iniciar();                                 /* (Solo hace algo en la ROM de prueba.) */
     protagonista_escena_cargar();                    /* OAM, sombra y matemática de color.  */
-    protagonista_sprite_cargar(&prota, personaje_elegido, 0, 0, 96, 0, 1536);   /* La elegida en
+    protagonista_sprite_cargar(&prota, personaje_elegido, 0, 0, 96, 0, 1024);   /* La elegida en
                                                         el selector: entidades 0-1, tiles 0-191,
-                                                        paleta 0, 1,5 KB por VBlank.         */
+                                                        paleta 0, 1 KB por VBlank (con un ninja subiendo,
+                                                        1,5 KB pasaba de la línea 37).         */
     sprites_usar(2);                                 /* El cuerpo y su sombra.              */
     mundo_iniciar(&cuerpo, X_INICIAL, Y_INICIAL);
+    cuerpo.golpes_max = personaje_golpes(personaje_elegido);   /* Tarou 4, Bárbara 3.      */
     oleadas_iniciar(&oleadas);
     ninja_iniciar_todos(ninjas);                     /* Sin ninjas hasta la primera oleada. */
     parada = 0;
@@ -379,6 +414,7 @@ void pantalla_fase1_actualizar(void)
             }
         }
         golpe_ninja = combate_ninjas_resolver(ninjas, &cuerpo);   /* ¿Le dio algún tajo a Tarou? */
+        combate_agarre(&cuerpo, ninjas);             /* Agarre, golpes de agarre, lanzamiento. */
         if (golpe_ninja > parada)
         {
             parada = golpe_ninja;                    /* Parada de impacto (la mayor).       */
@@ -422,7 +458,6 @@ void pantalla_fase1_vblank(void)
 {
     bgSetScroll(0, camara, 0);                       /* El scroll de las dos capas, a la    */
     bgSetScroll(1, camara >> 1, 0);                  /* vez que sus columnas y la OAM.      */
-    dma_lista_ejecutar();                            /* Tiles de Tarou, columnas y HUD.     */
     if (cambiar_luz)                                 /* Media luz: fondos con la matemática */
     {                                                /* de color, sprites con su paleta.    */
         cambiar_luz = 0;
@@ -441,6 +476,24 @@ void pantalla_fase1_vblank(void)
             dmaCopyCGram((u8 *)&ninja1_pal, 128 + 16, 32);
             dmaCopyCGram((u8 *)&ninja2_pal, 128 + 32, 32);
             dmaCopyCGram((u8 *)&ninja3_pal, 128 + 48, 32);
+            ninja_sprite_paletas_repuestas();        /* (Y el blanco de los golpes, fuera.) */
         }
+    }
+    if (!atenuada)
+    {
+        ninja_sprite_vblank(ninjas);                 /* El ninja golpeado, en blanco.       */
+    }
+    dma_lista_ejecutar();                            /* Tiles, columnas y HUD: lo último (las
+                                                        paletas, antes: una copia a la CGRAM
+                                                        fuera del VBlank choca con el HDMA). */
+    v_fin = leer_linea();                            /* Medida: dónde acabó el VBlank.      */
+    if (v_fin > v_max)
+    {
+        v_max = v_fin;
+    }
+    v_reloj++;
+    if ((v_reloj & 63) == 0)
+    {
+        v_max = v_fin;                               /* Cada 64 frames, se vuelve a medir.  */
     }
 }

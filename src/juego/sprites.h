@@ -48,7 +48,7 @@
 
 #include "sistema/tipos.h"
 
-#define SPRITES_MAX 16               /* Entidades por frame.                              */
+#define SPRITES_MAX 24               /* Entidades por frame (16 hasta el 2026-11-05).     */
 #define SPRITES_OAM_MAX 128          /* Entradas de la OAM.                               */
 
 /* Atributos de una entidad (byte vhoopppN de la OAM, sin el bit N: lo pone cada pieza). */

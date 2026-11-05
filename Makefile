@@ -159,7 +159,7 @@ res/personajes/tarou/%.p16: res/personajes/tarou/%.png scripts/piezas16.py
 # Bárbara (Revisión 3): las tiras de los estados que la fase 1 ya tiene, en piezas de
 # 16x16 con la celda de 112x96 (Bárbara de ~70 px) y la rejilla óptima (como mucho 24 piezas por cuadro:
 # el búfer de la protagonista). Cada .p16 escribe también su .pal (la misma en todas).
-BARBARA_ANIMS := guardia caminar saltar caer golpe_1 golpe_2 golpe_3 recibir ko
+BARBARA_ANIMS := guardia caminar saltar caer golpe_1 golpe_2 golpe_3 recibir ko correr aereo agarre golpe_agarre lanzamiento especial lanzar_arma derribada levantarse agarrada victoria
 BARBARA_P16 := $(foreach a,$(BARBARA_ANIMS),res/personajes/barbara/barbara_$(a).p16)
 res/personajes/barbara/%.p16: res/personajes/barbara/%.png scripts/piezas16.py
 	@echo convert pieces16 ... $(notdir $<)
