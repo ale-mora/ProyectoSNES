@@ -72,9 +72,10 @@ typedef enum
 #define FRAMES_POR_LETRA      3             /* máquina de escribir: 1 letra cada 3 frames */
 
 /*--- Salto de pantallas ---------------------------------------------------------
-    Decisión de diseño: por ahora NINGUNA pantalla se salta. Se deja el
-    interruptor listo: poner 1 aquí y las pantallas que lo consulten permitirán
-    saltar con Start. */
+    Decisión de diseño: los logos (Nintendo, publisher, devs) y la dedicatoria no
+    se saltan. Se deja el interruptor listo: poner 1 aquí y las pantallas que lo
+    consulten permitirán saltar con Start. La introducción (las 3 escenas) SÍ se
+    salta siempre, con Start o A (2026-11-05, pantalla_intro.c): no consulta esto. */
 #define PERMITE_SALTO 0
 
 /*--- Funciones que cada pantalla ofrece -----------------------------------------

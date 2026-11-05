@@ -20,7 +20,7 @@
       PPU: Mode 3 y Mode 1 (setMode), fondos y texto por comun.c, mosaico
       (setMosaicEffect, REG_MOSAIC), brillo. VRAM/CGRAM por comun.c y
       personajes.c (Mode 3 pisa las 256 entradas de color y la VRAM de sprites).
-      Mando: padsDown() si PERMITE_SALTO.
+      Mando: padsDown(): Start (o A) salta la introducción y va al título (2026-11-05).
 
     VARIABLES (globales y estáticas de este archivo)
       escena         u8   0..2             escena actual
@@ -120,9 +120,10 @@ void pantalla_intro_iniciar(void)
 
 void pantalla_intro_actualizar(void)
 {
-    if (PERMITE_SALTO && (padsDown(0) & KEY_START))
-    {
+    if (padsDown(0) & (KEY_START | KEY_A))           /* Saltar la introducción: al título. */
+    {                                                /* (Siempre; los logos, no: PERMITE_SALTO.) */
         fade_out(FRAMES_FADE);
+        REG_MOSAIC = 0;                              /* Por si se saltó a mitad de un mosaico. */
         personajes_ocultar();
         secuencia_cambiar(PANTALLA_TITULO);
         return;
