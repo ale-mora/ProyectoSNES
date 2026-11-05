@@ -509,3 +509,28 @@ manda es el código:
 La unidad 23 usa esta `y` para decidir si un golpe conecta (`COMBATE_PROFUNDIDAD`)
 y esta `Cuerpo` para el combo, la parada de impacto y el daño. La 24 pone a los
 ninjas en las zonas de `oleadas.c`.
+
+
+## Anexo (2026-11-05): qué cambió después
+
+La unidad enseña el **bit de prioridad** de los sprites como lo que decide quién va delante
+entre sprites y fondos, y el orden por profundidad entre sprites. Con la aldea (unidad 27)
+eso se usa de verdad:
+
+| Qué | Dónde | La idea |
+|---|---|---|
+| **Los sprites de la fase, prioridad 2** | `PRIORIDAD 2` en `src/juego/protagonista_sprite.c:48` y `src/enemigos/ninja_sprite.c:52` (antes 3) | Con prioridad 3 un sprite va delante de todo el fondo. Con 2 va delante de las celdas **normales** de BG1 y BG2 pero **detrás** de las celdas de BG1 que llevan el bit de prioridad del mapa. |
+| **El primer plano que tapa** | el farol y los barriles de `scripts/preparar_aldea.py` (bit 13 de sus celdas) | El orden de Mode 1 (BG3 alta) es: BG3 alta · sprites 3 · **BG1 alta** · BG2 alta · **sprites 2** · BG1 baja · BG2 baja · sprites 1 · ... Así el farol tapa a Tarou cuando pasa por detrás. |
+| **Por celda, no por píxel** | captura de la unidad 27 (`mesen_farol_tapa_a_tarou.png`) | Toda la celda de 8×8 del poste tapa al sprite, también los píxeles de fachada que caen dentro: se ve una franja. |
+
+Fíjate en que **dos** sistemas de «delante y detrás» conviven sin mezclarse: el **orden por
+profundidad** (`sprites_ordenar`, la y de los pies) decide entre sprites; la **prioridad**
+decide entre sprites y fondo. El farol tapa a Tarou esté donde esté en el carril (no tiene y
+de pies): en un beat 'em up, un poste del primer plano está siempre delante.
+
+**Ejercicio breve (clon, 15 minutos):** en `protagonista_sprite.c` vuelve a poner `PRIORIDAD 3`
+(solo para la protagonista), compila `-DGUION_FASE1` y captura los primeros 4 s. ¿Qué cambia
+cuando Tarou pasa por el farol de x = 196? ¿Y con los ninjas, que siguen en 2? (Tarou queda
+delante del farol; un ninja, detrás. Y el orden entre ellos dos lo sigue decidiendo la
+profundidad, porque los dos son sprites: la prioridad de un sprite no lo pone delante de otro
+sprite en la OAM.)
