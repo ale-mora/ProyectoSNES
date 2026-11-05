@@ -121,6 +121,11 @@ de color afecta (media suma en combate: lo que esté ahí sale translúcido):
 
 ### 1.1 Tarou (96×64, altura 57) ♻
 
+**Beat 'em up (2026-11-04):** guardia (8), golpe 1 (embestida con corte, 5), golpe 2 (tajo
+de cabeza, 5), golpe 3 (salto y mordisco que derriba, 7), recibir (5) y KO (6), generadas
+con el MCP (skeleton-v3 de cuadrúpedo, solo el este) sobre el estado `Fight Pose`. El
+combo sigue siendo de 3 golpes. Camina, salta y cae con las tiras del plataformas.
+
 Tiene ya 13 animaciones y el guardia (el arte de `res/descargas/graficos/pixellab/tarou/`).
 Para la fase 1 faltan las de **combate**. Todo mira al este y se exporta en el
 formato nativo de Pixellab (`MAPEOS_PIXELLAB`). Tarou lleva la katana **en la

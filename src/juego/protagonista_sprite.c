@@ -33,6 +33,8 @@
 #include "juego/dma_lista.h"
 
 extern char tarou_reposo_p16, tarou_caminar_p16, tarou_saltar_p16, tarou_caer_p16, tarou_atacar_p16;
+extern char tarou_guardia_bu_p16, tarou_golpe_1_p16, tarou_golpe_2_p16, tarou_golpe_3_p16;
+extern char tarou_recibir_p16, tarou_ko_p16;
 extern char barbara_guardia_p16, barbara_caminar_p16, barbara_saltar_p16, barbara_caer_p16;
 extern char barbara_golpe_1_p16, barbara_golpe_2_p16, barbara_golpe_3_p16;
 extern char barbara_recibir_p16, barbara_ko_p16;
@@ -65,8 +67,14 @@ static const u8 *tira_de(u8 personaje, u8 tira)
             default:                   return (const u8 *)&barbara_guardia_p16;
         }
     }
-    switch (tira)                                    /* Tarou: su enum Estado.              */
+    switch (tira)                                    /* Tarou: su enum Estado o TAROU_TIRA_*. */
     {
+        case TAROU_TIRA_GUARDIA_BU: return (const u8 *)&tarou_guardia_bu_p16;
+        case TAROU_TIRA_GOLPE_1: return (const u8 *)&tarou_golpe_1_p16;
+        case TAROU_TIRA_GOLPE_2: return (const u8 *)&tarou_golpe_2_p16;
+        case TAROU_TIRA_GOLPE_3: return (const u8 *)&tarou_golpe_3_p16;
+        case TAROU_TIRA_RECIBIR: return (const u8 *)&tarou_recibir_p16;
+        case TAROU_TIRA_KO:      return (const u8 *)&tarou_ko_p16;
         case ESTADO_CAMINANDO: return (const u8 *)&tarou_caminar_p16;
         case ESTADO_SALTANDO:  return (const u8 *)&tarou_saltar_p16;
         case ESTADO_CAYENDO:   return (const u8 *)&tarou_caer_p16;

@@ -3,9 +3,9 @@
     (ver personaje.h).
 
     PROPÓSITO
-      Tarou no tiene arte de beat 'em up: usa las tiras del plataformas (reposo para
-      la guardia y al recibir, un dibujo fijo para los tres golpes, caer para el KO),
-      con los mismos ritmos que animaciones.c. Bárbara sí: una tira por animación.
+      Tarou tiene arte de beat 'em up para la guardia, los tres golpes, recibir y el KO
+      (2026-11-04); camina, salta y cae con las tiras del plataformas. Bárbara: una tira
+      por animación.
       Sus golpes reparten los dibujos en la duración del golpe (GOLPE_FRAMES = 14,
       GOLPE_ULTIMO_FRAMES = 20, mundo.h) a 3 frames por dibujo, así el combate no
       cambia de números (decisión del 2026-11-04).
@@ -30,17 +30,19 @@
 
 u8 personaje_elegido;
 
-/* Tarou: las tiras del plataformas (ritmos de animaciones.c). */
+/* Tarou: su arte de beat 'em up (2026-11-04) para la guardia, los golpes, recibir y el KO;
+   caminar, saltar y caer siguen siendo las tiras del plataformas (ritmos de animaciones.c).
+   Los golpes reparten sus dibujos a 3 frames, como los de Bárbara. */
 static const AnimProta ANIMS_TAROU[ANIM_PROTA_CANTIDAD] = {
-    {ESTADO_PARADO, TAROU_REPOSO_CUADROS, 12, 1},     /* ANIM_GUARDIA: el reposo.          */
-    {ESTADO_CAMINANDO, TAROU_CAMINAR_CUADROS, 6, 1},  /* ANIM_CAMINAR                      */
-    {ESTADO_SALTANDO, TAROU_SALTAR_CUADROS, 6, 0},    /* ANIM_SALTAR                       */
-    {ESTADO_CAYENDO, TAROU_CAER_CUADROS, 6, 0},       /* ANIM_CAER                         */
-    {ESTADO_ATACANDO, TAROU_ATACAR_CUADROS, 20, 0},   /* ANIM_GOLPE_1: un dibujo fijo.     */
-    {ESTADO_ATACANDO, TAROU_ATACAR_CUADROS, 20, 0},   /* ANIM_GOLPE_2                      */
-    {ESTADO_ATACANDO, TAROU_ATACAR_CUADROS, 20, 0},   /* ANIM_GOLPE_3                      */
-    {ESTADO_PARADO, TAROU_REPOSO_CUADROS, 12, 1},     /* ANIM_RECIBIR: reposo (parpadea).  */
-    {ESTADO_CAYENDO, TAROU_CAER_CUADROS, 6, 0},       /* ANIM_KO: el dibujo de caer.       */
+    {TAROU_TIRA_GUARDIA_BU, TAROU_GUARDIA_BU_CUADROS, 8, 1},   /* ANIM_GUARDIA              */
+    {ESTADO_CAMINANDO, TAROU_CAMINAR_CUADROS, 6, 1},          /* ANIM_CAMINAR              */
+    {ESTADO_SALTANDO, TAROU_SALTAR_CUADROS, 6, 0},            /* ANIM_SALTAR               */
+    {ESTADO_CAYENDO, TAROU_CAER_CUADROS, 6, 0},               /* ANIM_CAER                 */
+    {TAROU_TIRA_GOLPE_1, TAROU_GOLPE_1_CUADROS, 3, 0},        /* 5 dibujos en 14 frames.   */
+    {TAROU_TIRA_GOLPE_2, TAROU_GOLPE_2_CUADROS, 3, 0},        /* 5 dibujos en 14 frames.   */
+    {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 3, 0},        /* 7 en 20: salto y mordisco. */
+    {TAROU_TIRA_RECIBIR, TAROU_RECIBIR_CUADROS, 3, 0},        /* 5 dibujos en 16 frames.   */
+    {TAROU_TIRA_KO, TAROU_KO_CUADROS, 6, 0},                  /* Cae y se queda tumbado.   */
 };
 
 /* Bárbara: su arte de beat 'em up. */

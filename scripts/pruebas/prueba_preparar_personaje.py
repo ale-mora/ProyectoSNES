@@ -115,10 +115,11 @@ class PruebasPrepararPersonaje(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_marcador_cuando_falta_animacion(self):
-        """Sin entrada, salen 14 marcadores con los cuadros por defecto."""
+        """Sin entrada, salen 20 marcadores con los cuadros por defecto (14 del plataformas y
+        6 del beat 'em up)."""
         resultado = pp.preparar("tarou", self.entrada, self.salida)
         pngs = sorted(self.salida.glob("tarou_*.png"))
-        self.assertEqual(len(pngs), 15)          # 14 animaciones + tarou_reposo_estatico.png
+        self.assertEqual(len(pngs), 21)          # 20 animaciones + tarou_reposo_estatico.png
         for png in pngs:
             with Image.open(png) as im:
                 self.assertEqual(im.height, ALTO, png.name)
@@ -130,7 +131,7 @@ class PruebasPrepararPersonaje(unittest.TestCase):
         self.assertEqual(cuadros_del_header(header, "atacar"), 5)
         self.assertEqual(cuadros_del_header(header, "guardia"), 1)     # pose fija: 1 cuadro
         self.assertEqual(resultado["reposo"], 4)
-        self.assertIn("#define TAROU_ANIMACIONES 14", header.read_text(encoding="utf-8"))
+        self.assertIn("#define TAROU_ANIMACIONES 20", header.read_text(encoding="utf-8"))
 
     def test_reposo_estatico_siempre_dos_cuadros(self):
         """La tira estática de reposo (intro y título, personajes.c) tiene SIEMPRE
@@ -163,7 +164,7 @@ class PruebasPrepararPersonaje(unittest.TestCase):
         self.assertEqual(cuadros_de(self.salida / "tarou_reposo_estatico.png"), [0, 3])
         # El reposo del nivel sigue entero (6 cuadros) y el header no cuenta la estática.
         self.assertEqual(cuadros_del_header(self.salida / "tarou_anim.h", "reposo"), 6)
-        self.assertIn("#define TAROU_ANIMACIONES 14", (self.salida / "tarou_anim.h").read_text(encoding="utf-8"))
+        self.assertIn("#define TAROU_ANIMACIONES 20", (self.salida / "tarou_anim.h").read_text(encoding="utf-8"))
 
         reposo_de(2).save(self.entrada / "reposo.png")
         pp.preparar("tarou", self.entrada, self.salida)
@@ -255,7 +256,9 @@ class PruebasPixellabNativo(unittest.TestCase):
         """Cada animación del juego sale del estado de Pixellab que dice el mapeo."""
         esperado = {"reposo": 9, "caminar": 8, "correr": 8, "saltar": 3, "caer": 3, "agachado": 1,
                     "agachado_caminar": 8, "desenvainar": 9, "envainar": 9, "atacar": 1,
-                    "echarse": 6, "dormido": 9, "despertar": 10, "guardia": 1}
+                    "echarse": 6, "dormido": 9, "despertar": 10, "guardia": 1,
+                    # Las del beat 'em up no están en esta exportación falsa: marcadores.
+                    "guardia_bu": 8, "golpe_1": 5, "golpe_2": 5, "golpe_3": 7, "recibir": 5, "ko": 6}
         self.assertEqual(self.resultado, esperado)
         for animacion, n in esperado.items():
             self.assertEqual(cuadros_del_header(self.salida / "tarou_anim.h", animacion), n, animacion)

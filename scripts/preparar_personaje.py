@@ -86,6 +86,8 @@ ANIMACIONES = [
     ("agachado", 2), ("agachado_caminar", 6), ("desenvainar", 4), ("envainar", 4),
     ("atacar", 5), ("echarse", 4), ("dormido", 4), ("despertar", 4),
     ("guardia", 1),     # Tarou quieto con la espada fuera (un dibujo, no un estado)
+    # Beat 'em up (2026-11-04): generadas con el MCP sobre su pose de combate (Fight_Pose).
+    ("guardia_bu", 8), ("golpe_1", 5), ("golpe_2", 5), ("golpe_3", 7), ("recibir", 5), ("ko", 6),
 ]
 
 # De qué parte de la exportación NATIVA de Pixellab sale cada animación del juego
@@ -112,6 +114,14 @@ MAPEOS_PIXELLAB = {
         "dormido": ("Sleep", "south", 0, None, False),
         "despertar": ("Stand_up", "east", 0, 10, False),   # 11 cuadros no caben: 10
         "guardia": ("Fight_Pose", "east", None, None, False),  # pose fija: espada en la boca
+        # Beat 'em up (2026-11-04, skeleton-v3 de cuadrúpedo, solo el este): guardia en
+        # bucle, corte con embestida, tajo de cabeza, salto y mordisco (derriba), recibir y KO.
+        "guardia_bu": ("Fight_Pose/guardia_bu", "east", 0, None, False),
+        "golpe_1": ("Fight_Pose/golpe_1", "east", 0, None, False),
+        "golpe_2": ("Fight_Pose/golpe_2", "east", 0, None, False),
+        "golpe_3": ("Fight_Pose/golpe_3", "east", 0, None, False),
+        "recibir": ("Fight_Pose/recibir", "east", 0, None, False),
+        "ko": ("Fight_Pose/ko", "east", 0, None, False),
     },
     # PROVISIONAL (2026-11-04): solo lo que ya trae la primera exportación; el
     # resto sale como marcador. Los tramos se ajustarán al revisar el arte.

@@ -140,7 +140,9 @@ res/personajes/tarou/%.pic: res/personajes/tarou/%.png
 # Las mismas tiras de Tarou en piezas de 16x16 sin las vacías (formato .p16, para la capa
 # de sprites del beat 'em up: docs/diseno-beat-em-up.md §8 v3). Las genera
 # scripts/piezas16.py desde los PNG versionados; data.asm las incluye con .incbin.
-TAROU_P16 := $(foreach a,$(TAROU_ANIMS),res/personajes/tarou/tarou_$(a).p16)
+# Más las del beat 'em up (2026-11-04), que solo existen en .p16.
+TAROU_BU_ANIMS := guardia_bu golpe_1 golpe_2 golpe_3 recibir ko
+TAROU_P16 := $(foreach a,$(TAROU_ANIMS) $(TAROU_BU_ANIMS),res/personajes/tarou/tarou_$(a).p16)
 res/personajes/tarou/%.p16: res/personajes/tarou/%.png scripts/piezas16.py
 	@echo convert pieces16 ... $(notdir $<)
 	python scripts/piezas16.py $< $@ --celda 96x64 --rejilla-optima

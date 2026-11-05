@@ -68,6 +68,15 @@ typedef enum
     BARBARA_TIRAS
 } BarbaraTira;
 
+/* Las tiras de beat 'em up de Tarou, detrás de las del plataformas (enum Estado, 0..12) y
+   su guardia fija (13) en tarou_p16_bancos (data.asm). */
+#define TAROU_TIRA_GUARDIA_BU 14
+#define TAROU_TIRA_GOLPE_1 15
+#define TAROU_TIRA_GOLPE_2 16
+#define TAROU_TIRA_GOLPE_3 17
+#define TAROU_TIRA_RECIBIR 18
+#define TAROU_TIRA_KO 19
+
 /* Una animación: 4 bytes (potencia de 2: tabla[i] no llama a tcc__mul). */
 typedef struct
 {

@@ -73,7 +73,7 @@ Character select (2026-11-04; `src/pantallas/pantalla_selector.c`): Start on the
 make clean; $env:CFLAGS="-DGUION_FASE1"; make; $env:CFLAGS=$null
 .\scripts\capturar_mesen.ps1 -Rom RUTA\guion_fase1.sfc -Duracion 25 -Cada 1 -Espera 3
 ```
-Note: wlalink runs with `-d` (discard unreferenced sections), so the ROM grows when game code starts referencing assets that only a test ROM used before (the 14 `.p16` strips of Tarou: 88 % → 83 % free).
+Note: wlalink runs with `-d` (discard unreferenced sections), so the ROM grows when game code starts referencing assets that only a test ROM used before (the 14 `.p16` strips of Tarou: 88 % → 83 % free). Since 2026-11-04 Tarou also has 6 beat 'em up strips (`guardia_bu`, `golpe_1..3`, `recibir`, `ko`; `.p16` only, `TAROU_BU_ANIMS` in the Makefile) that `juego/personaje.c` uses in the phase; he still walks, jumps and falls with the platformer strips.
 
 Mesen verification without hands (window captures every N seconds, optionally starting at `-Desde`; pad driven by a time-based key script; see `docs/mesen-y-depuracion.md` §5):
 ```

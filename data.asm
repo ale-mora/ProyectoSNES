@@ -311,10 +311,31 @@ tarou_despertar_p16: .incbin "res/personajes/tarou/tarou_despertar.p16"
 .section ".rodata_p16_guardia" superfree
 tarou_guardia_p16: .incbin "res/personajes/tarou/tarou_guardia.p16"
 .ends
-; El banco de cada tira .p16, en el orden del enum Estado y la guardia detrás.
+; Las del beat 'em up (2026-11-04): guardia, golpes 1-3, recibir y KO.
+.section ".rodata_p16_t_guardia_bu" superfree
+tarou_guardia_bu_p16: .incbin "res/personajes/tarou/tarou_guardia_bu.p16"
+.ends
+.section ".rodata_p16_t_golpe_1" superfree
+tarou_golpe_1_p16: .incbin "res/personajes/tarou/tarou_golpe_1.p16"
+.ends
+.section ".rodata_p16_t_golpe_2" superfree
+tarou_golpe_2_p16: .incbin "res/personajes/tarou/tarou_golpe_2.p16"
+.ends
+.section ".rodata_p16_t_golpe_3" superfree
+tarou_golpe_3_p16: .incbin "res/personajes/tarou/tarou_golpe_3.p16"
+.ends
+.section ".rodata_p16_t_recibir" superfree
+tarou_recibir_p16: .incbin "res/personajes/tarou/tarou_recibir.p16"
+.ends
+.section ".rodata_p16_t_ko" superfree
+tarou_ko_p16: .incbin "res/personajes/tarou/tarou_ko.p16"
+.ends
+
+; El banco de cada tira .p16, en el orden del enum Estado la guardia y las del beat 'em up (TAROU_TIRA_*, juego/personaje.h).
 .section ".rodata_p16_bancos" superfree
 tarou_p16_bancos: .db :tarou_reposo_p16, :tarou_caminar_p16, :tarou_correr_p16, :tarou_saltar_p16, :tarou_caer_p16, :tarou_agachado_p16, :tarou_agachado_caminar_p16
                   .db :tarou_desenvainar_p16, :tarou_envainar_p16, :tarou_atacar_p16, :tarou_echarse_p16, :tarou_dormido_p16, :tarou_despertar_p16, :tarou_guardia_p16
+                  .db :tarou_guardia_bu_p16, :tarou_golpe_1_p16, :tarou_golpe_2_p16, :tarou_golpe_3_p16, :tarou_recibir_p16, :tarou_ko_p16
 .ends
 
 ; --- Bárbara en piezas de 16x16 (formato .p16, celda de 112x96) -----------------------
