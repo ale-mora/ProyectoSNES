@@ -68,22 +68,83 @@ u8 combate_en_caja(const Cuerpo *c, u16 tx, u16 ty)
 
 u8 combate_ninjas_resolver(Ninja *n, Cuerpo *c)
 {
-    u8 k, parada = 0;
+    u8 k, parada = 0, cuenta;
 
     for (k = 0; k < NINJAS_MAX; k++)
     {
-        if (ninja_golpe_activo(n) &&
-            combate_caja(n->x, n->y, n->mira_izq, NINJA_ALCANCE, NINJA_PROFUNDIDAD, c->x, c->y))
+        if (ninja_golpe_activo(n) && c->estado != CUERPO_AGARRADO &&
+            combate_caja(n->x, n->y, n->mira_izq, ninja_alcance(n), NINJA_PROFUNDIDAD, c->x, c->y))
         {
             n->conecto = 1;                          /* Este tajo ya no pega más.           */
-            if (mundo_recibir(c, ninja_danio(n), n->mira_izq))   /* El golpe va hacia donde mira el ninja. */
+            if (ninja_derriba(n))                    /* El golpe pesado y la embestida tumban. */
             {
-                parada = (u8)(c->vida == 0 ? PARADA_DERRIBO : PARADA_GOLPE);
+                cuenta = mundo_derribar(c, (u8)(ninja_danio(n) + (n->estado == NINJA_CARGANDO)), n->mira_izq);
+            }
+            else
+            {
+                cuenta = mundo_recibir(c, (u8)(ninja_danio(n) + (n->ataque == NINJA_ATQ_PATADA)), n->mira_izq);
+            }
+            if (cuenta)
+            {
+                parada = (u8)(c->vida == 0 || ninja_derriba(n) ? PARADA_DERRIBO : PARADA_GOLPE);
             }
         }
         n++;
     }
     return parada;
+}
+
+void combate_contexto(const Cuerpo *c)
+{
+    u8 libre = (u8)(c->z == 0 && c->inv == 0 && c->vida != 0 && c->agarra == 0 && c->preso == 0 &&
+                    (c->estado == CUERPO_PARADO || c->estado == CUERPO_ANDANDO ||
+                     c->estado == CUERPO_CORRIENDO));
+    ninja_contexto(libre, (u8)(c->golpe != 0 ? c->id : 0), c->x, c->y, c->mira_izq);
+}
+
+void combate_presa(Cuerpo *c, Ninja *n)
+{
+    Ninja *p;
+    u8 k;
+
+    if (c->preso)                                    /* Lo tiene uno: colocarlo o lanzarlo. */
+    {
+        p = n + (c->preso - 1);
+        if (p->vivo && p->evento == NINJA_EVENTO_LANZA_PRESA)
+        {
+            c->preso = 0;                            /* Sale despedido.                     */
+            mundo_derribar(c, (u8)(ninja_danio(p) + 1), p->mira_izq);
+        }
+        else if (p->vivo && (p->estado == NINJA_AGARRANDO || p->estado == NINJA_LANZANDO))
+        {
+            c->x = (u16)(p->mira_izq ? p->x - AGARRE_DELANTE : p->x + AGARRE_DELANTE);
+            c->y = p->y;
+            c->mira_izq = (u8)!p->mira_izq;
+            c->estado = CUERPO_AGARRADO;
+        }
+        else
+        {
+            c->preso = 0;                            /* Lo soltaron (un golpe, o se acabó). */
+            if (c->estado == CUERPO_AGARRADO)
+            {
+                c->estado = CUERPO_PARADO;
+            }
+        }
+        return;
+    }
+    p = n;
+    for (k = 0; k < NINJAS_MAX; k++)                 /* ¿Lo acaba de agarrar alguno?        */
+    {
+        if (p->vivo && p->estado == NINJA_AGARRANDO && p->timer <= 1)
+        {
+            c->preso = (u8)(k + 1);
+            c->golpe = 0;
+            c->corre = 0;
+            c->estado = CUERPO_AGARRADO;
+            return;
+        }
+        p++;
+    }
 }
 
 u8 combate_resolver(Cuerpo *c, Ninja *n, u16 alcance)
@@ -112,6 +173,15 @@ u8 combate_resolver(Cuerpo *c, Ninja *n, u16 alcance)
         if (dentro)
         {
             antes = n->id_golpe;                     /* Para saber si este tajo era nuevo.  */
+            if (ninja_bloquea(n, hacia_izq, (u8)(alrededor || c->aereo == 1), c->id))
+            {
+                if (parada == 0)
+                {
+                    parada = PARADA_GOLPE;           /* Rebota: un golpe seco igualmente.   */
+                }
+                n++;
+                continue;
+            }
             if (alrededor && antes != c->id)
             {
                 mundo_cobrar_especial(c);            /* Conectó: el especial cuesta vida.   */

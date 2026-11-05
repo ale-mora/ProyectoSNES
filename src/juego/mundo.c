@@ -61,6 +61,7 @@ void mundo_iniciar(Cuerpo *c, u16 x, u16 y)
     c->cobro = 0;
     c->arma = ARMA_NINGUNA;
     c->evento = EVENTO_NINGUNO;
+    c->preso = 0;
 }
 
 u16 mundo_altura(const Cuerpo *c)

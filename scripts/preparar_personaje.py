@@ -199,8 +199,24 @@ MAPEOS_PIXELLAB = {
         "en_suelo": ("Falling_back", "east", [6], None, False),       # tumbado (1)
         "levantarse": ("Get_up", "east", 0, None, False),              # 5
         "ko": ("Falling_defeated", "east", 0, None, False),            # 7
+        "patada": ("High_Kick", "east", 0, None, False),               # patada alta (2026-11-05)
     },
+    # El kendoka pesado y Gomasuri-dono (jefe), del 2026-11-05: personajes nuevos de
+    # Pixellab (v3, solo el este; el agente recortó bloqueo, agarre y dio la vuelta a
+    # levantarse, que salía al revés).
+    "kendoka": {a: (f"Idle/{a}", "east", 0, None, False) for a in
+                ["guardia", "caminar", "ataque", "bloqueo", "agarre", "lanzamiento", "recibir",
+                 "derribado", "levantarse", "ko"]},
+    "gomasuri": {a: (f"Idle/{a}", "east", 0, None, False) for a in
+                 ["guardia", "caminar", "carga", "tajo", "convocar", "recibir", "derribado",
+                  "levantarse", "ko"]},
 }
+# El kendoka: sin los cuadros que pasan de 24 piezas (el hueco de su ranura): el 3.º del
+# agarre (29) y el 4.º del lanzamiento (25).
+MAPEOS_PIXELLAB["kendoka"]["agarre"] = ("Idle/agarre", "east", [0, 1], None, False)
+MAPEOS_PIXELLAB["kendoka"]["lanzamiento"] = ("Idle/lanzamiento", "east", [0, 1, 2, 4, 5], None, False)
+# El ninja rápido es el ninja normal con el traje verde: el mismo mapeo (y la misma carpeta).
+MAPEOS_PIXELLAB["ninja_rapido"] = MAPEOS_PIXELLAB["ninja"]
 
 # Animaciones de la Revisión 3 con los cuadros del marcador (docs/pixellab-fase1.md).
 ANIMACIONES_BARBARA = [
@@ -214,7 +230,15 @@ ANIMACIONES_BARBARA = [
 ANIMACIONES_NINJA = [
     ("guardia", 4), ("caminar", 8), ("ataque_1", 4), ("ataque_2", 4), ("bloqueo", 2),
     ("agarre", 2), ("lanzamiento", 6), ("recibir", 2), ("derribado", 5),
-    ("en_suelo", 1), ("levantarse", 5), ("agarrado", 2), ("ko", 4),
+    ("en_suelo", 1), ("levantarse", 5), ("agarrado", 2), ("ko", 4), ("patada", 6),
+]
+ANIMACIONES_KENDOKA = [
+    ("guardia", 6), ("caminar", 6), ("ataque", 6), ("bloqueo", 2), ("agarre", 2),
+    ("lanzamiento", 5), ("recibir", 5), ("derribado", 6), ("levantarse", 5), ("ko", 6),
+]
+ANIMACIONES_GOMASURI = [
+    ("guardia", 6), ("caminar", 6), ("carga", 6), ("tajo", 6), ("convocar", 4),
+    ("recibir", 5), ("derribado", 6), ("levantarse", 5), ("ko", 6),
 ]
 
 # Las de los ninjas mediano y grande: solo los estados que el juego ya tiene.
@@ -266,6 +290,17 @@ PERSONAJES = {
         "fijos": [(242, 166, 124), (221, 128, 97), (175, 79, 70), (110, 44, 43)],   # piel
         "recolor": (150, 40, 220),
     },
+    # El ninja rápido (2026-11-05): el dibujo del normal con traje verde chillón; el juego
+    # solo usa su paleta (las tiras son las del normal).
+    "ninja_rapido": {
+        "celda": (96, 96), "animaciones": ANIMACIONES_NINJA, "estatico": False,
+        "fijos": [(244, 164, 107), (208, 112, 79), (176, 82, 68), (68, 16, 13)],
+        "recolor": (40, 220, 60),
+    },
+    # Kendoka (~100 px, armadura índigo) y Gomasuri-dono (~100 px, ancho: el jefe usa las
+    # dos ranuras grandes de la VRAM, 48 piezas).
+    "kendoka": {"celda": (128, 112), "animaciones": ANIMACIONES_KENDOKA, "estatico": False, "fijos": []},
+    "gomasuri": {"celda": (144, 112), "animaciones": ANIMACIONES_GOMASURI, "estatico": False, "fijos": []},
 }
 # Un nombre que no está en PERSONAJES se trata como Tarou (celda 96x64, 14 animaciones).
 POR_DEFECTO = PERSONAJES["tarou"]

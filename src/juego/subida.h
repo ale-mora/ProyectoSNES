@@ -29,8 +29,8 @@
 
 #include "sistema/tipos.h"
 
-#define SUBIDA_COPIAS_MAX 6          /* ≤ 24 piezas: 3 pares completos o 2 y medio.      */
-#define SUBIDA_PIEZAS_MAX 24         /* 3 pares de filas: lo que cabe en un hueco.        */
+#define SUBIDA_COPIAS_MAX 12         /* ≤ 48 piezas: 6 pares (el jefe usa dos huecos).   */
+#define SUBIDA_PIEZAS_MAX 48         /* 6 pares de filas: dos huecos seguidos (el jefe).  */
 #define SUBIDA_FILA_BYTES 512        /* Una fila de 16 tiles.                             */
 #define SUBIDA_FILA_PALABRAS 256     /* La misma fila en palabras de la VRAM.             */
 
@@ -43,14 +43,14 @@ typedef struct
     u16 libre;                       /* Relleno.                                          */
 } Copia;
 
-/* La subida de un cuadro: 64 bytes (potencia de 2, para tener varias en un array). */
+/* La subida de un cuadro: 128 bytes (potencia de 2, para tener varias en un array). */
 typedef struct
 {
     Copia plan[SUBIDA_COPIAS_MAX];   /* Las copias, en orden.                             */
     u8 n;                            /* Cuántas hay.                                      */
     u8 hechas;                       /* Cuántas se han tomado ya.                         */
     u8 banco;                        /* Banco de la ROM del origen.                       */
-    u8 libre[13];                    /* Relleno hasta 64 bytes (48 + 3 + 13).             */
+    u8 libre[29];                    /* Relleno hasta 128 bytes (96 + 3 + 29).            */
 } Subida;
 
 /* Prepara la subida de un cuadro de n_piezas cuyos tiles empiezan en `origen` (dentro

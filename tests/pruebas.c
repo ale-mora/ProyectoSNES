@@ -46,6 +46,8 @@ void pruebas_personaje(void);
 void pruebas_estado_fase(void);
 void pruebas_ambiente(void);
 void pruebas_movimientos(void);
+void pruebas_enemigos(void);
+void pruebas_objetos(void);
 
 int main(void)
 {
@@ -69,6 +71,8 @@ int main(void)
     pruebas_estado_fase();
     pruebas_ambiente();
     pruebas_movimientos();
+    pruebas_enemigos();
+    pruebas_objetos();
 
     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
     return pruebas_fallidas != 0;

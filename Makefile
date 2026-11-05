@@ -40,7 +40,7 @@ include ${PVSNESLIB_HOME}/devkitsnes/snes_rules
 # CFLAGS al ejecutarse, no al definirse. Decisión 13 de docs/diseno-demo-jugable.md.
 CFLAGS += -Isrc
 # tarou_anim.h (cuántos cuadros tiene cada animación) lo genera el pipeline en res/.
-CFLAGS += -Ires/personajes/tarou -Ires/personajes/barbara -Ires/nivel1 -Ires/aldea
+CFLAGS += -Ires/personajes/tarou -Ires/personajes/barbara -Ires/nivel1 -Ires/aldea -Ires/objetos
 
 .PHONY: all clean
 
@@ -167,7 +167,7 @@ res/personajes/barbara/%.p16: res/personajes/barbara/%.png scripts/piezas16.py
 
 # «Ninja 1», el ninja normal (rojo; 2026-11-04): las tiras de los estados que el ninja ya tiene, celda de
 # 96x96 y rejilla óptima (12-15 piezas por cuadro: entra entero en un VBlank).
-NINJA_ANIMS := guardia caminar ataque_1 recibir derribado levantarse ko
+NINJA_ANIMS := guardia caminar ataque_1 recibir derribado levantarse ko agarrado bloqueo ataque_2 agarre lanzamiento patada
 NINJA_P16 := $(foreach a,$(NINJA_ANIMS),res/personajes/ninja/ninja_$(a).p16)
 res/personajes/ninja/%.p16: res/personajes/ninja/%.png scripts/piezas16.py
 	@echo convert pieces16 ... $(notdir $<)
@@ -180,11 +180,27 @@ NINJA3_P16 := $(foreach a,$(NINJA_TIPO_ANIMS),res/personajes/ninja_grande/ninja_
 res/personajes/ninja_mediano/%.p16: res/personajes/ninja_mediano/%.png scripts/piezas16.py
 	@echo convert pieces16 ... $(notdir $<)
 	python scripts/piezas16.py $< $@ --celda 128x112 --rejilla-optima --pal $(@:.p16=.pal)
+# El kendoka (celda 128x112) y el jefe (144x112; usa dos huecos: hasta 48 piezas), y la
+# paleta del ninja rápido (el normal en verde: solo se usa su .pal).
+KENDOKA_ANIMS := guardia caminar ataque bloqueo agarre lanzamiento recibir derribado levantarse ko
+KENDOKA_P16 := $(foreach a,$(KENDOKA_ANIMS),res/personajes/kendoka/kendoka_$(a).p16)
+JEFE_ANIMS := guardia caminar carga tajo convocar recibir derribado levantarse ko
+JEFE_P16 := $(foreach a,$(JEFE_ANIMS),res/personajes/gomasuri/gomasuri_$(a).p16)
+NINJAR_PAL := res/personajes/ninja_rapido/ninja_rapido_guardia.p16
+res/personajes/kendoka/%.p16: res/personajes/kendoka/%.png scripts/piezas16.py
+	@echo convert pieces16 ... $(notdir $<)
+	python scripts/piezas16.py $< $@ --celda 128x112 --rejilla-optima --pal $(@:.p16=.pal)
+res/personajes/gomasuri/%.p16: res/personajes/gomasuri/%.png scripts/piezas16.py
+	@echo convert pieces16 ... $(notdir $<)
+	python scripts/piezas16.py $< $@ --celda 144x112 --rejilla-optima --pal $(@:.p16=.pal)
+res/personajes/ninja_rapido/%.p16: res/personajes/ninja_rapido/%.png scripts/piezas16.py
+	@echo convert pieces16 ... $(notdir $<)
+	python scripts/piezas16.py $< $@ --celda 96x96 --rejilla-optima --pal $(@:.p16=.pal)
 res/personajes/ninja_grande/%.p16: res/personajes/ninja_grande/%.png scripts/piezas16.py
 	@echo convert pieces16 ... $(notdir $<)
 	python scripts/piezas16.py $< $@ --celda 128x112 --rejilla-optima --pal $(@:.p16=.pal)
 
-ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin res/aldea/lejos.pic res/aldea/atardecer_grad_data.as $(wildcard res/aldea/*.bin) $(TAROU_PICS) $(TAROU_P16) $(BARBARA_P16) $(NINJA_P16) $(NINJA2_P16) $(NINJA3_P16)
+ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin res/aldea/lejos.pic res/aldea/atardecer_grad_data.as $(wildcard res/aldea/*.bin) res/objetos/objetos_til.bin $(TAROU_PICS) $(TAROU_P16) $(BARBARA_P16) $(NINJA_P16) $(NINJA2_P16) $(NINJA3_P16) $(KENDOKA_P16) $(JEFE_P16) $(NINJAR_PAL)
 
 .PHONY: bitmaps cleanGfxRes
 bitmaps: $(ASSETS)
@@ -203,6 +219,7 @@ src/pantallas/pantalla_nivel1.obj: res/nivel1/nivel1_datos.h
 src/pantallas/pantalla_fase1.obj: res/aldea/aldea_datos.h
 src/juego/fondo_nivel.obj: res/aldea/aldea_datos.h
 src/juego/ambiente.obj: res/aldea/aldea_datos.h
+src/objetos/objetos_sprite.obj: res/objetos/objetos_datos.h
 
 # ROM de prueba de carga (docs/diseno-beat-em-up.md §9; solo con CFLAGS=-DPRUEBA_CARGA):
 # los ninjas provisionales que genera scripts/preparar_prueba_carga.py. Son .bin

@@ -48,6 +48,9 @@ void ninja_sprite_actualizar(const Ninja *n, u16 camara);
    que cambian (32 bytes cada una). */
 void ninja_sprite_vblank(const Ninja *n);
 
+/* La paleta del tipo que ocupa la ranura k (para oscurecerla en la pausa). */
+const u8 *ninja_sprite_paleta(const Ninja *n, u8 k);
+
 /* La pantalla acaba de reponer las paletas normales de las ranuras (al quitar la media luz). */
 void ninja_sprite_paletas_repuestas(void);
 

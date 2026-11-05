@@ -84,7 +84,56 @@
 #define NINJA_DIB_DERRIBADO 23           /* 7 (el último: en el suelo).                     */
 #define NINJA_DIB_LEVANTARSE 30          /* 5.                                              */
 #define NINJA_DIB_KO 35                  /* 7.                                              */
-#define NINJA_DIBUJOS 42
+#define NINJA_DIB_AGARRADO 42           /* 2. Desde aquí, 2026-11-05 (los tipos sin esa   */
+#define NINJA_DIB_BLOQUEO 44             /* 2.  tira usan otra: ninja_sprite.c).            */
+#define NINJA_DIB_SHURIKEN 46            /* 8 (el rápido lanza un shuriken).                */
+#define NINJA_DIB_AGARRE 54              /* 2 (agarra al protagonista).                     */
+#define NINJA_DIB_LANZAR 56              /* 6 (lo lanza).                                   */
+#define NINJA_DIB_PATADA 62              /* 7.                                              */
+#define NINJA_DIB_CARGA 69               /* 6 (el jefe embiste).                            */
+#define NINJA_DIB_CONVOCAR 75            /* 4 (el jefe llama a un ninja).                   */
+#define NINJA_DIB_PESADO 79              /* 6 (el golpe del kendoka; el tajo del jefe).     */
+#define NINJA_DIBUJOS 85
+
+/*--- Las acciones nuevas (2026-11-05; cifras a ajustar jugando) ----------------------*/
+#define NINJA_PATADA_FRAMES 32           /* La patada: activa de 14 a 22, llega a 56 px.   */
+#define NINJA_PATADA_DESDE 14
+#define NINJA_PATADA_HASTA 22
+#define NINJA_PATADA_ALCANCE 56
+#define NINJA_PESADO_FRAMES 36           /* Kendoka y jefe: activa de 16 a 24, 60 px, derriba. */
+#define NINJA_PESADO_DESDE 16
+#define NINJA_PESADO_HASTA 24
+#define NINJA_PESADO_ALCANCE 60
+#define NINJA_BLOQUEO_FRAMES 16          /* Bloqueando: los golpes de frente rebotan.       */
+#define NINJA_AGARRE_FRAMES 36           /* Tiene agarrado al protagonista...               */
+#define NINJA_LANZAR_FRAMES 24           /* ...y lo lanza (en el frame NINJA_LANZAR_SUELTA). */
+#define NINJA_LANZAR_SUELTA 10
+#define NINJA_AGARRE_ALCANCE 36
+#define NINJA_DISPARO_FRAMES 32          /* El rápido lanza su shuriken (en el frame 18).   */
+#define NINJA_DISPARO_SUELTA 18
+#define NINJA_RAPIDO_CERCA 80            /* El rápido se mantiene entre estas distancias.   */
+#define NINJA_RAPIDO_LEJOS 112
+#define NINJA_CARGA_PASO 4               /* El jefe embiste a 4 px por frame...             */
+#define NINJA_CARGA_FRAMES 48            /* ...como mucho estos frames.                     */
+#define NINJA_CARGA_DESDE 110            /* Embiste si el protagonista está más lejos.      */
+#define NINJA_CONVOCAR_FRAMES 16         /* Llama a un ninja (en el frame 8)...             */
+#define NINJA_CONVOCA_CADA 150           /* ...cada 300 frames (cuenta de 2 en 2)...        */
+#define NINJA_JEFE_FURIA 20              /* ...cuando le queda esta vida o menos.           */
+
+typedef enum
+{
+    NINJA_EVENTO_NINGUNO = 0,
+    NINJA_EVENTO_SHURIKEN,               /* Sale su shuriken (objetos.c).                   */
+    NINJA_EVENTO_CONVOCAR,               /* El jefe llama a un ninja normal.                */
+    NINJA_EVENTO_LANZA_PRESA             /* Lanza al protagonista que tenía agarrado.       */
+} EventoNinja;
+
+typedef enum
+{
+    NINJA_ATQ_PUNO = 0,
+    NINJA_ATQ_PATADA,
+    NINJA_ATQ_PESADO
+} AtaqueNinja;
 
 /*--- Los tres tipos (2026-11-04): uno por ranura, cada uno con su tamaño y su color -----
     La ranura k nace siempre como el tipo k, así que la oleada de la zona 0 trae un
@@ -94,6 +143,9 @@ typedef enum
     NINJA_NORMAL = 0,                    /* ~80 px, rojo: vida 4, daño 2.                   */
     NINJA_MEDIANO,                       /* ~90 px, amarillo: vida 6, daño 3.               */
     NINJA_GRANDE,                        /* ~100 px, morado: vida 8, daño 4, más lento.     */
+    NINJA_RAPIDO,                        /* El normal en verde: guarda distancia y lanza shuriken. */
+    NINJA_KENDOKA,                       /* Pesado: lento, bloquea de frente, agarra y lanza. */
+    NINJA_JEFE,                          /* Gomasuri-dono: embiste, tajo largo, llama ninjas. */
     NINJA_TIPOS
 } TipoNinja;
 
@@ -104,7 +156,13 @@ typedef enum
     NINJA_ATACANDO,                      /* Dando un tajo (su caja está activa en parte de él). */
     NINJA_RECIBIR,                       /* Aturdido: retrocede un poco y no hace nada.     */
     NINJA_DERRIBADO,                     /* Derribado: sale despedido y cae; sin vida, desaparece. */
-    NINJA_AGARRADO                       /* Lo tiene agarrado el protagonista (combate.c lo coloca). */
+    NINJA_AGARRADO,                      /* Lo tiene agarrado el protagonista (combate.c lo coloca). */
+    NINJA_BLOQUEO,                       /* Desde aquí, 2026-11-05.                         */
+    NINJA_AGARRANDO,                     /* Tiene agarrado al protagonista.                 */
+    NINJA_LANZANDO,                      /* Lo lanza.                                       */
+    NINJA_DISPARANDO,                    /* Lanza un shuriken (el rápido).                  */
+    NINJA_CARGANDO,                      /* Embiste (el jefe).                              */
+    NINJA_CONVOCANDO                     /* Llama a un ninja (el jefe).                     */
 } EstadoNinja;
 
 typedef struct
@@ -127,11 +185,35 @@ typedef struct
     u8 destello;                         /* Frames que le quedan en blanco (acaba de recibir). */
     u8 inv;                              /* Frames invulnerable tras levantarse (parpadea). */
     u8 lanzado;                          /* 1 = lo lanzaron: vuela y derriba a los que toca. */
-    u8 libre[12];                        /* Relleno hasta 32 bytes (potencia de 2: n + k sin tcc__mul). */
+    u8 ataque;                           /* AtaqueNinja del ataque en curso.                */
+    u8 evento;                           /* EventoNinja de este frame (dura uno).           */
+    u8 convoca;                          /* El jefe: cuenta atrás para llamar a otro ninja. */
+    u8 dados;                            /* Ataques que lleva (alterna puño y patada).      */
+    u8 vio;                              /* Último golpe del protagonista que vio venir.    */
+    u8 libre[7];                        /* Relleno hasta 32 bytes (potencia de 2: n + k sin tcc__mul). */
 } Ninja;
 
-/* Deja las NINJAS_MAX ranuras libres. */
+/* Deja las NINJAS_MAX ranuras libres (y la semilla del azar, fija: se repite igual). */
 void ninja_iniciar_todos(Ninja *n);
+
+/* Una oleada con estos tipos: cada uno en una ranura libre que admita su tamaño (la 0, de
+   16 piezas, solo el normal y el rápido; el jefe ocupa la 1 y deja la 2 vacía), por la
+   izquierda y la derecha alternando. Devuelve cuántos nacieron. */
+u8 ninja_oleada_tipos(Ninja *n, u16 camara, const u8 *tipos, u8 cuantos);
+
+/* Lo que el combate le cuenta a la IA cada frame: si al protagonista se le puede agarrar
+   (de pie, en el suelo y sin invulnerabilidad) y el golpe que está dando (su id, 0 si
+   ninguno), x e y y hacia dónde mira, para que el ninja normal decida bloquear. */
+void ninja_contexto(u8 presa_libre, u8 golpe_id, u16 x, u16 y, u8 mira_izq);
+
+/* ¿Bloquea este golpe? (frontal, no `rompe`: los aéreos, el especial y los lanzados
+   rompen la guardia). El kendoka bloquea siempre de frente si no está atacando; el
+   normal, si estaba bloqueando. Si bloquea, apunta el id para no volver a mirarlo. */
+u8 ninja_bloquea(Ninja *n, u8 hacia_izq, u8 rompe, u8 id);
+
+/* Alcance del golpe en curso y si derriba (el pesado y la embestida). */
+u16 ninja_alcance(const Ninja *n);
+u8 ninja_derriba(const Ninja *n);
 
 /* Una oleada: ocupa hasta (zona + 1) ranuras libres, con un máximo de NINJAS_MAX, alternando
    por la izquierda y la derecha, fuera de la pantalla (cámara − NINJA_ENTRADA o cámara + 256 +

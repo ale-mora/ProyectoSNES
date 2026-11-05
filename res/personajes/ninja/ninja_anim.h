@@ -14,7 +14,7 @@
 
     VARIABLES (constantes)
       NINJA_<ANIMACION>_CUADROS  1..10  cuadros de 96x96 de esa tira
-      NINJA_ANIMACIONES          13      cuántas animaciones hay
+      NINJA_ANIMACIONES          14      cuántas animaciones hay
 ---------------------------------------------------------------------------------*/
 #ifndef NINJA_ANIM_H
 #define NINJA_ANIM_H
@@ -32,7 +32,8 @@
 #define NINJA_LEVANTARSE_CUADROS 5
 #define NINJA_AGARRADO_CUADROS 2
 #define NINJA_KO_CUADROS 7
+#define NINJA_PATADA_CUADROS 7
 
-#define NINJA_ANIMACIONES 13
+#define NINJA_ANIMACIONES 14
 
 #endif /* NINJA_ANIM_H */

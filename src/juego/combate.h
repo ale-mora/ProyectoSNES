@@ -75,4 +75,13 @@ u8 combate_resolver(Cuerpo *c, Ninja *n, u16 alcance);
    ninja lanzado derriba (2 de daño) a los otros que toca en su vuelo. */
 void combate_agarre(Cuerpo *c, Ninja *n);
 
+/* Cuenta a la IA de los ninjas (ninja_contexto) si se puede agarrar al protagonista y qué
+   golpe está dando. Una vez por frame, antes de la IA. */
+void combate_contexto(const Cuerpo *c);
+
+/* El protagonista agarrado por un enemigo: lo coloca delante de él y, cuando lo lanza
+   (NINJA_EVENTO_LANZA_PRESA), lo derriba; si lo sueltan, vuelve a estar de pie. Una vez
+   por frame, después de la IA. */
+void combate_presa(Cuerpo *c, Ninja *n);
+
 #endif /* COMBATE_H */

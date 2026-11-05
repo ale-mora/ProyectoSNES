@@ -208,6 +208,15 @@ ambiente_pieza:       .db 0, 0
 ambiente_banco:       .db :ambiente_pieza
 .ends
 
+; Los objetos de la fase (scripts/preparar_objetos.py; objetos/objetos_sprite.c): 20 piezas
+; de 16x16 (128 bytes cada una) y las tablas de piezas de 1 y de 4 (32x32), con su banco.
+.section ".rodata_objetos" superfree
+objetos_til:          .incbin "res/objetos/objetos_til.bin"
+obj_pieza1:           .db 0, 0
+obj_pieza4:           .db 0, 0, 16, 0, 0, 16, 16, 16
+obj_banco:            .db :objetos_til
+.ends
+
 .section ".rodata_aldea_cielo" superfree
 .include "res/aldea/atardecer_grad_data.as"                        ; el cielo del atardecer
 .ends
@@ -479,9 +488,94 @@ ninja1_ko_p16: .incbin "res/personajes/ninja/ninja_ko.p16"
 .ends
 .section ".rodata_np16_varios" superfree
 ninja1_pal:           .incbin "res/personajes/ninja/ninja_guardia.pal"
-ninja1_p16_bancos:    .db :ninja1_guardia_p16, :ninja1_caminar_p16, :ninja1_ataque_1_p16, :ninja1_recibir_p16, :ninja1_derribado_p16, :ninja1_levantarse_p16, :ninja1_ko_p16
+ninja1_p16_bancos:    .db :ninja1_guardia_p16, :ninja1_caminar_p16, :ninja1_ataque_1_p16, :ninja1_recibir_p16, :ninja1_derribado_p16, :ninja1_levantarse_p16, :ninja1_ko_p16, :ninja1_agarrado_p16, :ninja1_bloqueo_p16, :ninja1_ataque_2_p16, :ninja1_agarre_p16, :ninja1_lanzamiento_p16, :ninja1_patada_p16
 .ends
 
+; --- Los enemigos nuevos (2026-11-05): las tiras que le faltaban al ninja normal (agarrado,
+;     bloqueo, shuriken, agarre, lanzamiento, patada), el kendoka y Gomasuri-dono (el jefe),
+;     y las paletas del rápido (el normal en verde), del kendoka y del jefe.
+.section ".rodata_e_ninja1_agarrado" superfree
+ninja1_agarrado_p16: .incbin "res/personajes/ninja/ninja_agarrado.p16"
+.ends
+.section ".rodata_e_ninja1_bloqueo" superfree
+ninja1_bloqueo_p16: .incbin "res/personajes/ninja/ninja_bloqueo.p16"
+.ends
+.section ".rodata_e_ninja1_ataque_2" superfree
+ninja1_ataque_2_p16: .incbin "res/personajes/ninja/ninja_ataque_2.p16"
+.ends
+.section ".rodata_e_ninja1_agarre" superfree
+ninja1_agarre_p16: .incbin "res/personajes/ninja/ninja_agarre.p16"
+.ends
+.section ".rodata_e_ninja1_lanzamiento" superfree
+ninja1_lanzamiento_p16: .incbin "res/personajes/ninja/ninja_lanzamiento.p16"
+.ends
+.section ".rodata_e_ninja1_patada" superfree
+ninja1_patada_p16: .incbin "res/personajes/ninja/ninja_patada.p16"
+.ends
+.section ".rodata_e_kendoka_guardia" superfree
+kendoka_guardia_p16: .incbin "res/personajes/kendoka/kendoka_guardia.p16"
+.ends
+.section ".rodata_e_kendoka_caminar" superfree
+kendoka_caminar_p16: .incbin "res/personajes/kendoka/kendoka_caminar.p16"
+.ends
+.section ".rodata_e_kendoka_ataque" superfree
+kendoka_ataque_p16: .incbin "res/personajes/kendoka/kendoka_ataque.p16"
+.ends
+.section ".rodata_e_kendoka_bloqueo" superfree
+kendoka_bloqueo_p16: .incbin "res/personajes/kendoka/kendoka_bloqueo.p16"
+.ends
+.section ".rodata_e_kendoka_agarre" superfree
+kendoka_agarre_p16: .incbin "res/personajes/kendoka/kendoka_agarre.p16"
+.ends
+.section ".rodata_e_kendoka_lanzamiento" superfree
+kendoka_lanzamiento_p16: .incbin "res/personajes/kendoka/kendoka_lanzamiento.p16"
+.ends
+.section ".rodata_e_kendoka_recibir" superfree
+kendoka_recibir_p16: .incbin "res/personajes/kendoka/kendoka_recibir.p16"
+.ends
+.section ".rodata_e_kendoka_derribado" superfree
+kendoka_derribado_p16: .incbin "res/personajes/kendoka/kendoka_derribado.p16"
+.ends
+.section ".rodata_e_kendoka_levantarse" superfree
+kendoka_levantarse_p16: .incbin "res/personajes/kendoka/kendoka_levantarse.p16"
+.ends
+.section ".rodata_e_kendoka_ko" superfree
+kendoka_ko_p16: .incbin "res/personajes/kendoka/kendoka_ko.p16"
+.ends
+.section ".rodata_e_jefe_guardia" superfree
+jefe_guardia_p16: .incbin "res/personajes/gomasuri/gomasuri_guardia.p16"
+.ends
+.section ".rodata_e_jefe_caminar" superfree
+jefe_caminar_p16: .incbin "res/personajes/gomasuri/gomasuri_caminar.p16"
+.ends
+.section ".rodata_e_jefe_carga" superfree
+jefe_carga_p16: .incbin "res/personajes/gomasuri/gomasuri_carga.p16"
+.ends
+.section ".rodata_e_jefe_tajo" superfree
+jefe_tajo_p16: .incbin "res/personajes/gomasuri/gomasuri_tajo.p16"
+.ends
+.section ".rodata_e_jefe_convocar" superfree
+jefe_convocar_p16: .incbin "res/personajes/gomasuri/gomasuri_convocar.p16"
+.ends
+.section ".rodata_e_jefe_recibir" superfree
+jefe_recibir_p16: .incbin "res/personajes/gomasuri/gomasuri_recibir.p16"
+.ends
+.section ".rodata_e_jefe_derribado" superfree
+jefe_derribado_p16: .incbin "res/personajes/gomasuri/gomasuri_derribado.p16"
+.ends
+.section ".rodata_e_jefe_levantarse" superfree
+jefe_levantarse_p16: .incbin "res/personajes/gomasuri/gomasuri_levantarse.p16"
+.ends
+.section ".rodata_e_jefe_ko" superfree
+jefe_ko_p16: .incbin "res/personajes/gomasuri/gomasuri_ko.p16"
+.ends
+.section ".rodata_e_paletas" superfree
+ninjar_pal:           .incbin "res/personajes/ninja_rapido/ninja_rapido_guardia.pal"
+kendoka_pal:          .incbin "res/personajes/kendoka/kendoka_guardia.pal"
+jefe_pal:             .incbin "res/personajes/gomasuri/gomasuri_guardia.pal"
+kendoka_p16_bancos:   .db :kendoka_guardia_p16, :kendoka_caminar_p16, :kendoka_ataque_p16, :kendoka_bloqueo_p16, :kendoka_agarre_p16, :kendoka_lanzamiento_p16, :kendoka_recibir_p16, :kendoka_derribado_p16, :kendoka_levantarse_p16, :kendoka_ko_p16
+jefe_p16_bancos:   .db :jefe_guardia_p16, :jefe_caminar_p16, :jefe_carga_p16, :jefe_tajo_p16, :jefe_convocar_p16, :jefe_recibir_p16, :jefe_derribado_p16, :jefe_levantarse_p16, :jefe_ko_p16
+.ends
 ; --- El ninja mediano en piezas de 16x16 (celda de 128x112): mismas tiras y orden que «Ninja 1».
 .section ".rodata_n2p16_guardia" superfree
 ninja2_guardia_p16: .incbin "res/personajes/ninja_mediano/ninja_mediano_guardia.p16"

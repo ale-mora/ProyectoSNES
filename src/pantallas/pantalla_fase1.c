@@ -79,6 +79,8 @@
 #include "juego/fondo_nivel.h"
 #include "juego/ambiente.h"
 #include "juego/ambiente_sprite.h"
+#include "objetos/objetos.h"
+#include "objetos/objetos_sprite.h"
 #include "juego/dma_lista.h"
 #include "juego/hud_debug.h"
 #include "hud/hud_juego.h"
@@ -94,7 +96,7 @@ extern char ninja1_pal, ninja2_pal, ninja3_pal;   /* Las paletas de los ninjas (
 #define REG_OPVCT (*(volatile u8 *)0x213D)  /* La línea del haz (dos lecturas: 8 + 1 bits). */
 #define FILA_AVISO 6                 /* Filas del HUD (6 y 7) de PAUSE, GAME OVER y STAGE CLEAR. */
 #define NOREN_CADA 7                 /* El noren cambia de cuadro cada 8 frames (máscara). */
-#define NOREN_HUECO 3072             /* Si la lista ya lleva más bytes, el noren espera.   */
+#define NOREN_HUECO 2560             /* Si la lista ya lleva más bytes, el noren espera.   */
 #define MARGEN_NINJA 32              /* Un ninja ya dentro no pasa de este margen del borde: su cuerpo (~50 px) se ve entero. */
 
 static Cuerpo cuerpo;
@@ -117,6 +119,12 @@ static u16 v_max;                    /* La peor de los últimos 64 frames (37 = 
 static u8 v_reloj;                   /* Cuenta 64 frames para volver a medir el máximo.    */
 static u8 reloj_noren;               /* Frames para el noren (cada 8, el otro cuadro).    */
 static Ambiente ambiente;            /* El humo y los pájaros.                            */
+static Objetos objetos;              /* Rompibles, ítems, proyectiles y chispa.           */
+
+/* Los rompibles de la aldea (x, y de los pies y lo que llevan); punto 4 del 2026-11-05. */
+static const u16 ROMPIBLE_X[4] = {430, 900, 1290, 1720};
+static const u16 ROMPIBLE_Y[4] = {194, 210, 190, 202};
+static const u8 ROMPIBLE_ITEM[4] = {ITEM_ONIGIRI, ITEM_SHURIKEN, ITEM_PESCADO, ITEM_KUNAI};
 
 /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
 static void salir(Pantalla siguiente)
@@ -307,11 +315,14 @@ void pantalla_fase1_iniciar(void)
     avisos = 0;
     oscurecer(oscuras, (const u16 *)protagonista_paleta(personaje_elegido));   /* Para la media */
     oscurecer(oscuras + 16, (const u16 *)&ninja1_pal);                         /* luz (pausa y  */
-    oscurecer(oscuras + 32, (const u16 *)&ninja2_pal);                         /* GAME OVER).   */
-    oscurecer(oscuras + 48, (const u16 *)&ninja3_pal);
+    oscurecer(oscuras + 32, (const u16 *)&ninja2_pal);                         /* GAME OVER: las */
+    oscurecer(oscuras + 48, (const u16 *)&ninja3_pal);                         /* de los ninjas, */
+                                                     /* otra vez al pausar, por su tipo).   */
     ninja_sprite_cargar();                           /* Sus paletas y entidades (tras Tarou). */
     ambiente_sprite_cargar();                        /* Humo y pájaros: entradas 8..14.     */
     ambiente_iniciar(&ambiente);
+    objetos_sprite_cargar(ROMPIBLE_BARRIL);          /* Objetos: entradas 15..22.           */
+    objetos_iniciar(&objetos, ROMPIBLE_X, ROMPIBLE_Y, ROMPIBLE_ITEM, 4);
     do                                               /* Primer cuadro antes del fade in, y  */
     {                                                /* sus tiles a la VRAM YA (la pantalla */
         dma_lista_vaciar();                          /* sigue apagada): media celda por     */
@@ -358,6 +369,10 @@ void pantalla_fase1_actualizar(void)
     {                                                /* VBlank (pantalla_fase1_vblank).    */
         atenuada ^= 1;
         cambiar_luz = 1;
+        for (k = 0; k < NINJAS_MAX; k++)             /* Las de los ninjas, según su tipo.   */
+        {
+            oscurecer(oscuras + 16 + ((u16)k << 4), (const u16 *)ninja_sprite_paleta(ninjas, k));
+        }
     }
     if (mando.hud_pulsado && partida.estado == FASE_JUGANDO)   /* SELECT: HUD de depuración. */
     {
@@ -398,6 +413,11 @@ void pantalla_fase1_actualizar(void)
             ninja_oleada(ninjas, camara, oleadas.actual);   /* y salen los ninjas de esa oleada. */
         }
         parada = combate_resolver(&cuerpo, ninjas, personaje_alcance(prota.personaje));  /* ¿Conectó el golpe de Tarou?          */
+        if (parada)                                  /* Conectó: una chispa delante.        */
+        {
+            objetos_chispa(&objetos, (u16)(cuerpo.mira_izq ? cuerpo.x - 28 : cuerpo.x + 28), cuerpo.y);
+        }
+        combate_contexto(&cuerpo);                   /* Lo que la IA ve del protagonista.   */
         turnos = ninja_atacando(ninjas);             /* Cuántos están dando un tajo ahora.  */
         for (k = 0; k < NINJAS_MAX; k++)             /* IA: cada ninja vivo va hacia Tarou.  */
         {
@@ -415,6 +435,27 @@ void pantalla_fase1_actualizar(void)
         }
         golpe_ninja = combate_ninjas_resolver(ninjas, &cuerpo);   /* ¿Le dio algún tajo a Tarou? */
         combate_agarre(&cuerpo, ninjas);             /* Agarre, golpes de agarre, lanzamiento. */
+        combate_presa(&cuerpo, ninjas);              /* Si un enemigo lo tiene agarrado.    */
+        for (k = 0; k < NINJAS_MAX; k++)             /* Lo que los enemigos hacen salir.    */
+        {
+            if (ninjas[k].evento == NINJA_EVENTO_SHURIKEN)
+            {
+                objetos_lanzar(&objetos, (u16)(ninjas[k].mira_izq ? ninjas[k].x - 16 : ninjas[k].x + 16),
+                               ninjas[k].y, ninjas[k].mira_izq, 0, ITEM_SHURIKEN);
+            }
+            else if (ninjas[k].evento == NINJA_EVENTO_CONVOCAR)
+            {
+                turnos = NINJA_NORMAL;               /* El jefe llama a un ninja normal.    */
+                ninja_oleada_tipos(ninjas, camara, &turnos, 1);
+            }
+        }
+        if (cuerpo.evento == EVENTO_LANZA_ARMA)      /* Sale el arma que llevaba.           */
+        {
+            objetos_lanzar(&objetos, (u16)(cuerpo.mira_izq ? cuerpo.x - 20 : cuerpo.x + 20), cuerpo.y,
+                           cuerpo.mira_izq, 1, (u8)(cuerpo.arma == ARMA_KUNAI ? ITEM_KUNAI : ITEM_SHURIKEN));
+            cuerpo.arma = ARMA_NINGUNA;
+        }
+        objetos_actualizar(&objetos, &cuerpo, ninjas, personaje_alcance(prota.personaje), camara);
         if (golpe_ninja > parada)
         {
             parada = golpe_ninja;                    /* Parada de impacto (la mayor).       */
@@ -432,6 +473,7 @@ void pantalla_fase1_actualizar(void)
         ambiente_actualizar(&ambiente, camara);
     }
     ambiente_sprite_actualizar(&ambiente);           /* Antes de los ninjas: ellos ordenan. */
+    objetos_sprite_actualizar(&objetos, camara);     /* (Y el dibujo de un ítem nuevo.)     */
     ninja_sprite_actualizar(ninjas, camara);         /* Sus cuadros (tras Tarou en la lista). */
     fondo_nivel_actualizar(camara);                  /* Las columnas que entran.            */
     if (estado_fase_mundo_avanza(&partida))          /* El noren ondea (en pausa, quieto):  */
@@ -473,10 +515,8 @@ void pantalla_fase1_vblank(void)
             REG_CGWSEL = 0x02;                       /* Como en protagonista_escena_cargar: */
             REG_CGADSUB = 0x50;                      /* la sombra, a media suma.            */
             dmaCopyCGram((u8 *)protagonista_paleta(personaje_elegido), 128, 32);
-            dmaCopyCGram((u8 *)&ninja1_pal, 128 + 16, 32);
-            dmaCopyCGram((u8 *)&ninja2_pal, 128 + 32, 32);
-            dmaCopyCGram((u8 *)&ninja3_pal, 128 + 48, 32);
-            ninja_sprite_paletas_repuestas();        /* (Y el blanco de los golpes, fuera.) */
+            ninja_sprite_paletas_repuestas();        /* Las de los ninjas, por su tipo: las */
+                                                     /* pone ninja_sprite_vblank, abajo.    */
         }
     }
     if (!atenuada)

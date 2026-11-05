@@ -174,6 +174,7 @@ typedef struct
     u8 cobro;                            /* El especial ya cobró su coste.                */
     u8 arma;
     u8 evento;                           /* EVENTO_* de este frame (solo dura uno).       */
+    u8 preso;                            /* k + 1 = la ranura del enemigo que lo tiene agarrado. */
 } Cuerpo;
 
 /* Pone el cuerpo en el suelo, quieto, mirando a la derecha (combo de GOLPES golpes). */
