@@ -119,6 +119,12 @@ ALDEANOS = [("aldeano_1", 0, 40, False), ("aldeano_2", 2, 80, True),
 FAROLES = [196, 892, 1404, 1916]   # x del farol (16 px; el poste cae en una sola columna).
 BARRILES = [520, 1176, 1712]       # x de la pila de barriles (32 px), abajo del todo.
 HUMO_X = 88                  # Columna del tejado de donde sale el humo (en la fachada sin voltear).
+# Los faroles y las pilas de barriles («frente»): hasta el 2026-11-05 iban pegados al borde de
+# abajo (224) con el bit de prioridad y tapaban a los personajes que pasaban por delante del
+# carril (184..216). Ahora se posan en el borde del fondo del carril (pies en la 182: detrás de
+# cualquier personaje) y sin prioridad, así el orden es el de la profundidad y nunca tapan.
+FRENTE_PIE = 182
+FRENTE_PRIORIDAD = 0
 LEJOS_Y = -40                # El paisaje sube 40 px: el castillo y el sol, sobre los tejados.
 
 
@@ -216,9 +222,9 @@ def componer(piezas):
         x += img.width
         i += 1
     for fx in FAROLES:
-        pegar(frente, piezas["farol"], fx, 224 - piezas["farol"].height)
+        pegar(frente, piezas["farol"], fx, FRENTE_PIE - piezas["farol"].height)
     for bx in BARRILES:
-        pegar(frente, piezas["barriles"], bx, 224 - piezas["barriles"].height)
+        pegar(frente, piezas["barriles"], bx, FRENTE_PIE - piezas["barriles"].height)
     return fondo, frente, xs, casas
 
 
@@ -408,8 +414,9 @@ def convertir(fondo, frente, xs_puesto, noren2):
     # 2) Todo lo demás, columna a columna.
     for cy in range(FILAS):
         for cx in range(COLUMNAS):
-            p = int(prio[cy * 8:cy * 8 + 8, cx * 8:cx * 8 + 8].any())
-            if (cx, cy) in en_noren and not p:
+            tapa = bool(prio[cy * 8:cy * 8 + 8, cx * 8:cx * 8 + 8].any())   # Hay frente aquí.
+            p = int(tapa) & FRENTE_PRIORIDAD
+            if (cx, cy) in en_noren and not tapa:
                 t, pal = en_noren[(cx, cy)]
                 mapa[cy][cx] = (t, pal, 0, 0, 0)
                 continue

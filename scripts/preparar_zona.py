@@ -118,7 +118,7 @@ def componer(zona, cfg):
         i += 1
     f = abrir(zona, cfg["frente"])
     for fx in cfg["frentes"]:
-        al.pegar(frente, f, fx, 224 - pie(f))
+        al.pegar(frente, f, fx, al.FRENTE_PIE - pie(f))   # Detrás del carril (ver preparar_aldea).
     return fondo, frente
 
 
@@ -130,7 +130,7 @@ def convertir(fondo, frente, paleta):
     mapa = [[None] * COLUMNAS for _ in range(FILAS)]
     for cy in range(FILAS):
         for cx in range(COLUMNAS):
-            p = int(prio[cy * 8:cy * 8 + 8, cx * 8:cx * 8 + 8].any())
+            p = int(prio[cy * 8:cy * 8 + 8, cx * 8:cx * 8 + 8].any()) & al.FRENTE_PRIORIDAD
             ind, pal = al.tile_de(a, cx, cy, [paleta])
             t, h, v = juego.buscar(ind, pal)
             mapa[cy][cx] = (t, pal, p, h, v)
