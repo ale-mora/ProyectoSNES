@@ -8,4 +8,11 @@
 #define ALDEA_NOREN_PRIMERO 1
 #define ALDEA_NOREN_TILES 8
 #define ALDEA_PALETA 4          /* La primera de las dos (4 y 5). */
+/* El humo: de qué punto de los tejados sale (x, y del mundo), ordenados por x. Las
+   tablas, solo en el archivo que define ALDEA_HUMOS_TABLAS (juego/ambiente.c). */
+#define ALDEA_HUMOS 7
+#ifdef ALDEA_HUMOS_TABLAS
+static const u16 aldea_humo_x[ALDEA_HUMOS] = {88, 359, 728, 999, 1368, 1639, 2008};
+static const u16 aldea_humo_y[ALDEA_HUMOS] = {82, 82, 82, 82, 82, 82, 82};
+#endif
 #endif

@@ -471,14 +471,14 @@ palabras). Mientras no se decida (§9), **trabajar con 256 tiles únicos por cap
 | postes de farol y barriles apilados (primer plano) | BG1 alto (prioridad) | piezas en 16×16 | 4 | [x] |
 | *noren* ondeando (2 cuadros de 4 tiles) | BG1 | 2 tiles | 4 | [x] |
 | montañas, castillo lejano, sol bajo | BG2 | **1 imagen** ancha, en bucle | 3 (lejana) | [x] |
-| humo y pájaros | sprites 16×16 | 2 cuadros cada uno (prioridad baja) | 7 | [ ] |
+| humo y pájaros | sprites 16×16 | 2 cuadros cada uno (prioridad baja) | 7 | [x] |
 | **aldeanos decorativos** (sin movimiento, sin interacción) | BG1, dentro del tileset | **propuesta:** una pose por aldeano, dibujada en el fondo y no como sprite, así no gasta ranuras ni VRAM de sprites. Altura de la figura: ~56 px (como Tarou) | 4 | [x] |
 
 **Prompt de la lejana:** `pixel art landscape background, feudal Japanese village at sunset, distant mountains, a castle silhouette, low sun, seamless horizontal tiling, 15 colors max, no sky gradient`.
 
 **Prompt de la calle:** `pixel art tileset, dirt road with pebbles and a wooden edge, seen slightly from above, sunset light, 16x16 tiles, dual-grid, 15 colors max`.
 
-Hecho el 2026-11-05 (`scripts/preparar_aldea.py`; candidatos elegidos en su `FUENTES`): dos fachadas de 128×112, un puesto de 64×64, la calle de 128×48, el farol de 16×96, los barriles de 32×32, cuatro aldeanos de 32×56 y la lejana de 512×160, con `create_image_pro` y las paletas fijas del script. El noren no se pidió aparte: su 2.º cuadro lo hace el script. Falta el humo y los pájaros. En la CGRAM, la cercana usa al final las paletas 4 (arquitectura y calle) y 5 (aldeanos), elegida tile a tile, y la lejana la 2 (no la 3 de la tabla).
+Hecho el 2026-11-05 (`scripts/preparar_aldea.py`; candidatos elegidos en su `FUENTES`): dos fachadas de 128×112, un puesto de 64×64, la calle de 128×48, el farol de 16×96, los barriles de 32×32, cuatro aldeanos de 32×56 y la lejana de 512×160, con `create_image_pro` y las paletas fijas del script. El noren no se pidió aparte: su 2.º cuadro lo hace el script. El humo (32×16, 2 cuadros; el script le quita el contorno) y los pájaros (32×16, alas arriba y abajo) se hicieron el mismo día con `create_image_pro`, en la paleta de sprites 7. En la CGRAM, la cercana usa al final las paletas 4 (arquitectura y calle) y 5 (aldeanos), elegida tile a tile, y la lejana la 2 (no la 3 de la tabla).
 
 ### 6.2 Zona 2: bosque de bambú
 

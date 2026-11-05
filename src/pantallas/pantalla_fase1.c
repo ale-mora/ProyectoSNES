@@ -20,7 +20,9 @@
       (capa cercana, por columnas), el farol y los barriles por delante de los
       personajes (bit de prioridad del mapa: los sprites van con prioridad 2), el noren
       de los puestos ondeando (animación de tiles, cada 8 frames), las montañas con el
-      castillo a la mitad de velocidad y el cielo del violeta al naranja (HDMA).
+      castillo a la mitad de velocidad y el cielo del violeta al naranja (HDMA). Encima,
+      el humo de los tejados y una bandada de pájaros (juego/ambiente.c, sprites de la
+      paleta 7, translúcidos); en pausa se quedan quietos.
       Por frame: mando_leer → mundo_actualizar → límites de pantalla → cámara y zonas →
       protagonista_sprite_actualizar → fondo (columnas que entran) → sprites_dibujar. El scroll
       de los fondos se escribe en el VBlank (pantalla_fase1_vblank), con la lista de DMA y no
@@ -75,6 +77,8 @@
 #include "enemigos/ninja_sprite.h"
 #include "juego/sprites.h"
 #include "juego/fondo_nivel.h"
+#include "juego/ambiente.h"
+#include "juego/ambiente_sprite.h"
 #include "juego/dma_lista.h"
 #include "juego/hud_debug.h"
 #include "hud/hud_juego.h"
@@ -107,6 +111,7 @@ static u8 avisos;                    /* 1 si las filas de aviso tienen texto (ha
 static u16 oscuras[64];              /* Las paletas de sprites 0..3 a la mitad de brillo. */
 static u8 fila_hud;
 static u8 reloj_noren;               /* Frames para el noren (cada 8, el otro cuadro).    */
+static Ambiente ambiente;            /* El humo y los pájaros.                            */
 
 /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
 static void salir(Pantalla siguiente)
@@ -270,6 +275,8 @@ void pantalla_fase1_iniciar(void)
     oscurecer(oscuras + 32, (const u16 *)&ninja2_pal);                         /* GAME OVER).   */
     oscurecer(oscuras + 48, (const u16 *)&ninja3_pal);
     ninja_sprite_cargar();                           /* Sus paletas y entidades (tras Tarou). */
+    ambiente_sprite_cargar();                        /* Humo y pájaros: entradas 8..14.     */
+    ambiente_iniciar(&ambiente);
     do                                               /* Primer cuadro antes del fade in, y  */
     {                                                /* sus tiles a la VRAM YA (la pantalla */
         dma_lista_vaciar();                          /* sigue apagada): media celda por     */
@@ -384,6 +391,11 @@ void pantalla_fase1_actualizar(void)
 
     /*--- Lo que va a la pantalla: Tarou primero en la lista de DMA, luego el fondo ---*/
     protagonista_sprite_actualizar(&prota, &cuerpo, camara);   /* Animación, subida y entidades. */
+    if (estado_fase_mundo_avanza(&partida))          /* Humo y pájaros (en pausa, quietos). */
+    {
+        ambiente_actualizar(&ambiente, camara);
+    }
+    ambiente_sprite_actualizar(&ambiente);           /* Antes de los ninjas: ellos ordenan. */
     ninja_sprite_actualizar(ninjas, camara);         /* Sus cuadros (tras Tarou en la lista). */
     fondo_nivel_actualizar(camara);                  /* Las columnas que entran.            */
     if (estado_fase_mundo_avanza(&partida))          /* El noren ondea (en pausa, quieto):  */

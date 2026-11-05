@@ -35,7 +35,8 @@
 ;     .rodata_nivel1_colision  nivel1_colision (rejilla de 128x14 bytes)
 ;     .rodata_aldea_*    aldea_cerca_til/_til_end/_pal, aldea_cerca_col, aldea_noren,
 ;                        aldea_banco, aldea_lejos_til/_til_end/_pal/_map/_map_end y
-;                        hdmaGradatardecerList (la aldea de la fase 1)
+;                        hdmaGradatardecerList (la aldea de la fase 1); ambiente_til/_pal/
+;                        _pieza/_banco (el humo y los pájaros)
 ;     .rodata_p16_*      tarou_<anim>_p16 (14 tiras en piezas de 16x16) y tarou_p16_bancos
 ;     .rodata_bp16_*     barbara_<anim>_p16 (9 tiras, celda 112x96), barbara_pal y barbara_p16_bancos
 ;     .rodata_np16_*     ninja1_<anim>_p16 (7 tiras de «Ninja 1», celda 96x96), ninja1_pal y ninja1_p16_bancos
@@ -195,6 +196,16 @@ aldea_lejos_til_end:
 aldea_lejos_pal:      .incbin "res/aldea/lejos.pal"
 aldea_lejos_map:      .incbin "res/aldea/lejos.map"
 aldea_lejos_map_end:
+.ends
+
+; El humo y los pájaros (sprites, juego/ambiente_sprite.c): 4 piezas de 16x16 (fila de
+; arriba de las 4 y luego la de abajo, 512 bytes), la paleta de sprites 7 y la tabla de
+; piezas de una sola pieza (dx, dy = 0, 0), con su banco.
+.section ".rodata_aldea_ambiente" superfree
+ambiente_til:         .incbin "res/aldea/ambiente_til.bin"
+ambiente_pal:         .incbin "res/aldea/ambiente_pal.bin"
+ambiente_pieza:       .db 0, 0
+ambiente_banco:       .db :ambiente_pieza
 .ends
 
 .section ".rodata_aldea_cielo" superfree

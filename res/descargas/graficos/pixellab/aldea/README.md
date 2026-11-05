@@ -18,6 +18,7 @@ comunes de las zonas al principio de §6.
   ni las luces por ventana: los hace el código con HDMA.
 
 Las importa `scripts/preparar_aldea.py` (2026-11-05): cada pieza va en su carpeta
-(`fachada/`, `calle/`, `puesto/`, `farol/`, `barriles/`, `aldeanos/`, `lejana/`) con los
+(`fachada/`, `calle/`, `puesto/`, `farol/`, `barriles/`, `aldeanos/`, `lejana/`, `humo/`,
+`pajaro/`) con los
 candidatos de Pixellab numerados `00.png`, `01.png`...; el script dice en `FUENTES`
 cuál usa de cada una. Salida versionada en `res/aldea/`.

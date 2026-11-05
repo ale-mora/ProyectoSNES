@@ -26,11 +26,15 @@
            costura entre el borde derecho y el izquierdo, en un PNG indexado que el
            Makefile convierte con gfx4snes. Y el CIELO: un BMP con un color por
            línea, del violeta al naranja (gfx4snes -n, como el del título).
+        6. El HUMO y los PÁJAROS (sprites de 16x16, 2 cuadros cada uno, paleta de
+           sprites 7): sus tiles en el orden de la VRAM y, en aldea_datos.h, de qué
+           tejados sale el humo (uno de cada dos tejados, para que nunca haya más
+           de dos a la vista).
 
     SE CONECTA CON
       Lee:      res/descargas/graficos/pixellab/aldea/<pieza>/NN.png (FUENTES).
       Escribe:  res/aldea/cerca_til.bin, cerca_pal.bin, cerca_col.bin, noren_til.bin,
-                aldea_datos.h,
+                ambiente_til.bin, ambiente_pal.bin, aldea_datos.h,
                 cerca_vista.png (para mirarla), lejos.png, atardecer.bmp.
       Lo usan:  el Makefile (lejos.png, atardecer.bmp), data.asm (los .bin; con nombres .bin porque git ignora .pal y .col),
                 src/juego/fondo_nivel.c y src/pantallas/pantalla_fase1.c (aldea_datos.h);
@@ -77,6 +81,9 @@ PALETA_GENTE = ["#160f1c", "#e8b08a", "#b47858", "#2a1e1e", "#2c3a6a", "#4e64a0"
 PALETA_LEJOS = ["#1e1428", "#2a1a3a", "#3e2a52", "#563c6a", "#745084", "#9a6a96", "#241830",
                 "#3a2848", "#ffe0a0", "#f8a858", "#e8703a", "#f0a070", "#c06a6a", "#4a2e44",
                 "#6a3e50"]
+PALETA_OBJETOS = ["#160f1c", "#2e2238", "#4a3a56", "#786a80", "#988a98", "#b8aab0", "#d8ccc8",
+                  "#f0e8e0", "#f8b868", "#e87830", "#c03828", "#f8e8c0", "#7a4428", "#a8683a",
+                  "#4e6a3a"]       # Paleta de sprites 7: humo, pájaros (y los objetos que vengan).
 PALETA_SNES_ARQ = 4          # Paletas de la CGRAM de la cercana (4 y 5: 64..95). La 0 y la
 PALETA_SNES_GENTE = 5        # 1 son del texto (BG3 de 2bpp); la 2, de la lejana.
 
@@ -93,6 +100,8 @@ FUENTES = {
     "aldeano_3": ("aldeanos", 2),     # anciano con bastón
     "aldeano_4": ("aldeanos", 13),    # niña con kimono rojo y abanico
     "lejana": ("lejana", 0),
+    "humo": ("humo", 3),              # 32x16: bocanada pequeña | penacho (2 cuadros)
+    "pajaro": ("pajaro", 0),          # 32x16: alas arriba | alas abajo
 }
 
 SUELO_Y = 176                # Donde empieza la calle (nivel.h: SUELO_Y; el carril, 184..216).
@@ -109,6 +118,7 @@ ALDEANOS = [("aldeano_1", 0, 40, False), ("aldeano_2", 2, 80, True),
             ("aldeano_3", 3, 72, False), ("aldeano_4", 5, 24, True)]
 FAROLES = [196, 892, 1404, 1916]   # x del farol (16 px; el poste cae en una sola columna).
 BARRILES = [520, 1176, 1712]       # x de la pila de barriles (32 px), abajo del todo.
+HUMO_X = 88                  # Columna del tejado de donde sale el humo (en la fachada sin voltear).
 LEJOS_Y = -40                # El paisaje sube 40 px: el castillo y el sol, sobre los tejados.
 
 
@@ -182,13 +192,14 @@ def preparar_calle(calle):
 
 def componer(piezas):
     """Las dos capas de la cercana (fondo y primer plano) y, para el noren, la lista
-    de x donde cae cada puesto. Devuelve (fondo, frente, xs_puesto)."""
+    de x donde cae cada puesto. Devuelve (fondo, frente, xs_puesto, casas), con casas =
+    [(nombre, x, volteada)] de cada fachada."""
     fondo = Image.new("RGBA", (ANCHO, ALTO), (0, 0, 0, 0))
     frente = Image.new("RGBA", (ANCHO, ALTO), (0, 0, 0, 0))
     calle = piezas["calle"]
     for k, x in enumerate(range(0, ANCHO, calle.width)):
         pegar(fondo, calle, x, SUELO_Y, voltear=bool(k & 1))   # En espejo: sin costura.
-    xs, x, i = [], 0, 0
+    xs, casas, x, i = [], [], 0, 0
     while x < ANCHO:
         nombre, volteada = SECUENCIA[i % len(SECUENCIA)]
         img = piezas[nombre]
@@ -197,6 +208,7 @@ def componer(piezas):
             xs.append(x)
         else:
             pegar(fondo, img, x, FACHADA_Y, volteada)
+            casas.append((nombre, x, volteada))
         xs_inicio = x
         for aldeano, k, dx, volt in ALDEANOS:
             if i % len(SECUENCIA) == k:
@@ -207,7 +219,48 @@ def componer(piezas):
         pegar(frente, piezas["farol"], fx, 224 - piezas["farol"].height)
     for bx in BARRILES:
         pegar(frente, piezas["barriles"], bx, 224 - piezas["barriles"].height)
-    return fondo, frente, xs
+    return fondo, frente, xs, casas
+
+
+def fuentes_humo(piezas, casas):
+    """De qué punto (x, y del mundo) sale el humo: uno de cada dos tejados, en la
+    columna HUMO_X (espejada si la fachada va volteada), justo encima del tejado.
+    Ordenadas por x (ambiente.c busca las que están a la vista)."""
+    fuentes = []
+    for nombre, x, volteada in casas[::2]:
+        a = np.array(piezas[nombre])[..., 3]
+        col = (a.shape[1] - 1 - HUMO_X) if volteada else HUMO_X
+        filas = np.nonzero(a[:, col])[0]
+        if len(filas) == 0:
+            continue
+        fuentes.append((x + col, FACHADA_Y + int(filas[0])))
+    return sorted(fuentes)
+
+
+def cuadros_16(img, quitar_oscuros=False):
+    """Una tira de 32x16 → sus dos cuadros de 16x16 en índices de PALETA_OBJETOS. Con
+    quitar_oscuros, el contorno oscuro (canal rojo < 0x50) se vuelve transparente: el
+    humo no tiene borde."""
+    a = np.array(opacar(img))
+    if quitar_oscuros:
+        a[(a[..., 0] < 0x50) & (a[..., 3] > 0), 3] = 0
+    cuadros = []
+    for k in range(2):
+        pix = a[:16, k * 16:k * 16 + 16].reshape(256, 4)
+        ind, _ = indices_tile(pix, PALETA_OBJETOS)
+        cuadros.append(ind.reshape(16, 16))
+    return cuadros
+
+
+def tiles_ambiente(cuadros):
+    """Las piezas de 16x16 (en orden) → bytes para la VRAM en dos tiras: primero la
+    fila de arriba de todas (TL, TR de cada pieza), luego la de abajo (BL, BR). Así
+    la pieza k cae en el tile base + 2k y su mitad de abajo en base + 16 + 2k."""
+    arriba, abajo = b"", b""
+    for c in cuadros:
+        arriba += tile_4bpp(list(c[:8, :8].reshape(64))) + tile_4bpp(list(c[:8, 8:].reshape(64)))
+        abajo += tile_4bpp(list(c[8:, :8].reshape(64))) + tile_4bpp(list(c[8:, 8:].reshape(64)))
+    return arriba + abajo
 
 
 # --- Conversión a tiles ---------------------------------------------------------------
@@ -481,7 +534,7 @@ def main():
     piezas = {k: opacar(cargar(k)) for k in FUENTES}
     piezas["puesto"], noren2 = preparar_puesto(piezas["puesto"], PALETA_ARQ[1])
     piezas["calle"] = preparar_calle(piezas["calle"])
-    fondo, frente, xs = componer(piezas)
+    fondo, frente, xs, casas = componer(piezas)
     juego, mapa, cuadro2, primero, juntados = convertir(fondo, frente, xs, noren2)
     DESTINO.mkdir(parents=True, exist_ok=True)
     (DESTINO / "cerca_til.bin").write_bytes(b"".join(tile_4bpp(list(t)) for t in juego.tiles))
@@ -493,6 +546,10 @@ def main():
     vista(juego, mapa).save(DESTINO / "cerca_vista.png")
     lejana(piezas["lejana"]).save(DESTINO / "lejos.png")
     cielo().save(DESTINO / "atardecer.bmp")
+    cuadros = cuadros_16(piezas["humo"], quitar_oscuros=True) + cuadros_16(piezas["pajaro"])
+    (DESTINO / "ambiente_til.bin").write_bytes(tiles_ambiente(cuadros))
+    (DESTINO / "ambiente_pal.bin").write_bytes(paleta_bytes(PALETA_OBJETOS))
+    humos = fuentes_humo(piezas, casas)
     (DESTINO / "aldea_datos.h").write_text(
         "/* aldea_datos.h — GENERADO por scripts/preparar_aldea.py: no editar a mano.\n"
         "   La capa cercana de la aldea (res/aldea/cerca_*.bin): cuántos tiles tiene y dónde\n"
@@ -503,9 +560,16 @@ def main():
         f"#define ALDEA_NOREN_PRIMERO {primero}\n"
         f"#define ALDEA_NOREN_TILES {len(cuadro2)}\n"
         f"#define ALDEA_PALETA {PALETA_SNES_ARQ}          /* La primera de las dos (4 y 5). */\n"
+        "/* El humo: de qué punto de los tejados sale (x, y del mundo), ordenados por x. Las\n"
+        "   tablas, solo en el archivo que define ALDEA_HUMOS_TABLAS (juego/ambiente.c). */\n"
+        f"#define ALDEA_HUMOS {len(humos)}\n"
+        "#ifdef ALDEA_HUMOS_TABLAS\n"
+        "static const u16 aldea_humo_x[ALDEA_HUMOS] = {" + ", ".join(str(x) for x, _ in humos) + "};\n"
+        "static const u16 aldea_humo_y[ALDEA_HUMOS] = {" + ", ".join(str(y) for _, y in humos) + "};\n"
+        "#endif\n"
         "#endif\n", encoding="utf-8")
     print(f"cercana: {len(juego.tiles)} tiles (límite {LIMITE_TILES}; juntados {juntados}), "
-          f"{len(xs)} puestos, noren {len(cuadro2)} tiles desde el {primero}")
+          f"{len(xs)} puestos, noren {len(cuadro2)} tiles desde el {primero}; humo en {humos}")
     return 0
 
 

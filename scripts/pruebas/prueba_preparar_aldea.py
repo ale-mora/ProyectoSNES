@@ -154,5 +154,33 @@ class PruebaPiezas(unittest.TestCase):
         self.assertGreater(int(abajo[0]), int(abajo[2]))         # Abajo, naranja.
 
 
+class PruebaAmbiente(unittest.TestCase):
+    def test_humo_sale_del_tejado(self):
+        casa = np.zeros((20, 128, 4), np.uint8)
+        casa[10:, :, 3] = 255                                    # El tejado empieza en la fila 10.
+        casa[5:, al.HUMO_X, 3] = 255                             # Salvo en la columna del humo: 5.
+        piezas = {"fachada_a": Image.fromarray(casa, "RGBA")}
+        f = al.fuentes_humo(piezas, [("fachada_a", 256, False), ("fachada_a", 384, True),
+                                     ("fachada_a", 0, False)])
+        self.assertEqual(f, [(0 + al.HUMO_X, al.FACHADA_Y + 5), (256 + al.HUMO_X, al.FACHADA_Y + 5)])
+        volteada = al.fuentes_humo(piezas, [("fachada_a", 0, True)])
+        self.assertEqual(volteada, [(127 - al.HUMO_X, al.FACHADA_Y + 10)])   # Espejada: sin el pico.
+
+    def test_cuadros_y_orden_de_la_vram(self):
+        a = np.zeros((16, 32, 4), np.uint8)
+        a[0, 0] = list(al.hex_rgb(al.PALETA_OBJETOS[5])) + [255]    # Cuadro 0, arriba a la izquierda.
+        a[15, 31] = list(al.hex_rgb(al.PALETA_OBJETOS[0])) + [255]  # Cuadro 1, abajo a la derecha (oscuro).
+        c = al.cuadros_16(Image.fromarray(a, "RGBA"))
+        self.assertEqual((c[0][0, 0], c[1][15, 15]), (6, 1))
+        self.assertEqual(al.cuadros_16(Image.fromarray(a, "RGBA"), quitar_oscuros=True)[1][15, 15], 0)
+        datos = al.tiles_ambiente(c)
+        self.assertEqual(len(datos), 2 * 4 * 32)                 # 2 piezas: 4 tiles arriba, 4 abajo.
+        self.assertEqual(datos[0] & 0x80, 0x00)                  # Índice 6 = planos 1 y 2:
+        self.assertEqual(datos[1] & 0x80, 0x80)                  # bit 1 en el byte 1...
+        self.assertEqual(datos[16] & 0x80, 0x80)                 # ...y bit 2 en el byte 16.
+        abajo_dcha = datos[4 * 32 + 3 * 32:]                     # La mitad de abajo, tile 4.
+        self.assertEqual(abajo_dcha[14] & 0x01, 0x01)            # Fila 7, píxel 7: índice 1.
+
+
 if __name__ == "__main__":
     unittest.main()

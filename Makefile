@@ -202,6 +202,7 @@ src/juego/personaje.obj: res/personajes/tarou/tarou_anim.h res/personajes/barbar
 src/pantallas/pantalla_nivel1.obj: res/nivel1/nivel1_datos.h
 src/pantallas/pantalla_fase1.obj: res/aldea/aldea_datos.h
 src/juego/fondo_nivel.obj: res/aldea/aldea_datos.h
+src/juego/ambiente.obj: res/aldea/aldea_datos.h
 
 # ROM de prueba de carga (docs/diseno-beat-em-up.md §9; solo con CFLAGS=-DPRUEBA_CARGA):
 # los ninjas provisionales que genera scripts/preparar_prueba_carga.py. Son .bin

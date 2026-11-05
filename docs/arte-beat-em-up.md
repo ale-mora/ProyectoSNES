@@ -191,7 +191,7 @@ tiles (hasta 8 KB de VRAM por capa en el mapa actual).
 | calle de tierra (el carril), fachadas *machiya*, puestos con *noren* | BG1 | anillo de columnas (♻ `fondo_nivel.c`) | [x] `scripts/preparar_aldea.py`, con 4 aldeanos dibujados en el fondo |
 | postes de farol, barriles apilados en primer plano | BG1 alto | **bit de prioridad**: tapan al personaje que pasa por detrás (prioridad 2) | [x] los sprites de la fase, con prioridad 2 |
 | *noren* ondeando | BG1 | **animación de tiles**: cambiar 4 tiles (128 B) por DMA cada 8 frames | [x] 8 tiles (256 B) |
-| humo, pájaros | sprites | prioridad baja en la OAM (son los primeros que se pierden si una línea se llena) | [ ] |
+| humo, pájaros | sprites | prioridad baja en la OAM (son los primeros que se pierden si una línea se llena) | [x] `juego/ambiente.c`: entradas 8..14, al final del orden |
 
 ### 5.2 Bosque de bambú
 
