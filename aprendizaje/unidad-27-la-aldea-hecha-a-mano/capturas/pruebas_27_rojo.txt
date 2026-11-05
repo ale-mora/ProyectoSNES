@@ -1,0 +1,261 @@
+F.FFFF.FF
+======================================================================
+FAIL: test_el_volteo_es_respecto_al_guardado (prueba_27_tiles.PruebaJuego.test_el_volteo_es_respecto_al_guardado)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\ProyectoSNES\aprendizaje\unidad-27-la-aldea-hecha-a-mano\prueba_27_tiles.py", line 69, in test_el_volteo_es_respecto_al_guardado
+    self.assertEqual(j.buscar(ESQUINA, 0), (1, 1, 0))  # ...y el original es su volteo.
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (2, 0, 0) != (1, 1, 0)
+
+First differing element 0:
+2
+1
+
+- (2, 0, 0)
+?  ^  ^
+
++ (1, 1, 0)
+?  ^  ^
+
+
+======================================================================
+FAIL: test_repetido (prueba_27_tiles.PruebaJuego.test_repetido)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\ProyectoSNES\aprendizaje\unidad-27-la-aldea-hecha-a-mano\prueba_27_tiles.py", line 55, in test_repetido
+    self.assertEqual(j.buscar(DIAGONAL, 0), (1, 0, 0))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (2, 0, 0) != (1, 0, 0)
+
+First differing element 0:
+2
+1
+
+- (2, 0, 0)
+?  ^
+
++ (1, 0, 0)
+?  ^
+
+
+======================================================================
+FAIL: test_simetrico (prueba_27_tiles.PruebaJuego.test_simetrico)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\ProyectoSNES\aprendizaje\unidad-27-la-aldea-hecha-a-mano\prueba_27_tiles.py", line 79, in test_simetrico
+    self.assertEqual(j.buscar(et.voltear_h(simetrico), 0), (1, 0, 0))   # Sin volteo.
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (2, 0, 0) != (1, 0, 0)
+
+First differing element 0:
+2
+1
+
+- (2, 0, 0)
+?  ^
+
++ (1, 0, 0)
+?  ^
+
+
+======================================================================
+FAIL: test_vacio_es_el_0 (prueba_27_tiles.PruebaJuego.test_vacio_es_el_0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\ProyectoSNES\aprendizaje\unidad-27-la-aldea-hecha-a-mano\prueba_27_tiles.py", line 48, in test_vacio_es_el_0
+    self.assertEqual(j.buscar(et.VACIO, 3), (0, 0, 0))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (1, 0, 0) != (0, 0, 0)
+
+First differing element 0:
+1
+0
+
+- (1, 0, 0)
++ (0, 0, 0)
+
+======================================================================
+FAIL: test_volteados (prueba_27_tiles.PruebaJuego.test_volteados)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\ProyectoSNES\aprendizaje\unidad-27-la-aldea-hecha-a-mano\prueba_27_tiles.py", line 61, in test_volteados
+    self.assertEqual(j.buscar(et.voltear_h(ESQUINA), 0), (1, 1, 0))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (2, 0, 0) != (1, 1, 0)
+
+First differing element 0:
+2
+1
+
+- (2, 0, 0)
+?  ^  ^
+
++ (1, 1, 0)
+?  ^  ^
+
+
+======================================================================
+FAIL: test_horizontal (prueba_27_tiles.PruebaVolteos.test_horizontal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\ProyectoSNES\aprendizaje\unidad-27-la-aldea-hecha-a-mano\prueba_27_tiles.py", line 35, in test_horizontal
+    self.assertEqual(et.voltear_h(ESQUINA), tile(["00000001"] + ["00000000"] * 7))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,[145 chars]0, 0) != (0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,[145 chars]0, 0)
+
+First differing element 0:
+1
+0
+
+- (1,
++ (0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+-  0,
++  1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0)
+
+======================================================================
+FAIL: test_vertical (prueba_27_tiles.PruebaVolteos.test_vertical)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\ProyectoSNES\aprendizaje\unidad-27-la-aldea-hecha-a-mano\prueba_27_tiles.py", line 38, in test_vertical
+    self.assertEqual(et.voltear_v(ESQUINA), tile(["00000000"] * 7 + ["10000000"]))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,[145 chars]0, 0) != (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,[145 chars]0, 0)
+
+First differing element 0:
+1
+0
+
+- (1,
++ (0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+-  0,
++  1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0)
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.006s
+
+FAILED (failures=7)

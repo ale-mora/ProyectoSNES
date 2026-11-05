@@ -1,0 +1,1 @@
+cercana: 512 tiles (límite 512; juntados 113), 6 puestos, noren 8 tiles desde el 1; humo en [(88, 82), (359, 82), (728, 82), (999, 82), (1368, 82), (1639, 82), (2008, 82)]

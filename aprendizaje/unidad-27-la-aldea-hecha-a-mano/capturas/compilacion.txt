@@ -1,0 +1,1 @@
+GUION_FASE1 con el farol nuevo: No warnings or errors found.

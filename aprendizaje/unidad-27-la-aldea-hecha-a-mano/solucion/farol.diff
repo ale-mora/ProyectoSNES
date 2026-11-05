@@ -1,0 +1,13 @@
+diff --git a/scripts/preparar_aldea.py b/scripts/preparar_aldea.py
+index ec30178..c9ad5ea 100644
+--- a/scripts/preparar_aldea.py
++++ b/scripts/preparar_aldea.py
+@@ -116,7 +116,7 @@ SECUENCIA = [("fachada_a", False), ("puesto", False), ("fachada_b", False),
+ # Aldeanos: (aldeano, pieza de la secuencia a la que se arriman, x dentro de ella, volteado).
+ ALDEANOS = [("aldeano_1", 0, 40, False), ("aldeano_2", 2, 80, True),
+             ("aldeano_3", 3, 72, False), ("aldeano_4", 5, 24, True)]
+-FAROLES = [196, 892, 1404, 1916]   # x del farol (16 px; el poste cae en una sola columna).
++FAROLES = [196, 300, 892, 1404, 1916]   # x del farol (16 px; el poste cae en una sola columna).
+ BARRILES = [520, 1176, 1712]       # x de la pila de barriles (32 px), abajo del todo.
+ HUMO_X = 88                  # Columna del tejado de donde sale el humo (en la fachada sin voltear).
+ LEJOS_Y = -40                # El paisaje sube 40 px: el castillo y el sol, sobre los tejados.
