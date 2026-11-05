@@ -752,7 +752,7 @@ de zonas y oleadas (unidad 24).
 
 ### Unidades 21–26 — el beat 'em up (fichas nuevas del 2026-10-23)
 
-**Estado: 21–24 escritas el 2026-10-26 contra el commit `641d7c0`; 25 y 26 por escribir cuando exista su código.** Las fichas de 21–24 se conservan como el plan original; en cada README hay una tabla «lo que la ficha prometía y todavía no existe» (carril por columnas, `preparar_zona.py`, agarre, ataque aéreo, especial, destello, jefe, Bárbara...). Las fichas
+**Estado: 21–24 escritas el 2026-10-26 contra el commit `641d7c0`; la 25 (solo la matemática de color que existe) el 2026-11-05 contra `6845b5f`; la 26 por escribir cuando exista su código. Las 27 y 28 se añadieron el 2026-11-05 (fichas después de este bloque).** Las fichas de 21–24 se conservan como el plan original; en cada README hay una tabla «lo que la ficha prometía y todavía no existe» (carril por columnas, `preparar_zona.py`, agarre, ataque aéreo, especial, destello, jefe, Bárbara...). Las fichas
 salen de [`docs/diseno-beat-em-up.md`](../docs/diseno-beat-em-up.md) (la
 spec de la Revisión 3, citada aquí como «spec §n») y de
 [`docs/arte-beat-em-up.md`](../docs/arte-beat-em-up.md). Los archivos de
@@ -879,7 +879,7 @@ final difiere, manda el código y se corrige la ficha.
   (prevista).
 - **Aprobación:** por definir cuando exista el código.
 
-### Unidad 25 — Matemática de color, ventanas por HDMA y los efectos de los apoyos (por escribir)
+### Unidad 25 — Matemática de color, ventanas por HDMA y los efectos de los apoyos (escrita 2026-11-05 solo con la matemática de color que existe; la ficha es el plan original, el código real manda: ver el README de la unidad)
 
 - **Objetivo:** hacer con la PPU los efectos que un beat 'em up necesita:
   sombras que oscurecen, chispas translúcidas y los ataques a toda la
@@ -909,6 +909,12 @@ final difiere, manda el código y se corrige la ficha.
 - **Prerrequisitos:** 12, 21, 22. **Práctica:** mini-ROM + juego real
   (prevista).
 - **Aprobación:** por definir cuando exista el código.
+- **Escrita (2026-11-05, commit `6845b5f`):** `unidad-25-matematica-de-color/`. Enseña lo que
+  existe: la media suma de la escena (sombra, humo y pájaros en paletas 4–7, la regla de la
+  secundaria vacía medida en Mesen), la media luz de la pausa (resta del color fijo y paletas
+  0–3 oscurecidas con `0x3DEF`) y, de ejercicio, un **destello al recibir un golpe**
+  (`juego/destello.c` con TDD en un clon: 6 fallos → 2497/0; capturas de Mesen con
+  `-DDESTELLO_FRAMES=63`). Ventanas, apoyos y Mode 7: «Por venir» en su README.
 
 ### Unidad 26 — Relevo y celda de VRAM compartida (por escribir)
 
@@ -936,6 +942,47 @@ final difiere, manda el código y se corrige la ficha.
   apoyo). **Práctica:** PC + juego real (prevista).
 - **Aprobación:** por definir cuando exista el código.
 
+### Unidad 27 — Un fondo hecho a mano: la aldea, el primer plano que tapa y los sprites del decorado (añadida y escrita 2026-11-05)
+
+- **Objetivo:** convertir un dibujo grande en tiles y mapa sin pasarse de la VRAM, y usar
+  lo que gfx4snes no hace: prioridad por celda, varias paletas en una capa, tiles reservados
+  y animados.
+- **Conceptos:** componer en la rejilla de 8; tiles sin repetidos contando los volteos
+  (bits 14–15 del mapa); dos paletas por capa elegidas por tile; el límite de 512 tiles y la
+  reducción por parecido; el mapa por columnas (el anillo de la 07); el bit 13 del mapa
+  contra la prioridad 2 de los sprites (orden de Mode 1); animación de tiles (el noren) y el
+  hueco del VBlank (`dma_lista_bytes`); la lejana en bucle con la costura tapada; el cielo
+  por HDMA; el humo y los pájaros como sprites (lógica pura, el plano de las montañas).
+- **Archivos:** `README.md`, `demo_27_aldea.py` (lee `res/aldea/` como la PPU),
+  `ejercicio_27.md`, `ejercicio_27_tiles.py`, `solucion/`, `capturas/`.
+- **Código del juego:** `scripts/preparar_aldea.py`, `res/aldea/`, `src/juego/fondo_nivel.c`,
+  `src/pantallas/pantalla_fase1.c`, `src/juego/ambiente.c`, `ambiente_sprite.c`,
+  `dma_lista.c`.
+- **Prerrequisitos:** 06, 07, 12, 18, 19, 21, 22, 25. **Práctica:** PC (Python, TDD) + juego
+  real en un clon + Mesen.
+- **Aprobación:** la demo da su salida; parte A 7 fallos → 9 OK; parte B regenerar sin
+  cambios deja `git status` limpio, un farol en x = 300 sube «juntados» de 89 a 113, la ROM
+  compila y la captura enseña el farol tapando a Tarou.
+
+### Unidad 28 — La partida: personajes como datos, el selector y la pausa, el GAME OVER y el STAGE CLEAR (añadida y escrita 2026-11-05)
+
+- **Objetivo:** pasar de una demo a una partida: elegir personaje sin `if (tarou)` por el
+  código y llevar pausa, KO, GAME OVER con CONTINUE y STAGE CLEAR en una máquina pura que la
+  pantalla obedece.
+- **Conceptos:** personajes como tablas (`AnimProta` de 4 bytes, `static const` en ROM);
+  `ProtaSprite` como instancia (dos a la vez en el selector, con medio tope de subida cada
+  una); el flanco propio con `padsCurrent`; la paleta oscura como cambio de atributo; la
+  máquina de `estado_fase.c` (acciones, `mundo_avanza`, `atenuada`) y la frontera con la
+  pantalla; los textos en filas del HUD.
+- **Archivos:** `README.md`, `demo_28_partida.c` (código real), `ejercicio_28.md`,
+  `solucion/`, `capturas/`.
+- **Código del juego:** `src/juego/personaje.c`, `protagonista_sprite.c`,
+  `src/pantallas/pantalla_selector.c`, `src/juego/estado_fase.c`, `pantalla_fase1.c`.
+- **Prerrequisitos:** 02, 04, 05, 11, 18, 21–24, 25. **Práctica:** PC + juego real en un
+  clon + Mesen.
+- **Aprobación:** la demo da su salida; el estado «READY?» con TDD: 4 fallos → 513 de las
+  pruebas viejas → 2481/0; dos ROM sin avisos; captura con READY? y un Start que no pausa.
+
 ## 4. Orden y dependencias
 
 ```text
@@ -955,14 +1002,17 @@ final difiere, manda el código y se corrige la ficha.
 (01, 02, 10, 11 y 20: históricas, su código está en el tag plataformas-r2)
 ```
 
-Las unidades del beat 'em up (21–24 escritas, 25–26 por escribir), en el orden en que la spec
-construye el código:
+Las unidades del beat 'em up (21–25, 27 y 28 escritas; 26 por escribir), en el orden en que
+la spec construye el código:
 
 ```text
 21 presupuesto de sprites ──► 22 belt-scroll x/y/z ──► 23 combate ──► 24 enemigos y oleadas
                                      │                     │
                                      ▼                     ▼
                          25 color, ventanas y apoyos ──► 26 relevo y celda compartida
+                           │       │
+                           │       └──► 28 la partida (selector, pausa, GAME OVER)
+                           └──► 27 la aldea (fondo a mano, prioridad, decorado)
 
 Prerrequisitos de fuera del bloque:
 21 ◄── 04, 08, 09, 13, 16
@@ -971,6 +1021,8 @@ Prerrequisitos de fuera del bloque:
 24 ◄── 05, 18, 20 (Tiled y el script)
 25 ◄── 12 (y 21: las paletas 4–7)
 26 ◄── 09, 13
+27 ◄── 06, 07, 12, 18, 19 (y 21, 22, 25)
+28 ◄── 02, 04, 05, 11, 18 (y 21–25)
 ```
 
 ## 5. Cobertura de los ítems técnicos del plan de desarrollo
@@ -1002,7 +1054,9 @@ concepto con el código del tag `plataformas-r2`.
 | Beat 'em up: x/y/z, carril, sombra, orden por profundidad (OAM y bit de prioridad; spec §3) | 22 |
 | Beat 'em up: combate (estados que se afectan, cajas de golpe y daño, parada de impacto, destello; spec §5) | 23 |
 | Beat 'em up: IA de enemigos, turnos de ataque, oleadas y zonas desde Tiled (spec §6–§7) | 24 |
-| Beat 'em up: matemática de color, ventanas por HDMA, efectos de los apoyos (spec §5.4, §8; Mode 7 opcional, fuera de la spec) | 25 (por escribir) |
+| Beat 'em up: matemática de color, ventanas por HDMA, efectos de los apoyos (spec §5.4, §8; Mode 7 opcional, fuera de la spec) | 25 (escrita la parte de color; ventanas y apoyos por escribir) |
+| Beat 'em up: escenografía por zona (tiles a mano, prioridad del mapa, animación de tiles, parallax, adornos en sprites; `docs/arte-beat-em-up.md` §5) | 27 |
+| Beat 'em up: la partida (selector, personajes por tablas, pausa, GAME OVER y CONTINUE, STAGE CLEAR) | 28 |
 | Beat 'em up: relevo entre protagonistas, celda de VRAM y paleta compartidas (spec §4) | 26 (por escribir) |
 | Beat 'em up: doble toque para correr (lógica pura con `guion.c`; spec §2) | 05 (el guion de mando); se verá en la 22 o la 23 |
 | Audio del juego (después de la R3, spec §11) | 17 (mini-ROM; el juego aún no lo aplica) |
@@ -1227,7 +1281,7 @@ en el orden de la spec (la 21 en cuanto exista la ROM de prueba de carga).
 
 Las unidades 00–20 se escribieron todas el 2026-10-22 (la 00, ampliada), en
 un solo commit, contra el código que hoy guarda el tag `plataformas-r2`; las
-21–24 (el beat 'em up) se escribieron el 2026-10-26 contra el commit `641d7c0`; la 25 y la 26 son fichas por escribir (§3). Todo lo
+21–24 (el beat 'em up) se escribieron el 2026-10-26 contra el commit `641d7c0`; la 25, la 27 y la 28 el 2026-11-05 contra `6845b5f`, junto con un **anexo** «qué cambió después» al final del README de las 19, 21, 22 y 24; la 26 es una ficha por escribir (§3). Todo lo
 que se ejecuta en el PC (gcc, pruebas, scripts) y todas las compilaciones
 (mini-ROM y juego modificado, en clones) se ejecutaron de verdad y su salida
 está en `capturas/`.
@@ -1273,5 +1327,8 @@ las pantallas de imagen (scroll vertical −1, §6.6).
 | 22 | **hecha**; demo de PC (código real, 4 partes) + ejercicio TDD de salto de altura variable (560 → 563/563 en el clon); ROM del clon compila (sin probar en Mesen). Código en 641d7c0; carril por columnas y prioridad de poste: llegarán |
 | 23 | **hecha**; demo de PC con los .c reales + TDD en clon (A: combo de 4 golpes 567/567; B: el salto esquiva el tajo 563/563; ROM compila). Mesen: sin capturas. Código en `641d7c0` (el retroceso del ninja se corrigió después, ver su README); cajas por cuadro, agarre, lanzamiento, ataque aéreo y especial por venir |
 | 24 | **hecha**; demo de PC (oleada simulada, testigo con 1/2/3 turnos) + réplica de la ROM autojugable en el PC + ejercicio TDD en clon (quinta zona: 568/568; mutación del testigo detectada); ROM normal y -DGUION_FASE1 compilan. Mesen: pendiente. Ninja rápido, kendoka, jefe, objetos, Tiled y preparar_zona.py: por venir |
-| 25 | **por escribir** cuando existan los apoyos (`apoyos.c` y los efectos de `efectos.c`) |
-| 26 | **por escribir** cuando exista el relevo (`cambio_protagonista.c`, Bárbara jugable) |
+| 19, 21, 22, 24 | anexo «qué cambió después» (2026-11-05): MCP de Pixellab y recoloreado (19), rejilla óptima medida en 3 tiras (21), prioridad 2 y el primer plano (22), tres tipos de ninja con su ejercicio breve medido (24: `2477 pruebas, 1 fallos`) |
+| 25 | **hecha** (2026-11-05, solo color); demo de PC con la cuenta de la PPU y los colores reales + ejercicio TDD en clon (destello: 6 fallos → 2497/0; ROM normal y `-DGUION_FASE1 -DDESTELLO_FRAMES=63` sin avisos). Mesen: **verificada** (antes, destello y después). Ventanas, apoyos y Mode 7: por escribir cuando existan |
+| 26 | **por escribir** cuando exista el relevo (`cambio_protagonista.c`; Bárbara ya es jugable, pero se elige antes de la fase) |
+| 27 | **hecha** (2026-11-05); demo que lee `res/aldea/` + parte A en Python con TDD (7 fallos → 9 OK) + parte B en clon (farol en x = 300: juntados 89 → 113; ROM sin avisos). Mesen: **verificada** (el farol tapa a Tarou, con la franja de la celda) |
+| 28 | **hecha** (2026-11-05); demo con `personaje.c` y `estado_fase.c` reales + TDD en clon («READY?»: 4 → 513 → 2481/0; dos ROM sin avisos). Mesen: **verificada** (READY? y Start sin pausa) |
