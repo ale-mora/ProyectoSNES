@@ -228,7 +228,7 @@ static void subir(ProtaSprite *p)
         p->s_cuadro = p->a.cuadro;
         p->s_anim = p->a.anim;
     }
-    if (p->s_cuadro != SIN_CUADRO)
+    if (p->s_cuadro != SIN_CUADRO && p->tope >= 128)   /* (Con tope 0, este VBlank es de los ninjas.) */
     {
         subida_tomar(&p->subida, p->tope, &copias, &n);
         dma_lista_copias(copias, n, p->subida.banco);    /* En ensamblador: dma_copias.asm. */
@@ -281,6 +281,22 @@ void protagonista_sprite_actualizar(ProtaSprite *p, const Cuerpo *c, u16 camara)
     s->x0 = (u16)(c->x - camara - 16);
     s->y0 = (u16)(c->y - SOMBRA_ALTO);
     s->borde = sprites_borde(s->x0, s->y0, 32, 16);
+}
+
+u16 protagonista_sprite_pendiente(const ProtaSprite *p)
+{
+    P16Cuadro cu;
+
+    if (p->s_cuadro != SIN_CUADRO)
+    {
+        return subida_restante(&p->subida);          /* Lo que queda de la que va a medias. */
+    }
+    if (p->a.cuadro != p->m_cuadro || p->a.anim != p->m_anim)
+    {
+        p16_cuadro(tira_de(p->personaje, p->anims[p->a.anim].tira), p->a.cuadro, &cu);
+        return (u16)((u16)cu.n << 7);                /* El cuadro nuevo: 128 B por pieza.   */
+    }
+    return 0;
 }
 
 u8 protagonista_sprite_al_dia(const ProtaSprite *p)

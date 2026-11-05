@@ -34,51 +34,51 @@ u8 personaje_elegido;
    caminar, saltar y caer siguen siendo las tiras del plataformas (ritmos de animaciones.c).
    Los golpes reparten sus dibujos a 3 frames, como los de Bárbara. */
 static const AnimProta ANIMS_TAROU[ANIM_PROTA_CANTIDAD] = {
-    {TAROU_TIRA_GUARDIA_BU, TAROU_GUARDIA_BU_CUADROS, 8, 1},   /* ANIM_GUARDIA              */
-    {ESTADO_CAMINANDO, TAROU_CAMINAR_CUADROS, 6, 1},          /* ANIM_CAMINAR              */
+    {TAROU_TIRA_GUARDIA_BU, TAROU_GUARDIA_BU_CUADROS, 6, 1},   /* ANIM_GUARDIA              */
+    {ESTADO_CAMINANDO, TAROU_CAMINAR_CUADROS, 4, 1},          /* ANIM_CAMINAR (6 hasta el 2026-11-05: más ritmo). */
     {ESTADO_SALTANDO, TAROU_SALTAR_CUADROS, 6, 0},            /* ANIM_SALTAR               */
     {ESTADO_CAYENDO, TAROU_CAER_CUADROS, 6, 0},               /* ANIM_CAER                 */
-    {TAROU_TIRA_GOLPE_1, TAROU_GOLPE_1_CUADROS, 3, 0},        /* 5 dibujos en 14 frames.   */
-    {TAROU_TIRA_GOLPE_2, TAROU_GOLPE_2_CUADROS, 3, 0},        /* 5 dibujos en 14 frames.   */
-    {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 3, 0},        /* 7 en 20: salto y mordisco. */
-    {TAROU_TIRA_RECIBIR, TAROU_RECIBIR_CUADROS, 3, 0},        /* 5 dibujos en 16 frames.   */
+    {TAROU_TIRA_GOLPE_1, TAROU_GOLPE_1_CUADROS, 2, 0},        /* 5 dibujos en 12 frames.   */
+    {TAROU_TIRA_GOLPE_2, TAROU_GOLPE_2_CUADROS, 2, 0},        /* 5 dibujos en 12 frames.   */
+    {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 2, 0},        /* 7 en 16: salto y mordisco. */
+    {TAROU_TIRA_RECIBIR, TAROU_RECIBIR_CUADROS, 2, 0},        /* 5 dibujos en 12 frames.   */
     {TAROU_TIRA_KO, TAROU_KO_CUADROS, 6, 0},                  /* Cae y se queda tumbado.   */
     /* Los movimientos nuevos: los que ya tienen arte (punto 8 del 2026-11-05: golpe 4,
        derribado, levantarse y victoria) con su tira; los demás, con las que ya tenía. */
-    {ESTADO_CORRIENDO, TAROU_CORRER_CUADROS, 4, 1},           /* ANIM_CORRER (la del plataformas). */
-    {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 3, 0},        /* ANIM_AEREO                */
+    {ESTADO_CORRIENDO, TAROU_CORRER_CUADROS, 3, 1},           /* ANIM_CORRER (la del plataformas). */
+    {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 2, 0},        /* ANIM_AEREO                */
     {TAROU_TIRA_GUARDIA_BU, 1, 8, 1},                         /* ANIM_AGARRE               */
-    {TAROU_TIRA_GOLPE_1, TAROU_GOLPE_1_CUADROS, 3, 0},        /* ANIM_GOLPE_AGARRE         */
-    {TAROU_TIRA_GOLPE_2, TAROU_GOLPE_2_CUADROS, 4, 0},        /* ANIM_LANZAMIENTO          */
-    {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 4, 0},        /* ANIM_ESPECIAL             */
-    {TAROU_TIRA_GOLPE_1, TAROU_GOLPE_1_CUADROS, 3, 0},        /* ANIM_LANZAR_ARMA          */
-    {TAROU_TIRA_DERRIBADO, TAROU_DERRIBADO_CUADROS, 6, 0},    /* ANIM_DERRIBADO: 36 frames. */
-    {TAROU_TIRA_LEVANTARSE, TAROU_LEVANTARSE_CUADROS, 3, 0},  /* ANIM_LEVANTARSE: 18 de 20. */
+    {TAROU_TIRA_GOLPE_1, TAROU_GOLPE_1_CUADROS, 2, 0},        /* ANIM_GOLPE_AGARRE         */
+    {TAROU_TIRA_GOLPE_2, TAROU_GOLPE_2_CUADROS, 3, 0},        /* ANIM_LANZAMIENTO          */
+    {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 3, 0},        /* ANIM_ESPECIAL             */
+    {TAROU_TIRA_GOLPE_1, TAROU_GOLPE_1_CUADROS, 2, 0},        /* ANIM_LANZAR_ARMA          */
+    {TAROU_TIRA_DERRIBADO, TAROU_DERRIBADO_CUADROS, 5, 0},    /* ANIM_DERRIBADO: 30 frames. */
+    {TAROU_TIRA_LEVANTARSE, TAROU_LEVANTARSE_CUADROS, 2, 0},  /* ANIM_LEVANTARSE: 12 de 16. */
     {TAROU_TIRA_RECIBIR, TAROU_RECIBIR_CUADROS, 6, 1},        /* ANIM_AGARRADA             */
     {TAROU_TIRA_VICTORIA, TAROU_VICTORIA_CUADROS, 6, 0},      /* ANIM_VICTORIA             */
-    {TAROU_TIRA_GOLPE_4, TAROU_GOLPE_4_CUADROS, 3, 0},        /* ANIM_GOLPE_4              */
+    {TAROU_TIRA_GOLPE_4, TAROU_GOLPE_4_CUADROS, 2, 0},        /* ANIM_GOLPE_4: 6 en 16.    */
 };
 
 /* Bárbara: su arte de beat 'em up. */
 static const AnimProta ANIMS_BARBARA[ANIM_PROTA_CANTIDAD] = {
-    {BARBARA_TIRA_GUARDIA, BARBARA_GUARDIA_CUADROS, 8, 1},
-    {BARBARA_TIRA_CAMINAR, BARBARA_CAMINAR_CUADROS, 6, 1},
+    {BARBARA_TIRA_GUARDIA, BARBARA_GUARDIA_CUADROS, 6, 1},
+    {BARBARA_TIRA_CAMINAR, BARBARA_CAMINAR_CUADROS, 4, 1},   /* (6 hasta el 2026-11-05: más ritmo.) */
     {BARBARA_TIRA_SALTAR, BARBARA_SALTAR_CUADROS, 6, 0},
     {BARBARA_TIRA_CAER, BARBARA_CAER_CUADROS, 6, 0},
-    {BARBARA_TIRA_GOLPE_1, BARBARA_GOLPE_1_CUADROS, 3, 0},   /* 5 dibujos en 14 frames.   */
-    {BARBARA_TIRA_GOLPE_2, BARBARA_GOLPE_2_CUADROS, 3, 0},   /* 5 dibujos en 14 frames.   */
-    {BARBARA_TIRA_GOLPE_3, BARBARA_GOLPE_3_CUADROS, 3, 0},   /* 7 dibujos en 20 frames.   */
-    {BARBARA_TIRA_RECIBIR, BARBARA_RECIBIR_CUADROS, 3, 0},   /* 6 dibujos en 16 frames.   */
+    {BARBARA_TIRA_GOLPE_1, BARBARA_GOLPE_1_CUADROS, 2, 0},   /* 5 dibujos en 12 frames.   */
+    {BARBARA_TIRA_GOLPE_2, BARBARA_GOLPE_2_CUADROS, 2, 0},   /* 5 dibujos en 12 frames.   */
+    {BARBARA_TIRA_GOLPE_3, BARBARA_GOLPE_3_CUADROS, 2, 0},   /* 7 dibujos en 16 frames.   */
+    {BARBARA_TIRA_RECIBIR, BARBARA_RECIBIR_CUADROS, 2, 0},   /* 6 dibujos en 12 frames.   */
     {BARBARA_TIRA_KO, BARBARA_KO_CUADROS, 6, 0},             /* Cae y se queda tumbada.   */
-    {BARBARA_TIRA_CORRER, BARBARA_CORRER_CUADROS, 4, 1},     /* ANIM_CORRER               */
-    {BARBARA_TIRA_AEREO, BARBARA_AEREO_CUADROS, 4, 0},       /* ANIM_AEREO                */
-    {BARBARA_TIRA_AGARRE, BARBARA_AGARRE_CUADROS, 8, 1},     /* ANIM_AGARRE               */
-    {BARBARA_TIRA_GOLPE_AGARRE, BARBARA_GOLPE_AGARRE_CUADROS, 5, 0},   /* 3 en 14 frames. */
-    {BARBARA_TIRA_LANZAMIENTO, BARBARA_LANZAMIENTO_CUADROS, 3, 0},     /* 7 en 21 frames. */
-    {BARBARA_TIRA_ESPECIAL, BARBARA_ESPECIAL_CUADROS, 3, 0},           /* 8 en 28 frames. */
-    {BARBARA_TIRA_LANZAR_ARMA, BARBARA_LANZAR_ARMA_CUADROS, 3, 0},     /* 5 en 16 frames. */
-    {BARBARA_TIRA_DERRIBADA, BARBARA_DERRIBADA_CUADROS, 5, 0},         /* 7 en 36 frames. */
-    {BARBARA_TIRA_LEVANTARSE, BARBARA_LEVANTARSE_CUADROS, 4, 0},       /* 5 en 20 frames. */
+    {BARBARA_TIRA_CORRER, BARBARA_CORRER_CUADROS, 3, 1},     /* ANIM_CORRER               */
+    {BARBARA_TIRA_AEREO, BARBARA_AEREO_CUADROS, 3, 0},       /* ANIM_AEREO                */
+    {BARBARA_TIRA_AGARRE, BARBARA_AGARRE_CUADROS, 6, 1},     /* ANIM_AGARRE               */
+    {BARBARA_TIRA_GOLPE_AGARRE, BARBARA_GOLPE_AGARRE_CUADROS, 4, 0},   /* 3 en 12 frames. */
+    {BARBARA_TIRA_LANZAMIENTO, BARBARA_LANZAMIENTO_CUADROS, 2, 0},     /* 7 en 18 frames. */
+    {BARBARA_TIRA_ESPECIAL, BARBARA_ESPECIAL_CUADROS, 3, 0},           /* 8 en 24 frames. */
+    {BARBARA_TIRA_LANZAR_ARMA, BARBARA_LANZAR_ARMA_CUADROS, 2, 0},     /* 5 en 12 frames. */
+    {BARBARA_TIRA_DERRIBADA, BARBARA_DERRIBADA_CUADROS, 4, 0},         /* 7 en 30 frames. */
+    {BARBARA_TIRA_LEVANTARSE, BARBARA_LEVANTARSE_CUADROS, 3, 0},       /* 5 en 16 frames. */
     {BARBARA_TIRA_AGARRADA, BARBARA_AGARRADA_CUADROS, 8, 1},
     {BARBARA_TIRA_VICTORIA, BARBARA_VICTORIA_CUADROS, 6, 0},
     {BARBARA_TIRA_GOLPE_3, BARBARA_GOLPE_3_CUADROS, 3, 0},   /* ANIM_GOLPE_4 (no lo usa). */

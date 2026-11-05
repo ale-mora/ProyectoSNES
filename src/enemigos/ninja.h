@@ -45,29 +45,29 @@
 
 #define NINJAS_MAX 3                     /* Ranuras (las que caben en la VRAM de sprites).  */
 #define NINJA_CUADROS 6                  /* Dibujos de caminar de «Ninja 1» (cuadro 0..5).  */
-#define NINJA_FRAMES_CUADRO 4            /* Cada cuántos frames cambia de cuadro.           */
+#define NINJA_FRAMES_CUADRO 3            /* Cada cuántos frames cambia de cuadro.           */
 #define NINJA_PASO_X 1                   /* Anda más lento que Tarou (2): se le puede huir. */
 #define NINJA_DISTANCIA 40               /* Se detiene a esta distancia en x del objetivo.  */
 #define NINJA_VIDA 4                     /* El normal: combo de Tarou 1 + 1 + 2 = justo.    */
-#define NINJA_RECIBIR_FRAMES 16          /* Aturdido tras un golpe normal.                  */
+#define NINJA_RECIBIR_FRAMES 12          /* Aturdido tras un golpe normal (16 hasta el 2026-11-05). */
 #define NINJA_LANZADO_FRAMES 18           /* Lanzado: vuela estos frames (5 px/frame)...     */
 #define NINJA_LANZADO_PASO 5
 #define NINJA_GOLPE_LANZADO 255          /* ...y su choque cuenta como este tajo.           */
 #define NINJA_DESTELLO_FRAMES 3          /* En blanco al recibir un golpe (game feel).      */
-#define NINJA_INV_LEVANTARSE 40          /* Invulnerable (y parpadeando) tras levantarse.   */
-#define NINJA_DERRIBO_FRAMES 64          /* Caído: cae (21), en el suelo (20) y se levanta (20);
+#define NINJA_INV_LEVANTARSE 32          /* Invulnerable (y parpadeando) tras levantarse.   */
+#define NINJA_DERRIBO_FRAMES 48          /* Caído: cae (21), en el suelo (12) y se levanta (15);
                                             sin vida: KO (21) y parpadea tumbado hasta irse. */
 #define NINJA_EMPUJE_IZQ 1
 #define NINJA_EMPUJE_DER 2
 /*--- El ataque del ninja (un puñetazo; cifras a ajustar jugando) ---------------------*/
-#define NINJA_ATAQUE_FRAMES 28           /* Carga, puño fuera (12..19) y vuelta.            */
-#define NINJA_GOLPE_DESDE 12             /* Su caja de golpe, activa de aquí...             */
-#define NINJA_GOLPE_HASTA 20             /* ...hasta aquí (sin incluir): 8 cuadros.         */
+#define NINJA_ATAQUE_FRAMES 24           /* Carga, puño fuera (8..15) y vuelta (28 hasta el 2026-11-05). */
+#define NINJA_GOLPE_DESDE 8              /* Su caja de golpe, activa de aquí...             */
+#define NINJA_GOLPE_HASTA 16             /* ...hasta aquí (sin incluir): 8 cuadros.         */
 #define NINJA_ALCANCE 48                 /* Hasta dónde llega por delante de sus pies.      */
 #define NINJA_PROFUNDIDAD 12             /* Tolerancia en y para acertar.                   */
 #define NINJA_DANIO 2                    /* Lo que quita el normal (Tarou tiene 24).        */
-#define NINJA_ESPERA 50                  /* Cuadros de descanso entre un ataque y el siguiente. */
-#define NINJA_ESPERA_INICIAL 30          /* Al nacer espera esto, +15 por ranura.           */
+#define NINJA_ESPERA 36                  /* Cuadros de descanso entre un ataque y el siguiente. */
+#define NINJA_ESPERA_INICIAL 24          /* Al nacer espera esto, +15 por ranura.           */
 #define NINJA_TURNOS 2                   /* Como mucho dos atacan a la vez (§6 de la spec). */
 #define NINJA_ENTRADA 40                 /* Aparece a esta distancia fuera del borde.       */
 #define NINJA_ANCHO 96                   /* Celda de 96x96 de «Ninja 1» (tumbado mide 88 px). */
@@ -96,21 +96,21 @@
 #define NINJA_DIBUJOS 85
 
 /*--- Las acciones nuevas (2026-11-05; cifras a ajustar jugando) ----------------------*/
-#define NINJA_PATADA_FRAMES 32           /* La patada: activa de 14 a 22, llega a 56 px.   */
-#define NINJA_PATADA_DESDE 14
-#define NINJA_PATADA_HASTA 22
+#define NINJA_PATADA_FRAMES 28           /* La patada: activa de 12 a 20, llega a 56 px.   */
+#define NINJA_PATADA_DESDE 12
+#define NINJA_PATADA_HASTA 20
 #define NINJA_PATADA_ALCANCE 56
-#define NINJA_PESADO_FRAMES 36           /* Kendoka y jefe: activa de 16 a 24, 60 px, derriba. */
-#define NINJA_PESADO_DESDE 16
-#define NINJA_PESADO_HASTA 24
+#define NINJA_PESADO_FRAMES 30           /* Kendoka y jefe: activa de 12 a 20, 60 px, derriba. */
+#define NINJA_PESADO_DESDE 12
+#define NINJA_PESADO_HASTA 20
 #define NINJA_PESADO_ALCANCE 60
-#define NINJA_BLOQUEO_FRAMES 16          /* Bloqueando: los golpes de frente rebotan.       */
-#define NINJA_AGARRE_FRAMES 36           /* Tiene agarrado al protagonista...               */
-#define NINJA_LANZAR_FRAMES 24           /* ...y lo lanza (en el frame NINJA_LANZAR_SUELTA). */
-#define NINJA_LANZAR_SUELTA 10
+#define NINJA_BLOQUEO_FRAMES 12          /* Bloqueando: los golpes de frente rebotan.       */
+#define NINJA_AGARRE_FRAMES 28           /* Tiene agarrado al protagonista...               */
+#define NINJA_LANZAR_FRAMES 20           /* ...y lo lanza (en el frame NINJA_LANZAR_SUELTA). */
+#define NINJA_LANZAR_SUELTA 8
 #define NINJA_AGARRE_ALCANCE 36
-#define NINJA_DISPARO_FRAMES 32          /* El rápido lanza su shuriken (en el frame 18).   */
-#define NINJA_DISPARO_SUELTA 18
+#define NINJA_DISPARO_FRAMES 26          /* El rápido lanza su shuriken (en el frame 14).   */
+#define NINJA_DISPARO_SUELTA 14
 #define NINJA_RAPIDO_CERCA 80            /* El rápido se mantiene entre estas distancias.   */
 #define NINJA_RAPIDO_LEJOS 112
 #define NINJA_CARGA_PASO 4               /* El jefe embiste a 4 px por frame...             */

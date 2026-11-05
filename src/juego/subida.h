@@ -27,6 +27,14 @@
 #ifndef SUBIDA_H
 #define SUBIDA_H
 
+/* Lo que la fase 1 sube de tiles de sprites en un VBlank, entre todos (2026-11-05): los
+   ninjas tienen UN búfer por ranura, así que su cuadro se sube ENTERO en un VBlank (si
+   cabe en este presupuesto) o se veía a medias uno o dos frames (titileo); la protagonista,
+   con doble búfer, se lleva lo que sobra. Un cuadro mayor que el presupuesto (el jefe) va
+   en trozos de TROZO_GRANDE. */
+#define PRESUPUESTO_SUBIDA 2048
+#define TROZO_GRANDE 1536
+
 #include "sistema/tipos.h"
 
 #define SUBIDA_COPIAS_MAX 12         /* ≤ 48 piezas: 6 pares (el jefe usa dos huecos).   */

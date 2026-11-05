@@ -173,13 +173,31 @@ def con_banda_transparente(imagen: Image.Image) -> Image.Image:
     return lienzo
 
 
+def fondo_a_cero(im: Image.Image) -> Image.Image:
+    """Imagen 'P' → la misma con el color más oscuro en el índice 0. En la SNES el color 0 de
+    cada paleta es TRANSPARENTE (se ve el fondo negro de la PPU): si el cuantizador deja el
+    blanco en el 0, las letras blancas del logo de Nintendo salían negras (2026-11-05)."""
+    pal = im.getpalette()
+    usados = sorted({i for _, i in im.getcolors(256 * 256)})
+    oscuro = min(usados, key=lambda i: pal[i * 3] + pal[i * 3 + 1] + pal[i * 3 + 2])
+    if oscuro == 0:
+        return im
+    tabla = list(range(256))
+    tabla[0], tabla[oscuro] = oscuro, 0
+    out = im.point(tabla)
+    nueva = list(pal)
+    nueva[0:3], nueva[oscuro * 3:oscuro * 3 + 3] = pal[oscuro * 3:oscuro * 3 + 3], pal[0:3]
+    out.putpalette(nueva)
+    return out
+
+
 # ----------------------------------------------------------------------------- pantallas
 def nintendo():
     print("[nintendo]")
     lienzo = Image.new("RGBA", (ANCHO, ALTO), NEGRO + (255,))
     logo = ajustar_ancho(abrir(D / "nintendo_logo_960.png"), 176)   # 176x59
     lienzo.paste(logo, ((ANCHO - logo.width) // 2, 64), logo)
-    guardar(indexar(lienzo, 16, transparente=False), Path("res/nintendo/logo_nintendo.png"))
+    guardar(fondo_a_cero(indexar(lienzo, 16, transparente=False)), Path("res/nintendo/logo_nintendo.png"))
 
 
 def publisher():
@@ -187,7 +205,7 @@ def publisher():
     lienzo = Image.new("RGBA", (ANCHO, ALTO), NEGRO + (255,))
     logo = escalar(abrir(SDK_LOGOS / "snes-logo-capcom/res/logo.bmp"), 2)     # 192x64
     lienzo.paste(logo, ((ANCHO - logo.width) // 2, 80), logo)
-    guardar(indexar(lienzo, 16, transparente=False), Path("res/publisher/logo_publisher.png"))
+    guardar(fondo_a_cero(indexar(lienzo, 16, transparente=False)), Path("res/publisher/logo_publisher.png"))
 
 
 def devs():

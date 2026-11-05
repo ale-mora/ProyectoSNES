@@ -45,18 +45,18 @@ static const u8 DANIO_TIPO[NINJA_TIPOS] = {NINJA_DANIO, 3, 4, 2, 4, 4};
 
 /* El puñetazo, por grupos de 4 frames del ataque: carga (0), a medio camino (1), puño fuera
    (2) mientras la caja golpea (frames 12..19), y vuelta. */
-static const u8 ATAQUE_DIBUJO[NINJA_ATAQUE_FRAMES >> 2] = {0, 0, 1, 2, 2, 1, 0};
+static const u8 ATAQUE_DIBUJO[(NINJA_ATAQUE_FRAMES >> 2) + 1] = {0, 1, 2, 2, 1, 0, 0};
 
-/* Recibir: 6 dibujos en sus 16 frames (por frame transcurrido). */
-static const u8 RECIBIR_DIBUJO[NINJA_RECIBIR_FRAMES] = {0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5};
+/* Recibir: 6 dibujos en sus 12 frames (por frame transcurrido). */
+static const u8 RECIBIR_DIBUJO[NINJA_RECIBIR_FRAMES] = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5};
 
-/* Derribado con vida, por frame transcurrido (0..63): cae (7 dibujos a 3 frames), se queda
-   en el suelo (el último de derribado) 20 frames y se levanta (5 dibujos a 4 frames). */
+/* Derribado con vida, por frame transcurrido (0..47): cae (7 dibujos a 3 frames), se queda
+   en el suelo (el último de derribado) 12 frames y se levanta (5 dibujos a 3 frames).
+   Hasta el 2026-11-05 eran 64 frames (20 en el suelo, 4 por dibujo al levantarse). */
 static const u8 DERRIBO_DIBUJO[NINJA_DERRIBO_FRAMES] = {
     23, 23, 23, 24, 24, 24, 25, 25, 25, 26, 26, 26, 27, 27, 27, 28, 28, 28, 29, 29, 29,
-    29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29,
-    30, 30, 30, 30, 31, 31, 31, 31, 32, 32, 32, 32, 33, 33, 33, 33, 34, 34, 34, 34,
-    34, 34, 34};
+    29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29,
+    30, 30, 30, 31, 31, 31, 32, 32, 32, 33, 33, 33, 34, 34, 34};
 
 /* Sin vida (KO): cae con su tira de KO (7 dibujos a 3 frames) y se queda tumbado. */
 #define KO_CAIDA 21                      /* Frames de la caída del KO.                      */
@@ -783,16 +783,23 @@ u8 ninja_dibujo(const Ninja *n)
             }
             if (n->ataque == NINJA_ATQ_PESADO)
             {
-                f = (u8)(n->timer >> 2);             /* 36 frames: 9 grupos de 4 → 0..5.    */
+                f = (u8)(n->timer >> 2);             /* 30 frames: grupos de 4 → 0..5.      */
                 return (u8)(NINJA_DIB_PESADO + (f > 5 ? 5 : f));
             }
             return (u8)(NINJA_DIB_ATAQUE + ATAQUE_DIBUJO[n->timer >> 2]);
         case NINJA_RECIBIR:
             pasado = (u8)(NINJA_RECIBIR_FRAMES - n->timer);
-            return (u8)(NINJA_DIB_RECIBIR + RECIBIR_DIBUJO[pasado & (NINJA_RECIBIR_FRAMES - 1)]);
+            if (pasado >= NINJA_RECIBIR_FRAMES)
+            {
+                pasado = NINJA_RECIBIR_FRAMES - 1;   /* (Ya no es potencia de 2: se recorta.) */
+            }
+            return (u8)(NINJA_DIB_RECIBIR + RECIBIR_DIBUJO[pasado]);
         case NINJA_DERRIBADO:
             pasado = (u8)(NINJA_DERRIBO_FRAMES - n->timer);
-            pasado = (u8)(pasado & (NINJA_DERRIBO_FRAMES - 1));   /* 0..63 (potencia de 2).  */
+            if (pasado >= NINJA_DERRIBO_FRAMES)
+            {
+                pasado = NINJA_DERRIBO_FRAMES - 1;   /* 0..47 (recortado, no enmascarado).  */
+            }
             if (n->vida != 0)
             {
                 return DERRIBO_DIBUJO[pasado];

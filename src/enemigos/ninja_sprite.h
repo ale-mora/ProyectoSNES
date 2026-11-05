@@ -38,6 +38,12 @@
    ninjas, las entidades fijas 2..7 y la tabla de entidades con 8 entradas. */
 void ninja_sprite_cargar(void);
 
+/* Cada frame, antes de ninja_sprite_actualizar: decide qué ninja sube su cuadro este VBlank
+   (uno) con `disponible` bytes de PRESUPUESTO_SUBIDA, y devuelve los que reserva. Un cuadro
+   que pisa el que se enseña va ENTERO o espera; con el otro hueco libre (ranuras 1 y 2 a
+   solas) va a ese hueco, en trozos si hace falta, sin que se note (doble búfer). */
+u16 ninja_sprite_reservar(const Ninja *n, u16 disponible);
+
 /* Un frame, DESPUÉS de protagonista_sprite_actualizar() (Tarou primero en la lista de DMA):
    sube el cuadro nuevo de un ninja, si toca, y rellena sus entidades. `n` son las NINJAS_MAX
    ranuras; `camara`, el scroll. Debe ir antes de sprites_ordenar... (lo llama ella misma). */

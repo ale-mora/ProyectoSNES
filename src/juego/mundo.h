@@ -77,35 +77,35 @@
 
 /*--- Vida de Tarou y lo que pasa al recibir un golpe (cifras a ajustar jugando) ---------*/
 #define VIDA_TAROU 24                    /* 12 celdas de barra de 2 puntos cada una.       */
-#define RECIBIR_FRAMES 16                /* Aturdido tras un golpe normal.                 */
-#define DERRIBO_FRAMES 36                /* Caído (y, sin vida, KO).                       */
-#define LEVANTARSE_FRAMES 20             /* Levantándose tras un derribo con vida.         */
+#define RECIBIR_FRAMES 12                /* Aturdido tras un golpe normal (16 hasta el 2026-11-05). */
+#define DERRIBO_FRAMES 30                /* Caído (y, sin vida, KO).                       */
+#define LEVANTARSE_FRAMES 16             /* Levantándose tras un derribo con vida.         */
 #define INVULNERABLE_FRAMES 60           /* Tras un golpe o al levantarse: parpadea.       */
 
 /*--- El combo (A, A, A[, A]: el último derriba) ------------------------------------*/
 #define GOLPES 3                         /* Golpes del combo de Bárbara (Tarou: 4).        */
 #define GOLPES_TAROU 4
-#define GOLPE_FRAMES 14                  /* Duración de los golpes que no son el último.  */
-#define GOLPE_ULTIMO_FRAMES 20           /* El último tarda más en recuperarse.           */
+#define GOLPE_FRAMES 12                  /* Duración de los golpes que no son el último (14 hasta el 2026-11-05). */
+#define GOLPE_ULTIMO_FRAMES 16           /* El último tarda más en recuperarse.           */
 #define GOLPE_ACTIVO_DESDE 4             /* La caja de golpe, activa de aquí...           */
 #define GOLPE_ACTIVO_HASTA 8             /* ...hasta aquí (sin incluir): 4 frames.        */
 #define GOLPE_ENCADENAR_DESDE 5          /* A a partir de este cuadro encadena el siguiente. */
 
 /*--- Los otros movimientos ------------------------------------------------------------*/
 #define AEREO_ACTIVO_DESDE 2             /* El ataque aéreo golpea desde aquí hasta tocar suelo. */
-#define ESPECIAL_FRAMES 28               /* A + B: el giro dura esto...                   */
+#define ESPECIAL_FRAMES 24               /* A + B: el giro dura esto...                   */
 #define ESPECIAL_ACTIVO_DESDE 4          /* ...y golpea a los dos lados de aquí...        */
-#define ESPECIAL_ACTIVO_HASTA 22         /* ...hasta aquí.                                */
+#define ESPECIAL_ACTIVO_HASTA 19         /* ...hasta aquí.                                */
 #define COSTE_ESPECIAL 2                 /* Vida que cuesta si conecta (sin bajar de 1).  */
-#define LANZAR_ARMA_FRAMES 16
-#define LANZAR_ARMA_SUELTA 6             /* En este frame sale el arma (EVENTO_LANZA_ARMA). */
-#define AGARRE_EMPUJE 10                 /* Frames andando contra un enemigo para agarrarlo. */
+#define LANZAR_ARMA_FRAMES 12
+#define LANZAR_ARMA_SUELTA 5             /* En este frame sale el arma (EVENTO_LANZA_ARMA). */
+#define AGARRE_EMPUJE 8                  /* Frames andando contra un enemigo para agarrarlo. */
 #define AGARRE_MAX 120                   /* Si no hace nada, el agarrado se suelta.       */
 #define AGARRE_GOLPES 3                  /* Golpes de agarre como mucho.                  */
-#define GOLPE_AGARRE_FRAMES 14
-#define GOLPE_AGARRE_IMPACTO 6           /* En este frame pega (EVENTO_GOLPE_AGARRE).     */
-#define LANZAR_FRAMES 21
-#define LANZAR_SUELTA 9                  /* En este frame sale despedido (EVENTO_LANZA_AGARRADO). */
+#define GOLPE_AGARRE_FRAMES 12
+#define GOLPE_AGARRE_IMPACTO 5           /* En este frame pega (EVENTO_GOLPE_AGARRE).     */
+#define LANZAR_FRAMES 18
+#define LANZAR_SUELTA 8                  /* En este frame sale despedido (EVENTO_LANZA_AGARRADO). */
 
 typedef enum
 {

@@ -250,9 +250,18 @@ static u8 mirada[NINJAS_MAX];
 static u8 blanca[NINJAS_MAX];        /* 1 si la paleta de la ranura está ahora en blanco. */
 static u8 pal_tipo[NINJAS_MAX];      /* El tipo cuya paleta tiene la ranura (SIN_TIPO: ninguno). */
 static u8 tipo_vram[NINJAS_MAX];     /* El tipo del cuadro que hay en su hueco.          */
+static u16 base[NINJAS_MAX];         /* Primer tile del cuadro que ENSEÑA cada ranura.    */
+static u8 oculto[NINJAS_MAX];        /* 1 mientras su hueco se reescribe en trozos: no se dibuja (mejor un parpadeo que un cuadro a medias). */
 static u8 turno;
 static u8 subiendo;                  /* Ranura con una subida a medias (SIN_TIPO: ninguna). */
-static u8 dib_subiendo;              /* El dibujo que se está subiendo.                   */
+static u8 dib_subiendo;              /* El dibujo que se está subiendo...                 */
+static u16 base_subiendo;            /* ...y a qué hueco.                                 */
+static u8 planificado;               /* 1 = ninja_sprite_reservar ya decidió este frame.  */
+static u8 plan_k, plan_dib;          /* Lo decidido: ranura (SIN_TIPO: nada), dibujo...   */
+static u8 plan_f, plan_banco;        /* ...cuadro de su tira y banco...                   */
+static u16 plan_tope;                /* ...bytes que se suben este VBlank...              */
+static u16 plan_base;                /* ...y a qué hueco.                                 */
+static const u8 *plan_tira;
 static Subida subida;
 
 void ninja_sprite_cargar(void)
@@ -281,11 +290,16 @@ void ninja_sprite_cargar(void)
         blanca[k] = 0;
         pal_tipo[k] = SIN_TIPO;                      /* La pone ninja_sprite_vblank.        */
         tipo_vram[k] = SIN_TIPO;
+        base[k] = HUECOS[k];
+        oculto[k] = 0;
         dmaCopyCGram((u8 *)paleta_tipo(k), (u16)(128 + 16 + ((u16)k << 4)), 32);   /* Al entrar. */
         pal_tipo[k] = k;
     }
     turno = 0;
     subiendo = SIN_TIPO;
+    planificado = 0;
+    plan_k = SIN_TIPO;
+    plan_tope = 0;
 }
 
 const u8 *ninja_sprite_paleta(const Ninja *n, u8 k)
@@ -322,34 +336,55 @@ void ninja_sprite_paletas_repuestas(void)
     }
 }
 
-/*--- seguir: toma lo que cabe este VBlank de la subida en marcha -----------------------*/
-static void seguir(void)
+/*--- destino: a qué hueco va el cuadro nuevo de la ranura k (0xFFFF = ahora no) ---------
+    La ranura 0 (16 piezas) tiene un solo hueco. Las ranuras 1 y 2 tienen un hueco de 24
+    piezas cada una; si la otra está vacía, usan los dos a turnos (DOBLE BÚFER: el cuadro
+    nuevo nunca pisa el que se enseña, y la subida puede ir en trozos sin que se note). El
+    jefe (ranura 1, sin ranura 2) también, salvo sus cuadros de más de 24 piezas, que
+    ocupan los dos huecos. Si la ranura k acaba de nacer y la otra todavía enseña desde el
+    hueco de k, k espera (la otra vuelve a su hueco con su siguiente cuadro). */
+static u16 destino(const Ninja *n, u8 k, u8 piezas)
 {
-    const Copia *copias;
-    u8 cuantas;
+    u8 otro = (u8)(3 - k);
 
-    subida_tomar(&subida, TOPE_NINJA, &copias, &cuantas);
-    dma_lista_copias(copias, cuantas, subida.banco);
-    if (subida_terminada(&subida))
+    if (k == 0)
     {
-        muestra[subiendo] = dib_subiendo;            /* Ya está entero: la OAM pasa a él.   */
-        mirada[subiendo] = 0xFF;                     /* Fuerza recalcular las piezas.       */
-        subiendo = SIN_TIPO;
+        return HUECOS[0];
     }
+    if (n[k].tipo == NINJA_JEFE && piezas > 24)
+    {
+        return HUECOS[1];                            /* Los dos huecos seguidos.            */
+    }
+    if (!n[otro].vivo)                               /* Sola: el hueco que no se enseña.    */
+    {
+        return (u16)(base[k] == HUECOS[1] ? HUECOS[2] : HUECOS[1]);
+    }
+    if (base[otro] == HUECOS[k])
+    {
+        return 0xFFFF;                               /* La otra aún está en mi hueco.       */
+    }
+    return HUECOS[k];
 }
 
-/*--- subir: UN ninja sube su cuadro, por turnos (en uno o dos VBlanks) ---------------*/
-static void subir(const Ninja *n)
+u16 ninja_sprite_reservar(const Ninja *n, u16 disponible)
 {
     P16Cuadro cu;
     const Ninja *p;
-    const u8 *tira;
-    u8 i, k, f, banco, dibujo;
+    u8 i, k, dibujo;
+    u16 bytes, dest;
 
-    if (subiendo != SIN_TIPO)
+    planificado = 1;
+    plan_k = SIN_TIPO;
+    plan_tope = 0;
+    if (subiendo != SIN_TIPO)                        /* Una subida a medias: lo que quepa. */
     {
-        seguir();                                    /* Primero, acabar la que va a medias. */
-        return;
+        bytes = subida_restante(&subida);
+        if (disponible < 512 && bytes > disponible)
+        {
+            return 0;                                /* Este VBlank, nada.                  */
+        }
+        plan_tope = (u16)(bytes < disponible ? bytes : disponible);
+        return plan_tope;
     }
     k = turno;
     for (i = 0; i < NINJAS_MAX; i++)
@@ -358,16 +393,47 @@ static void subir(const Ninja *n)
         dibujo = p->vivo ? ninja_dibujo(p) : SIN_CUADRO;
         if (p->vivo && (dibujo != muestra[k] || tipo_vram[k] != p->tipo))
         {
-            tira = tira_de(p->tipo, dibujo, &f, &banco);
-            p16_cuadro(tira, f, &cu);
-            subida_empezar(&subida, cu.n, (u16)((u16)tira + cu.tiles),
-                           VRAM_TILE(HUECOS[k]), banco);
-            subiendo = k;
-            dib_subiendo = dibujo;
-            tipo_vram[k] = p->tipo;
-            turno = (u8)(k + 1 >= NINJAS_MAX ? 0 : k + 1);   /* El siguiente tiene la preferencia. */
-            seguir();
-            return;                                  /* Solo uno por frame.                 */
+            plan_tira = tira_de(p->tipo, dibujo, &plan_f, &plan_banco);
+            p16_cuadro(plan_tira, plan_f, &cu);
+            bytes = (u16)((u16)cu.n << 7);           /* 128 bytes por pieza.                */
+            dest = destino(n, k, cu.n);
+            if (dest == 0xFFFF)
+            {
+                dibujo = SIN_CUADRO;                 /* Espera: a por la siguiente ranura.  */
+            }
+            else if (dest == base[k] && muestra[k] != SIN_CUADRO)
+            {
+                /* Pisa el cuadro que se enseña: ENTERO en este VBlank o nada (si no cabe
+                   nunca en el presupuesto, en trozos: se ve a medias un frame). */
+                if (bytes <= disponible)
+                {
+                    plan_tope = bytes;
+                }
+                else if (bytes > PRESUPUESTO_SUBIDA && disponible >= TROZO_GRANDE)
+                {
+                    plan_tope = TROZO_GRANDE;        /* En trozos: oculto hasta que acabe.  */
+                    oculto[k] = 1;
+                }
+                else
+                {
+                    dibujo = SIN_CUADRO;             /* Otro VBlank.                        */
+                }
+            }
+            else if (disponible >= 512 || bytes <= disponible)
+            {
+                plan_tope = (u16)(bytes < disponible ? bytes : disponible);   /* Doble búfer. */
+            }
+            else
+            {
+                dibujo = SIN_CUADRO;
+            }
+            if (dibujo != SIN_CUADRO)
+            {
+                plan_k = k;
+                plan_dib = dibujo;
+                plan_base = dest;
+                return plan_tope;
+            }
         }
         k++;
         if (k >= NINJAS_MAX)
@@ -375,6 +441,60 @@ static void subir(const Ninja *n)
             k = 0;
         }
     }
+    return 0;
+}
+
+/*--- seguir: toma lo que toca este VBlank de la subida en marcha -----------------------*/
+static void seguir(void)
+{
+    const Copia *copias;
+    u8 cuantas;
+
+    if (plan_tope == 0)
+    {
+        return;
+    }
+    subida_tomar(&subida, plan_tope, &copias, &cuantas);
+    dma_lista_copias(copias, cuantas, subida.banco);
+    if (subida_terminada(&subida))
+    {
+        muestra[subiendo] = dib_subiendo;            /* Ya está entero: la OAM pasa a él.   */
+        base[subiendo] = base_subiendo;              /* (Y al hueco donde está.)            */
+        oculto[subiendo] = 0;
+        mirada[subiendo] = 0xFF;                     /* Fuerza recalcular las piezas.       */
+        subiendo = SIN_TIPO;
+    }
+}
+
+/*--- subir: UN ninja sube su cuadro, por turnos, el que decidió ninja_sprite_reservar ---*/
+static void subir(const Ninja *n)
+{
+    P16Cuadro cu;
+    u8 k;
+
+    if (!planificado)                                /* (Sin reservar antes: se decide ahora.) */
+    {
+        ninja_sprite_reservar(n, PRESUPUESTO_SUBIDA);
+    }
+    planificado = 0;
+    if (subiendo != SIN_TIPO)
+    {
+        seguir();                                    /* Primero, acabar la que va a medias. */
+        return;
+    }
+    if (plan_k == SIN_TIPO)
+    {
+        return;
+    }
+    k = plan_k;
+    p16_cuadro(plan_tira, plan_f, &cu);
+    subida_empezar(&subida, cu.n, (u16)((u16)plan_tira + cu.tiles), VRAM_TILE(plan_base), plan_banco);
+    subiendo = k;
+    dib_subiendo = plan_dib;
+    base_subiendo = plan_base;
+    tipo_vram[k] = (n + k)->tipo;
+    turno = (u8)(k + 1 >= NINJAS_MAX ? 0 : k + 1);   /* El siguiente tiene la preferencia. */
+    seguir();                                        /* Entero (o el primer trozo).         */
 }
 
 void ninja_sprite_actualizar(const Ninja *n, u16 camara)
@@ -396,19 +516,22 @@ void ninja_sprite_actualizar(const Ninja *n, u16 camara)
             s->n = 0;
             sombra->n = 0;
             muestra[k] = SIN_CUADRO;
+            base[k] = HUECOS[k];                     /* Libre: su hueco de siempre.         */
+            oculto[k] = 0;
             continue;
         }
         ancho = ANCHO_TIPO[p->tipo];                 /* La celda de su tipo.                */
         alto = ALTO_TIPO[p->tipo];
         s->x0 = (u16)(p->x - camara - (ancho >> 1)); /* x de pantalla del borde izquierdo.  */
         s->y0 = (u16)(p->y - alto);                  /* Los pies, en la y del carril.       */
-        if (ninja_parpadea(p))
+        if (ninja_parpadea(p) || oculto[k])
         {
-            s->y0 = 240;                             /* Parpadea (KO tumbado o recién levantado). */
+            s->y0 = 240;                             /* Parpadea (KO tumbado o recién levantado), o su hueco se está reescribiendo. */
         }
         s->borde = sprites_borde(s->x0, s->y0, ancho, alto);
         s->atrib = (u8)(SPRITE_PRIORIDAD(PRIORIDAD) | SPRITE_PALETA(k + 1) |
                         (p->mira_izq ? SPRITE_HFLIP : 0));
+        s->tile = base[k];                           /* El hueco donde está su cuadro.      */
         if (muestra[k] != SIN_CUADRO && tipo_vram[k] == p->tipo)   /* Hay un cuadro entero. */
         {
             if (mirada[k] != p->mira_izq)            /* Cambió el cuadro o la mirada.       */

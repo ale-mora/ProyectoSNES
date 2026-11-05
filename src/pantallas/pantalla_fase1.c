@@ -143,6 +143,7 @@ static Cuerpo cuerpo_apoyo;          /* Dónde y cómo se dibuja el apoyo.      
 static u8 cambiar_paleta;            /* 1 = en el VBlank, la paleta 0 del que se dibuja.  */
 static u8 efecto, efecto_reloj;      /* Mosaico o temblor de un apoyo, y sus frames.       */
 static u8 escena_fin;                /* 0 = falta el jefe, 1 = su escena, 2 = acabada.    */
+static u8 turno_prota;               /* Reparto del presupuesto de subida: 1 = ella primero. */
 
 u8 fase1_escenario;                  /* Ver sistema/pantallas.h.                          */
 u8 fase1_vida;
@@ -496,6 +497,7 @@ void pantalla_fase1_iniciar(void)
     efecto = 0;
     efecto_reloj = 0;
     escena_fin = 0;
+    turno_prota = 0;
     if (escenario == ESCENARIO_MONASTERIO)
     {
         dialogo_empezar(&dialogo, LINEAS_REX, 4);    /* Rex, al llegar.                     */
@@ -705,6 +707,22 @@ void pantalla_fase1_actualizar(void)
     }
 
     /*--- Lo que va a la pantalla: Tarou primero en la lista de DMA, luego el fondo ---*/
+    /* El presupuesto de subida de tiles (PRESUPUESTO_SUBIDA por VBlank) se reparte a turnos:
+       un frame la protagonista primero (lo que le falte) y los ninjas el resto; el siguiente,
+       al revés. Un ninja sube su cuadro entero (o a un hueco que no se enseña). */
+    turno_prota ^= 1;
+    if (turno_prota)
+    {
+        {
+            u16 pend = protagonista_sprite_pendiente(&prota);
+            prota.tope = (u16)(pend > PRESUPUESTO_SUBIDA ? PRESUPUESTO_SUBIDA : pend);
+        }
+        ninja_sprite_reservar(ninjas, (u16)(PRESUPUESTO_SUBIDA - prota.tope));
+    }
+    else
+    {
+        prota.tope = (u16)(PRESUPUESTO_SUBIDA - ninja_sprite_reservar(ninjas, PRESUPUESTO_SUBIDA));
+    }
     protagonista_sprite_actualizar(&prota, apoyo_activo(&apoyo) ? &cuerpo_apoyo : &cuerpo, camara);
     if (estado_fase_mundo_avanza(&partida) && escenario == ESCENARIO_ALDEA)   /* Humo y pájaros. */
     {

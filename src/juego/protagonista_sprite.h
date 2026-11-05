@@ -79,6 +79,10 @@ void protagonista_sprite_actualizar(ProtaSprite *p, const Cuerpo *c, u16 camara)
    (protagonista_paleta). */
 void protagonista_sprite_cambiar(ProtaSprite *p, u8 personaje);
 
+/* Bytes que le faltan por subir (la subida en marcha, o el cuadro nuevo que toca empezar);
+   0 si la VRAM ya tiene el cuadro que se enseña. Para repartir PRESUPUESTO_SUBIDA. */
+u16 protagonista_sprite_pendiente(const ProtaSprite *p);
+
 /* 1 cuando el cuadro actual ya está entero en la VRAM (antes del fade in). */
 u8 protagonista_sprite_al_dia(const ProtaSprite *p);
 
