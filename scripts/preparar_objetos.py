@@ -12,7 +12,9 @@
         res/objetos/objetos_til.bin  las piezas en orden, 128 bytes cada una: la mitad de
                                      arriba (tiles TL, TR: 64 B) y la de abajo (BL, BR);
                                      un objeto de 32x32 son 4 piezas (TL, TR, BL, BR)
-        res/objetos/objetos_datos.h  dónde empieza cada pieza (OBJ_PIEZA_*)
+        res/objetos/objetos_datos.h  dónde empieza cada pieza (OBJ_PIEZA_*) y la caja de
+                                     lo dibujado de cada objeto (OBJ_CAJA_*: x0, y0, x1, y1;
+                                     objetos_sprite.c pone ahí la ventana que lo deja opaco)
         res/objetos/objetos_vista.png  todas, a 4x, para mirarlas
 
     SE CONECTA CON
@@ -72,6 +74,25 @@ def piezas_de(img):
     return piezas
 
 
+# Los que se dibujan volteados (el shuriken gira con los volteos; el kunai y las astillas
+# miran a los dos lados): su caja es la unión con sus espejos.
+ESPEJO_H = {"shuriken", "kunai", "astillas"}
+ESPEJO_V = {"shuriken"}
+
+
+def caja_de(img, nombre):
+    """(x0, y0, x1, y1) inclusivos de los píxeles opacos de la imagen (con sus espejos)."""
+    a = np.array(opacar(img))[..., 3] > 0
+    if nombre in ESPEJO_H:
+        a = a | a[:, ::-1]
+    if nombre in ESPEJO_V:
+        a = a | a[::-1, :]
+    ys, xs = np.nonzero(a)
+    if len(xs) == 0:
+        return (0, 0, 0, 0)
+    return (int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max()))
+
+
 def bytes_pieza(m):
     """Una pieza 16x16 → 128 bytes: TL, TR (arriba) y BL, BR (abajo)."""
     return (tile_4bpp(list(m[:8, :8].reshape(64))) + tile_4bpp(list(m[:8, 8:].reshape(64))) +
@@ -82,13 +103,14 @@ def main():
     faltan = [f for _, f, _ in FUENTES if not (ORIGEN / f).exists()]
     if faltan:
         sys.exit("ERROR: faltan piezas en " + str(ORIGEN) + ": " + ", ".join(faltan))
-    todas, indice = [], []
+    todas, indice, cajas = [], [], []
     for nombre, archivo, recorte in FUENTES:
         img = Image.open(ORIGEN / archivo).convert("RGBA")
         if recorte:
             x, y, w, h = recorte
             img = img.crop((x, y, x + w, y + h))
         indice.append((nombre, len(todas)))
+        cajas.append((nombre, caja_de(img, nombre)))
         todas += piezas_de(img)
     DESTINO.mkdir(parents=True, exist_ok=True)
     (DESTINO / "objetos_til.bin").write_bytes(b"".join(bytes_pieza(m) for m in todas))
@@ -98,6 +120,8 @@ def main():
               "#ifndef OBJETOS_DATOS_H", "#define OBJETOS_DATOS_H"]
     for nombre, k in indice:
         lineas.append(f"#define OBJ_PIEZA_{nombre.upper()} {k}")
+    for nombre, (x0, y0, x1, y1) in cajas:
+        lineas.append(f"#define OBJ_CAJA_{nombre.upper()} {x0}, {y0}, {x1}, {y1}")
     lineas += [f"#define OBJ_PIEZAS {len(todas)}", "#endif", ""]
     (DESTINO / "objetos_datos.h").write_text("\n".join(lineas), encoding="utf-8")
     pal = [(255, 0, 255)] + [tuple(int(c[i:i + 2], 16) for i in (1, 3, 5)) for c in PALETA_OBJETOS]

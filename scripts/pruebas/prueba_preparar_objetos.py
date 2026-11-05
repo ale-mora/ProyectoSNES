@@ -41,5 +41,18 @@ class PruebaPiezas(unittest.TestCase):
         self.assertEqual(b[64 + 1] & 0x80, 0x80)                # BL: el tercero, plano 1.
 
 
+class PruebaCaja(unittest.TestCase):
+    def test_caja_de_lo_dibujado(self):
+        a = np.zeros((16, 16, 4), np.uint8)
+        a[3:9, 2:6] = list(hex_rgb(PALETA_OBJETOS[0])) + [255]
+        self.assertEqual(po.caja_de(Image.fromarray(a, "RGBA"), "onigiri"), (2, 3, 5, 8))
+
+    def test_caja_con_espejos(self):
+        a = np.zeros((16, 16, 4), np.uint8)
+        a[3:9, 2:6] = list(hex_rgb(PALETA_OBJETOS[0])) + [255]
+        self.assertEqual(po.caja_de(Image.fromarray(a, "RGBA"), "kunai"), (2, 3, 13, 8))
+        self.assertEqual(po.caja_de(Image.fromarray(a, "RGBA"), "shuriken"), (2, 3, 13, 12))
+
+
 if __name__ == "__main__":
     unittest.main()

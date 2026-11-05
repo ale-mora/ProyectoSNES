@@ -296,7 +296,8 @@ static void invocar(void)
 static void salir(Pantalla siguiente)
 {
     fade_out(FRAMES_FADE);
-    setModeHdmaReset(0);                             /* Corta el HDMA del cielo.            */
+    setModeHdmaReset(0);                             /* Corta el HDMA del cielo y el de las ventanas. */
+    REG_WOBJSEL = 0;                                 /* Sin ventanas de color.              */
     protagonista_sprite_ocultar();                   /* OAM escondida y sin matemática de color. */
     secuencia_cambiar(siguiente);
 }
@@ -526,6 +527,7 @@ void pantalla_fase1_iniciar(void)
     sprites_dibujar();                               /* La OAM, lista para el primer frame. */
 
     poner_cielo();                                   /* El cielo del escenario (HDMA).      */
+    REG_HDMAEN = HDMA_CHANNEL6 | HDMA_CHANNEL5;      /* Y el de las ventanas de los objetos. */
     fade_in(FRAMES_FADE);
 }
 
@@ -775,7 +777,7 @@ void pantalla_fase1_vblank(void)
         }
         else
         {
-            REG_CGWSEL = 0x02;                       /* Como en protagonista_escena_cargar: */
+            REG_CGWSEL = OBJETOS_CGWSEL;             /* Como en objetos_sprite_cargar:      */
             REG_CGADSUB = 0x50;                      /* la sombra, a media suma.            */
             dmaCopyCGram((u8 *)protagonista_paleta(personaje_elegido), 128, 32);
             ninja_sprite_paletas_repuestas();        /* Las de los ninjas, por su tipo: las */
@@ -786,6 +788,7 @@ void pantalla_fase1_vblank(void)
     {
         ninja_sprite_vblank(ninjas);                 /* El ninja golpeado, en blanco.       */
     }
+    objetos_sprite_vblank();                         /* Las ventanas de los objetos.        */
     dma_lista_ejecutar();                            /* Tiles, columnas y HUD: lo último (las
                                                         paletas, antes: una copia a la CGRAM
                                                         fuera del VBlank choca con el HDMA). */

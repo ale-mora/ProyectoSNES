@@ -14,5 +14,16 @@
 #define OBJ_PIEZA_KUNAI 17
 #define OBJ_PIEZA_CHISPA_A 18
 #define OBJ_PIEZA_CHISPA_B 19
+#define OBJ_CAJA_BARRIL 5, 5, 26, 29
+#define OBJ_CAJA_CAJA 3, 4, 28, 29
+#define OBJ_CAJA_JARRA 6, 3, 25, 29
+#define OBJ_CAJA_ASTILLAS 1, 1, 14, 14
+#define OBJ_CAJA_ONIGIRI 1, 1, 14, 14
+#define OBJ_CAJA_PESCADO 0, 0, 14, 14
+#define OBJ_CAJA_VIDA 2, 1, 13, 15
+#define OBJ_CAJA_SHURIKEN 0, 0, 15, 15
+#define OBJ_CAJA_KUNAI 0, 4, 15, 11
+#define OBJ_CAJA_CHISPA_A 4, 6, 8, 11
+#define OBJ_CAJA_CHISPA_B 1, 3, 9, 13
 #define OBJ_PIEZAS 20
 #endif
