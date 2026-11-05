@@ -1,0 +1,30 @@
+A. La sombra (paleta 4, color negro) sobre la calle: CGWSEL=$02 (operando:
+   la secundaria, que tiene BG1+BG2 por TS=$03), CGADSUB=$50 (media suma, sprites 4..7)
+  calle                              $3237  r=23 g=17 b=12
+  sombra encima: (negro + calle) / 2 $190B  r=11 g= 8 b= 6
+
+B. El humo (paleta 7) con el mismo modo:
+  montana                            $28A7  r= 7 g= 5 b=10
+  humo                               $5AB7  r=23 g=21 b=22
+  humo sobre la montana: (h + m) / 2 $41AF  r=15 g=13 b=16
+  humo sobre el cielo (secundaria vacia) $5AB7  r=23 g=21 b=22
+
+C. La media luz de la pausa en un fondo: COLDATA=$E0 (color fijo negro),
+   CGWSEL=$00 (operando: el color fijo), CGADSUB=$F3 (restar, mitad, BG1, BG2,
+   sprites 4..7 y el color de fondo)
+  fachada                            $36BB  r=27 g=21 b=13
+  fachada en pausa: (f - 0) / 2      $194D  r=13 g=10 b= 6
+
+D. Un sprite de paleta 0..3 (Tarou) no entra en la matematica: se oscurece
+   su PALETA (oscurecer() de pantalla_fase1.c)
+  color de Tarou                     $1DB5  r=21 g=13 b= 7
+  v >> 1 (MAL: bits que se cuelan)   $0EDA  r=26 g=22 b= 3
+  (v >> 1) & 0x3DEF (bien)           $0CCA  r=10 g= 6 b= 3
+  Sin mascara, el bit bajo del verde cae en el bit alto del rojo (r=26 en vez de 10)
+  y el bajo del azul en el alto del verde (g=22 en vez de 6).
+
+E. El destello del ejercicio: COLDATA=$E0|16 (gris 16), CGWSEL=$00, CGADSUB=$23
+   (sumar, sin mitad, BG1, BG2 y fondo)
+  fachada con destello               $77FF  r=31 g=31 b=29
+  calle con destello                 $73FF  r=31 g=31 b=28
+  (El rojo de la fachada llega al tope: 27 + 16 = 43 -> 31.)

@@ -1,0 +1,7 @@
+FALLO prueba_destello.c:36: destello_actualizar(&d, 22) == 16
+FALLO prueba_destello.c:37: destello_actualizar(&d, 22) == 12
+FALLO prueba_destello.c:38: destello_actualizar(&d, 22) == 8
+FALLO prueba_destello.c:39: destello_actualizar(&d, 22) == 4
+FALLO prueba_destello.c:46: destello_actualizar(&d, 18) == 16
+FALLO prueba_destello.c:51: destello_actualizar(&d, 22) == 16
+2497 pruebas, 6 fallos

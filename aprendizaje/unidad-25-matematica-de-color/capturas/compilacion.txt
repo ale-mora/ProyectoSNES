@@ -1,0 +1,2 @@
+normal: No warnings or errors found.
+GUION_FASE1 + DESTELLO_FRAMES=63 (solo para capturarlo): No warnings or errors found.

@@ -1,0 +1,266 @@
+diff --git a/src/juego/destello.c b/src/juego/destello.c
+new file mode 100644
+index 0000000..cf196a8
+--- /dev/null
++++ b/src/juego/destello.c
+@@ -0,0 +1,47 @@
++/*---------------------------------------------------------------------------------
++    destello.c — El destello al recibir un golpe (ver destello.h).
++
++    PROPÓSITO
++      Sin tablas ni divisiones: el brillo es frames · 4, con tope DESTELLO_MAXIMO (así
++      con DESTELLO_FRAMES = 4 sale 16, 12, 8, 4; con más frames, se queda en 16 al
++      principio y luego baja igual).
++
++    SE CONECTA CON
++      Incluye:  juego/destello.h.
++      Lo usan:  ver destello.h.
++
++    HARDWARE QUE TOCA
++      ninguno.
++
++    VARIABLES: ninguna (todo va en el Destello del que llama).
++    → glosario: Matemática de color
++---------------------------------------------------------------------------------*/
++#include "juego/destello.h"
++
++void destello_iniciar(Destello *d, u8 vida)
++{
++    d->frames = 0;
++    d->vida = vida;
++}
++
++u8 destello_actualizar(Destello *d, u8 vida)
++{
++    u8 brillo;
++
++    if (vida < d->vida)                              /* La vida bajó: un golpe.             */
++    {
++        d->frames = DESTELLO_FRAMES;                 /* (Otro golpe a mitad: de nuevo.)     */
++    }
++    d->vida = vida;                                  /* Si sube (reiniciar), solo se apunta. */
++    if (d->frames == 0)
++    {
++        return 0;
++    }
++    brillo = (u8)(d->frames << 2);                   /* 4 por frame que queda...            */
++    if (brillo > DESTELLO_MAXIMO)
++    {
++        brillo = DESTELLO_MAXIMO;                    /* ...con tope.                        */
++    }
++    d->frames--;
++    return brillo;
++}
+diff --git a/src/juego/destello.h b/src/juego/destello.h
+new file mode 100644
+index 0000000..7de49fe
+--- /dev/null
++++ b/src/juego/destello.h
+@@ -0,0 +1,45 @@
++/*---------------------------------------------------------------------------------
++    destello.h — El destello de pantalla al recibir un golpe (ejercicio de la unidad 25).
++
++    PROPÓSITO
++      Lógica pura (sin snes.h, probada en el PC: tests/prueba_destello.c): cuando la vida
++      de la protagonista baja de un frame al siguiente, la pantalla se aclara unos frames
++      con un brillo que baja hasta 0. La pantalla (pantallas/pantalla_fase1.c) pone ese
++      brillo en el color fijo (COLDATA) y lo SUMA a los fondos con la matemática de color.
++
++    SE CONECTA CON
++      Incluye:  sistema/tipos.h.
++      Implementa: juego/destello.c.
++      Lo usan:  pantallas/pantalla_fase1.c, tests/prueba_destello.c.
++
++    HARDWARE QUE TOCA
++      ninguno.
++
++    VARIABLES (campos de Destello; 2 bytes)
++      frames  u8  frames de destello que quedan (0 = ninguno)
++      vida    u8  la vida del frame anterior (para ver si bajó)
++    → glosario: Matemática de color
++---------------------------------------------------------------------------------*/
++#ifndef DESTELLO_H
++#define DESTELLO_H
++
++#include "sistema/tipos.h"
++
++#ifndef DESTELLO_FRAMES
++#define DESTELLO_FRAMES 4                /* Cuánto dura (con -D, más largo para capturarlo). */
++#endif
++#define DESTELLO_MAXIMO 16               /* Brillo del primer frame (0..31 en COLDATA).   */
++
++typedef struct
++{
++    u8 frames;
++    u8 vida;
++} Destello;
++
++/* Sin destello, partiendo de la vida `vida`. */
++void destello_iniciar(Destello *d, u8 vida);
++
++/* Un frame con la vida de ahora: devuelve el brillo de este frame (0 = sin destello). */
++u8 destello_actualizar(Destello *d, u8 vida);
++
++#endif /* DESTELLO_H */
+diff --git a/src/pantallas/pantalla_fase1.c b/src/pantallas/pantalla_fase1.c
+index abdb538..7cfd32e 100644
+--- a/src/pantallas/pantalla_fase1.c
++++ b/src/pantallas/pantalla_fase1.c
+@@ -72,6 +72,7 @@
+ #include "juego/combate.h"
+ #include "juego/personaje.h"
+ #include "juego/estado_fase.h"
++#include "juego/destello.h"
+ #include "juego/protagonista_sprite.h"
+ #include "enemigos/ninja.h"
+ #include "enemigos/ninja_sprite.h"
+@@ -112,6 +113,9 @@ static u16 oscuras[64];              /* Las paletas de sprites 0..3 a la mitad d
+ static u8 fila_hud;
+ static u8 reloj_noren;               /* Frames para el noren (cada 8, el otro cuadro).    */
+ static Ambiente ambiente;            /* El humo y los pájaros.                            */
++static Destello destello;            /* El destello al recibir un golpe (unidad 25).      */
++static u8 brillo;                    /* El brillo del destello de este frame (0..16).     */
++static u8 brillo_puesto;             /* El que hay puesto en la PPU (para no repetirlo).  */
+ 
+ /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
+ static void salir(Pantalla siguiente)
+@@ -262,6 +266,9 @@ void pantalla_fase1_iniciar(void)
+                                                         paleta 0, 1,5 KB por VBlank.         */
+     sprites_usar(2);                                 /* El cuerpo y su sombra.              */
+     mundo_iniciar(&cuerpo, X_INICIAL, Y_INICIAL);
++    destello_iniciar(&destello, cuerpo.vida);        /* Sin destello al empezar.            */
++    brillo = 0;
++    brillo_puesto = 0;
+     oleadas_iniciar(&oleadas);
+     ninja_iniciar_todos(ninjas);                     /* Sin ninjas hasta la primera oleada. */
+     parada = 0;
+@@ -389,6 +396,13 @@ void pantalla_fase1_actualizar(void)
+         }
+     }
+ 
++    /*--- El destello: solo mientras el mundo avanza (en pausa no hay golpes) ---------*/
++    brillo = 0;
++    if (estado_fase_mundo_avanza(&partida))
++    {
++        brillo = destello_actualizar(&destello, cuerpo.vida);
++    }
++
+     /*--- Lo que va a la pantalla: Tarou primero en la lista de DMA, luego el fondo ---*/
+     protagonista_sprite_actualizar(&prota, &cuerpo, camara);   /* Animación, subida y entidades. */
+     if (estado_fase_mundo_avanza(&partida))          /* Humo y pájaros (en pausa, quietos). */
+@@ -443,4 +457,21 @@ void pantalla_fase1_vblank(void)
+             dmaCopyCGram((u8 *)&ninja3_pal, 128 + 48, 32);
+         }
+     }
++    if (!atenuada && brillo != brillo_puesto)        /* El destello (si no hay media luz):  */
++    {                                                /* solo cuando cambia.                 */
++        brillo_puesto = brillo;
++        if (brillo)
++        {
++            REG_COLDATA = (u8)(0xE0 | brillo);       /* Color fijo gris: R = G = B = brillo. */
++            REG_CGWSEL = 0x00;                       /* Operando: el color fijo.            */
++            REG_CGADSUB = 0x23;                      /* Sumar, sin mitad: BG1, BG2 y fondo. */
++        }
++        else
++        {
++            REG_COLDATA = 0xE0;                      /* El color fijo, otra vez negro (el humo
++                                                        sobre el cielo lo suma: ver la unidad). */
++            REG_CGWSEL = 0x02;                       /* Y la media suma de la sombra.       */
++            REG_CGADSUB = 0x50;
++        }
++    }
+ }
+diff --git a/tests/Makefile b/tests/Makefile
+index 3039795..bce977a 100644
+--- a/tests/Makefile
++++ b/tests/Makefile
+@@ -20,7 +20,7 @@ CC      = gcc
+ CFLAGS  = -std=c99 -Wall -Wextra -DPRUEBAS_PC -I. -I../src -I../res/nivel1 -I../res/aldea
+ PRUEBAS = pruebas.c $(wildcard prueba_*.c)
+ # Lógica pura del juego: solo los archivos que ya existen (las tareas los van añadiendo).
+-PURO    = $(wildcard ../src/juego/nivel.c ../src/juego/camara.c ../src/juego/animaciones.c ../src/juego/tarou.c ../src/juego/metasprite.c ../src/juego/colision.c ../src/juego/partida.c ../src/juego/guion.c ../src/juego/guion_tutorial.c ../src/juego/profundidad.c ../src/juego/subida.c ../src/juego/p16.c ../src/juego/mundo.c ../src/juego/oleadas.c ../src/enemigos/ninja.c ../src/juego/combate.c ../src/juego/personaje.c ../src/juego/estado_fase.c ../src/juego/ambiente.c)
++PURO    = $(wildcard ../src/juego/nivel.c ../src/juego/camara.c ../src/juego/animaciones.c ../src/juego/tarou.c ../src/juego/metasprite.c ../src/juego/colision.c ../src/juego/partida.c ../src/juego/guion.c ../src/juego/guion_tutorial.c ../src/juego/profundidad.c ../src/juego/subida.c ../src/juego/p16.c ../src/juego/mundo.c ../src/juego/oleadas.c ../src/enemigos/ninja.c ../src/juego/combate.c ../src/juego/personaje.c ../src/juego/estado_fase.c ../src/juego/ambiente.c ../src/juego/destello.c)
+ # El motor de escenas (src/escena/): el secuenciador y las tablas; efectos.c toca la PPU y no entra.
+ PURO   += ../src/escena/escena.c ../src/escena/escena_nintendo.c
+ CABECERAS = $(wildcard *.h ../src/sistema/*.h ../src/juego/*.h ../src/enemigos/ninja.h ../src/escena/*.h ../res/nivel1/nivel1_datos.h ../res/aldea/aldea_datos.h)
+diff --git a/tests/prueba_destello.c b/tests/prueba_destello.c
+new file mode 100644
+index 0000000..d85485b
+--- /dev/null
++++ b/tests/prueba_destello.c
+@@ -0,0 +1,55 @@
++/*---------------------------------------------------------------------------------
++    prueba_destello.c — Pruebas de juego/destello.c (el destello al recibir un golpe).
++
++    PROPÓSITO
++      Fijar la regla del ejercicio 25: cuando la vida baja, la pantalla se aclara
++      DESTELLO_FRAMES frames con un brillo que baja de 4 en 4 hasta 0; si llega otro
++      golpe a mitad, vuelve a empezar; si la vida sube (al reiniciar la fase) o se
++      queda igual, no hay destello.
++
++    SE CONECTA CON
++      Incluye:  minitest.h, juego/destello.h.
++      Lo usan:  tests/pruebas.c (llama a pruebas_destello).
++
++    HARDWARE QUE TOCA
++      ninguno.
++
++    VARIABLES: ninguna.
++    → glosario: Matemática de color
++---------------------------------------------------------------------------------*/
++#include "minitest.h"
++#include "juego/destello.h"
++
++void pruebas_destello(void)
++{
++    Destello d;
++    u8 f;
++
++    /* Sin golpes, nunca hay destello. */
++    destello_iniciar(&d, 24);
++    for (f = 0; f < 10; f++)
++    {
++        COMPROBAR(destello_actualizar(&d, 24) == 0);
++    }
++
++    /* Un golpe (24 -> 22): 16, 12, 8, 4 y luego 0. */
++    COMPROBAR(destello_actualizar(&d, 22) == 16);
++    COMPROBAR(destello_actualizar(&d, 22) == 12);
++    COMPROBAR(destello_actualizar(&d, 22) == 8);
++    COMPROBAR(destello_actualizar(&d, 22) == 4);
++    COMPROBAR(destello_actualizar(&d, 22) == 0);
++    COMPROBAR(destello_actualizar(&d, 22) == 0);
++
++    /* Otro golpe a mitad del destello: empieza de nuevo. */
++    destello_actualizar(&d, 20);
++    destello_actualizar(&d, 20);
++    COMPROBAR(destello_actualizar(&d, 18) == 16);
++
++    /* La vida sube (reiniciar la fase): no es un golpe. */
++    destello_iniciar(&d, 2);
++    COMPROBAR(destello_actualizar(&d, 24) == 0);
++    COMPROBAR(destello_actualizar(&d, 22) == 16);    /* Y el siguiente golpe sí cuenta. */
++
++    /* El brillo nunca pasa de 16 (con DESTELLO_FRAMES más grande, para capturas). */
++    COMPROBAR(DESTELLO_FRAMES >= 4);
++}
+diff --git a/tests/pruebas.c b/tests/pruebas.c
+index b9f5c2b..ea1ef8d 100644
+--- a/tests/pruebas.c
++++ b/tests/pruebas.c
+@@ -45,6 +45,7 @@ void pruebas_combate(void);
+ void pruebas_personaje(void);
+ void pruebas_estado_fase(void);
+ void pruebas_ambiente(void);
++void pruebas_destello(void);
+ 
+ int main(void)
+ {
+@@ -67,6 +68,7 @@ int main(void)
+     pruebas_personaje();
+     pruebas_estado_fase();
+     pruebas_ambiente();
++    pruebas_destello();
+ 
+     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
+     return pruebas_fallidas != 0;

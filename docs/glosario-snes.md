@@ -251,7 +251,10 @@ palabra: si un documento o comentario usa otra, es un error a corregir.
 - **Matemática de color** — la PPU puede sumar o restar a cada píxel otro color:
   el de la pantalla secundaria o un **color fijo** (`COLDATA`). `CGWSEL` dice
   dónde (todo, solo dentro de la ventana...) y `CGADSUB` qué capas. Sumar un
-  gris dentro de una ventana estrecha es el destello del logo Nintendo.
+  gris dentro de una ventana estrecha es el destello del logo Nintendo. En el combate,
+  la sombra y el humo van en paletas de sprites 4–7 (las únicas que se mezclan) a media
+  suma con la pantalla secundaria, y la pausa resta el color fijo negro a la mitad; donde la
+  secundaria está vacía se usa el color fijo y no se divide (unidad 25).
 - **HDMA indirecto** — variante del HDMA en que la tabla no lleva los valores
   sino un **puntero** a ellos; en modo repetir el canal lee un valor nuevo por
   línea avanzando por esa memoria. Mover un efecto es cambiar el puntero (2
