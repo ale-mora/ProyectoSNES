@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------
-    fondo_nivel.c — La capa cercana del nivel 1 dibujada por columnas (ver .h).
+    fondo_nivel.c — La capa cercana dibujada por columnas: nivel 1 o aldea (ver .h).
 
     PROPÓSITO
       Decidir, durante el frame, qué columnas del mapa del nivel hay que copiar
@@ -16,8 +16,10 @@
       Incluye:  juego/fondo_nivel.h, juego/nivel.h, juego/dma_lista.h,
                 sistema/comun.h.
       Datos:    nivel1_cerca_til/_til_end/_pal, nivel1_cerca_col y
-                nivel1_cerca_col_banco (data.asm, .rodata_nivel1_cerca/_banco).
-      Lo usa:   pantallas/pantalla_nivel1.c.
+                nivel1_cerca_col_banco (data.asm, .rodata_nivel1_cerca/_banco);
+                aldea_cerca_til/_til_end/_pal, aldea_cerca_col, aldea_noren y
+                aldea_banco (.rodata_aldea_*), res/aldea/aldea_datos.h.
+      Lo usan:  pantallas/pantalla_nivel1.c, prueba_carga.c y pantalla_fase1.c.
 
     HARDWARE QUE TOCA
       VRAM y CGRAM por el SDK (bgInitTileSet, bgSetMapPtr) al cargar. Las
@@ -28,6 +30,8 @@
       parche_fuente  u16  de qué columna del mapa se toman (0 = sin parche)
       reescribir     u8   1 = el parche se quitó: volver a copiar sus columnas
       ultima_col     u16  columna del borde izquierdo en el último frame (0xFFFF = ninguna)
+      origen         u16  dirección (16 bits bajos) del mapa por columnas que se usa
+      origen_banco   u8   su banco
     VARIABLES (constantes)
       BYTES_COLUMNA     64   32 filas x 2 bytes (una columna del mapa en la ROM)
       COLUMNAS_ANILLO   64   columnas del mapa de la VRAM (64x32)
@@ -39,10 +43,15 @@
 #include "juego/nivel.h"
 #include "juego/dma_lista.h"
 #include "sistema/comun.h"
+#include "aldea_datos.h"             /* ALDEA_TILES, ALDEA_NOREN_* (res/aldea/, generado). */
 
 extern char nivel1_cerca_til, nivel1_cerca_til_end, nivel1_cerca_pal; /* data.asm       */
 extern char nivel1_cerca_col;        /* 260 columnas x 64 bytes, columna a columna.        */
 extern u8 nivel1_cerca_col_banco;    /* El banco de la ROM donde está nivel1_cerca_col.    */
+extern char aldea_cerca_til, aldea_cerca_til_end, aldea_cerca_pal;    /* La aldea.      */
+extern char aldea_cerca_col;         /* 256 columnas x 64 bytes.                           */
+extern char aldea_noren;             /* Los 2 cuadros del noren, 8 tiles cada uno.         */
+extern u8 aldea_banco;               /* El banco de aldea_cerca_col y de aldea_noren.      */
 
 #define BYTES_COLUMNA 64             /* 32 filas x 2 bytes por entrada del mapa.          */
 #define COLUMNAS_ANILLO 64           /* El mapa de la VRAM: 64 columnas (512 px).          */
@@ -53,6 +62,8 @@ static u16 parche_col;               /* Primera columna del nivel que se sustitu
 static u16 parche_fuente;            /* Columna del mapa de donde salen (0 = ninguna).     */
 static u8 reescribir;                /* 1 = quitaron el parche: copiar otra vez esas columnas. */
 static u16 ultima_col;               /* Columna del borde izquierdo en el frame anterior.  */
+static u16 origen;                   /* El mapa por columnas que se copia (16 bits bajos). */
+static u8 origen_banco;              /* Y su banco (el DMA lo pide aparte).                */
 static u16 i;
 
 void fondo_nivel_parche(u16 col, u16 fuente)
@@ -84,9 +95,9 @@ static void apuntar_columna(u16 col)
     {
         fuente = (u16)(parche_fuente + (col - parche_col)); /* Dentro del parche: con tronco. */
     }
-    dma_lista_anadir((u16)((u16)&nivel1_cerca_col + (fuente << 6)),
+    dma_lista_anadir((u16)(origen + (fuente << 6)),
                      (u16)(VRAM_MAPA_A + nivel_columna_vram(col)),
-                     BYTES_COLUMNA, nivel1_cerca_col_banco, DMA_VMAIN_COLUMNA);
+                     BYTES_COLUMNA, origen_banco, DMA_VMAIN_COLUMNA);
 }
 
 void fondo_nivel_rellenar(u16 camara)
@@ -115,14 +126,46 @@ void fondo_nivel_rellenar(u16 camara)
     ultima_col = NINGUNA;                            /* El próximo frame apunta sus bordes. */
 }
 
-void fondo_nivel_cargar(u16 camara)
+/*--- poner_mapa: el mapa por columnas al fondo 0 (64x32) y las columnas a la vista ----*/
+static void poner_mapa(u16 camara)
 {
-    /* Tiles a VRAM_FONDO_A y la paleta en la 1 (los tiles del mapa la llevan: -e 1). */
-    bgInitTileSet(0, (u8 *)&nivel1_cerca_til, (u8 *)&nivel1_cerca_pal, 1,
-                  (u16)(&nivel1_cerca_til_end - &nivel1_cerca_til), 16 * 2, BG_16COLORS, VRAM_FONDO_A);
     bgSetMapPtr(0, VRAM_MAPA_A, SC_64x32);           /* Mapa de 64x32: el anillo.           */
     fondo_nivel_rellenar(camara);                    /* Lo que se ve y algo más.            */
     bgSetEnable(0);
+}
+
+void fondo_nivel_cargar(u16 camara)
+{
+    origen = (u16)&nivel1_cerca_col;                 /* El nivel 1 (plataformas).           */
+    origen_banco = nivel1_cerca_col_banco;
+    /* Tiles a VRAM_FONDO_A y la paleta en la 1 (los tiles del mapa la llevan: -e 1). */
+    bgInitTileSet(0, (u8 *)&nivel1_cerca_til, (u8 *)&nivel1_cerca_pal, 1,
+                  (u16)(&nivel1_cerca_til_end - &nivel1_cerca_til), 16 * 2, BG_16COLORS, VRAM_FONDO_A);
+    poner_mapa(camara);
+}
+
+void fondo_nivel_cargar_aldea(u16 camara)
+{
+    origen = (u16)&aldea_cerca_col;                  /* La aldea (fase 1).                  */
+    origen_banco = aldea_banco;
+    parche_fuente = 0;                               /* Sin tronco.                         */
+    reescribir = 0;
+    /* 16 KB de tiles a VRAM_FONDO_A y DOS paletas (64 bytes) desde la 4: el mapa ya dice
+       en cada celda cuál usa (la de la arquitectura o la de los aldeanos). */
+    bgInitTileSet(0, (u8 *)&aldea_cerca_til, (u8 *)&aldea_cerca_pal, ALDEA_PALETA,
+                  (u16)(&aldea_cerca_til_end - &aldea_cerca_til), 32 * 2, BG_16COLORS, VRAM_FONDO_A);
+    poner_mapa(camara);
+}
+
+void fondo_nivel_noren(u8 cuadro)
+{
+    u16 desde = (u16)&aldea_noren;                   /* Cuadro 0 y, detrás, el cuadro 1.    */
+    if (cuadro)
+    {
+        desde += ALDEA_NOREN_TILES * 32;
+    }
+    dma_lista_anadir(desde, (u16)(VRAM_FONDO_A + ALDEA_NOREN_PRIMERO * 16),   /* 16 palabras */
+                     ALDEA_NOREN_TILES * 32, aldea_banco, DMA_VMAIN_TILES);     /* por tile.  */
 }
 
 void fondo_nivel_actualizar(u16 camara)

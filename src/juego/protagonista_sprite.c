@@ -45,7 +45,8 @@ extern u8 sombra_banco;
 
 #define TILE_SOMBRA 480              /* Par 15: la sombra.                                */
 #define PALETA_SOMBRA 4              /* 4..7: las que entran en la matemática de color.   */
-#define PRIORIDAD 3
+#define PRIORIDAD 2                 /* Por delante de BG1 y BG2, salvo sus tiles con prioridad
+                                        (el primer plano de la aldea los tapa). */
 #define SOMBRA_ALTO 10               /* La sombra, 10 px por encima de los pies.          */
 #define VRAM_TILE(t) ((u16)(VRAM_SPRITES + ((u16)(t) << 4)))   /* 16 palabras por tile.  */
 

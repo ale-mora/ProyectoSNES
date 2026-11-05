@@ -186,11 +186,11 @@ tiles (hasta 8 KB de VRAM por capa en el mapa actual).
 
 | Pieza | Capa | Truco | Estado |
 |---|---|---|---|
-| cielo naranja → violeta | color de fondo | **HDMA** de color por línea (♻ el del título) | [ ] |
-| montañas, castillo lejano, sol bajo | BG2 | **scroll por franjas con HDMA** sobre `BG2HOFS`: montañas a 1/4, tejados lejanos a 1/2 con una sola capa. Tres planos de parallax con dos fondos | [ ] |
-| calle de tierra (el carril), fachadas *machiya*, puestos con *noren* | BG1 | anillo de columnas (♻ `fondo_nivel.c`) | [ ] |
-| postes de farol, barriles apilados en primer plano | BG1 alto | **bit de prioridad**: tapan al personaje que pasa por detrás (prioridad 2) | [ ] |
-| *noren* ondeando | BG1 | **animación de tiles**: cambiar 4 tiles (128 B) por DMA cada 8 frames | [ ] |
+| cielo naranja → violeta | color de fondo | **HDMA** de color por línea (♻ el del título) | [x] `res/aldea/atardecer.bmp` |
+| montañas, castillo lejano, sol bajo | BG2 | **scroll por franjas con HDMA** sobre `BG2HOFS`: montañas a 1/4, tejados lejanos a 1/2 con una sola capa. Tres planos de parallax con dos fondos | [~] la imagen, sí (Pixellab, 512 px en bucle); por ahora toda a 1/2, sin franjas (decisión del 2026-11-05) |
+| calle de tierra (el carril), fachadas *machiya*, puestos con *noren* | BG1 | anillo de columnas (♻ `fondo_nivel.c`) | [x] `scripts/preparar_aldea.py`, con 4 aldeanos dibujados en el fondo |
+| postes de farol, barriles apilados en primer plano | BG1 alto | **bit de prioridad**: tapan al personaje que pasa por detrás (prioridad 2) | [x] los sprites de la fase, con prioridad 2 |
+| *noren* ondeando | BG1 | **animación de tiles**: cambiar 4 tiles (128 B) por DMA cada 8 frames | [x] 8 tiles (256 B) |
 | humo, pájaros | sprites | prioridad baja en la OAM (son los primeros que se pierden si una línea se llena) | [ ] |
 
 ### 5.2 Bosque de bambú

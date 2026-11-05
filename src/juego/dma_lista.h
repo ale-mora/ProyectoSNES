@@ -56,6 +56,10 @@ void dma_lista_vaciar(void);
    como estaba: mejor que escribir fuera de la lista). */
 void dma_lista_anadir(u16 origen, u16 vram, u16 bytes, u8 banco, u8 vmain);
 
+/* Cuántos bytes suman las copias apuntadas hasta ahora (para no pasarse del VBlank:
+   una copia que no es urgente, como el noren de la aldea, espera a un frame con hueco). */
+u16 dma_lista_bytes(void);
+
 /* Apunta n copias seguidas de 8 bytes cuyos 6 primeros son origen, vram y bytes (las
    Copia de juego/subida.h), todas del banco `banco` y de tiles (VMAIN $80), en un
    bucle de ensamblador (dma_copias.asm): mucho más barato que n llamadas desde C. */

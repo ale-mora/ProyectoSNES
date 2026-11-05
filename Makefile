@@ -40,7 +40,7 @@ include ${PVSNESLIB_HOME}/devkitsnes/snes_rules
 # CFLAGS al ejecutarse, no al definirse. Decisión 13 de docs/diseno-demo-jugable.md.
 CFLAGS += -Isrc
 # tarou_anim.h (cuántos cuadros tiene cada animación) lo genera el pipeline en res/.
-CFLAGS += -Ires/personajes/tarou -Ires/personajes/barbara -Ires/nivel1
+CFLAGS += -Ires/personajes/tarou -Ires/personajes/barbara -Ires/nivel1 -Ires/aldea
 
 .PHONY: all clean
 
@@ -106,6 +106,15 @@ res/nivel1/fondo_cerca.col: res/nivel1/fondo_cerca.pic
 # 512 px (scripts/preparar_fondo_nivel.py). -y = mapa en páginas de 32x32 (SC_64x32).
 res/nivel1/fondo_lejos.pic: res/nivel1/fondo_lejos.png
 	$(GFXCONV) -y -s 8 -o 16 -u 16 -e 2 -p -m -i $<
+
+# La aldea (fase 1): la lejana (512 px en bucle, paleta 2) y el cielo del atardecer.
+# La cercana ya sale en .bin de scripts/preparar_aldea.py (versionados: el arte de
+# Pixellab no se versiona), con el mapa por columnas y el bit de prioridad.
+res/aldea/lejos.pic: res/aldea/lejos.png
+	$(GFXCONV) -y -s 8 -o 16 -u 16 -e 2 -p -m -i $<
+
+res/aldea/atardecer_grad_data.as: res/aldea/atardecer.bmp
+	$(GFXCONV) -n -t bmp -i $<
 
 # Escenas de 256 colores (Mode 3).
 res/intro/escena_1.pic: res/intro/escena_1.png
@@ -175,7 +184,7 @@ res/personajes/ninja_grande/%.p16: res/personajes/ninja_grande/%.png scripts/pie
 	@echo convert pieces16 ... $(notdir $<)
 	python scripts/piezas16.py $< $@ --celda 128x112 --rejilla-optima --pal $(@:.p16=.pal)
 
-ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin $(TAROU_PICS) $(TAROU_P16) $(BARBARA_P16) $(NINJA_P16) $(NINJA2_P16) $(NINJA3_P16)
+ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin res/aldea/lejos.pic res/aldea/atardecer_grad_data.as $(wildcard res/aldea/*.bin) $(TAROU_PICS) $(TAROU_P16) $(BARBARA_P16) $(NINJA_P16) $(NINJA2_P16) $(NINJA3_P16)
 
 .PHONY: bitmaps cleanGfxRes
 bitmaps: $(ASSETS)
@@ -191,7 +200,8 @@ src/pantallas/personajes.obj: res/personajes/tarou/tarou_reposo_estatico.pic
 src/juego/animaciones.obj: res/personajes/tarou/tarou_anim.h
 src/juego/personaje.obj: res/personajes/tarou/tarou_anim.h res/personajes/barbara/barbara_anim.h
 src/pantallas/pantalla_nivel1.obj: res/nivel1/nivel1_datos.h
-src/pantallas/pantalla_fase1.obj: res/nivel1/nivel1_datos.h
+src/pantallas/pantalla_fase1.obj: res/aldea/aldea_datos.h
+src/juego/fondo_nivel.obj: res/aldea/aldea_datos.h
 
 # ROM de prueba de carga (docs/diseno-beat-em-up.md §9; solo con CFLAGS=-DPRUEBA_CARGA):
 # los ninjas provisionales que genera scripts/preparar_prueba_carga.py. Son .bin

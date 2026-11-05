@@ -15,8 +15,12 @@
       de vida está en la fila 0 de la capa de texto (hud/hud_juego.c). Sin vida cae KO y 2,5 s
       después vuelve al título (provisional). La protagonista es la que se eligió en el
       selector (juego/personaje.h: Tarou o Bárbara, con su arte y su alcance); cada uno se cuelga de
-      este bucle en su módulo (§10). El fondo es provisional: la capa cercana y la lejana
-      del nivel 1 del plataformas (2048 px, la lejana a la mitad de velocidad).
+      este bucle en su módulo (§10). El fondo es la ALDEA al atardecer (2026-11-05,
+      scripts/preparar_aldea.py): la calle de 2048 px con fachadas, puestos y aldeanos
+      (capa cercana, por columnas), el farol y los barriles por delante de los
+      personajes (bit de prioridad del mapa: los sprites van con prioridad 2), el noren
+      de los puestos ondeando (animación de tiles, cada 8 frames), las montañas con el
+      castillo a la mitad de velocidad y el cielo del violeta al naranja (HDMA).
       Por frame: mando_leer → mundo_actualizar → límites de pantalla → cámara y zonas →
       protagonista_sprite_actualizar → fondo (columnas que entran) → sprites_dibujar. El scroll
       de los fondos se escribe en el VBlank (pantalla_fase1_vblank), con la lista de DMA y no
@@ -32,7 +36,7 @@
                 juego/sprites.h, juego/fondo_nivel.h, juego/dma_lista.h, juego/hud_debug.h,
                 nivel1_datos.h.
       Lo usan:  sistema/secuencia.c (iniciar, actualizar, vblank); el título la abre con Start.
-      Lee de la ROM: los fondos del nivel 1 (data.asm).
+      Lee de la ROM: la aldea (data.asm: aldea_*, hdmaGradatardecerList), aldea_datos.h.
 
     HARDWARE QUE TOCA
       PPU: Mode 1, scroll de los fondos 1 y 2 (en el VBlank), BG3 del HUD; HDMA del cielo
@@ -74,17 +78,17 @@
 #include "juego/dma_lista.h"
 #include "juego/hud_debug.h"
 #include "hud/hud_juego.h"
-#include "nivel1_datos.h"            /* Solo el parche del tronco del fondo provisional.  */
-
-extern char nivel1_lejos_til, nivel1_lejos_til_end, nivel1_lejos_pal;
-extern char nivel1_lejos_map, nivel1_lejos_map_end;
-extern const unsigned char hdmaGradcieloList[];   /* Tabla HDMA del cielo (gfx4snes -n). */
+extern char aldea_lejos_til, aldea_lejos_til_end, aldea_lejos_pal;   /* La lejana: montañas, */
+extern char aldea_lejos_map, aldea_lejos_map_end;                     /* castillo y sol.      */
+extern const unsigned char hdmaGradatardecerList[];   /* El cielo, un color por línea (gfx4snes -n). */
 extern char ninja1_pal, ninja2_pal, ninja3_pal;   /* Las paletas de los ninjas (data.asm). */
 
 #define X_INICIAL 64                 /* Donde nace Tarou: a la izquierda.                 */
 #define Y_INICIAL 200                /* En medio del carril (184..216).                   */
 #define FILAS_HUD 4
 #define FILA_AVISO 6                 /* Filas del HUD (6 y 7) de PAUSE, GAME OVER y STAGE CLEAR. */
+#define NOREN_CADA 7                 /* El noren cambia de cuadro cada 8 frames (máscara). */
+#define NOREN_HUECO 4096             /* Si la lista ya lleva más bytes, el noren espera.   */
 #define MARGEN_NINJA 32              /* Un ninja ya dentro no pasa de este margen del borde: su cuerpo (~50 px) se ve entero. */
 
 static Cuerpo cuerpo;
@@ -102,6 +106,7 @@ static u8 cambiar_luz;               /* 1 = en el próximo VBlank, poner o quita
 static u8 avisos;                    /* 1 si las filas de aviso tienen texto (hay que borrarlas). */
 static u16 oscuras[64];              /* Las paletas de sprites 0..3 a la mitad de brillo. */
 static u8 fila_hud;
+static u8 reloj_noren;               /* Frames para el noren (cada 8, el otro cuadro).    */
 
 /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
 static void salir(Pantalla siguiente)
@@ -229,10 +234,10 @@ void pantalla_fase1_iniciar(void)
 {
     setMode(BG_MODE1, BG3_MODE1_PRIORITY_HIGH);      /* Como el título: BG3 por delante.    */
     camara = 0;                                      /* Empieza en el borde izquierdo.      */
-    fondo_nivel_parche(NIVEL1_TRONCO_COL, NIVEL1_PARCHE_COL);
-    fondo_nivel_cargar(camara);                      /* Capa cercana: las columnas a la vista. */
-    fondo16_cargar(1, &nivel1_lejos_til, &nivel1_lejos_til_end, &nivel1_lejos_pal, 2,
-                   &nivel1_lejos_map, &nivel1_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
+    fondo_nivel_cargar_aldea(camara);                /* Capa cercana: las columnas a la vista. */
+    fondo16_cargar(1, &aldea_lejos_til, &aldea_lejos_til_end, &aldea_lejos_pal, 2,
+                   &aldea_lejos_map, &aldea_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
+    reloj_noren = 0;
     bgSetScroll(0, camara, 0);
     bgSetScroll(1, camara >> 1, 0);                  /* La lejana, a la mitad de velocidad. */
     fuente_2bpp(2);                                  /* Texto del HUD en el fondo 2...      */
@@ -274,7 +279,7 @@ void pantalla_fase1_iniciar(void)
     ninja_sprite_actualizar(ninjas, camara);         /* Todas las ranuras apagadas.         */
     sprites_dibujar();                               /* La OAM, lista para el primer frame. */
 
-    setModeHdmaColor(HDMA_CHANNEL6, (u8 *)&hdmaGradcieloList);   /* Cielo por línea.   */
+    setModeHdmaColor(HDMA_CHANNEL6, (u8 *)&hdmaGradatardecerList);   /* El atardecer.  */
     fade_in(FRAMES_FADE);
 }
 
@@ -381,6 +386,21 @@ void pantalla_fase1_actualizar(void)
     protagonista_sprite_actualizar(&prota, &cuerpo, camara);   /* Animación, subida y entidades. */
     ninja_sprite_actualizar(ninjas, camara);         /* Sus cuadros (tras Tarou en la lista). */
     fondo_nivel_actualizar(camara);                  /* Las columnas que entran.            */
+    if (estado_fase_mundo_avanza(&partida))          /* El noren ondea (en pausa, quieto):  */
+    {                                                /* 8 tiles, 256 bytes, cada 8 frames.  */
+        reloj_noren++;
+        if ((reloj_noren & NOREN_CADA) == 0)
+        {
+            if (dma_lista_bytes() > NOREN_HUECO)     /* Frame de subida de sprites: el VBlank */
+            {                                        /* va justo; se repite en el siguiente. */
+                reloj_noren--;
+            }
+            else
+            {
+                fondo_nivel_noren((u8)((reloj_noren >> 3) & 1));
+            }
+        }
+    }
     sprites_dibujar();                               /* UNA llamada: toda la OAM.           */
     aviso();                                         /* PAUSE / GAME OVER / STAGE CLEAR.    */
     hud();

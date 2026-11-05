@@ -17,5 +17,7 @@ comunes de las zonas al principio de §6.
 - **No se pide:** el degradado del cielo, las ondulaciones y franjas de scroll
   ni las luces por ventana: los hace el código con HDMA.
 
-Aún no hay script que importe estas zonas; el precedente es el suelo del nivel
-1 (`../suelo/` y `scripts/preparar_nivel.py`).
+Las importa `scripts/preparar_aldea.py` (2026-11-05): cada pieza va en su carpeta
+(`fachada/`, `calle/`, `puesto/`, `farol/`, `barriles/`, `aldeanos/`, `lejana/`) con los
+candidatos de Pixellab numerados `00.png`, `01.png`...; el script dice en `FUENTES`
+cuál usa de cada una. Salida versionada en `res/aldea/`.

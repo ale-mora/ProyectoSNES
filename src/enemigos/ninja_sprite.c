@@ -49,7 +49,8 @@ extern u8 sombra_banco;
 #define ENTIDADES 8                  /* Tarou (0), su sombra (1) y las seis de los ninjas. */
 #define TILE_SOMBRA 480              /* Par 15: la sombra (la sube protagonista_sprite.c). */
 #define PALETA_SOMBRA 4
-#define PRIORIDAD 3
+#define PRIORIDAD 2                 /* Por delante de BG1 y BG2, salvo sus tiles con prioridad
+                                        (el primer plano de la aldea los tapa). */
 #define SOMBRA_ALTO 10
 #define SIN_CUADRO 0xFF
 #define VRAM_TILE(t) ((u16)(VRAM_SPRITES + ((u16)(t) << 4)))   /* 16 palabras por tile.  */

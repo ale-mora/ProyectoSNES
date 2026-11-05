@@ -11,7 +11,7 @@
       Escribe:  dma_lista_n y dma_lista_items (en la WRAM, definidas en
                 dma_ejecutar.asm).
       Lo usan:  juego/tarou_sprite.c, juego/fondo_nivel.c,
-                pantallas/pantalla_nivel1.c.
+                pantallas/pantalla_nivel1.c, pantallas/pantalla_fase1.c (dma_lista_bytes).
 
     HARDWARE QUE TOCA
       ninguno.
@@ -40,4 +40,18 @@ void dma_lista_anadir(u16 origen, u16 vram, u16 bytes, u8 banco, u8 vmain)
     d->banco = banco;
     d->vmain = vmain;
     dma_lista_n++;
+}
+
+u16 dma_lista_bytes(void)
+{
+    DmaItem *d = dma_lista_items;                    /* Con un puntero: sin multiplicar.    */
+    u16 total = 0;
+    u8 k;
+
+    for (k = 0; k < dma_lista_n; k++)
+    {
+        total += d->bytes;
+        d++;
+    }
+    return total;
 }

@@ -33,6 +33,9 @@
 ;     .rodata_nivel1_cerca  nivel1_cerca_til/_til_end/_pal/_col/_col_end (capa cercana, por columnas)
 ;     .rodata_nivel1_banco  nivel1_cerca_col_banco (1 byte: el banco del mapa por columnas)
 ;     .rodata_nivel1_colision  nivel1_colision (rejilla de 128x14 bytes)
+;     .rodata_aldea_*    aldea_cerca_til/_til_end/_pal, aldea_cerca_col, aldea_noren,
+;                        aldea_banco, aldea_lejos_til/_til_end/_pal/_map/_map_end y
+;                        hdmaGradatardecerList (la aldea de la fase 1)
 ;     .rodata_p16_*      tarou_<anim>_p16 (14 tiras en piezas de 16x16) y tarou_p16_bancos
 ;     .rodata_bp16_*     barbara_<anim>_p16 (9 tiras, celda 112x96), barbara_pal y barbara_p16_bancos
 ;     .rodata_np16_*     ninja1_<anim>_p16 (7 tiras de «Ninja 1», celda 96x96), ninja1_pal y ninja1_p16_bancos
@@ -166,6 +169,38 @@ nivel1_cerca_col_banco: .db :nivel1_cerca_col
 
 ; Rejilla de colisión del nivel 1: 128 x 14 celdas de 16 px, 1 byte cada una
 ; (0 vacío, 1 sólido, 2 plataforma, 3 zarza), fila a fila. La lee src/juego/colision.c.
+; --- La aldea (zona 1 de la fase 1, 2026-11-05): scripts/preparar_aldea.py --------
+; Capa cercana: 512 tiles (16 KB) y DOS paletas (la 4 y la 5); el mapa COLUMNA A
+; COLUMNA (256 x 32 x 2 = 16 KB) con el bit de prioridad en el primer plano, y detrás
+; los dos cuadros del noren (8 tiles cada uno), en la misma sección: un solo banco
+; (aldea_banco) vale para los dos. Lejana: gfx4snes desde lejos.png (512 px, -e 2).
+.section ".rodata_aldea_cerca" superfree
+aldea_cerca_til:      .incbin "res/aldea/cerca_til.bin"
+aldea_cerca_til_end:
+aldea_cerca_pal:      .incbin "res/aldea/cerca_pal.bin"
+.ends
+
+.section ".rodata_aldea_col" superfree
+aldea_cerca_col:      .incbin "res/aldea/cerca_col.bin"
+aldea_noren:          .incbin "res/aldea/noren_til.bin"
+.ends
+
+.section ".rodata_aldea_banco" superfree
+aldea_banco:          .db :aldea_cerca_col
+.ends
+
+.section ".rodata_aldea_lejos" superfree
+aldea_lejos_til:      .incbin "res/aldea/lejos.pic"
+aldea_lejos_til_end:
+aldea_lejos_pal:      .incbin "res/aldea/lejos.pal"
+aldea_lejos_map:      .incbin "res/aldea/lejos.map"
+aldea_lejos_map_end:
+.ends
+
+.section ".rodata_aldea_cielo" superfree
+.include "res/aldea/atardecer_grad_data.as"                        ; el cielo del atardecer
+.ends
+
 .section ".rodata_nivel1_colision" superfree
 nivel1_colision:      .incbin "res/nivel1/colision.bin"
 .ends
