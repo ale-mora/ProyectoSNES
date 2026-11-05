@@ -455,3 +455,29 @@ réplica del guion. Solución: `solucion/`.
    (`capturas/pruebas_mutacion_sin_turnos_mas_mas.txt`);
 6. la ROM normal y la `-DGUION_FASE1` compilan con «No warnings or errors found»
    (`capturas/compilacion.txt`) y la réplica del guion da la **misma** salida.
+
+
+## Anexo (2026-11-05): qué cambió después
+
+La unidad se escribió con el ninja provisional de 64×96 y una sola clase de enemigo. Desde
+entonces el ninja tiene el arte de «Ninja 1» y **tres tipos**:
+
+| Qué | Dónde | La idea |
+|---|---|---|
+| **Tres tipos, uno por ranura** | `TipoNinja` y `Ninja.tipo` (`src/enemigos/ninja.h`); `ninja_oleada` (`ninja.c`) | La ranura k nace siempre como el tipo k: normal (rojo, ~80 px), mediano (amarillo, ~90 px) y grande (morado, ~100 px). Las oleadas traen 1, luego normal + mediano, luego los tres. |
+| **Vida y daño por tipo** | `VIDA_TIPO[] = {4, 6, 8}` y `DANIO_TIPO` (2, 3, 4) en `ninja.c`; `ninja_danio` | Tablas `static const` indexadas por el tipo, en vez de `if` por tipo. |
+| **El grande, más lento** | `ninja_actualizar` (`ninja.c:208`): `(n->reloj & 3) == 0` | Anda 3 de cada 4 frames: una máscara, sin dividir. |
+| **Qué se dibuja** | `ninja_dibujo()` y los `NINJA_DIB_*` (`ninja.h`) | Un número de dibujo (0..41) por estado y reloj: guardia (8), caminar (6), puñetazo (3, puño fuera mientras la caja está activa), recibir (6), derribado (7), levantarse (5), KO (7). `ninja_sprite.c` lo traduce a tira y cuadro (`tira_de`). |
+| **Derribo largo** | `NINJA_DERRIBO_FRAMES` 64 | Cae (21), en el suelo (20) y se levanta (20); solo el KO tumbado parpadea antes de irse. |
+| **El struct creció** | `Ninja`: **32 bytes** (antes 16) | Sigue siendo potencia de 2: `ninjas + k` sigue sin `tcc__mul`. Si un campo nuevo lo pasara a 33, habría que rellenarlo hasta 64 o recorrer con puntero. |
+| **Arte por tipo** | `res/personajes/ninja/`, `ninja_mediano/`, `ninja_grande/`; celdas 96×96 y 128×112 | El mismo dibujo recoloreado (anexo de la unidad 19); cada tipo, su paleta de sprites (1, 2, 3). |
+
+Lo que la tabla «Por venir» de arriba decía de las variantes («solo la paleta cambia») ya no
+es cierto: cambian la paleta, el tamaño, la vida, el daño y la velocidad. El ninja rápido con
+shuriken, el kendoka y el jefe siguen sin existir.
+
+**Ejercicio breve (PC, 15 minutos):** en un clon, cambia la vida del grande a 10 en
+`VIDA_TIPO` y ejecuta las pruebas de PC. ¿Falla alguna? Si no falla ninguna, escribe la que
+faltaba: «el combo de 3 golpes (1 + 1 + 2) no tumba del todo al grande» en
+`tests/prueba_ninja.c`. (Es el mismo razonamiento que el TODO 8 del ejercicio: una cifra de
+diseño que ninguna prueba protege.)
