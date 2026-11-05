@@ -294,3 +294,26 @@ La solución está en `solucion/` y las salidas en `capturas/` (ver el final de
 - **Unidad 20:** la colisión. Lo que aquí es dibujo (la hierba, los pies) allí
   es lógica: la misma rejilla de 16 px que el script viste es la que la física
   consulta.
+
+
+## Anexo (2026-11-05): qué cambió después
+
+Esta unidad se escribió contra el tag `plataformas-r2`. En la rama principal la tubería de
+arte creció; lo que sigue **no cambia** lo que la unidad enseña (celdas, paleta común,
+anclaje por los pies), lo amplía. Se lee con el código de la rama actual.
+
+| Qué | Dónde | La idea |
+|---|---|---|
+| **El MCP de Pixellab** | `docs/pixellab-fase1.md`; documentación oficial en <https://api.pixellab.ai/mcp/docs> | Claude Code puede pedir el arte a Pixellab desde la conversación (personajes, animaciones por esqueleto, imágenes con paleta fija) y descargarlo a `res/descargas/graficos/pixellab/<personaje>/`. El script no cambia: lee la misma exportación nativa. |
+| **Un perfil por personaje** | `PERSONAJES` en `scripts/preparar_personaje.py:232` | Cada personaje tiene su **celda** (Tarou 96×64, Bárbara 112×96, ninja 96×96, ninjas mediano y grande 128×112), su lista de animaciones y sus colores **fijos**. `python scripts/preparar_personaje.py barbara` (o `ninja`, `ninja_mediano`...). |
+| **Colores fijos** | `"fijos"` en `PERSONAJES`; `paleta_comun` `:409` | Colores que entran en la paleta **sí o sí** (la piel de un ninja, el color de la katana), antes de que el median cut reparta los demás huecos. Evita que un color pequeño pero importante se pierda. |
+| **Unificar los casi iguales** | `UNIFICAR_DISTANCIA` (8) y el final de `paleta_comun` | El median cut daba negros como `(0,0,0)`, `(1,0,0)`, `(0,0,1)`: tres huecos de 15 para lo mismo. Los que están a menos de 8 se unifican (gana el de más píxeles) y los huecos libres vuelven a repartirse. |
+| **Recolorear un traje** | `"recolor"` en `PERSONAJES`; `recolorear` `:461` | Los ninjas mediano (amarillo) y grande (morado) son **el mismo dibujo** que el normal (rojo) con otra **paleta guardada**: los píxeles no cambian, solo los colores del traje (los fijos de la piel no se tocan). Es el «palette swap» clásico, hecho en el script. |
+| **Piezas de 16×16 con rejilla óptima** | `scripts/piezas16.py --rejilla-optima`; ver el anexo de la unidad 21 | Las tiras ya no van a metasprites de 32×32 sino a `.p16`. |
+
+**Ejercicio breve (PC, 10 minutos):** ejecuta `python scripts/preparar_personaje.py
+ninja_mediano` en un clon y abre `res/personajes/ninja_mediano/ninja_mediano_caminar.png`
+con un visor que enseñe la paleta. Compara su paleta con la de `ninja/ninja_caminar.png`:
+¿qué índices cambian de color y cuáles no? (Los fijos de la piel, iguales; los del traje,
+amarillos.) ¿Por qué es mejor que pedir a Pixellab tres ninjas distintos? (Mismas animaciones,
+mismas piezas, y el tamaño lo da la celda; solo cambia la paleta.)
