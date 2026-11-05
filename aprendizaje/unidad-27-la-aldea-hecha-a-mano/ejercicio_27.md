@@ -72,8 +72,10 @@ xcopy /E /I E:\ProyectoSNES\res\descargas\graficos\pixellab\aldea E:\ProyectoSNE
 6. **TODO 10 — Las cuentas.** El farol nuevo cae sobre una fachada en una posición donde no
    había farol: los tiles de esas celdas (poste + fachada) son **nuevos**. Explica por qué
    «juntados» sube en vez de subir «tiles» (que sigue en 512). ¿Qué pasaría si lo pones en
-   x = 196 + 640 = 836 (la misma fachada, 640 px después)? Pruébalo si quieres (pista: la
-   `SECUENCIA` se repite cada 640 px).
+   x = 196 + 640 = 836 (la misma fachada, 640 px después)? Pruébalo si quieres. Pistas: la
+   `SECUENCIA` se repite cada 640 px, así que la parte de fachada sale gratis; pero la calle
+   de debajo se repite cada 256 px (128 y su espejo) y 640 no es múltiplo de 256: las celdas
+   del pie del poste sí serán nuevas.
 
 7. **TODO 11 — Compilar y verlo.**
 
