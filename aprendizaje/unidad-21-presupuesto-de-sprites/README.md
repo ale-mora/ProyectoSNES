@@ -586,3 +586,35 @@ profundidad de aquí, y la 24 los enemigos que salen en oleadas. El presupuesto
 de esta unidad es el tope que ambas tienen que respetar: **cuántos enemigos a
 la vez, de qué ancho y repartidos en profundidad** se decide con estas cuentas,
 no al ojo.
+
+
+## Anexo (2026-11-05): qué cambió después
+
+La unidad se escribió contra `641d7c0`, con la prueba de carga y sus ninjas provisionales de
+64×96. Desde entonces la capa de sprites se usa en la fase con el arte real:
+
+| Qué | Dónde | La idea |
+|---|---|---|
+| **Rejilla óptima** | `piezas_rejilla_optima` en `scripts/piezas16.py:108`; `--rejilla-optima` en el `Makefile` | La rejilla de 16×16 de cada cuadro se puede **desplazar** 0..15 px en x e y antes de partirlo: el script prueba los 256 desplazamientos y se queda con el que deja **menos piezas no vacías**. El formato `.p16` y el motor no cambian: cada pieza ya guardaba su `(dx, dy)`. |
+| **Celdas por personaje y tipo** | `personaje_ancho/_alto` (`juego/personaje.c`), `ANCHO_TIPO/ALTO_TIPO` (`enemigos/ninja_sprite.c`) | Tarou 96×64, Bárbara 112×96, ninja normal 96×96, mediano y grande 128×112. Lo que cuesta no es la celda sino las **piezas no vacías** de cada cuadro. |
+| **Los huecos de VRAM** | `HUECOS[] = {192, 288, 384}` en `ninja_sprite.c`; la protagonista en 0..191 | Siguen siendo de 96 tiles = **24 piezas** por ranura: un cuadro de ninja (aunque su celda sea 128×112) cabe mientras no pase de 24 piezas. |
+| **Lo que queda libre** | el par 15 (tiles 480..511) | 480..483 la sombra; **484..491 el humo y los pájaros** (`ambiente_sprite.c`, unidad 27); libres solo **492..495** (2 piezas). |
+| **Entidades** | `SPRITES_MAX` 16 | La fase usa **15**: protagonista y sombra (0–1), tres ninjas y sus sombras (2–7), humo y pájaros (8–14). |
+
+Medido con las tiras reales (`python scripts/piezas16.py TIRA salida.p16 --celda AxB`, con y
+sin `--rejilla-optima`):
+
+| Tira | Celda | Piezas por cuadro, rejilla fija | Rejilla óptima | Bytes del `.p16` |
+|---|---|---|---|---|
+| `barbara_caminar` | 112×96 | 14, 15, 15, 14, 14, 15, 15, 14 | 12, 13, 13, 12, 13, 13, 13, 12 | 15 376 → 13 396 |
+| `tarou_golpe_3` | 96×64 | 14, 15, 18, 17, 17, 17, 16 | 14, 14, 16, 16, 14, 16, 15 | 15 104 → 13 916 |
+| `ninja_caminar` | 96×96 | 14, 17, 15, 14, 16, 14 | 13, 15, 13, 12, 14, 12 | 11 928 → 10 476 |
+
+Una o dos piezas menos por cuadro son 128–256 bytes menos **por subida** en el VBlank y dos
+ranuras menos por línea.
+
+**Ejercicio breve (PC, 10 minutos):** repite la tabla con otra tira (por ejemplo
+`res/personajes/barbara/barbara_golpe_3.png`, celda 112×96). ¿En qué cuadros no gana nada la
+rejilla óptima, y por qué? (Pista: cuando el dibujo ya cae justo en la rejilla de 16, o
+cuando los pies en la última fila impiden mover la rejilla en y: mira el comentario de
+`piezas_rejilla_optima`.)
