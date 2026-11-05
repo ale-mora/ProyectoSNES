@@ -48,6 +48,7 @@ costado en tiles y ver en Mesen que tapa a Tarou.
 
 ```text
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u27
+git -C E:\ProyectoSNES_trabajo\u27 checkout -q 6845b5f
 ```
 
 El arte de Pixellab **no está en git** (pesa y es de origen): cópialo al clon, o el script

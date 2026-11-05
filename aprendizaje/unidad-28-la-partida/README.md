@@ -8,6 +8,7 @@
 >
 > ```text
 > git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u28
+> git -C E:\ProyectoSNES_trabajo\u28 checkout -q 6845b5f
 > ```
 >
 > **No hay ficha en `PLAN.md` para esta unidad**: se añadió el 2026-11-05 con el código ya

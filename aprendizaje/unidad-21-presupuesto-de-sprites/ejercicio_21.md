@@ -6,6 +6,7 @@ dentro:
 
 ```text
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio
+git -C E:\ProyectoSNES_trabajo\mio checkout -q 641d7c0
 Copy-Item -Recurse E:\ProyectoSNES\aprendizaje\unidad-21-presupuesto-de-sprites E:\ProyectoSNES_trabajo\mio\aprendizaje\
 cd E:\ProyectoSNES_trabajo\mio\aprendizaje\unidad-21-presupuesto-de-sprites
 ```

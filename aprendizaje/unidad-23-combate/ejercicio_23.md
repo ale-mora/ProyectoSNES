@@ -19,6 +19,7 @@ Trabaja en un **clon de la rama principal** (las unidades 21–26 no usan el tag
 
 ```text
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio
+git -C E:\ProyectoSNES_trabajo\mio checkout -q 641d7c0
 ```
 
 Tiene que estar en el commit `641d7c0` o posterior de la rama

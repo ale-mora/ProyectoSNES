@@ -8,6 +8,7 @@
 >
 > ```text
 > git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u25
+> git -C E:\ProyectoSNES_trabajo\u25 checkout -q 6845b5f
 > ```
 >
 > **La ficha de `PLAN.md` promete más de lo que hay.** Lo que **existe**: la matemática de

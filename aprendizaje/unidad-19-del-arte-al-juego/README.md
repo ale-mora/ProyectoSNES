@@ -308,12 +308,15 @@ anclaje por los pies), lo amplía. Se lee con el código de la rama actual.
 | **Un perfil por personaje** | `PERSONAJES` en `scripts/preparar_personaje.py:232` | Cada personaje tiene su **celda** (Tarou 96×64, Bárbara 112×96, ninja 96×96, ninjas mediano y grande 128×112), su lista de animaciones y sus colores **fijos**. `python scripts/preparar_personaje.py barbara` (o `ninja`, `ninja_mediano`...). |
 | **Colores fijos** | `"fijos"` en `PERSONAJES`; `paleta_comun` `:409` | Colores que entran en la paleta **sí o sí** (la piel de un ninja, el color de la katana), antes de que el median cut reparta los demás huecos. Evita que un color pequeño pero importante se pierda. |
 | **Unificar los casi iguales** | `UNIFICAR_DISTANCIA` (8) y el final de `paleta_comun` | El median cut daba negros como `(0,0,0)`, `(1,0,0)`, `(0,0,1)`: tres huecos de 15 para lo mismo. Los que están a menos de 8 se unifican (gana el de más píxeles) y los huecos libres vuelven a repartirse. |
-| **Recolorear un traje** | `"recolor"` en `PERSONAJES`; `recolorear` `:461` | Los ninjas mediano (amarillo) y grande (morado) son **el mismo dibujo** que el normal (rojo) con otra **paleta guardada**: los píxeles no cambian, solo los colores del traje (los fijos de la piel no se tocan). Es el «palette swap» clásico, hecho en el script. |
+| **Recolorear un traje** | `"recolor"` en `PERSONAJES`; `recolorear` `:461` | El arte de Pixellab sale con el traje de un color cualquiera; `recolor` da el color **final** del traje (rojo chillón el normal, amarillo el mediano, morado el grande) cambiando solo los colores del traje en la **paleta guardada**: los píxeles de la tira no cambian y los fijos (la piel) no se tocan. Cada tipo tiene su propio arte (el mediano y el grande, más grandes: celda 128×112); el recoloreado es lo que les da los colores de las películas de ninjas de los 80. |
 | **Piezas de 16×16 con rejilla óptima** | `scripts/piezas16.py --rejilla-optima`; ver el anexo de la unidad 21 | Las tiras ya no van a metasprites de 32×32 sino a `.p16`. |
 
-**Ejercicio breve (PC, 10 minutos):** ejecuta `python scripts/preparar_personaje.py
-ninja_mediano` en un clon y abre `res/personajes/ninja_mediano/ninja_mediano_caminar.png`
-con un visor que enseñe la paleta. Compara su paleta con la de `ninja/ninja_caminar.png`:
-¿qué índices cambian de color y cuáles no? (Los fijos de la piel, iguales; los del traje,
-amarillos.) ¿Por qué es mejor que pedir a Pixellab tres ninjas distintos? (Mismas animaciones,
-mismas piezas, y el tamaño lo da la celda; solo cambia la paleta.)
+**Ejercicio breve (PC, 10 minutos):** abre la paleta de
+`res/personajes/ninja_mediano/ninja_mediano_caminar.png` (con Python:
+`Image.open(...).getpalette()[:48]`, de 3 en 3) y compárala con `"fijos"` y `"recolor"` del
+perfil `ninja_mediano` en `PERSONAJES`. Medido el 2026-11-05: los índices **1–3** son
+exactamente los tres fijos de la piel, `(218,132,97)`, `(190,94,76)`, `(151,63,58)`; los
+índices **8–15** son una rampa de amarillos que acaba en `(254,214,0)`, el traje recoloreado;
+el 0 es el magenta transparente. ¿Por qué los fijos van **primero**? (`paleta_comun` los mete
+antes de repartir los huecos: nunca se pierden.) Repite con `ninja_grande`: ¿qué rampa
+esperas en los índices altos? (La morada de `(150, 40, 220)`.)

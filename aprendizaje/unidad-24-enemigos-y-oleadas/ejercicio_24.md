@@ -9,6 +9,7 @@ Trabaja en un **clon** de la rama actual (nunca en el árbol principal):
 
 ```text
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u24
+git -C E:\ProyectoSNES_trabajo\u24 checkout -q 641d7c0
 ```
 
 (El clon sale del commit `641d7c0`. `git` puede marcar todos los archivos como modificados

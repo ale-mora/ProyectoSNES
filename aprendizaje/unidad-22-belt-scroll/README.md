@@ -528,9 +528,12 @@ profundidad** (`sprites_ordenar`, la y de los pies) decide entre sprites; la **p
 decide entre sprites y fondo. El farol tapa a Tarou esté donde esté en el carril (no tiene y
 de pies): en un beat 'em up, un poste del primer plano está siempre delante.
 
-**Ejercicio breve (clon, 15 minutos):** en `protagonista_sprite.c` vuelve a poner `PRIORIDAD 3`
-(solo para la protagonista), compila `-DGUION_FASE1` y captura los primeros 4 s. ¿Qué cambia
-cuando Tarou pasa por el farol de x = 196? ¿Y con los ninjas, que siguen en 2? (Tarou queda
-delante del farol; un ninja, detrás. Y el orden entre ellos dos lo sigue decidiendo la
-profundidad, porque los dos son sprites: la prioridad de un sprite no lo pone delante de otro
-sprite en la OAM.)
+**Ejercicio breve (clon fijado en `6845b5f`, 15 minutos):** en `protagonista_sprite.c` vuelve
+a poner `PRIORIDAD 3` (solo para la protagonista), compila `-DGUION_FASE1` y captura los
+primeros 4 s (`-Duracion 4 -Cada 1 -Espera 1`). ¿Qué cambia cuando Tarou pasa por el farol de
+x = 196? **Medido el 2026-11-05:** Tarou queda **delante** del poste
+(`capturas/anexo_mesen_prioridad3_delante_del_farol.png`; compárala con
+`../unidad-27-la-aldea-hecha-a-mano/capturas/mesen_farol_tapa_a_tarou.png`, con prioridad 2).
+**Predicción, no medida** (en esos 4 s ningún ninja pasa por un farol): un ninja, que sigue en
+2, quedaría detrás; y entre Tarou y un ninja manda la profundidad, porque la prioridad de un
+sprite no lo pone delante de otro sprite en la OAM.

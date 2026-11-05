@@ -8,6 +8,7 @@
 >
 > ```text
 > git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u24
+> git -C E:\ProyectoSNES_trabajo\u24 checkout -q 641d7c0
 > ```
 >
 > **La ficha de `PLAN.md` se escribió antes que el código y promete más de lo que hay.**
@@ -470,7 +471,14 @@ entonces el ninja tiene el arte de «Ninja 1» y **tres tipos**:
 | **Qué se dibuja** | `ninja_dibujo()` y los `NINJA_DIB_*` (`ninja.h`) | Un número de dibujo (0..41) por estado y reloj: guardia (8), caminar (6), puñetazo (3, puño fuera mientras la caja está activa), recibir (6), derribado (7), levantarse (5), KO (7). `ninja_sprite.c` lo traduce a tira y cuadro (`tira_de`). |
 | **Derribo largo** | `NINJA_DERRIBO_FRAMES` 64 | Cae (21), en el suelo (20) y se levanta (20); solo el KO tumbado parpadea antes de irse. |
 | **El struct creció** | `Ninja`: **32 bytes** (antes 16) | Sigue siendo potencia de 2: `ninjas + k` sigue sin `tcc__mul`. Si un campo nuevo lo pasara a 33, habría que rellenarlo hasta 64 o recorrer con puntero. |
-| **Arte por tipo** | `res/personajes/ninja/`, `ninja_mediano/`, `ninja_grande/`; celdas 96×96 y 128×112 | El mismo dibujo recoloreado (anexo de la unidad 19); cada tipo, su paleta de sprites (1, 2, 3). |
+| **Arte por tipo** | `res/personajes/ninja/`, `ninja_mediano/`, `ninja_grande/`; celdas 96×96 y 128×112 | Cada tipo tiene su arte (el mediano y el grande, más grandes), con el traje recoloreado por el script (anexo de la unidad 19); cada tipo, su paleta de sprites (1, 2, 3). |
+| **El ninja de fuera siempre entra** (commit `0fc099a`) | `ninja_actualizar` (`ninja.c`) | Mientras está fuera de la pantalla, anda recto hacia dentro sin pararse a `NINJA_DISTANCIA` de Tarou. Arregla el «hallazgo de márgenes» y la trampa de `MARGEN_PANTALLA` (24) frente a `MARGEN_NINJA` (32): en el código de hoy un ninja ya no se queda fuera junto a Tarou pegado al borde. |
+| **Zonas más allá del final** (commit `7c55f8c`) | `oleadas_alcanzable` (`oleadas.c`); `CAMARA_MAX` pasó a `camara.h` | Un punto de zona mayor que 1792 se recorta a 1792: ya **bloquea** (la pregunta de 1800 del ejercicio tiene hoy otra respuesta). Y un ninja que nace por la izquierda nunca baja de x = 0 (antes `camara − NINJA_ENTRADA` podía dar la vuelta en `u16`). |
+
+Las prácticas de esta unidad se hacen en un clon fijado en `641d7c0` (las instrucciones del
+principio y de `ejercicio_24.md` lo hacen con `git checkout`): allí las tres trampas de los
+márgenes y del 1800 **siguen** existiendo y el punto de partida son **560** pruebas
+(comprobado el 2026-11-05). En la rama actual están arregladas.
 
 Lo que la tabla «Por venir» de arriba decía de las variantes («solo la paleta cambia») ya no
 es cierto: cambian la paleta, el tamaño, la vida, el daño y la velocidad. El ninja rápido con

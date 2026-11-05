@@ -11,6 +11,7 @@
 >
 > ```text
 > git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u21
+> git -C E:\ProyectoSNES_trabajo\u21 checkout -q 641d7c0
 > ```
 >
 > Copia esta carpeta **dentro del clon** (`E:\ProyectoSNES_trabajo\u21\aprendizaje\unidad-21-presupuesto-de-sprites\`)

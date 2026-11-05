@@ -10,6 +10,7 @@ Trabaja en un **clon** de la rama actual (nunca en el árbol principal):
 
 ```text
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u25
+git -C E:\ProyectoSNES_trabajo\u25 checkout -q 6845b5f
 ```
 
 (El clon sale del commit `6845b5f`. Si `git` marca archivos por los saltos de línea CRLF/LF,

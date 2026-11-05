@@ -13,6 +13,7 @@ menos fuerza».
 
 ```text
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\mio
+git -C E:\ProyectoSNES_trabajo\mio checkout -q 641d7c0
 ```
 
 (Rama actual; esta unidad enseña el beat 'em up, no el tag `plataformas-r2`.)

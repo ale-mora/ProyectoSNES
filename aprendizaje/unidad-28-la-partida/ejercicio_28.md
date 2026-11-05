@@ -9,6 +9,7 @@ Trabaja en un **clon** de la rama actual (nunca en el árbol principal):
 
 ```text
 git clone -q E:\ProyectoSNES E:\ProyectoSNES_trabajo\u28
+git -C E:\ProyectoSNES_trabajo\u28 checkout -q 6845b5f
 ```
 
 El entorno de PowerShell es el de las unidades 24 y 25 (`C:\msys64\usr\bin` para las pruebas;
