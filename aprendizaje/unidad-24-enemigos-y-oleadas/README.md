@@ -477,7 +477,10 @@ es cierto: cambian la paleta, el tamaño, la vida, el daño y la velocidad. El n
 shuriken, el kendoka y el jefe siguen sin existir.
 
 **Ejercicio breve (PC, 15 minutos):** en un clon, cambia la vida del grande a 10 en
-`VIDA_TIPO` y ejecuta las pruebas de PC. ¿Falla alguna? Si no falla ninguna, escribe la que
-faltaba: «el combo de 3 golpes (1 + 1 + 2) no tumba del todo al grande» en
-`tests/prueba_ninja.c`. (Es el mismo razonamiento que el TODO 8 del ejercicio: una cifra de
-diseño que ninguna prueba protege.)
+`VIDA_TIPO` y ejecuta las pruebas de PC. Falla **una** (medido: `2477 pruebas, 1 fallos`,
+`prueba_ninja.c:217`, que comprueba `n[2].vida == 8`). Esa prueba protege la **cifra**, no la
+**razón** de la cifra. Escribe la que protege la regla de diseño: «el combo de 3 golpes
+(1 + 1 + 2 = 4) tumba al normal pero no al mediano ni al grande», con `ninja_recibir` en
+`tests/prueba_ninja.c`. Con la vida en 10, ¿falla también tu prueba nueva? (No: la regla
+sigue cumpliéndose. Es el mismo razonamiento que el TODO 8 del ejercicio: decide qué quieres
+proteger, la cifra o la regla.)
