@@ -21,7 +21,9 @@
       protagonista_sprite_actualizar → fondo (columnas que entran) → sprites_dibujar. El scroll
       de los fondos se escribe en el VBlank (pantalla_fase1_vblank), con la lista de DMA y no
       antes: bgSetScroll escribe en el acto, y a mitad del dibujo partiría la imagen.
-      START vuelve al título; SELECT enciende el HUD de depuración.
+      START pausa (SELECT en pausa vuelve al título); SELECT jugando enciende el HUD de
+      depuración. Sin vida: KO, GAME OVER y CONTINUE; tras la última oleada, STAGE CLEAR y
+      «STAGE 2 / COMING SOON» (juego/estado_fase.c).
 
     SE CONECTA CON
       Incluye:  sistema/pantallas.h, sistema/secuencia.h, sistema/comun.h, juego/mando.h,
@@ -45,7 +47,10 @@
       camara      u16       scroll horizontal; se calcula en el frame y se escribe en el VBlank
       hud_visible u8        1 si SELECT encendió el HUD
       parada      u8        cuadros de parada de impacto que quedan; a_guardada: A pulsada en la parada
-      ko_reloj    u8        cuadros que lleva Tarou KO (a los KO_ESPERA vuelve al título)
+      partida     EstadoFase  jugando, pausa, KO, GAME OVER con CONTINUE o STAGE CLEAR (estado_fase.h)
+      atenuada, cambiar_luz, avisos  u8  media luz puesta, pendiente de cambiar, filas de aviso con texto
+      oscuras     u16[64]   las paletas de sprites 0..3 a media luz (los sprites 0..3 no entran
+                            en la matemática de color: se oscurecen con su paleta)
       fila_hud    u8        qué fila del HUD toca preparar este frame (0..3)
     → glosario: Carril, Cámara, Zona, Oleada, Parallax, Máquina de estados
 ---------------------------------------------------------------------------------*/
@@ -60,6 +65,7 @@
 #include "juego/oleadas.h"
 #include "juego/combate.h"
 #include "juego/personaje.h"
+#include "juego/estado_fase.h"
 #include "juego/protagonista_sprite.h"
 #include "enemigos/ninja.h"
 #include "enemigos/ninja_sprite.h"
@@ -73,11 +79,12 @@
 extern char nivel1_lejos_til, nivel1_lejos_til_end, nivel1_lejos_pal;
 extern char nivel1_lejos_map, nivel1_lejos_map_end;
 extern const unsigned char hdmaGradcieloList[];   /* Tabla HDMA del cielo (gfx4snes -n). */
+extern char ninja1_pal, ninja2_pal, ninja3_pal;   /* Las paletas de los ninjas (data.asm). */
 
 #define X_INICIAL 64                 /* Donde nace Tarou: a la izquierda.                 */
 #define Y_INICIAL 200                /* En medio del carril (184..216).                   */
 #define FILAS_HUD 4
-#define KO_ESPERA 150                /* Tras caer KO, 2,5 s y vuelve al título (provisional). */
+#define FILA_AVISO 6                 /* Filas del HUD (6 y 7) de PAUSE, GAME OVER y STAGE CLEAR. */
 #define MARGEN_NINJA 32              /* Un ninja ya dentro no pasa de este margen del borde: su cuerpo (~50 px) se ve entero. */
 
 static Cuerpo cuerpo;
@@ -89,7 +96,11 @@ static u16 camara;
 static u8 hud_visible;
 static u8 parada;                    /* Cuadros de parada de impacto que quedan.          */
 static u8 a_guardada;                /* 1 si se pulsó A durante la parada.                */
-static u8 ko_reloj;                  /* Cuadros que lleva Tarou KO (caído sin vida).      */
+static EstadoFase partida;           /* Jugando, pausa, KO, GAME OVER o STAGE CLEAR.      */
+static u8 atenuada;                  /* 1 si la pantalla está a media luz.                */
+static u8 cambiar_luz;               /* 1 = en el próximo VBlank, poner o quitar la media luz. */
+static u8 avisos;                    /* 1 si las filas de aviso tienen texto (hay que borrarlas). */
+static u16 oscuras[64];              /* Las paletas de sprites 0..3 a la mitad de brillo. */
 static u8 fila_hud;
 
 /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
@@ -159,6 +170,61 @@ static void hud(void)
     }
 }
 
+/*--- oscurecer: copia 16 colores BGR555 a la mitad de brillo -------------------------
+    Bajar un bit cada canal es v >> 1 con la máscara 0x3DEF (no se cuela un bit de un
+    canal al de al lado). */
+static void oscurecer(u16 *destino, const u16 *origen)
+{
+    u8 i;
+
+    for (i = 0; i < 16; i++)
+    {
+        destino[i] = (u16)((origen[i] >> 1) & 0x3DEF);
+    }
+}
+
+/*--- aviso: las filas 6 y 7 del HUD con el texto del estado (cada frame) ---------------*/
+static void aviso(void)
+{
+    u16 *p;
+    u8 estado = partida.estado;
+
+    if (estado == FASE_JUGANDO || estado == FASE_KO)
+    {
+        if (avisos)                                  /* Se acaba de salir de la pausa.      */
+        {
+            hud_debug_empezar(FILA_AVISO);           /* Las dos filas, en blanco.           */
+            hud_debug_enviar(FILA_AVISO);
+            hud_debug_empezar(FILA_AVISO + 1);
+            hud_debug_enviar(FILA_AVISO + 1);
+            avisos = 0;
+        }
+        return;
+    }
+    avisos = 1;
+    p = hud_debug_empezar(FILA_AVISO);               /* Se mandan cada frame: si una copia  */
+    if (estado == FASE_PAUSA)                        /* se pierde, la siguiente la repone.  */
+    {
+        hud_debug_texto(p, "             PAUSE");
+    }
+    else if (estado == FASE_GAME_OVER)
+    {
+        hud_debug_texto(p, "           GAME OVER");
+    }
+    else
+    {
+        hud_debug_texto(p, "          STAGE CLEAR");
+    }
+    hud_debug_enviar(FILA_AVISO);
+    p = hud_debug_empezar(FILA_AVISO + 1);
+    if (estado == FASE_GAME_OVER)
+    {
+        p = hud_debug_texto(p, "          CONTINUE? ");
+        hud_debug_numero(p, (s16)partida.cuenta);
+    }
+    hud_debug_enviar(FILA_AVISO + 1);
+}
+
 void pantalla_fase1_iniciar(void)
 {
     setMode(BG_MODE1, BG3_MODE1_PRIORITY_HIGH);      /* Como el título: BG3 por delante.    */
@@ -190,7 +256,14 @@ void pantalla_fase1_iniciar(void)
     ninja_iniciar_todos(ninjas);                     /* Sin ninjas hasta la primera oleada. */
     parada = 0;
     a_guardada = 0;
-    ko_reloj = 0;
+    estado_fase_iniciar(&partida);
+    atenuada = 0;
+    cambiar_luz = 0;
+    avisos = 0;
+    oscurecer(oscuras, (const u16 *)protagonista_paleta(personaje_elegido));   /* Para la media */
+    oscurecer(oscuras + 16, (const u16 *)&ninja1_pal);                         /* luz (pausa y  */
+    oscurecer(oscuras + 32, (const u16 *)&ninja2_pal);                         /* GAME OVER).   */
+    oscurecer(oscuras + 48, (const u16 *)&ninja3_pal);
     ninja_sprite_cargar();                           /* Sus paletas y entidades (tras Tarou). */
     do                                               /* Primer cuadro antes del fade in, y  */
     {                                                /* sus tiles a la VRAM YA (la pantalla */
@@ -213,12 +286,33 @@ void pantalla_fase1_actualizar(void)
     hud_juego_actualizar(cuerpo.vida);               /* La barra: la primera de la lista (64 B). */
 
     mando_leer(&mando);
-    if (mando.salir_pulsado)                         /* START: volver al título.            */
+
+    /*--- La partida: pausa (Start), KO -> GAME OVER con CONTINUE, STAGE CLEAR al vencer la
+           última oleada (juego/estado_fase.c, lógica pura) -------------------------------*/
+    k = estado_fase_actualizar(&partida, mando.salir_pulsado, mando.hud_pulsado,
+                               (u8)(cuerpo.vida == 0 && cuerpo.stun == 0),
+                               (u8)(oleadas.actual >= OLEADAS_ZONAS));
+    if (k == ACCION_TITULO)
     {
         salir(PANTALLA_TITULO);
         return;
     }
-    if (mando.hud_pulsado)                           /* SELECT: HUD de depuración sí/no.    */
+    if (k == ACCION_REINICIAR)                       /* CONTINUE: la fase desde el principio, */
+    {                                                /* con el mismo personaje.            */
+        salir(PANTALLA_FASE1);
+        return;
+    }
+    if (k == ACCION_PROXIMAMENTE)
+    {
+        salir(PANTALLA_PROXIMAMENTE);
+        return;
+    }
+    if (estado_fase_atenuada(&partida) != atenuada)  /* Media luz: se pone o se quita en el */
+    {                                                /* VBlank (pantalla_fase1_vblank).    */
+        atenuada ^= 1;
+        cambiar_luz = 1;
+    }
+    if (mando.hud_pulsado && partida.estado == FASE_JUGANDO)   /* SELECT: HUD de depuración. */
     {
         hud_debug_alternar();
         hud_juego_reparar();                         /* La capa y la barra, de nuevo.       */
@@ -227,7 +321,11 @@ void pantalla_fase1_actualizar(void)
 
     /*--- Parada de impacto: al conectar un golpe, el mundo se congela unos cuadros (se sigue
            dibujando). Un A pulsado durante la parada se guarda y vale en cuanto acaba. ---*/
-    if (parada)
+    if (!estado_fase_mundo_avanza(&partida))
+    {
+        /* Pausa, GAME OVER o STAGE CLEAR: el mundo, congelado (se sigue dibujando). */
+    }
+    else if (parada)
     {
         parada--;
         if (mando.atacar_pulsado)
@@ -273,15 +371,6 @@ void pantalla_fase1_actualizar(void)
         {
             parada = golpe_ninja;                    /* Parada de impacto (la mayor).       */
         }
-        if (cuerpo.vida == 0 && cuerpo.stun == 0)    /* KO: espera un poco y vuelve al título. */
-        {
-            ko_reloj++;
-            if (ko_reloj >= KO_ESPERA)
-            {
-                salir(PANTALLA_TITULO);
-                return;
-            }
-        }
         if (oleadas.bloqueada && ninja_vivos(ninjas) == 0)   /* Oleada sin ninjas: vencida.    */
         {
             oleadas_vencer(&oleadas);
@@ -293,6 +382,7 @@ void pantalla_fase1_actualizar(void)
     ninja_sprite_actualizar(ninjas, camara);         /* Sus cuadros (tras Tarou en la lista). */
     fondo_nivel_actualizar(camara);                  /* Las columnas que entran.            */
     sprites_dibujar();                               /* UNA llamada: toda la OAM.           */
+    aviso();                                         /* PAUSE / GAME OVER / STAGE CLEAR.    */
     hud();
 }
 
@@ -301,4 +391,24 @@ void pantalla_fase1_vblank(void)
     bgSetScroll(0, camara, 0);                       /* El scroll de las dos capas, a la    */
     bgSetScroll(1, camara >> 1, 0);                  /* vez que sus columnas y la OAM.      */
     dma_lista_ejecutar();                            /* Tiles de Tarou, columnas y HUD.     */
+    if (cambiar_luz)                                 /* Media luz: fondos con la matemática */
+    {                                                /* de color, sprites con su paleta.    */
+        cambiar_luz = 0;
+        if (atenuada)
+        {
+            REG_COLDATA = 0xE0;                      /* Color fijo negro.                   */
+            REG_CGWSEL = 0x00;                       /* Operando: el color fijo.            */
+            REG_CGADSUB = 0xF3;                      /* Restar y a la mitad: BG1, BG2, sprites 4..7, fondo. */
+            dmaCopyCGram((u8 *)oscuras, 128, 128);   /* Paletas de sprites 0..3, oscuras.   */
+        }
+        else
+        {
+            REG_CGWSEL = 0x02;                       /* Como en protagonista_escena_cargar: */
+            REG_CGADSUB = 0x50;                      /* la sombra, a media suma.            */
+            dmaCopyCGram((u8 *)protagonista_paleta(personaje_elegido), 128, 32);
+            dmaCopyCGram((u8 *)&ninja1_pal, 128 + 16, 32);
+            dmaCopyCGram((u8 *)&ninja2_pal, 128 + 32, 32);
+            dmaCopyCGram((u8 *)&ninja3_pal, 128 + 48, 32);
+        }
+    }
 }

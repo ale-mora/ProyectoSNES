@@ -43,6 +43,7 @@ void pruebas_oleadas(void);
 void pruebas_ninja(void);
 void pruebas_combate(void);
 void pruebas_personaje(void);
+void pruebas_estado_fase(void);
 
 int main(void)
 {
@@ -63,6 +64,7 @@ int main(void)
     pruebas_ninja();
     pruebas_combate();
     pruebas_personaje();
+    pruebas_estado_fase();
 
     printf("%u pruebas, %u fallos\n", (unsigned)pruebas_total, (unsigned)pruebas_fallidas);
     return pruebas_fallidas != 0;

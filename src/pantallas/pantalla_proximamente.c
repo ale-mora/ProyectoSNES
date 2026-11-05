@@ -28,7 +28,7 @@ void pantalla_proximamente_iniciar(void)
 {
     video_texto_mode1();                             /* Mode 1, solo la capa de texto.      */
     limpiar_texto();
-    texto_centrado(12, "LEVEL 2");                   /* Texto en pantalla: en inglés.       */
+    texto_centrado(12, "STAGE 2");                   /* Texto en pantalla: en inglés.       */
     texto_centrado(14, "COMING SOON");
     fade_in(FRAMES_FADE);
 }
