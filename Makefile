@@ -40,7 +40,7 @@ include ${PVSNESLIB_HOME}/devkitsnes/snes_rules
 # CFLAGS al ejecutarse, no al definirse. Decisión 13 de docs/diseno-demo-jugable.md.
 CFLAGS += -Isrc
 # tarou_anim.h (cuántos cuadros tiene cada animación) lo genera el pipeline en res/.
-CFLAGS += -Ires/personajes/tarou -Ires/personajes/barbara -Ires/nivel1 -Ires/aldea -Ires/objetos
+CFLAGS += -Ires/personajes/tarou -Ires/personajes/barbara -Ires/nivel1 -Ires/aldea -Ires/objetos -Ires/zonas
 
 .PHONY: all clean
 
@@ -116,6 +116,19 @@ res/aldea/lejos.pic: res/aldea/lejos.png
 res/aldea/atardecer_grad_data.as: res/aldea/atardecer.bmp
 	$(GFXCONV) -n -t bmp -i $<
 
+# Los otros tres escenarios de la fase 1 (scripts/preparar_zona.py): la lejana y el cielo de
+# cada uno; la cercana va en .bin versionados, como la de la aldea.
+ESCENARIOS := bosque monasterio dojo
+res/zonas/%/lejos.pic: res/zonas/%/lejos.png
+	$(GFXCONV) -y -s 8 -o 16 -u 16 -e 2 -p -m -i $<
+res/zonas/bosque/cielobosque_grad_data.as: res/zonas/bosque/cielobosque.bmp
+	$(GFXCONV) -n -t bmp -i $<
+res/zonas/monasterio/cielomonasterio_grad_data.as: res/zonas/monasterio/cielomonasterio.bmp
+	$(GFXCONV) -n -t bmp -i $<
+res/zonas/dojo/cielodojo_grad_data.as: res/zonas/dojo/cielodojo.bmp
+	$(GFXCONV) -n -t bmp -i $<
+ZONAS_ASSETS := $(foreach z,$(ESCENARIOS),res/zonas/$(z)/lejos.pic res/zonas/$(z)/cielo$(z)_grad_data.as $(wildcard res/zonas/$(z)/*.bin))
+
 # Escenas de 256 colores (Mode 3).
 res/intro/escena_1.pic: res/intro/escena_1.png
 	$(GFXCONV) -s 8 -o 256 -u 256 -e 0 -p -m -i $<
@@ -150,7 +163,7 @@ res/personajes/tarou/%.pic: res/personajes/tarou/%.png
 # de sprites del beat 'em up: docs/diseno-beat-em-up.md §8 v3). Las genera
 # scripts/piezas16.py desde los PNG versionados; data.asm las incluye con .incbin.
 # Más las del beat 'em up (2026-11-04), que solo existen en .p16.
-TAROU_BU_ANIMS := guardia_bu golpe_1 golpe_2 golpe_3 recibir ko
+TAROU_BU_ANIMS := guardia_bu golpe_1 golpe_2 golpe_3 recibir ko golpe_4 levantarse derribado victoria
 TAROU_P16 := $(foreach a,$(TAROU_ANIMS) $(TAROU_BU_ANIMS),res/personajes/tarou/tarou_$(a).p16)
 res/personajes/tarou/%.p16: res/personajes/tarou/%.png scripts/piezas16.py
 	@echo convert pieces16 ... $(notdir $<)
@@ -200,7 +213,20 @@ res/personajes/ninja_grande/%.p16: res/personajes/ninja_grande/%.png scripts/pie
 	@echo convert pieces16 ... $(notdir $<)
 	python scripts/piezas16.py $< $@ --celda 128x112 --rejilla-optima --pal $(@:.p16=.pal)
 
-ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin res/aldea/lejos.pic res/aldea/atardecer_grad_data.as $(wildcard res/aldea/*.bin) res/objetos/objetos_til.bin $(TAROU_PICS) $(TAROU_P16) $(BARBARA_P16) $(NINJA_P16) $(NINJA2_P16) $(NINJA3_P16) $(KENDOKA_P16) $(JEFE_P16) $(NINJAR_PAL)
+# Los apoyos (2026-11-05): Lucinda, Rex (96x96) y Fenrir (112x112), dos tiras cada uno
+# (entrada y ataque, una paleta). Se dibujan en el sitio de la protagonista (sus búferes).
+APOYO_P16 := $(foreach p,lucinda rex fenrir,res/personajes/$(p)/$(p)_entrada.p16 res/personajes/$(p)/$(p)_ataque.p16)
+res/personajes/lucinda/%.p16: res/personajes/lucinda/%.png scripts/piezas16.py
+	@echo convert pieces16 ... $(notdir $<)
+	python scripts/piezas16.py $< $@ --celda 96x96 --rejilla-optima --pal $(@:.p16=.pal)
+res/personajes/rex/%.p16: res/personajes/rex/%.png scripts/piezas16.py
+	@echo convert pieces16 ... $(notdir $<)
+	python scripts/piezas16.py $< $@ --celda 96x96 --rejilla-optima --pal $(@:.p16=.pal)
+res/personajes/fenrir/%.p16: res/personajes/fenrir/%.png scripts/piezas16.py
+	@echo convert pieces16 ... $(notdir $<)
+	python scripts/piezas16.py $< $@ --celda 112x112 --rejilla-optima --pal $(@:.p16=.pal)
+
+ASSETS := res/fuente/ark_consola.pic res/fuente/ark_consola_2bpp.pic res/personajes/lobo_samurai.pic res/personajes/barbara_samurai.pic res/nintendo/logo_nintendo.pic res/publisher/logo_publisher.pic res/devs/logo_devs.pic res/intro/escena_1.pic res/intro/escena_2.pic res/intro/escena_3.pic res/titulo/fondo_lejos.pic res/titulo/fondo_cerca.pic res/titulo/cielo_grad_data.as res/nivel1/fondo_lejos.pic res/nivel1/fondo_cerca.pic res/nivel1/fondo_cerca.col res/nivel1/colision.bin res/aldea/lejos.pic res/aldea/atardecer_grad_data.as $(wildcard res/aldea/*.bin) res/objetos/objetos_til.bin $(ZONAS_ASSETS) $(TAROU_PICS) $(TAROU_P16) $(BARBARA_P16) $(NINJA_P16) $(NINJA2_P16) $(NINJA3_P16) $(KENDOKA_P16) $(JEFE_P16) $(NINJAR_PAL) $(APOYO_P16)
 
 .PHONY: bitmaps cleanGfxRes
 bitmaps: $(ASSETS)
@@ -217,7 +243,7 @@ src/juego/animaciones.obj: res/personajes/tarou/tarou_anim.h
 src/juego/personaje.obj: res/personajes/tarou/tarou_anim.h res/personajes/barbara/barbara_anim.h
 src/pantallas/pantalla_nivel1.obj: res/nivel1/nivel1_datos.h
 src/pantallas/pantalla_fase1.obj: res/aldea/aldea_datos.h
-src/juego/fondo_nivel.obj: res/aldea/aldea_datos.h
+src/juego/fondo_nivel.obj: res/aldea/aldea_datos.h res/zonas/zonas_datos.h
 src/juego/ambiente.obj: res/aldea/aldea_datos.h
 src/objetos/objetos_sprite.obj: res/objetos/objetos_datos.h
 

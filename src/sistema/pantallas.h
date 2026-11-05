@@ -122,6 +122,15 @@ void pantalla_fase1_iniciar(void);
 void pantalla_fase1_actualizar(void);
 void pantalla_fase1_vblank(void);
 
+/* La fase 1 tiene cuatro escenarios (aldea, bosque, monasterio, dojo; juego/oleadas.h) y
+   cada uno se carga entrando otra vez en PANTALLA_FASE1: estas variables dicen cuál y con
+   qué vida y arma llega la protagonista (vida 0 = entera). pantalla_fase1_desde_inicio las
+   pone para empezar (el selector, antes de entrar). */
+extern u8 fase1_escenario;
+extern u8 fase1_vida;
+extern u8 fase1_arma;
+void pantalla_fase1_desde_inicio(void);
+
 void pantalla_proximamente_iniciar(void);
 void pantalla_proximamente_actualizar(void);
 

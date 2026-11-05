@@ -1,5 +1,6 @@
 /*---------------------------------------------------------------------------------
-    fondo_nivel.c — La capa cercana dibujada por columnas: nivel 1 o aldea (ver .h).
+    fondo_nivel.c — La capa cercana dibujada por columnas: nivel 1, aldea u otro escenario
+    de la fase 1 (bosque, monasterio, dojo; ver .h).
 
     PROPÓSITO
       Decidir, durante el frame, qué columnas del mapa del nivel hay que copiar
@@ -43,7 +44,9 @@
 #include "juego/nivel.h"
 #include "juego/dma_lista.h"
 #include "sistema/comun.h"
+#include "juego/oleadas.h"           /* ESCENARIO_*.                                       */
 #include "aldea_datos.h"             /* ALDEA_TILES, ALDEA_NOREN_* (res/aldea/, generado). */
+#include "zonas_datos.h"             /* ZONA_COLUMNAS (res/zonas/, generado).              */
 
 extern char nivel1_cerca_til, nivel1_cerca_til_end, nivel1_cerca_pal; /* data.asm       */
 extern char nivel1_cerca_col;        /* 260 columnas x 64 bytes, columna a columna.        */
@@ -52,6 +55,10 @@ extern char aldea_cerca_til, aldea_cerca_til_end, aldea_cerca_pal;    /* La alde
 extern char aldea_cerca_col;         /* 256 columnas x 64 bytes.                           */
 extern char aldea_noren;             /* Los 2 cuadros del noren, 8 tiles cada uno.         */
 extern u8 aldea_banco;               /* El banco de aldea_cerca_col y de aldea_noren.      */
+extern char bosque_cerca_til, bosque_cerca_til_end, bosque_cerca_pal, bosque_cerca_col;
+extern char monasterio_cerca_til, monasterio_cerca_til_end, monasterio_cerca_pal, monasterio_cerca_col;
+extern char dojo_cerca_til, dojo_cerca_til_end, dojo_cerca_pal, dojo_cerca_col;
+extern u8 bosque_banco, monasterio_banco, dojo_banco;   /* Bancos de sus mapas por columnas. */
 
 #define BYTES_COLUMNA 64             /* 32 filas x 2 bytes por entrada del mapa.          */
 #define COLUMNAS_ANILLO 64           /* El mapa de la VRAM: 64 columnas (512 px).          */
@@ -64,6 +71,7 @@ static u8 reescribir;                /* 1 = quitaron el parche: copiar otra vez 
 static u16 ultima_col;               /* Columna del borde izquierdo en el frame anterior.  */
 static u16 origen;                   /* El mapa por columnas que se copia (16 bits bajos). */
 static u8 origen_banco;              /* Y su banco (el DMA lo pide aparte).                */
+static u16 columnas;                 /* Columnas del escenario (256 o 128).                */
 static u16 i;
 
 void fondo_nivel_parche(u16 col, u16 fuente)
@@ -86,7 +94,7 @@ void fondo_nivel_quitar_parche(void)
 static void apuntar_columna(u16 col)
 {
     u16 fuente;
-    if (col >= COLUMNAS_NIVEL)
+    if (col >= columnas)
     {
         return;
     }
@@ -112,9 +120,9 @@ void fondo_nivel_rellenar(u16 camara)
     {
         primera = 0;                                 /* ...salvo al principio del nivel.    */
     }
-    if (primera > COLUMNAS_NIVEL - COLUMNAS_ANILLO)  /* Y sin pasarse del final.            */
+    if (primera > columnas - COLUMNAS_ANILLO)        /* Y sin pasarse del final.            */
     {
-        primera = COLUMNAS_NIVEL - COLUMNAS_ANILLO;
+        primera = (u16)(columnas - COLUMNAS_ANILLO);
     }
     for (i = 0; i < COLUMNAS_ANILLO; i++)            /* Las 64 columnas del anillo, de una  */
     {                                                /* en una (la pantalla está apagada:   */
@@ -138,6 +146,7 @@ void fondo_nivel_cargar(u16 camara)
 {
     origen = (u16)&nivel1_cerca_col;                 /* El nivel 1 (plataformas).           */
     origen_banco = nivel1_cerca_col_banco;
+    columnas = COLUMNAS_NIVEL;
     /* Tiles a VRAM_FONDO_A y la paleta en la 1 (los tiles del mapa la llevan: -e 1). */
     bgInitTileSet(0, (u8 *)&nivel1_cerca_til, (u8 *)&nivel1_cerca_pal, 1,
                   (u16)(&nivel1_cerca_til_end - &nivel1_cerca_til), 16 * 2, BG_16COLORS, VRAM_FONDO_A);
@@ -148,12 +157,55 @@ void fondo_nivel_cargar_aldea(u16 camara)
 {
     origen = (u16)&aldea_cerca_col;                  /* La aldea (fase 1).                  */
     origen_banco = aldea_banco;
+    columnas = COLUMNAS_NIVEL;
     parche_fuente = 0;                               /* Sin tronco.                         */
     reescribir = 0;
     /* 16 KB de tiles a VRAM_FONDO_A y DOS paletas (64 bytes) desde la 4: el mapa ya dice
        en cada celda cuál usa (la de la arquitectura o la de los aldeanos). */
     bgInitTileSet(0, (u8 *)&aldea_cerca_til, (u8 *)&aldea_cerca_pal, ALDEA_PALETA,
                   (u16)(&aldea_cerca_til_end - &aldea_cerca_til), 32 * 2, BG_16COLORS, VRAM_FONDO_A);
+    poner_mapa(camara);
+}
+
+void fondo_nivel_cargar_escenario(u8 escenario, u16 camara)
+{
+    u8 *til, *pal;
+    u16 bytes;
+
+    if (escenario == ESCENARIO_ALDEA)
+    {
+        fondo_nivel_cargar_aldea(camara);
+        return;
+    }
+    if (escenario == ESCENARIO_BOSQUE)               /* Cada uno con sus datos (data.asm).  */
+    {
+        til = (u8 *)&bosque_cerca_til;
+        pal = (u8 *)&bosque_cerca_pal;
+        bytes = (u16)(&bosque_cerca_til_end - &bosque_cerca_til);
+        origen = (u16)&bosque_cerca_col;
+        origen_banco = bosque_banco;
+    }
+    else if (escenario == ESCENARIO_MONASTERIO)
+    {
+        til = (u8 *)&monasterio_cerca_til;
+        pal = (u8 *)&monasterio_cerca_pal;
+        bytes = (u16)(&monasterio_cerca_til_end - &monasterio_cerca_til);
+        origen = (u16)&monasterio_cerca_col;
+        origen_banco = monasterio_banco;
+    }
+    else
+    {
+        til = (u8 *)&dojo_cerca_til;
+        pal = (u8 *)&dojo_cerca_pal;
+        bytes = (u16)(&dojo_cerca_til_end - &dojo_cerca_til);
+        origen = (u16)&dojo_cerca_col;
+        origen_banco = dojo_banco;
+    }
+    columnas = ZONA_COLUMNAS;                        /* 1024 px: 128 columnas.              */
+    parche_fuente = 0;
+    reescribir = 0;
+    /* Una sola paleta (la 4; el .bin la trae dos veces y se copian 4 y 5, como la aldea). */
+    bgInitTileSet(0, til, pal, ALDEA_PALETA, bytes, 32 * 2, BG_16COLORS, VRAM_FONDO_A);
     poner_mapa(camara);
 }
 

@@ -47,6 +47,11 @@ void fondo_nivel_cargar(u16 camara);
    paletas en la 4 y la 5, y el mapa trae el bit de prioridad en el primer plano. */
 void fondo_nivel_cargar_aldea(u16 camara);
 
+/* Igual, con el escenario `escenario` de la fase 1 (ESCENARIO_* de juego/oleadas.h): la
+   aldea, o uno de 1024 px (128 columnas) de scripts/preparar_zona.py (res/zonas/<nombre>/:
+   hasta 512 tiles, una paleta en la 4, prioridad en el primer plano). */
+void fondo_nivel_cargar_escenario(u8 escenario, u16 camara);
+
 /* El noren de la aldea: apunta en la lista de DMA los tiles del cuadro `cuadro` (0 o 1)
    de la cortina (ALDEA_NOREN_TILES tiles, 256 bytes) encima de los suyos. */
 void fondo_nivel_noren(u8 cuadro);

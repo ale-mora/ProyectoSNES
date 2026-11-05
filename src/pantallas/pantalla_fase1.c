@@ -84,9 +84,17 @@
 #include "juego/dma_lista.h"
 #include "juego/hud_debug.h"
 #include "hud/hud_juego.h"
+#include "hud/hud_apoyo.h"
+#include "juego/dialogo.h"
+#include "juego/apoyo.h"
 extern char aldea_lejos_til, aldea_lejos_til_end, aldea_lejos_pal;   /* La lejana: montañas, */
 extern char aldea_lejos_map, aldea_lejos_map_end;                     /* castillo y sol.      */
 extern const unsigned char hdmaGradatardecerList[];   /* El cielo, un color por línea (gfx4snes -n). */
+extern char bosque_lejos_til, bosque_lejos_til_end, bosque_lejos_pal, bosque_lejos_map, bosque_lejos_map_end;
+extern char monasterio_lejos_til, monasterio_lejos_til_end, monasterio_lejos_pal, monasterio_lejos_map,
+    monasterio_lejos_map_end;
+extern char dojo_lejos_til, dojo_lejos_til_end, dojo_lejos_pal, dojo_lejos_map, dojo_lejos_map_end;
+extern const unsigned char hdmaGradcielobosqueList[], hdmaGradcielomonasterioList[], hdmaGradcielodojoList[];
 extern char ninja1_pal, ninja2_pal, ninja3_pal;   /* Las paletas de los ninjas (data.asm). */
 
 #define X_INICIAL 64                 /* Donde nace Tarou: a la izquierda.                 */
@@ -98,6 +106,14 @@ extern char ninja1_pal, ninja2_pal, ninja3_pal;   /* Las paletas de los ninjas (
 #define NOREN_CADA 7                 /* El noren cambia de cuadro cada 8 frames (máscara). */
 #define NOREN_HUECO 2560             /* Si la lista ya lleva más bytes, el noren espera.   */
 #define MARGEN_NINJA 32              /* Un ninja ya dentro no pasa de este margen del borde: su cuerpo (~50 px) se ve entero. */
+#define REG_MOSAICO (*(volatile u8 *)0x2106) /* Mosaico: tamaño (bits 4..7) y fondos (0..3).  */
+#define EFECTO_MOSAICO 1             /* La onda de Rex.                                   */
+#define EFECTO_TEMBLOR 2             /* La embestida de Fenrir.                           */
+#define EFECTO_FRAMES 24
+#define SALIDA_MARGEN 32             /* A cuántos px del final del escenario se pasa al siguiente. */
+#ifndef ESCENARIO_INICIAL
+#define ESCENARIO_INICIAL ESCENARIO_ALDEA   /* make con -DESCENARIO_INICIAL=3: directo al dojo. */
+#endif
 
 static Cuerpo cuerpo;
 static ProtaSprite prota;             /* Cómo se dibuja la protagonista elegida.           */
@@ -120,11 +136,161 @@ static u8 v_reloj;                   /* Cuenta 64 frames para volver a medir el 
 static u8 reloj_noren;               /* Frames para el noren (cada 8, el otro cuadro).    */
 static Ambiente ambiente;            /* El humo y los pájaros.                            */
 static Objetos objetos;              /* Rompibles, ítems, proyectiles y chispa.           */
+static u8 escenario;                 /* ESCENARIO_* que se juega (copia de fase1_escenario). */
+static Dialogo dialogo;              /* La escena de texto en curso (Rex, el jefe).       */
+static Apoyo apoyo;                  /* La barra y el apoyo invocado.                     */
+static Cuerpo cuerpo_apoyo;          /* Dónde y cómo se dibuja el apoyo.                  */
+static u8 cambiar_paleta;            /* 1 = en el VBlank, la paleta 0 del que se dibuja.  */
+static u8 efecto, efecto_reloj;      /* Mosaico o temblor de un apoyo, y sus frames.       */
+static u8 escena_fin;                /* 0 = falta el jefe, 1 = su escena, 2 = acabada.    */
 
-/* Los rompibles de la aldea (x, y de los pies y lo que llevan); punto 4 del 2026-11-05. */
-static const u16 ROMPIBLE_X[4] = {430, 900, 1290, 1720};
-static const u16 ROMPIBLE_Y[4] = {194, 210, 190, 202};
-static const u8 ROMPIBLE_ITEM[4] = {ITEM_ONIGIRI, ITEM_SHURIKEN, ITEM_PESCADO, ITEM_KUNAI};
+u8 fase1_escenario;                  /* Ver sistema/pantallas.h.                          */
+u8 fase1_vida;
+u8 fase1_arma;
+
+/* Los rompibles de cada escenario (x, y de los pies y lo que llevan) y cuál es. */
+static const u16 ROMPIBLE_X[ESCENARIOS][4] = {
+    {430, 900, 1290, 1720}, {300, 560, 820, 900}, {200, 520, 700, 880}, {180, 420, 600, 900}};
+static const u16 ROMPIBLE_Y[ESCENARIOS][4] = {
+    {194, 210, 190, 202}, {200, 190, 212, 196}, {196, 210, 192, 204}, {204, 192, 210, 198}};
+static const u8 ROMPIBLE_ITEM[ESCENARIOS][4] = {
+    {ITEM_ONIGIRI, ITEM_SHURIKEN, ITEM_PESCADO, ITEM_KUNAI},
+    {ITEM_PESCADO, ITEM_SHURIKEN, ITEM_ONIGIRI, ITEM_KUNAI},
+    {ITEM_ONIGIRI, ITEM_VIDA, ITEM_KUNAI, ITEM_PESCADO},
+    {ITEM_SHURIKEN, ITEM_ONIGIRI, ITEM_KUNAI, ITEM_VIDA}};
+static const u8 ROMPIBLE_TIPO[ESCENARIOS] = {ROMPIBLE_BARRIL, ROMPIBLE_JARRA, ROMPIBLE_JARRA, ROMPIBLE_CAJA};
+
+/* Las escenas de texto (2 líneas por página; el texto en pantalla, en inglés). */
+static const char *const LINEAS_REX[8] = {
+    "  REX: YOU CAME THROUGH THE", "  BAMBOO FOREST. GOOD.",
+    "  REX: NIKORAEMON'S MEN WAIT", "  IN THE DOJO BEYOND.",
+    "  REX: LAND YOUR BLOWS, THEN", "  CALL US WITH X.",
+    "  R: CHANGE ALLY", "  LUCINDA - REX - FENRIR"};
+static const char *const LINEAS_JEFE[6] = {
+    "  GOMASURI-DONO: ENOUGH...", "  YOU FIGHT WELL.",
+    "  GOMASURI-DONO: NIKORAEMON", "  IS ALREADY GONE. HA!",
+    "  NIKORAEMON ESCAPES...", "  THE HUNT GOES ON."};
+
+void pantalla_fase1_desde_inicio(void)
+{
+    fase1_escenario = ESCENARIO_INICIAL;             /* La aldea (o la de -DESCENARIO_INICIAL). */
+    fase1_vida = 0;                                  /* 0 = la vida entera.                 */
+    fase1_arma = ARMA_NINGUNA;
+}
+
+/*--- siguiente_escenario: guarda vida y arma y carga el escenario de después --------*/
+static void siguiente_escenario(void)
+{
+    fase1_escenario++;
+    fase1_vida = cuerpo.vida;
+    fase1_arma = cuerpo.arma;
+}
+
+/*--- cargar_lejana: la capa lejana y el cielo del escenario --------------------------*/
+static void cargar_lejana(void)
+{
+    if (escenario == ESCENARIO_BOSQUE)
+    {
+        fondo16_cargar(1, &bosque_lejos_til, &bosque_lejos_til_end, &bosque_lejos_pal, 2,
+                       &bosque_lejos_map, &bosque_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
+    }
+    else if (escenario == ESCENARIO_MONASTERIO)
+    {
+        fondo16_cargar(1, &monasterio_lejos_til, &monasterio_lejos_til_end, &monasterio_lejos_pal, 2,
+                       &monasterio_lejos_map, &monasterio_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
+    }
+    else if (escenario == ESCENARIO_DOJO)
+    {
+        fondo16_cargar(1, &dojo_lejos_til, &dojo_lejos_til_end, &dojo_lejos_pal, 2,
+                       &dojo_lejos_map, &dojo_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
+    }
+    else
+    {
+        fondo16_cargar(1, &aldea_lejos_til, &aldea_lejos_til_end, &aldea_lejos_pal, 2,
+                       &aldea_lejos_map, &aldea_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
+    }
+}
+
+/*--- poner_cielo: el HDMA del cielo del escenario (canal 6) --------------------------*/
+static void poner_cielo(void)
+{
+    if (escenario == ESCENARIO_BOSQUE)
+    {
+        setModeHdmaColor(HDMA_CHANNEL6, (u8 *)hdmaGradcielobosqueList);
+    }
+    else if (escenario == ESCENARIO_MONASTERIO)
+    {
+        setModeHdmaColor(HDMA_CHANNEL6, (u8 *)hdmaGradcielomonasterioList);
+    }
+    else if (escenario == ESCENARIO_DOJO)
+    {
+        setModeHdmaColor(HDMA_CHANNEL6, (u8 *)hdmaGradcielodojoList);
+    }
+    else
+    {
+        setModeHdmaColor(HDMA_CHANNEL6, (u8 *)&hdmaGradatardecerList);   /* El atardecer. */
+    }
+}
+
+/*--- impacto_apoyo: el golpe del apoyo a todos los enemigos que se ven ---------------*/
+static void impacto_apoyo(void)
+{
+    u8 k;
+    Ninja *n = ninjas;
+
+    for (k = 0; k < NINJAS_MAX; k++)
+    {
+        if (n->vivo && (u16)(n->x - camara) < ANCHO_PANTALLA)
+        {
+            ninja_recibir(n, apoyo_danio(&apoyo), apoyo_derriba(&apoyo), (u8)(n->x < apoyo.x),
+                          (u8)(APOYO_GOLPE_ID + apoyo.golpe));
+        }
+        n++;
+    }
+    if (apoyo.elegido == APOYO_REX)
+    {
+        efecto = EFECTO_MOSAICO;                     /* La onda: la pantalla se pixela.     */
+        efecto_reloj = EFECTO_FRAMES;
+    }
+    else if (apoyo.elegido == APOYO_FENRIR)
+    {
+        efecto = EFECTO_TEMBLOR;                     /* La embestida: la pantalla tiembla.  */
+        efecto_reloj = EFECTO_FRAMES;
+    }
+    objetos_chispa(&objetos, apoyo.mira_izq ? (u16)(apoyo.x - 32) : (u16)(apoyo.x + 32), apoyo.y);
+}
+
+/*--- mover_apoyo: un frame del apoyo en pantalla (el resto del mundo, quieto) --------*/
+static void mover_apoyo(void)
+{
+    apoyo_actualizar(&apoyo);
+    cuerpo_apoyo.x = apoyo.x;
+    cuerpo_apoyo.estado = apoyo_atacando(&apoyo) ? CUERPO_ESPECIAL : CUERPO_CORRIENDO;
+    cuerpo_apoyo.inv = (u8)(apoyo.estado == APOYO_SALE ? apoyo.reloj | 1 : 0);   /* Parpadea al irse. */
+    if (apoyo.evento == APOYO_EVENTO_IMPACTO)
+    {
+        impacto_apoyo();
+    }
+    if (!apoyo_activo(&apoyo))                       /* Se fue: vuelve la protagonista.     */
+    {
+        protagonista_sprite_cambiar(&prota, personaje_elegido);
+        cambiar_paleta = 1;
+    }
+}
+
+/*--- invocar: X con la barra llena; el apoyo ocupa el sitio de la protagonista -------*/
+static void invocar(void)
+{
+    if (!apoyo_invocar(&apoyo, cuerpo.x, cuerpo.y, cuerpo.mira_izq))
+    {
+        return;
+    }
+    mundo_iniciar(&cuerpo_apoyo, apoyo.x, cuerpo.y);
+    cuerpo_apoyo.mira_izq = cuerpo.mira_izq;
+    cuerpo_apoyo.estado = CUERPO_CORRIENDO;
+    protagonista_sprite_cambiar(&prota, (u8)(PERSONAJE_LUCINDA + apoyo.elegido));
+    cambiar_paleta = 1;
+}
 
 /*--- salir: apaga lo que solo usa esta pantalla antes de cambiar -----------------*/
 static void salir(Pantalla siguiente)
@@ -237,6 +403,17 @@ static void aviso(void)
     u16 *p;
     u8 estado = partida.estado;
 
+    if (dialogo.activo)                              /* Una escena de texto: sus dos líneas. */
+    {
+        avisos = 1;
+        p = hud_debug_empezar(FILA_AVISO);
+        hud_debug_texto(p, dialogo_linea(&dialogo, 0));
+        hud_debug_enviar(FILA_AVISO);
+        p = hud_debug_empezar(FILA_AVISO + 1);
+        hud_debug_texto(p, dialogo_linea(&dialogo, 1));
+        hud_debug_enviar(FILA_AVISO + 1);
+        return;
+    }
     if (estado == FASE_JUGANDO || estado == FASE_KO)
     {
         if (avisos)                                  /* Se acaba de salir de la pausa.      */
@@ -277,9 +454,9 @@ void pantalla_fase1_iniciar(void)
 {
     setMode(BG_MODE1, BG3_MODE1_PRIORITY_HIGH);      /* Como el título: BG3 por delante.    */
     camara = 0;                                      /* Empieza en el borde izquierdo.      */
-    fondo_nivel_cargar_aldea(camara);                /* Capa cercana: las columnas a la vista. */
-    fondo16_cargar(1, &aldea_lejos_til, &aldea_lejos_til_end, &aldea_lejos_pal, 2,
-                   &aldea_lejos_map, &aldea_lejos_map_end, VRAM_FONDO_B, VRAM_MAPA_B, SC_64x32);
+    escenario = fase1_escenario;                     /* Aldea, bosque, monasterio o dojo.   */
+    fondo_nivel_cargar_escenario(escenario, camara); /* Capa cercana: las columnas a la vista. */
+    cargar_lejana();
     reloj_noren = 0;
     bgSetScroll(0, camara, 0);
     bgSetScroll(1, camara >> 1, 0);                  /* La lejana, a la mitad de velocidad. */
@@ -305,7 +482,23 @@ void pantalla_fase1_iniciar(void)
     sprites_usar(2);                                 /* El cuerpo y su sombra.              */
     mundo_iniciar(&cuerpo, X_INICIAL, Y_INICIAL);
     cuerpo.golpes_max = personaje_golpes(personaje_elegido);   /* Tarou 4, Bárbara 3.      */
-    oleadas_iniciar(&oleadas);
+    if (fase1_vida != 0)                             /* Viene del escenario anterior: con   */
+    {                                                /* la vida y el arma que tenía.        */
+        cuerpo.vida = fase1_vida;
+    }
+    cuerpo.arma = fase1_arma;
+    oleadas_iniciar_escenario(&oleadas, escenario);
+    dialogo_iniciar(&dialogo);
+    apoyo_iniciar(&apoyo, (u8)(escenario >= ESCENARIO_MONASTERIO));   /* Rex se une allí.  */
+    hud_apoyo_iniciar();
+    cambiar_paleta = 0;
+    efecto = 0;
+    efecto_reloj = 0;
+    escena_fin = 0;
+    if (escenario == ESCENARIO_MONASTERIO)
+    {
+        dialogo_empezar(&dialogo, LINEAS_REX, 4);    /* Rex, al llegar.                     */
+    }
     ninja_iniciar_todos(ninjas);                     /* Sin ninjas hasta la primera oleada. */
     parada = 0;
     a_guardada = 0;
@@ -321,8 +514,8 @@ void pantalla_fase1_iniciar(void)
     ninja_sprite_cargar();                           /* Sus paletas y entidades (tras Tarou). */
     ambiente_sprite_cargar();                        /* Humo y pájaros: entradas 8..14.     */
     ambiente_iniciar(&ambiente);
-    objetos_sprite_cargar(ROMPIBLE_BARRIL);          /* Objetos: entradas 15..22.           */
-    objetos_iniciar(&objetos, ROMPIBLE_X, ROMPIBLE_Y, ROMPIBLE_ITEM, 4);
+    objetos_sprite_cargar(ROMPIBLE_TIPO[escenario]); /* Objetos: entradas 15..22.           */
+    objetos_iniciar(&objetos, ROMPIBLE_X[escenario], ROMPIBLE_Y[escenario], ROMPIBLE_ITEM[escenario], 4);
     do                                               /* Primer cuadro antes del fade in, y  */
     {                                                /* sus tiles a la VRAM YA (la pantalla */
         dma_lista_vaciar();                          /* sigue apagada): media celda por     */
@@ -332,7 +525,7 @@ void pantalla_fase1_iniciar(void)
     ninja_sprite_actualizar(ninjas, camara);         /* Todas las ranuras apagadas.         */
     sprites_dibujar();                               /* La OAM, lista para el primer frame. */
 
-    setModeHdmaColor(HDMA_CHANNEL6, (u8 *)&hdmaGradatardecerList);   /* El atardecer.  */
+    poner_cielo();                                   /* El cielo del escenario (HDMA).      */
     fade_in(FRAMES_FADE);
 }
 
@@ -347,16 +540,19 @@ void pantalla_fase1_actualizar(void)
 
     /*--- La partida: pausa (Start), KO -> GAME OVER con CONTINUE, STAGE CLEAR al vencer la
            última oleada (juego/estado_fase.c, lógica pura) -------------------------------*/
-    k = estado_fase_actualizar(&partida, mando.salir_pulsado, mando.hud_pulsado,
+    k = (u8)(dialogo.activo || apoyo_activo(&apoyo));   /* Sin pausa en una escena o un apoyo. */
+    k = estado_fase_actualizar(&partida, (u8)(k ? 0 : mando.salir_pulsado), (u8)(k ? 0 : mando.hud_pulsado),
                                (u8)(cuerpo.vida == 0 && cuerpo.stun == 0),
-                               (u8)(oleadas.actual >= OLEADAS_ZONAS));
+                               (u8)(escenario == ESCENARIO_DOJO && escena_fin == 2));
     if (k == ACCION_TITULO)
     {
         salir(PANTALLA_TITULO);
         return;
     }
-    if (k == ACCION_REINICIAR)                       /* CONTINUE: la fase desde el principio, */
-    {                                                /* con el mismo personaje.            */
+    if (k == ACCION_REINICIAR)                       /* CONTINUE: el escenario desde su     */
+    {                                                /* principio, con la vida entera.      */
+        fase1_vida = 0;
+        fase1_arma = ARMA_NINGUNA;
         salir(PANTALLA_FASE1);
         return;
     }
@@ -387,6 +583,18 @@ void pantalla_fase1_actualizar(void)
     {
         /* Pausa, GAME OVER o STAGE CLEAR: el mundo, congelado (se sigue dibujando). */
     }
+    else if (dialogo.activo)                         /* Escena de texto: A pasa la página.  */
+    {
+        dialogo_actualizar(&dialogo, mando.atacar_pulsado);
+        if (!dialogo.activo && escena_fin == 1)
+        {
+            escena_fin = 2;                          /* Tras el jefe: STAGE CLEAR.          */
+        }
+    }
+    else if (apoyo_activo(&apoyo))                   /* El apoyo en pantalla: solo él se mueve. */
+    {
+        mover_apoyo();
+    }
     else if (parada)
     {
         parada--;
@@ -409,13 +617,28 @@ void pantalla_fase1_actualizar(void)
                         (u16)(camara + ANCHO_PANTALLA - MARGEN_PANTALLA)); /* ni volver atrás.      */
         camara = camara_avanzar(camara, cuerpo.x, oleadas_limite(&oleadas));
         if (oleadas_actualizar(&oleadas, camara))    /* ¿Llegó al punto de una zona? Bloquea */
-        {
-            ninja_oleada(ninjas, camara, oleadas.actual);   /* y salen los ninjas de esa oleada. */
+        {                                            /* y salen los enemigos de esa oleada. */
+            ninja_oleada_tipos(ninjas, camara, oleadas_tipos(&oleadas), oleadas_cuantos(&oleadas));
         }
         parada = combate_resolver(&cuerpo, ninjas, personaje_alcance(prota.personaje));  /* ¿Conectó el golpe de Tarou?          */
-        if (parada)                                  /* Conectó: una chispa delante.        */
-        {
+        if (parada)                                  /* Conectó: una chispa delante y la    */
+        {                                            /* barra del apoyo sube.               */
             objetos_chispa(&objetos, (u16)(cuerpo.mira_izq ? cuerpo.x - 28 : cuerpo.x + 28), cuerpo.y);
+            apoyo_cargar(&apoyo);
+        }
+#ifdef GUION_APOYO
+        if (apoyo.disponible)                        /* ROM de prueba: la barra, llena.     */
+        {
+            apoyo.barra = APOYO_BARRA_MAX;
+        }
+#endif
+        if (mando.espada_pulsado)                    /* R: el apoyo siguiente.              */
+        {
+            apoyo_cambiar(&apoyo);
+        }
+        if (mando.invocar_pulsado && cuerpo.vida != 0)   /* X: el apoyo, si la barra está llena. */
+        {
+            invocar();
         }
         combate_contexto(&cuerpo);                   /* Lo que la IA ve del protagonista.   */
         turnos = ninja_atacando(ninjas);             /* Cuántos están dando un tajo ahora.  */
@@ -463,12 +686,25 @@ void pantalla_fase1_actualizar(void)
         if (oleadas.bloqueada && ninja_vivos(ninjas) == 0)   /* Oleada sin ninjas: vencida.    */
         {
             oleadas_vencer(&oleadas);
+            if (oleadas_terminadas(&oleadas) && escenario == ESCENARIO_DOJO)
+            {
+                escena_fin = 1;                      /* El jefe cayó: su escena, y Tarou    */
+                cuerpo.estado = CUERPO_VICTORIA;     /* celebra (el mundo ya no se mueve).  */
+                dialogo_empezar(&dialogo, LINEAS_JEFE, 3);
+            }
+        }
+        if (oleadas_terminadas(&oleadas) && escenario != ESCENARIO_DOJO &&
+            cuerpo.x >= (u16)(oleadas_ancho(escenario) - SALIDA_MARGEN))   /* Al final: el    */
+        {                                                                  /* siguiente.     */
+            siguiente_escenario();
+            salir(PANTALLA_FASE1);
+            return;
         }
     }
 
     /*--- Lo que va a la pantalla: Tarou primero en la lista de DMA, luego el fondo ---*/
-    protagonista_sprite_actualizar(&prota, &cuerpo, camara);   /* Animación, subida y entidades. */
-    if (estado_fase_mundo_avanza(&partida))          /* Humo y pájaros (en pausa, quietos). */
+    protagonista_sprite_actualizar(&prota, apoyo_activo(&apoyo) ? &cuerpo_apoyo : &cuerpo, camara);
+    if (estado_fase_mundo_avanza(&partida) && escenario == ESCENARIO_ALDEA)   /* Humo y pájaros. */
     {
         ambiente_actualizar(&ambiente, camara);
     }
@@ -476,8 +712,8 @@ void pantalla_fase1_actualizar(void)
     objetos_sprite_actualizar(&objetos, camara);     /* (Y el dibujo de un ítem nuevo.)     */
     ninja_sprite_actualizar(ninjas, camara);         /* Sus cuadros (tras Tarou en la lista). */
     fondo_nivel_actualizar(camara);                  /* Las columnas que entran.            */
-    if (estado_fase_mundo_avanza(&partida))          /* El noren ondea (en pausa, quieto):  */
-    {                                                /* 8 tiles, 256 bytes, cada 8 frames.  */
+    if (estado_fase_mundo_avanza(&partida) && escenario == ESCENARIO_ALDEA)   /* El noren ondea */
+    {                                                /* (8 tiles, 256 bytes, cada 8 frames). */
         reloj_noren++;
         if ((reloj_noren & NOREN_CADA) == 0)
         {
@@ -493,13 +729,40 @@ void pantalla_fase1_actualizar(void)
     }
     sprites_dibujar();                               /* UNA llamada: toda la OAM.           */
     aviso();                                         /* PAUSE / GAME OVER / STAGE CLEAR.    */
+    if (!hud_visible)
+    {
+        hud_apoyo_actualizar(&apoyo);                /* La barra del apoyo (fila 5).        */
+    }
     hud();
 }
 
 void pantalla_fase1_vblank(void)
 {
-    bgSetScroll(0, camara, 0);                       /* El scroll de las dos capas, a la    */
-    bgSetScroll(1, camara >> 1, 0);                  /* vez que sus columnas y la OAM.      */
+    u16 temblor = 0;
+
+    if (efecto_reloj)                                /* El efecto de un apoyo.              */
+    {
+        efecto_reloj--;
+        if (efecto == EFECTO_MOSAICO)                /* De 15 a 0: la onda se deshace.      */
+        {
+            REG_MOSAICO = (u8)(((efecto_reloj >> 1) << 4) | 0x03);   /* BG1 y BG2.            */
+        }
+        else
+        {
+            temblor = (u16)((efecto_reloj & 2) ? 3 : 0);   /* Arriba y abajo cada 2 frames. */
+        }
+        if (efecto_reloj == 0)
+        {
+            REG_MOSAICO = 0;
+        }
+    }
+    bgSetScroll(0, camara, temblor);                 /* El scroll de las dos capas, a la    */
+    bgSetScroll(1, camara >> 1, temblor);            /* vez que sus columnas y la OAM.      */
+    if (cambiar_paleta && !atenuada)                 /* Entra o sale un apoyo: su paleta.   */
+    {
+        cambiar_paleta = 0;
+        dmaCopyCGram((u8 *)protagonista_paleta(prota.personaje), 128, 32);
+    }
     if (cambiar_luz)                                 /* Media luz: fondos con la matemática */
     {                                                /* de color, sprites con su paleta.    */
         cambiar_luz = 0;

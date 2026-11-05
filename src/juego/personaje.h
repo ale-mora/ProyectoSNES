@@ -99,6 +99,22 @@ typedef enum
 #define TAROU_TIRA_GOLPE_3 17
 #define TAROU_TIRA_RECIBIR 18
 #define TAROU_TIRA_KO 19
+#define TAROU_TIRA_GOLPE_4 20            /* Las del 2026-11-05 (punto 8): solo en .p16, sus   */
+#define TAROU_TIRA_LEVANTARSE 21         /* cuadros no están en tarou_anim.h.                 */
+#define TAROU_TIRA_DERRIBADO 22
+#define TAROU_TIRA_VICTORIA 23
+#define TAROU_GOLPE_4_CUADROS 6
+#define TAROU_LEVANTARSE_CUADROS 6
+#define TAROU_DERRIBADO_CUADROS 6
+#define TAROU_VICTORIA_CUADROS 4
+
+/* Los apoyos (juego/apoyo.h) se dibujan con la misma capa que la protagonista: son
+   «personajes» de dos tiras (entrada y ataque), después de los elegibles. */
+#define PERSONAJE_LUCINDA 2
+#define PERSONAJE_REX 3
+#define PERSONAJE_FENRIR 4
+#define APOYO_TIRA_ENTRADA 0
+#define APOYO_TIRA_ATAQUE 1
 
 /* Una animación: 4 bytes (potencia de 2: tabla[i] no llama a tcc__mul). */
 typedef struct

@@ -356,6 +356,12 @@ void mando_leer(Mando *m)
         m->atacar = (u8)((teclas & G_ATK) != 0);
         m->correr = m->espada_pulsado = 0;
         m->invocar_pulsado = 0;
+#ifdef GUION_APOYO
+        /* Con -DGUION_APOYO (y la barra siempre llena, pantalla_fase1.c): R a los 50 frames de
+           cada 128 y X a los 100: los tres apoyos, uno tras otro. */
+        m->espada_pulsado = (u8)((cuadro_guion & 127) == 50);
+        m->invocar_pulsado = (u8)((cuadro_guion & 127) == 100);
+#endif
         m->hud_pulsado = (u8)((pulsados & KEY_SELECT) != 0);   /* Estos dos, del mando real. */
         m->salir_pulsado = (u8)((pulsados & KEY_START) != 0);
         m->actividad = (u8)(teclas != 0);

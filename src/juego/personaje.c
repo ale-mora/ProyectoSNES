@@ -43,8 +43,8 @@ static const AnimProta ANIMS_TAROU[ANIM_PROTA_CANTIDAD] = {
     {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 3, 0},        /* 7 en 20: salto y mordisco. */
     {TAROU_TIRA_RECIBIR, TAROU_RECIBIR_CUADROS, 3, 0},        /* 5 dibujos en 16 frames.   */
     {TAROU_TIRA_KO, TAROU_KO_CUADROS, 6, 0},                  /* Cae y se queda tumbado.   */
-    /* Los movimientos nuevos: hasta que llegue su arte (punto 8 del 2026-11-05), con las
-       tiras que ya tiene. */
+    /* Los movimientos nuevos: los que ya tienen arte (punto 8 del 2026-11-05: golpe 4,
+       derribado, levantarse y victoria) con su tira; los demás, con las que ya tenía. */
     {ESTADO_CORRIENDO, TAROU_CORRER_CUADROS, 4, 1},           /* ANIM_CORRER (la del plataformas). */
     {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 3, 0},        /* ANIM_AEREO                */
     {TAROU_TIRA_GUARDIA_BU, 1, 8, 1},                         /* ANIM_AGARRE               */
@@ -52,11 +52,11 @@ static const AnimProta ANIMS_TAROU[ANIM_PROTA_CANTIDAD] = {
     {TAROU_TIRA_GOLPE_2, TAROU_GOLPE_2_CUADROS, 4, 0},        /* ANIM_LANZAMIENTO          */
     {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 4, 0},        /* ANIM_ESPECIAL             */
     {TAROU_TIRA_GOLPE_1, TAROU_GOLPE_1_CUADROS, 3, 0},        /* ANIM_LANZAR_ARMA          */
-    {TAROU_TIRA_KO, TAROU_KO_CUADROS, 6, 0},                  /* ANIM_DERRIBADO            */
-    {TAROU_TIRA_GUARDIA_BU, TAROU_GUARDIA_BU_CUADROS, 3, 0},  /* ANIM_LEVANTARSE           */
+    {TAROU_TIRA_DERRIBADO, TAROU_DERRIBADO_CUADROS, 6, 0},    /* ANIM_DERRIBADO: 36 frames. */
+    {TAROU_TIRA_LEVANTARSE, TAROU_LEVANTARSE_CUADROS, 3, 0},  /* ANIM_LEVANTARSE: 18 de 20. */
     {TAROU_TIRA_RECIBIR, TAROU_RECIBIR_CUADROS, 6, 1},        /* ANIM_AGARRADA             */
-    {TAROU_TIRA_GUARDIA_BU, TAROU_GUARDIA_BU_CUADROS, 8, 1},  /* ANIM_VICTORIA             */
-    {TAROU_TIRA_GOLPE_3, TAROU_GOLPE_3_CUADROS, 3, 0},        /* ANIM_GOLPE_4              */
+    {TAROU_TIRA_VICTORIA, TAROU_VICTORIA_CUADROS, 6, 0},      /* ANIM_VICTORIA             */
+    {TAROU_TIRA_GOLPE_4, TAROU_GOLPE_4_CUADROS, 3, 0},        /* ANIM_GOLPE_4              */
 };
 
 /* Bárbara: su arte de beat 'em up. */
@@ -84,19 +84,38 @@ static const AnimProta ANIMS_BARBARA[ANIM_PROTA_CANTIDAD] = {
     {BARBARA_TIRA_GOLPE_3, BARBARA_GOLPE_3_CUADROS, 3, 0},   /* ANIM_GOLPE_4 (no lo usa). */
 };
 
+/* Los apoyos: la carrera de entrada en bucle para todo, y el ataque en ANIM_ESPECIAL
+   (pantalla_fase1.c les pone CUERPO_CORRIENDO y luego CUERPO_ESPECIAL). */
+#define APOYO_ENTRA {APOYO_TIRA_ENTRADA, 4, 4, 1}
+static const AnimProta ANIMS_APOYO[ANIM_PROTA_CANTIDAD] = {
+    APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA,
+    APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA,
+    APOYO_ENTRA, APOYO_ENTRA,
+    {APOYO_TIRA_ATAQUE, 6, 6, 0},                            /* ANIM_ESPECIAL: 36 frames. */
+    APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA, APOYO_ENTRA,
+};
+
+/* La celda de cada uno (Tarou, Bárbara, Lucinda, Rex, Fenrir). */
+static const u8 ANCHO_CELDA[5] = {96, 112, 96, 96, 112};
+static const u8 ALTO_CELDA[5] = {64, 96, 96, 96, 112};
+
 const AnimProta *personaje_anims(u8 personaje)
 {
-    return personaje == PERSONAJE_BARBARA ? ANIMS_BARBARA : ANIMS_TAROU;
+    if (personaje == PERSONAJE_TAROU)
+    {
+        return ANIMS_TAROU;
+    }
+    return personaje == PERSONAJE_BARBARA ? ANIMS_BARBARA : ANIMS_APOYO;
 }
 
 u8 personaje_ancho(u8 personaje)
 {
-    return (u8)(personaje == PERSONAJE_BARBARA ? 112 : 96);
+    return ANCHO_CELDA[personaje];
 }
 
 u8 personaje_alto(u8 personaje)
 {
-    return (u8)(personaje == PERSONAJE_BARBARA ? 96 : 64);
+    return ALTO_CELDA[personaje];
 }
 
 u16 personaje_alcance(u8 personaje)

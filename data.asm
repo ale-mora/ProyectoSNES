@@ -217,6 +217,78 @@ obj_pieza4:           .db 0, 0, 16, 0, 0, 16, 16, 16
 obj_banco:            .db :objetos_til
 .ends
 
+; Los otros escenarios de la fase 1 (scripts/preparar_zona.py, 1024 px cada uno): capa
+; cercana (hasta 512 tiles y una paleta), su mapa por columnas (128 x 32 x 2 = 8 KB) con
+; su banco, la lejana (gfx4snes, -e 2) y el cielo (HDMA, un color por línea).
+.section ".rodata_bosque_cerca" superfree
+bosque_cerca_til:   .incbin "res/zonas/bosque/cerca_til.bin"
+bosque_cerca_til_end:
+bosque_cerca_pal:   .incbin "res/zonas/bosque/cerca_pal.bin"
+.ends
+
+.section ".rodata_bosque_col" superfree
+bosque_cerca_col:   .incbin "res/zonas/bosque/cerca_col.bin"
+bosque_banco:       .db :bosque_cerca_col
+.ends
+
+.section ".rodata_bosque_lejos" superfree
+bosque_lejos_til:   .incbin "res/zonas/bosque/lejos.pic"
+bosque_lejos_til_end:
+bosque_lejos_pal:   .incbin "res/zonas/bosque/lejos.pal"
+bosque_lejos_map:   .incbin "res/zonas/bosque/lejos.map"
+bosque_lejos_map_end:
+.ends
+
+.section ".rodata_bosque_cielo" superfree
+.include "res/zonas/bosque/cielobosque_grad_data.as"
+.ends
+
+.section ".rodata_monasterio_cerca" superfree
+monasterio_cerca_til:   .incbin "res/zonas/monasterio/cerca_til.bin"
+monasterio_cerca_til_end:
+monasterio_cerca_pal:   .incbin "res/zonas/monasterio/cerca_pal.bin"
+.ends
+
+.section ".rodata_monasterio_col" superfree
+monasterio_cerca_col:   .incbin "res/zonas/monasterio/cerca_col.bin"
+monasterio_banco:       .db :monasterio_cerca_col
+.ends
+
+.section ".rodata_monasterio_lejos" superfree
+monasterio_lejos_til:   .incbin "res/zonas/monasterio/lejos.pic"
+monasterio_lejos_til_end:
+monasterio_lejos_pal:   .incbin "res/zonas/monasterio/lejos.pal"
+monasterio_lejos_map:   .incbin "res/zonas/monasterio/lejos.map"
+monasterio_lejos_map_end:
+.ends
+
+.section ".rodata_monasterio_cielo" superfree
+.include "res/zonas/monasterio/cielomonasterio_grad_data.as"
+.ends
+
+.section ".rodata_dojo_cerca" superfree
+dojo_cerca_til:   .incbin "res/zonas/dojo/cerca_til.bin"
+dojo_cerca_til_end:
+dojo_cerca_pal:   .incbin "res/zonas/dojo/cerca_pal.bin"
+.ends
+
+.section ".rodata_dojo_col" superfree
+dojo_cerca_col:   .incbin "res/zonas/dojo/cerca_col.bin"
+dojo_banco:       .db :dojo_cerca_col
+.ends
+
+.section ".rodata_dojo_lejos" superfree
+dojo_lejos_til:   .incbin "res/zonas/dojo/lejos.pic"
+dojo_lejos_til_end:
+dojo_lejos_pal:   .incbin "res/zonas/dojo/lejos.pal"
+dojo_lejos_map:   .incbin "res/zonas/dojo/lejos.map"
+dojo_lejos_map_end:
+.ends
+
+.section ".rodata_dojo_cielo" superfree
+.include "res/zonas/dojo/cielodojo_grad_data.as"
+.ends
+
 .section ".rodata_aldea_cielo" superfree
 .include "res/aldea/atardecer_grad_data.as"                        ; el cielo del atardecer
 .ends
@@ -385,12 +457,60 @@ tarou_recibir_p16: .incbin "res/personajes/tarou/tarou_recibir.p16"
 .section ".rodata_p16_t_ko" superfree
 tarou_ko_p16: .incbin "res/personajes/tarou/tarou_ko.p16"
 .ends
+; Y las del 2026-11-05 (punto 8): golpe 4, levantarse, derribado y victoria.
+.section ".rodata_p16_t_golpe_4" superfree
+tarou_golpe_4_p16: .incbin "res/personajes/tarou/tarou_golpe_4.p16"
+.ends
+.section ".rodata_p16_t_levantarse" superfree
+tarou_levantarse_p16: .incbin "res/personajes/tarou/tarou_levantarse.p16"
+.ends
+.section ".rodata_p16_t_derribado" superfree
+tarou_derribado_p16: .incbin "res/personajes/tarou/tarou_derribado.p16"
+.ends
+.section ".rodata_p16_t_victoria" superfree
+tarou_victoria_p16: .incbin "res/personajes/tarou/tarou_victoria.p16"
+.ends
+
+; --- Los apoyos (2026-11-05; juego/apoyo.h): Lucinda, Rex y Fenrir, dos tiras .p16 cada
+; uno (entrada y ataque), su paleta y el banco de cada tira. Se dibujan con la capa de la
+; protagonista (protagonista_sprite.c), en su sitio, mientras dura la invocación.
+.section ".rodata_a_lucinda_entrada" superfree
+lucinda_entrada_p16: .incbin "res/personajes/lucinda/lucinda_entrada.p16"
+.ends
+.section ".rodata_a_lucinda_ataque" superfree
+lucinda_ataque_p16: .incbin "res/personajes/lucinda/lucinda_ataque.p16"
+.ends
+.section ".rodata_a_lucinda_pal" superfree
+lucinda_pal: .incbin "res/personajes/lucinda/lucinda_entrada.pal"
+lucinda_p16_bancos: .db :lucinda_entrada_p16, :lucinda_ataque_p16
+.ends
+.section ".rodata_a_rex_entrada" superfree
+rex_entrada_p16: .incbin "res/personajes/rex/rex_entrada.p16"
+.ends
+.section ".rodata_a_rex_ataque" superfree
+rex_ataque_p16: .incbin "res/personajes/rex/rex_ataque.p16"
+.ends
+.section ".rodata_a_rex_pal" superfree
+rex_pal: .incbin "res/personajes/rex/rex_entrada.pal"
+rex_p16_bancos: .db :rex_entrada_p16, :rex_ataque_p16
+.ends
+.section ".rodata_a_fenrir_entrada" superfree
+fenrir_entrada_p16: .incbin "res/personajes/fenrir/fenrir_entrada.p16"
+.ends
+.section ".rodata_a_fenrir_ataque" superfree
+fenrir_ataque_p16: .incbin "res/personajes/fenrir/fenrir_ataque.p16"
+.ends
+.section ".rodata_a_fenrir_pal" superfree
+fenrir_pal: .incbin "res/personajes/fenrir/fenrir_entrada.pal"
+fenrir_p16_bancos: .db :fenrir_entrada_p16, :fenrir_ataque_p16
+.ends
 
 ; El banco de cada tira .p16, en el orden del enum Estado la guardia y las del beat 'em up (TAROU_TIRA_*, juego/personaje.h).
 .section ".rodata_p16_bancos" superfree
 tarou_p16_bancos: .db :tarou_reposo_p16, :tarou_caminar_p16, :tarou_correr_p16, :tarou_saltar_p16, :tarou_caer_p16, :tarou_agachado_p16, :tarou_agachado_caminar_p16
                   .db :tarou_desenvainar_p16, :tarou_envainar_p16, :tarou_atacar_p16, :tarou_echarse_p16, :tarou_dormido_p16, :tarou_despertar_p16, :tarou_guardia_p16
                   .db :tarou_guardia_bu_p16, :tarou_golpe_1_p16, :tarou_golpe_2_p16, :tarou_golpe_3_p16, :tarou_recibir_p16, :tarou_ko_p16
+                  .db :tarou_golpe_4_p16, :tarou_levantarse_p16, :tarou_derribado_p16, :tarou_victoria_p16
 .ends
 
 ; --- Bárbara en piezas de 16x16 (formato .p16, celda de 112x96) -----------------------

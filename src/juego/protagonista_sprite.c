@@ -35,6 +35,10 @@
 extern char tarou_reposo_p16, tarou_caminar_p16, tarou_saltar_p16, tarou_caer_p16, tarou_atacar_p16, tarou_correr_p16;
 extern char tarou_guardia_bu_p16, tarou_golpe_1_p16, tarou_golpe_2_p16, tarou_golpe_3_p16;
 extern char tarou_recibir_p16, tarou_ko_p16;
+extern char tarou_golpe_4_p16, tarou_levantarse_p16, tarou_derribado_p16, tarou_victoria_p16;
+extern char lucinda_entrada_p16, lucinda_ataque_p16, rex_entrada_p16, rex_ataque_p16;
+extern char fenrir_entrada_p16, fenrir_ataque_p16, lucinda_pal, rex_pal, fenrir_pal;
+extern u8 lucinda_p16_bancos[], rex_p16_bancos[], fenrir_p16_bancos[];
 extern char barbara_guardia_p16, barbara_caminar_p16, barbara_saltar_p16, barbara_caer_p16;
 extern char barbara_golpe_1_p16, barbara_golpe_2_p16, barbara_golpe_3_p16;
 extern char barbara_recibir_p16, barbara_ko_p16;
@@ -54,6 +58,18 @@ extern u8 sombra_banco;
 /*--- tira_de: dónde empieza en la ROM una tira .p16 y en qué banco --------------------*/
 static const u8 *tira_de(u8 personaje, u8 tira)
 {
+    if (personaje == PERSONAJE_LUCINDA)              /* Los apoyos: entrada o ataque.       */
+    {
+        return tira ? (const u8 *)&lucinda_ataque_p16 : (const u8 *)&lucinda_entrada_p16;
+    }
+    if (personaje == PERSONAJE_REX)
+    {
+        return tira ? (const u8 *)&rex_ataque_p16 : (const u8 *)&rex_entrada_p16;
+    }
+    if (personaje == PERSONAJE_FENRIR)
+    {
+        return tira ? (const u8 *)&fenrir_ataque_p16 : (const u8 *)&fenrir_entrada_p16;
+    }
     if (personaje == PERSONAJE_BARBARA)
     {
         switch (tira)
@@ -88,6 +104,10 @@ static const u8 *tira_de(u8 personaje, u8 tira)
         case TAROU_TIRA_GOLPE_3: return (const u8 *)&tarou_golpe_3_p16;
         case TAROU_TIRA_RECIBIR: return (const u8 *)&tarou_recibir_p16;
         case TAROU_TIRA_KO:      return (const u8 *)&tarou_ko_p16;
+        case TAROU_TIRA_GOLPE_4: return (const u8 *)&tarou_golpe_4_p16;
+        case TAROU_TIRA_LEVANTARSE: return (const u8 *)&tarou_levantarse_p16;
+        case TAROU_TIRA_DERRIBADO: return (const u8 *)&tarou_derribado_p16;
+        case TAROU_TIRA_VICTORIA: return (const u8 *)&tarou_victoria_p16;
         case ESTADO_CAMINANDO: return (const u8 *)&tarou_caminar_p16;
         case ESTADO_CORRIENDO: return (const u8 *)&tarou_correr_p16;
         case ESTADO_SALTANDO:  return (const u8 *)&tarou_saltar_p16;
@@ -99,12 +119,42 @@ static const u8 *tira_de(u8 personaje, u8 tira)
 
 static u8 banco_de(u8 personaje, u8 tira)
 {
-    return personaje == PERSONAJE_BARBARA ? barbara_p16_bancos[tira] : tarou_p16_bancos[tira];
+    switch (personaje)
+    {
+        case PERSONAJE_BARBARA: return barbara_p16_bancos[tira];
+        case PERSONAJE_LUCINDA: return lucinda_p16_bancos[tira];
+        case PERSONAJE_REX:     return rex_p16_bancos[tira];
+        case PERSONAJE_FENRIR:  return fenrir_p16_bancos[tira];
+        default:                return tarou_p16_bancos[tira];
+    }
 }
 
 const u8 *protagonista_paleta(u8 personaje)
 {
-    return personaje == PERSONAJE_BARBARA ? (const u8 *)&barbara_pal : (const u8 *)&tarou_pal;
+    switch (personaje)
+    {
+        case PERSONAJE_BARBARA: return (const u8 *)&barbara_pal;
+        case PERSONAJE_LUCINDA: return (const u8 *)&lucinda_pal;
+        case PERSONAJE_REX:     return (const u8 *)&rex_pal;
+        case PERSONAJE_FENRIR:  return (const u8 *)&fenrir_pal;
+        default:                return (const u8 *)&tarou_pal;
+    }
+}
+
+void protagonista_sprite_cambiar(ProtaSprite *p, u8 personaje)
+{
+    p->personaje = personaje;                        /* Mismas entidades, búferes y tope;   */
+    p->ancho = personaje_ancho(personaje);           /* otra celda y otras tiras.           */
+    p->alto = personaje_alto(personaje);
+    p->anims = personaje_anims(personaje);
+    p->a.anim = ANIM_GUARDIA;
+    p->a.cuadro = 0;
+    p->a.reloj = 0;
+    p->m_anim = SIN_CUADRO;                          /* Lo de la VRAM ya no vale: se oculta */
+    p->m_cuadro = SIN_CUADRO;                        /* hasta que suba su primer cuadro.    */
+    p->s_anim = SIN_CUADRO;
+    p->s_cuadro = SIN_CUADRO;
+    sprites_ent[p->ent].n = 0;
 }
 
 void protagonista_escena_cargar(void)

@@ -215,6 +215,27 @@ MAPEOS_PIXELLAB = {
 # agarre (29) y el 4.º del lanzamiento (25).
 MAPEOS_PIXELLAB["kendoka"]["agarre"] = ("Idle/agarre", "east", [0, 1], None, False)
 MAPEOS_PIXELLAB["kendoka"]["lanzamiento"] = ("Idle/lanzamiento", "east", [0, 1, 2, 4, 5], None, False)
+# Las 4 animaciones nuevas de Tarou (2026-11-05): NO están en ANIMACIONES (tarou_anim.h no cambia)
+# ni en su paleta; se generan con `--extras` sobre la paleta ya guardada (ver preparar_extras).
+EXTRAS_TAROU = {
+    "golpe_4": ("Fight_Pose/golpe_4", "east", 0, None, False),         # 6
+    "levantarse": ("Fight_Pose/levantarse", "east", 0, None, False),   # 6
+    "derribado": ("Fight_Pose/derribado", "east", 0, None, False),     # 6
+    "victoria": ("Fight_Pose/victoria", "east", 0, None, False),       # 4
+}
+# Personajes de apoyo (2026-11-05): salen ~1,5 s, entran andando y hacen un ataque.
+MAPEOS_PIXELLAB["lucinda"] = {
+    "entrada": ("Idle/entrada", "east", 0, None, False),    # 4
+    "ataque": ("Idle/tajo", "east", 0, None, False),        # 6
+}
+MAPEOS_PIXELLAB["rex"] = {
+    "entrada": ("Idle/entrada", "east", 0, None, False),    # 4
+    "ataque": ("Idle/meditar", "east", 0, None, False),     # 6
+}
+MAPEOS_PIXELLAB["fenrir"] = {
+    "entrada": ("Idle/entrada", "east", 0, None, False),    # 4
+    "ataque": ("Idle/embestida", "east", 0, None, False),   # 6
+}
 # El ninja rápido es el ninja normal con el traje verde: el mismo mapeo (y la misma carpeta).
 MAPEOS_PIXELLAB["ninja_rapido"] = MAPEOS_PIXELLAB["ninja"]
 
@@ -246,6 +267,8 @@ ANIMACIONES_NINJA_TIPO = [
     ("guardia", 8), ("caminar", 6), ("ataque_1", 3), ("recibir", 6), ("derribado", 7),
     ("levantarse", 5), ("ko", 7),
 ]
+
+ANIMACIONES_APOYO = [("entrada", 4), ("ataque", 6)]
 
 # Cada personaje: celda (ancho, alto), animaciones, si lleva la tira estática de
 # reposo (solo Tarou: la usa src/pantallas/personajes.c) y los colores FIJOS.
@@ -301,6 +324,10 @@ PERSONAJES = {
     # dos ranuras grandes de la VRAM, 48 piezas).
     "kendoka": {"celda": (128, 112), "animaciones": ANIMACIONES_KENDOKA, "estatico": False, "fijos": []},
     "gomasuri": {"celda": (144, 112), "animaciones": ANIMACIONES_GOMASURI, "estatico": False, "fijos": []},
+    # Apoyos (2026-11-05): cada cuadro debe caber en 24 piezas de 16x16 (el búfer es de 96 tiles).
+    "lucinda": {"celda": (96, 96), "animaciones": ANIMACIONES_APOYO, "estatico": False, "fijos": []},
+    "rex": {"celda": (96, 96), "animaciones": ANIMACIONES_APOYO, "estatico": False, "fijos": []},
+    "fenrir": {"celda": (112, 112), "animaciones": ANIMACIONES_APOYO, "estatico": False, "fijos": []},
 }
 # Un nombre que no está en PERSONAJES se trata como Tarou (celda 96x64, 14 animaciones).
 POR_DEFECTO = PERSONAJES["tarou"]
@@ -665,15 +692,51 @@ def preparar(nombre: str, entrada: Path, salida: Path) -> dict:
     return resultado
 
 
+def paleta_de_tira(ruta: Path) -> list:
+    """Los colores opacos (índices 1..) de una tira ya guardada, para reutilizarlos."""
+    with Image.open(ruta) as im:
+        pal = im.getpalette()
+    return [tuple(pal[i * 3: i * 3 + 3]) for i in range(1, 16)]
+
+
+def preparar_extras(nombre: str, entrada: Path, salida: Path, extras: dict, referencia: str) -> dict:
+    """Escribe SOLO las animaciones `extras` de `nombre` con la paleta de la tira ya guardada
+    `referencia` (así comparten paleta con las existentes y no se toca ninguna otra).
+    No escribe el header: los cuadros no entran en <nombre>_anim.h."""
+    celda_wh = PERSONAJES[nombre]["celda"]
+    colores = paleta_de_tira(salida / f"{nombre}_{referencia}.png")
+    resultado = {}
+    for animacion, regla in extras.items():
+        cuadros = cargar_pixellab(entrada, regla, celda_wh, animacion)
+        if not cuadros:
+            sys.exit(f"ERROR: no hay arte de {animacion} en {entrada}")
+        if len(cuadros) > MAX_CUADROS:
+            sys.exit(f"ERROR: {animacion} tiene {len(cuadros)} cuadros (máximo {MAX_CUADROS}).")
+        tira = Image.new("RGBA", (celda_wh[0] * len(cuadros), celda_wh[1]), (0, 0, 0, 0))
+        for k, c in enumerate(cuadros):
+            tira.paste(c, (k * celda_wh[0], 0), c)
+        indexar(tira, colores).save(salida / f"{nombre}_{animacion}.png", format="PNG")
+        resultado[animacion] = len(cuadros)
+        print(f"  {nombre}_{animacion}.png  {len(cuadros)} cuadros  (extra, paleta de {referencia})")
+    return resultado
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Prepara las animaciones de un personaje para gfx4snes.")
     ap.add_argument("nombre", help="personaje: tarou, barbara...")
     ap.add_argument("--entrada", type=Path, default=None, help="carpeta de Pixellab (por defecto res/descargas/graficos/pixellab/<nombre>)")
     ap.add_argument("--salida", type=Path, default=None, help="carpeta de salida (por defecto res/personajes/<nombre>)")
+    ap.add_argument("--extras", action="store_true",
+                    help="solo las animaciones EXTRAS_TAROU, con la paleta de tarou_golpe_1.png (no toca nada más)")
     args = ap.parse_args()
     entrada = args.entrada or Path("res/descargas/graficos/pixellab") / args.nombre
     salida = args.salida or Path("res/personajes") / args.nombre
     print(f"[{args.nombre}] entrada: {entrada}  salida: {salida}")
+    if args.extras:
+        if args.nombre != "tarou":
+            sys.exit("ERROR: --extras solo existe para tarou")
+        preparar_extras(args.nombre, entrada, salida, EXTRAS_TAROU, "golpe_1")
+        return 0
     preparar(args.nombre, entrada, salida)
     return 0
 

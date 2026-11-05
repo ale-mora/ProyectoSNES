@@ -20,6 +20,7 @@
 #include "minitest.h"
 #include "juego/oleadas.h"
 #include "juego/camara.h"
+#include "enemigos/ninja.h"
 
 void pruebas_oleadas(void)
 {
@@ -50,7 +51,7 @@ void pruebas_oleadas(void)
     oleadas_actualizar(&o, 1536);
     oleadas_vencer(&o);
     COMPROBAR(o.actual == OLEADAS_ZONAS && o.bloqueada == 0);
-    COMPROBAR(oleadas_limite(&o) == 0xFFFF);
+    COMPROBAR(oleadas_limite(&o) == CAMARA_MAX);   /* Sin zonas: el final de la aldea. */
     COMPROBAR(oleadas_actualizar(&o, 1792) == 0);    /* Sin zonas que bloqueen.            */
 
     /* Con la cámara real: el protagonista corre y la cámara se para en el punto. */
@@ -93,4 +94,52 @@ void pruebas_oleadas(void)
         }
     }
     COMPROBAR(avisos == OLEADAS_ZONAS && o.actual == OLEADAS_ZONAS);
+    COMPROBAR(oleadas_terminadas(&o));
+
+    /* La aldea, como antes: N; N+M; N+M+G; N+M+G. */
+    oleadas_iniciar(&o);
+    COMPROBAR(o.escenario == ESCENARIO_ALDEA && oleadas_ancho(ESCENARIO_ALDEA) == 2048);
+    COMPROBAR(oleadas_cuantos(&o) == 1 && oleadas_tipos(&o)[0] == NINJA_NORMAL);
+    o.actual = 2;
+    COMPROBAR(oleadas_cuantos(&o) == 3 && oleadas_tipos(&o)[2] == NINJA_GRANDE);
+
+    /* Los otros escenarios (1024 px): cada zona se alcanza, ninguna pasa del final
+       (1024 - 256 = 768), al terminar la cámara llega al final y no más. */
+    {
+        u8 e;
+        for (e = ESCENARIO_BOSQUE; e < ESCENARIOS; e++)
+        {
+            oleadas_iniciar_escenario(&o, e);
+            COMPROBAR(oleadas_ancho(e) == 1024);
+            COMPROBAR(!oleadas_terminadas(&o));
+            camara = 0;
+            avisos = 0;
+            for (x = 0; x < 3000; x++)
+            {
+                camara = camara_avanzar(camara, 2047, oleadas_limite(&o));
+                if (camara > 768)
+                {
+                    avisos = 100;                    /* Se pasó del final: falla abajo.     */
+                }
+                if (oleadas_actualizar(&o, camara))
+                {
+                    if (oleadas_cuantos(&o) >= 1 && oleadas_cuantos(&o) <= OLEADA_TIPOS)
+                    {
+                        avisos++;                    /* Una oleada con 1..3 enemigos.       */
+                    }
+                    oleadas_vencer(&o);
+                }
+            }
+            COMPROBAR(avisos == o.zonas && oleadas_terminadas(&o));
+            COMPROBAR(camara == 768);
+        }
+    }
+
+    /* El dojo acaba con el jefe solo. */
+    oleadas_iniciar_escenario(&o, ESCENARIO_DOJO);
+    o.actual = 1;
+    COMPROBAR(oleadas_cuantos(&o) == 1 && oleadas_tipos(&o)[0] == NINJA_JEFE);
+    /* El bosque abre con un ninja rápido. */
+    oleadas_iniciar_escenario(&o, ESCENARIO_BOSQUE);
+    COMPROBAR(oleadas_tipos(&o)[0] == NINJA_RAPIDO);
 }

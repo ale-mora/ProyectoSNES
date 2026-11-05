@@ -73,6 +73,12 @@ void protagonista_sprite_cargar(ProtaSprite *p, u8 personaje, u8 ent, u16 tile_a
    sprites_ordenar() (una vez por frame, después de todas las entidades). */
 void protagonista_sprite_actualizar(ProtaSprite *p, const Cuerpo *c, u16 camara);
 
+/* Con la pantalla encendida: cambia el personaje que se dibuja (un apoyo entra en el sitio
+   de la protagonista, o ella vuelve) sin tocar el hardware. Se oculta hasta que su primer
+   cuadro esté en la VRAM. La paleta la copia quien llama, en el VBlank
+   (protagonista_paleta). */
+void protagonista_sprite_cambiar(ProtaSprite *p, u8 personaje);
+
 /* 1 cuando el cuadro actual ya está entero en la VRAM (antes del fade in). */
 u8 protagonista_sprite_al_dia(const ProtaSprite *p);
 

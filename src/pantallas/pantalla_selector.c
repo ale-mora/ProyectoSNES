@@ -160,6 +160,7 @@ void pantalla_selector_actualizar(void)
     if (pulsado & (KEY_START | KEY_A))               /* Confirma: a la fase 1 con él.       */
     {
         personaje_elegido = marcado;
+        pantalla_fase1_desde_inicio();               /* Desde la aldea, con la vida entera. */
         salir(PANTALLA_FASE1);
         return;
     }
