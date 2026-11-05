@@ -1,0 +1,158 @@
+diff --git a/src/juego/estado_fase.c b/src/juego/estado_fase.c
+index b14bbbd..e30ecb5 100644
+--- a/src/juego/estado_fase.c
++++ b/src/juego/estado_fase.c
+@@ -19,7 +19,7 @@
+ 
+ void estado_fase_iniciar(EstadoFase *e)
+ {
+-    e->estado = FASE_JUGANDO;
++    e->estado = FASE_PREPARADOS;             /* «READY?» antes de jugar (ejercicio 28). */
+     e->reloj = 0;
+     e->cuenta = FASE_CONTINUE;
+     e->libre = 0;
+@@ -88,6 +88,14 @@ u8 estado_fase_actualizar(EstadoFase *e, u8 start, u8 select, u8 ko, u8 fase_ven
+             }
+             return ACCION_NADA;
+ 
++        case FASE_PREPARADOS:                        /* «READY?»: nada lo corta.            */
++            e->reloj++;
++            if (e->reloj >= FASE_PREPARADOS_FRAMES)
++            {
++                pasar(e, FASE_JUGANDO);
++            }
++            return ACCION_NADA;
++
+         default:                                     /* FASE_STAGE_CLEAR                    */
+             e->reloj++;
+             if (e->reloj >= FASE_STAGE_CLEAR_FRAMES)
+diff --git a/src/juego/estado_fase.h b/src/juego/estado_fase.h
+index 379ff2a..2f329ba 100644
+--- a/src/juego/estado_fase.h
++++ b/src/juego/estado_fase.h
+@@ -38,6 +38,7 @@
+ #define FASE_SEGUNDO 60                  /* Frames por número de la cuenta atrás.         */
+ #define FASE_CONTINUE 9                  /* La cuenta empieza en 9.                       */
+ #define FASE_STAGE_CLEAR_FRAMES 180      /* STAGE CLEAR en pantalla, 3 s.                 */
++#define FASE_PREPARADOS_FRAMES 120       /* «READY?» al entrar, 2 s (ejercicio 28).       */
+ 
+ typedef enum
+ {
+@@ -45,7 +46,8 @@ typedef enum
+     FASE_PAUSA,
+     FASE_KO,                             /* Caída sin vida: el mundo sigue un momento.    */
+     FASE_GAME_OVER,                      /* «GAME OVER / CONTINUE? n».                    */
+-    FASE_STAGE_CLEAR
++    FASE_STAGE_CLEAR,
++    FASE_PREPARADOS                      /* «READY?»: al entrar, el mundo quieto 2 s.     */
+ } EstadoFaseId;
+ 
+ typedef enum
+diff --git a/src/pantallas/pantalla_fase1.c b/src/pantallas/pantalla_fase1.c
+index abdb538..a2f2ec6 100644
+--- a/src/pantallas/pantalla_fase1.c
++++ b/src/pantallas/pantalla_fase1.c
+@@ -221,6 +221,10 @@ static void aviso(void)
+     {
+         hud_debug_texto(p, "           GAME OVER");
+     }
++    else if (estado == FASE_PREPARADOS)              /* Al entrar (ejercicio 28).           */
++    {
++        hud_debug_texto(p, "             READY?");
++    }
+     else
+     {
+         hud_debug_texto(p, "          STAGE CLEAR");
+@@ -266,7 +270,11 @@ void pantalla_fase1_iniciar(void)
+     ninja_iniciar_todos(ninjas);                     /* Sin ninjas hasta la primera oleada. */
+     parada = 0;
+     a_guardada = 0;
+-    estado_fase_iniciar(&partida);
++    estado_fase_iniciar(&partida);                   /* Empieza con «READY?».               */
++#ifdef GUION_FASE1
++    partida.estado = FASE_JUGANDO;                   /* La ROM autojugable va por TIEMPO: 2 s
++                                                        quieta desfasarían toda su tabla.   */
++#endif
+     atenuada = 0;
+     cambiar_luz = 0;
+     avisos = 0;
+diff --git a/tests/prueba_estado_fase.c b/tests/prueba_estado_fase.c
+index 2c5ae49..514c2d5 100644
+--- a/tests/prueba_estado_fase.c
++++ b/tests/prueba_estado_fase.c
+@@ -21,6 +21,21 @@
+ #include "minitest.h"
+ #include "juego/estado_fase.h"
+ 
++/*--- jugando: la partida recién empezada y con el «READY?» ya pasado ---------------
++    Las pruebas de antes del ejercicio 28 partían de «iniciar = jugando». Esa regla
++    cambió; la prueba no estaba mal: describía el juego de entonces. Se actualiza
++    (empezar después del READY?), no se borra. */
++static void jugando(EstadoFase *e)
++{
++    u8 f;
++
++    estado_fase_iniciar(e);
++    for (f = 0; f < FASE_PREPARADOS_FRAMES; f++)
++    {
++        estado_fase_actualizar(e, 0, 0, 0, 0);
++    }
++}
++
+ void pruebas_estado_fase(void)
+ {
+     EstadoFase e;
+@@ -28,7 +43,7 @@ void pruebas_estado_fase(void)
+     u8 a = ACCION_NADA;
+ 
+     /* Jugando: el mundo avanza y no está atenuada. Start pausa. */
+-    estado_fase_iniciar(&e);
++    jugando(&e);
+     COMPROBAR(estado_fase_mundo_avanza(&e) && !estado_fase_atenuada(&e));
+     COMPROBAR(estado_fase_actualizar(&e, 1, 0, 0, 0) == ACCION_NADA && e.estado == FASE_PAUSA);
+     COMPROBAR(!estado_fase_mundo_avanza(&e) && estado_fase_atenuada(&e));
+@@ -45,7 +60,7 @@ void pruebas_estado_fase(void)
+     COMPROBAR(estado_fase_actualizar(&e, 0, 1, 0, 0) == ACCION_TITULO);
+ 
+     /* KO: el mundo sigue un momento y luego GAME OVER, ya atenuada. */
+-    estado_fase_iniciar(&e);
++    jugando(&e);
+     estado_fase_actualizar(&e, 0, 0, 1, 0);
+     COMPROBAR(e.estado == FASE_KO && estado_fase_mundo_avanza(&e));
+     COMPROBAR(estado_fase_actualizar(&e, 1, 0, 1, 0) == ACCION_NADA && e.estado == FASE_KO);   /* Start no pausa. */
+@@ -66,13 +81,13 @@ void pruebas_estado_fase(void)
+     }
+     COMPROBAR(a == ACCION_TITULO && f == FASE_SEGUNDO);
+     /* Start durante la cuenta: continuar. */
+-    estado_fase_iniciar(&e);
++    jugando(&e);
+     e.estado = FASE_GAME_OVER;
+     e.cuenta = 3;
+     COMPROBAR(estado_fase_actualizar(&e, 1, 0, 1, 0) == ACCION_REINICIAR);
+ 
+     /* Fase vencida: STAGE CLEAR 3 s y COMING SOON; el mundo se congela. */
+-    estado_fase_iniciar(&e);
++    jugando(&e);
+     estado_fase_actualizar(&e, 0, 0, 0, 1);
+     COMPROBAR(e.estado == FASE_STAGE_CLEAR && !estado_fase_mundo_avanza(&e) && !estado_fase_atenuada(&e));
+     a = ACCION_NADA;
+@@ -81,4 +96,19 @@ void pruebas_estado_fase(void)
+         a = estado_fase_actualizar(&e, 1, 1, 0, 1);  /* Ni Start ni Select la cortan.       */
+     }
+     COMPROBAR(a == ACCION_PROXIMAMENTE && f == FASE_STAGE_CLEAR_FRAMES);
++
++    /* READY? (ejercicio 28): al entrar, FASE_PREPARADOS_FRAMES con el mundo quieto y sin
++       media luz; nada lo corta (ni Start, ni Select, ni un KO o una fase vencida que
++       llegaran por error); después, a jugar. */
++    estado_fase_iniciar(&e);
++    COMPROBAR(e.estado == FASE_PREPARADOS);
++    COMPROBAR(!estado_fase_mundo_avanza(&e) && !estado_fase_atenuada(&e));
++    a = ACCION_NADA;
++    for (f = 1; f < FASE_PREPARADOS_FRAMES; f++)
++    {
++        a = (u8)(a | estado_fase_actualizar(&e, 1, 1, 1, 1));
++    }
++    COMPROBAR(a == ACCION_NADA && e.estado == FASE_PREPARADOS);
++    estado_fase_actualizar(&e, 0, 0, 0, 0);
++    COMPROBAR(e.estado == FASE_JUGANDO && estado_fase_mundo_avanza(&e));
+ }

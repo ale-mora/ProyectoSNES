@@ -1,0 +1,16 @@
+Resumen de la salida (513 fallos: la línea 38 es un bucle de 500 frames y falla en cada uno):
+      1 FALLO prueba_estado_fase.c:32
+      1 FALLO prueba_estado_fase.c:33
+      1 FALLO prueba_estado_fase.c:34
+    500 FALLO prueba_estado_fase.c:38
+      1 FALLO prueba_estado_fase.c:41
+      1 FALLO prueba_estado_fase.c:43
+      1 FALLO prueba_estado_fase.c:45
+      1 FALLO prueba_estado_fase.c:50
+      1 FALLO prueba_estado_fase.c:51
+      1 FALLO prueba_estado_fase.c:56
+      1 FALLO prueba_estado_fase.c:62
+      1 FALLO prueba_estado_fase.c:67
+      1 FALLO prueba_estado_fase.c:77
+      1 FALLO prueba_estado_fase.c:83
+2481 pruebas, 513 fallos

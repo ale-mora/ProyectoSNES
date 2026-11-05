@@ -1,0 +1,41 @@
+A. Los personajes como datos
+            | Tarou                  | Barbara               
+            | celda  96x64  alc.  52 | celda 112x96  alc.  60
+   guardia  | tira 14  8 cuadros x8 bucle | tira  0  8 cuadros x8 bucle
+   caminar  | tira  1  8 cuadros x6 bucle | tira  1  8 cuadros x6 bucle
+   saltar   | tira  3  3 cuadros x6       | tira  2  3 cuadros x6      
+   caer     | tira  4  3 cuadros x6       | tira  3  3 cuadros x6      
+   golpe 1  | tira 15  5 cuadros x3       | tira  4  5 cuadros x3      
+   golpe 2  | tira 16  5 cuadros x3       | tira  5  5 cuadros x3      
+   golpe 3  | tira 17  7 cuadros x3       | tira  6  7 cuadros x3      
+   recibir  | tira 18  5 cuadros x3       | tira  7  6 cuadros x3      
+   ko       | tira 19  6 cuadros x6       | tira  8  6 cuadros x6      
+
+B. Una partida, frame a frame (solo los cambios)
+   [f=  0] -> JUGANDO     accion -            mundo avanza   media luz no
+   [f=100] Start: pausa
+   [f=100] -> PAUSA       accion -            mundo quieto   media luz si
+   [f=160] Start: sigue
+   [f=160] -> JUGANDO     accion -            mundo avanza   media luz no
+   [f=300] Start: pausa otra vez
+   [f=300] -> PAUSA       accion -            mundo quieto   media luz si
+   [f=310] Select en pausa
+   [f=310] -> PAUSA       accion TITULO       mundo quieto   media luz si
+   (la pantalla sale: salir(PANTALLA_TITULO))
+
+   Otra partida: KO, GAME OVER y CONTINUE
+   [f=  0] -> JUGANDO     accion -            CONTINUE? 9
+   [f= 50] la protagonista cae KO (y sigue KO)
+   [f= 50] -> KO          accion -            CONTINUE? 9
+   [f=110] -> GAME OVER   accion -            CONTINUE? 9
+   [f=300] Start durante la cuenta
+   [f=300] -> GAME OVER   accion REINICIAR    CONTINUE? 6
+   (la pantalla sale: salir(PANTALLA_FASE1) = la fase desde el principio)
+
+   Y otra: la ultima oleada cae en el frame 20
+   [f= 20] -> STAGE CLEAR accion -   (Start en el frame 100: no corta el STAGE CLEAR)
+   [f=200] -> STAGE CLEAR accion PROXIMAMENTE
+
+C. El GAME OVER sin tocar nada
+   9@60 8@120 7@180 6@240 5@300 4@360 3@420 2@480 1@540 0@600 
+   accion TITULO en el frame 660 (11 s a 60 Hz: 1 de KO + 10 de cuenta)

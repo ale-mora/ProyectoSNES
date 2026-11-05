@@ -1,0 +1,2 @@
+normal: No warnings or errors found.
+GUION_FASE1: No warnings or errors found.

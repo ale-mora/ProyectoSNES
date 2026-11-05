@@ -1,0 +1,5 @@
+FALLO prueba_estado_fase.c:89: e.estado == FASE_PREPARADOS
+FALLO prueba_estado_fase.c:90: !estado_fase_mundo_avanza(&e) && !estado_fase_atenuada(&e)
+FALLO prueba_estado_fase.c:96: a == ACCION_NADA && e.estado == FASE_PREPARADOS
+FALLO prueba_estado_fase.c:98: e.estado == FASE_JUGANDO && estado_fase_mundo_avanza(&e)
+2481 pruebas, 4 fallos
