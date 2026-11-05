@@ -881,6 +881,8 @@ final difiere, manda el código y se corrige la ficha.
 
 ### Unidad 25 — Matemática de color, ventanas por HDMA y los efectos de los apoyos (escrita 2026-11-05 solo con la matemática de color que existe; la ficha es el plan original, el código real manda: ver el README de la unidad)
 
+> **Nota (2026-11-05):** las ventanas por HDMA ya están en el juego (canal 5, objetos opacos, `objetos_sprite.c`) y los efectos de los apoyos (mosaico, temblor) también; falta el anexo que lo cuente.
+
 - **Objetivo:** hacer con la PPU los efectos que un beat 'em up necesita:
   sombras que oscurecen, chispas translúcidas y los ataques a toda la
   pantalla de los tres apoyos, sin gastar CPU.
@@ -917,6 +919,13 @@ final difiere, manda el código y se corrige la ficha.
   `-DDESTELLO_FRAMES=63`). Ventanas, apoyos y Mode 7: «Por venir» en su README.
 
 ### Unidad 26 — Relevo y celda de VRAM compartida (por escribir)
+
+> **Nota (2026-11-05):** los **apoyos** ya existen en el código (`apoyo.c`,
+> `hud_apoyo.c`, `protagonista_sprite_cambiar`: el apoyo ocupa el lugar del
+> protagonista con el mundo congelado; Rex = mosaico, Fenrir = temblor), pero
+> el **relevo con L** sigue sin decidir y `cambio_protagonista.c` es un stub.
+> La unidad puede escribirse solo con la parte de los apoyos (celda prestada,
+> paleta 0 cambiada en el VBlank) y dejar el relevo para después.
 
 - **Objetivo:** cambiar de protagonista en mitad de la pelea sin que la VRAM
   ni el presupuesto de sprites lo noten.
@@ -1332,3 +1341,4 @@ las pantallas de imagen (scroll vertical −1, §6.6).
 | 26 | **por escribir** cuando exista el relevo (`cambio_protagonista.c`; Bárbara ya es jugable, pero se elige antes de la fase) |
 | 27 | **hecha** (2026-11-05); demo que lee `res/aldea/` + parte A en Python con TDD (7 fallos → 9 OK) + parte B en clon (farol en x = 300: juntados 89 → 113; ROM sin avisos). Mesen: **verificada** (el farol tapa a Tarou, con la franja de la celda) |
 | 28 | **hecha** (2026-11-05); demo con `personaje.c` y `estado_fase.c` reales + TDD en clon («READY?»: 4 → 513 → 2481/0; dos ROM sin avisos). Mesen: **verificada** (READY? y Start sin pausa) |
+| — | **Sin unidad (estado 2026-11-05, código posterior a 6845b5f).** Ninguna unidad enseña aún: (1) los cuatro escenarios y las oleadas por escenario (`oleadas.c`, `scripts/preparar_zona.py`, re-entrada en `PANTALLA_FASE1`) → anexo de la 27 y de la 28; (2) las escenas de texto (`dialogo.c`) → anexo de la 28; (3) los apoyos (`apoyo.c`, `hud_apoyo.c`, `protagonista_sprite_cambiar`) → unidad 26; (4) las ventanas de color por HDMA (canal 5) que vuelven opacos los objetos (`objetos_sprite.c`) → anexo de la 25 o de la 12; (5) el primer plano sin prioridad al borde trasero del carril (`FRENTE_PIE`, `FRENTE_PRIORIDAD = 0`) → anexo de la 27 (hoy enseña lo contrario) y de la 22; (6) saltar la introducción con Start o A → anexo de la 28. Las secciones «Por venir» de las 25, 27 y 28 nombran como futuro cosas que ya existen (ventanas, otras zonas, objetos rompibles): revisarlas al escribir los anexos |

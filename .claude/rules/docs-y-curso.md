@@ -1,0 +1,11 @@
+---
+paths:
+  - "docs/**"
+  - "aprendizaje/**"
+---
+
+# Documentación y curso (aprendizaje/)
+
+> Movido verbatim desde `CLAUDE.md` el 2026-11-05 (ordenar-memoria-repo). Rutas relativas a la raíz del repo. El resto de lo que estaba en `CLAUDE.md` sigue allí; lo movido quedó así: la crónica del juego y de las ROMs en `docs/estado/fase1-y-roms.md`, las trampas del código en `.claude/rules/codigo-snes.md`, los assets en `.claude/rules/assets.md` y el detalle de `docs/` y `aprendizaje/` en `.claude/rules/docs-y-curso.md`.
+
+- `docs/` — `README.md` (index), the three design specs (boot sequence, Revisión 1, the tutorial), the plan, the glossary and the four reference docs (file map, build pipeline, Mesen, hardware). `aprendizaje/` is the course for whoever inherits the project: `aprendizaje/README.md` is the entry point (with the table of units and the prompt to revise one) and `aprendizaje/PLAN.md` is the full spec: 29 units: 00–20 written on 2026-10-22 against the platformer code (the practices of the historical ones, 01/02/10/11/20, clone at the tag `plataformas-r2`), 21–24 for the beat 'em up (written 2026-10-26 against commit 641d7c0; practices in a clone of the main branch), 25 (colour math: shadow, pause half-light, translucency, a hit flash exercise), 27 (the hand-made village background) and 28 (selector, characters as data, the match state machine) written 2026-11-05 against 6845b5f with Mesen captures, plus a «qué cambió después» annex at the end of 19, 21, 22 and 24; 26 (the tag switch) still to be written once its code exists (00–20; programming the SNES in C with PVSnesLib, plus 65816 assembly in 14–15; unit 17 is audio from C), their format, verified recipes (mini-ROM build, viewing the `.asm` of a `.c`), known traps and a status table. `aprendizaje/pvsneslib.md` indexes every library function used, with its unit and the game file that uses it. Every unit's exercises were run when it was written. The Mesen captures are still pending; `aprendizaje/tanda_mesen.ps1` takes them from the ROMs in `E:\ProyectoSNES_trabajo\roms\` (~20 min, hands off the PC). Exercises on the real game are done in a clone (`git clone E:\ProyectoSNES E:\ProyectoSNES_trabajo\<name>`), never in the main tree.

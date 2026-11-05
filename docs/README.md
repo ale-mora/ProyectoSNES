@@ -25,12 +25,19 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
 
 - **`diseno-beat-em-up.md`** — La especificación de la **Revisión 3** (vigente):
   el juego pasa a ser un beat 'em up de carril con Tarou y Bárbara, relevo,
-  combate estilo *Final Fight*, 3 apoyos, la fase 1 (aldea, bosque, santuario,
+  combate estilo *Final Fight*, 3 apoyos, la fase 1 (aldea, bosque, monasterio,
   dojo) y el presupuesto de hardware que manda (ranuras por línea, VRAM de
-  sprites, VBlank), con la prueba de carga que va primero.
+  sprites, VBlank), con la prueba de carga que va primero. Abre con el estado
+  de la implementación (qué está hecho y qué falta a 2026-11-05).
+- **`estado/fase1-y-roms.md`** — El estado y la crónica del juego: un
+  resumen de lo que hace la ROM hoy (2026-11-05) y, debajo, la crónica
+  detallada del arranque, la prueba de carga, el selector, la fase 1 entera y
+  el cambio de género. Movido desde `CLAUDE.md` el 2026-11-05; la fuente de
+  verdad de «qué hace el juego ahora».
 - **`arte-beat-em-up.md`** — La lista de trabajo del arte de la Revisión 3:
   animaciones por personaje, enemigos, apoyos, objetos, escenografía por zona,
-  HUD e intro, cada pieza con el truco de la SNES que usa y su estado.
+  HUD e intro, cada pieza con el truco de la SNES que usa y su estado (con una
+  nota del 2026-11-05 de lo hecho y lo flojo).
 - **`pixellab-fase1.md`** — El encargo de Pixellab de la fase 1: por personaje
   y por zona, la celda, la altura de la figura, la paleta, las animaciones con
   su número de cuadros y un prompt en inglés para cada una, más las preguntas
@@ -74,6 +81,16 @@ el glosario: cuando un documento dice «→ glosario: X», la definición está 
   **`../res/descargas/graficos/pixellab/*/README.md`** — Qué material de
   terceros hace falta, dónde dejarlo y cómo exportar desde Pixellab (el
   personaje en `pixellab/tarou/`, el tileset del suelo en `pixellab/suelo/`).
+
+## Memoria de Claude Code y su presupuesto
+
+- **`../CLAUDE.md`** es la portada que Claude Code carga siempre; lo que
+  pesa se movió a `estado/` (crónica) y a `../.claude/rules/`.
+- **`../.claude/rules/`** guarda las reglas que Claude Code carga según la
+  ruta que toca: `codigo-snes.md` (trampas del código), `assets.md` (la
+  tubería de arte) y `docs-y-curso.md` (el detalle de `docs/` y `aprendizaje/`).
+- **`../scripts/revisar_presupuesto_docs.py`** comprueba que `CLAUDE.md` no
+  pase de 40 KB y que las reglas no pasen de 50 KB.
 
 ## Reglas de la casa que todos los documentos asumen
 

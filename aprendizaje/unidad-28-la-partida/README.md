@@ -198,6 +198,8 @@ tiempo. Solución: `solucion/`.
 
 ## Por venir (no enseñar como hecho)
 
+> Al día (2026-11-05): después del commit de esta unidad ya existen los cuatro escenarios que se cargan uno tras otro, las escenas de texto (`juego/dialogo.c`), los apoyos (`juego/apoyo.c`) y el STAGE CLEAR tras el jefe. Siguen sin unidad: ver «Sin unidad todavía» en `aprendizaje/README.md`.
+
 | Lo que dicen la spec y el plan | Estado hoy |
 |---|---|
 | El relevo DKC en mitad de la pelea (L), con las dos barras de vida (unidad 26) | no existe: el selector elige una sola |

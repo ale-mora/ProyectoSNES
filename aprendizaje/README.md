@@ -25,6 +25,22 @@ todavía).
 > después» al final de su README. La 26 se escribirá cuando exista el relevo
 > (`PLAN.md` §3).
 
+> **Sin unidad todavía (código de 2026-11-05 posterior a las unidades
+> 25/27/28).** Estas funciones ya están en el juego y ninguna unidad las
+> enseña; las unidades que las mencionan como «por venir» (25, 27, 28)
+> quedan desfasadas en ese punto. Dónde encajarían:
+>
+> | Función del juego | Dónde encajaría |
+> |---|---|
+> | Ventanas de color por HDMA para objetos opacos (`objetos_sprite.c`, canal 5) | anexo de la 25 (las ventanas son lo que su «por venir» promete) o la 12 (HDMA) |
+> | Cuatro escenarios y oleadas por escenario (`oleadas.c`, `preparar_zona.py`, re-entrada en `PANTALLA_FASE1`) | anexo de la 27 (fondos por escenario) y de la 28 (partida y estado entre escenarios) |
+> | Primer plano sin prioridad, al borde trasero del carril (`FRENTE_PIE`) | anexo de la 27, que enseña lo contrario (prioridad que tapa); también la 22 |
+> | Escenas de texto (`dialogo.c`) | anexo de la 28 |
+> | Apoyos (`apoyo.c`, `hud_apoyo.c`, `protagonista_sprite_cambiar`: el apoyo ocupa el lugar del protagonista, mosaico y temblor) | la **26**, que sigue por escribir; el relevo con L aún no existe |
+> | Saltar la introducción con Start o A | anexo de la 28 (si se quiere) |
+>
+> Detalle y estado en [`PLAN.md`](PLAN.md) §7.
+
 - **El plan** (formato de una unidad, dependencias, recetas verificadas,
   trampas conocidas y estado): [`PLAN.md`](PLAN.md).
 - **La librería**: [`pvsneslib.md`](pvsneslib.md) relaciona cada función de
@@ -70,7 +86,7 @@ sobre el juego de las unidades 00–20.
 | [23](unidad-23-combate/) | Combate: combo con cola e id por tajo, caja de golpe, estados que se afectan, parada de impacto y buffer | PC + juego (TDD) |
 | [24](unidad-24-enemigos-y-oleadas/) | Enemigos y oleadas: el ninja, el testigo de ataque y el bloqueo de cámara (anexo: tres tipos de ninja) | PC + juego (TDD) |
 | [25](unidad-25-matematica-de-color/) | Matemática de color: la sombra, la media luz de la pausa, lo translúcido y un destello (ventanas, apoyos y Mode 7: por venir) | PC + juego (TDD) + Mesen |
-| 26 | Relevo entre protagonistas y celda de VRAM compartida | **por escribir** |
+| 26 | Relevo entre protagonistas y celda de VRAM compartida (candidata también a los apoyos, que ya existen; el relevo con L no) | **por escribir** |
 | [27](unidad-27-la-aldea-hecha-a-mano/) | Un fondo hecho a mano: tiles con volteos, dos paletas, el límite de 512, prioridad del mapa, animación de tiles y los sprites del decorado | PC (Python, TDD) + juego + Mesen |
 | [28](unidad-28-la-partida/) | La partida: personajes como datos, instancias de dibujo, el selector y la máquina de pausa, GAME OVER y STAGE CLEAR | PC + juego (TDD) + Mesen |
 

@@ -229,6 +229,8 @@ Solución: `solucion/`.
 
 ## Por venir (no enseñar como hecho)
 
+> Al día (2026-11-05): después del commit de esta unidad ya existen las ventanas de color por HDMA que dejan opacos los objetos (`src/objetos/objetos_sprite.c`) y los efectos de los apoyos (mosaico de Rex, temblor de Fenrir). Siguen sin unidad: ver «Sin unidad todavía» en `aprendizaje/README.md`.
+
 | Lo que dice la ficha / la spec | Estado hoy |
 |---|---|
 | Ventanas 1 y 2 por HDMA (tajos de luz en diagonal) | no existe en el combate (la ventana por HDMA sí, en el brillo del logo: unidad 12) |

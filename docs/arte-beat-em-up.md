@@ -10,6 +10,30 @@ máquina. Cada fila tiene una casilla de estado para ir marcándola.
 Leyenda de estado: `[ ]` por pedir · `[~]` placeholder · `[x]` arte real en
 el juego · `♻` se reutiliza lo que ya hay.
 
+## Estado del arte (2026-11-05)
+
+Lo que ya está en el juego (las tablas de abajo conservan el plan original;
+donde una fila dice `[ ]` y esta nota dice lo contrario, manda esta nota):
+
+- **Zonas**: fondos del bosque, el monasterio y el dojo (`res/zonas/`, de
+  `scripts/preparar_zona.py`) y la aldea (`res/aldea/`), con cielo HDMA y capa
+  lejana propios; objetos rompibles, comida, armas y efectos en `res/objetos/`.
+- **Enemigos**: ninja normal, mediano y grande; **ninja rápido** (recoloreado
+  del normal, `res/personajes/ninja_rapido/`); **kendoka** (bloquea y agarra)
+  y el jefe **Gomasuri-dono** (guardia, caminar, carga, tajo, convocar,
+  recibir, derribado, levantarse, KO).
+- **Apoyos**: Lucinda, Rex y Fenrir con **entrada y ataque** cada uno.
+- **Tarou**: además de las tiras de combate, `golpe_4`, `levantarse`,
+  `derribado` y `victoria`.
+- **Bárbara**: tiras para todo el juego (golpes 1–3, aéreo, agarre, golpe de
+  agarre, lanzamiento, derribada, levantarse, KO, victoria, lanzar arma,
+  especial); no se ha revisado cuáles son de sustitución.
+
+**Falta o es flojo (arte de sustitución)**: de Tarou, ataque aéreo, agarre,
+golpe de agarre, lanzamiento, especial y lanzar arma; la **meditación de
+Rex**; el resto de los pendientes siguen como dice cada tabla (retratos,
+iconos del HUD, el Señor Pimentón, intro final, trucos de BG2 y Mode 7).
+
 Los encargos concretos para Pixellab (celda, altura de la figura, paleta,
 prompts en inglés y preguntas abiertas) están en
 [`pixellab-fase1.md`](pixellab-fase1.md). Este documento sigue siendo la lista
@@ -60,24 +84,24 @@ de qué arte hace falta y para qué truco de hardware.
 | saltar / caer | 3 + 3 | Jump | ♻ |
 | desenvainar / envainar | 9 + 9 | Unsheathe (y al revés) | ♻ |
 | recoger / comer | 1–3 | Sneak, cuadro 0 (agachado) | ♻ provisional |
-| levantarse | 6–10 | Stand_up (se desenrosca: sirve de levantarse, provisional) | ♻ provisional |
+| levantarse | 6–10 | Stand_up (se desenrosca: sirve de levantarse, provisional) | [x] tira propia `levantarse` |
 | guardia (respira) | 4 | hoy es la pose fija Fight_Pose | [ ] |
 | caminar en guardia | 8 | | [ ] |
 | golpe 1 / 2 / 3 (cortes) | 4 / 4 / 5 | hoy solo hay poses fijas (Attack_1, Attack_2) | [ ] |
-| golpe 4: mordisco (derriba) | 6 | | [ ] |
+| golpe 4: mordisco (derriba) | 6 | | [x] |
 | ataque aéreo | 4 | | [ ] |
 | agarre (sujetar) | 2 | | [ ] |
 | golpe de agarre (zarpazo) | 3 | | [ ] |
 | lanzamiento | 6 | | [ ] |
 | agarrado (por el kendoka) | 2 | | [ ] |
 | recibir golpe | 2 | | [ ] |
-| derribado (vuela y cae) / en el suelo | 5 / 1 | también sirve para *lanzado* | [ ] |
+| derribado (vuela y cae) / en el suelo | 5 / 1 | también sirve para *lanzado* | [x] derribado; el suelo, por revisar |
 | especial A+B: giro con la espada | 8 | | [ ] |
 | lanzar arma arrojadiza | 4 | | [ ] |
 | entrada de relevo (cae y golpea) | 6 | | [ ] |
 | invocar apoyo (llamada) | 4 | | [ ] |
 | KO | 6 | | [ ] |
-| victoria | 6 | | [ ] |
+| victoria | 6 | | [x] |
 | **Se retiran** | — | agachado, agachado_caminar, echarse, dormido, despertar, atacar (pose fija) | — |
 
 ### 1.2 Bárbara: 64×96, katana, alcance
@@ -142,7 +166,7 @@ CGRAM al aparecer.
 
 | Personaje | Celda | Animaciones | Estado |
 |---|---|---|---|
-| Lugarteniente (jefe de la fase 1) | 96×96 a medir en la prueba de carga (sale con como mucho 1 ninja básico, que deja VRAM libre) | guardia 4, caminar 8, carga 6, tajo de alcance 6, convocar 4, recibir 2, derribado 5, levantarse 6, derrota 8, entrada 6 | [ ] |
+| Lugarteniente = **Gomasuri-dono** (jefe de la fase 1) | 96×96 a medir en la prueba de carga (sale con como mucho 1 ninja básico, que deja VRAM libre) | guardia 4, caminar 8, carga 6, tajo de alcance 6, convocar 4, recibir 2, derribado 5, levantarse 6, derrota 8, entrada 6 | [x] sin la entrada |
 | Villano | 64×96 | solo en escenas: aparece 4, coge el juguete 4, huye 6 | [ ] |
 
 ## 3. Apoyos
@@ -152,9 +176,9 @@ segunda celda del protagonista (128 tiles) está libre para ellos.
 
 | Apoyo | Celda | Animaciones | Estado |
 |---|---|---|---|
-| Gata samurái (muy rápida) | 64×64 | entrada 3, tajo ×3 (6), salida 3; escena: guardia 4 + saludo 4 | [ ] |
-| Perro monje (telépata) | 96×64 | entrada 4, concentración 6 (bucle), soltar 4, salida 3; escena: guardia 4 + saludo 4 | [ ] |
-| Perro bruto (embiste) | 96×64 | carrera 8 (bucle), choque 4, salida 3; escena: guardia 4 + saludo 4 | [ ] |
+| Gata samurái (muy rápida) = **Lucinda** | 64×64 | entrada 3, tajo ×3 (6), salida 3; escena: guardia 4 + saludo 4 | [x] entrada + ataque |
+| Perro monje (telépata) = **Rex** | 96×64 | entrada 4, concentración 6 (bucle), soltar 4, salida 3; escena: guardia 4 + saludo 4 | [x] entrada + ataque; [~] la meditación |
+| Perro bruto (embiste) = **Fenrir** | 96×64 | carrera 8 (bucle), choque 4, salida 3; escena: guardia 4 + saludo 4 | [x] entrada + ataque |
 | Iconos de apoyo en el HUD | 16×16 | 3 + marco de selección | [ ] |
 
 ## 4. Objetos, efectos y armas (sprites pequeños)
@@ -166,11 +190,11 @@ segunda celda del protagonista (128 tiles) está libre para ellos.
 | chispa de golpe / golpe fuerte | 16×16 / 32×32 | 3 / 4 | 5 (translúcida; dibujarla clara) | [ ] |
 | nube de relevo | 32×32 | 5 | 5 | [ ] |
 | polvo (derribo, bruto) | 16×16 | 4 | 4 | [ ] |
-| shuriken (en vuelo, en el suelo) | 16×16 | 2 + 1 | 7 | [ ] |
+| shuriken (en vuelo, en el suelo) | 16×16 | 2 + 1 | 7 | [x] |
 | kunai (en vuelo, en el suelo) | 16×16 | 1 + 1 | 7 | [ ] |
-| onigiri (cura poco) / pescado asado (cura mucho) | 16×16 | 1 / 1 | 7 | [ ] |
+| onigiri (cura poco) / pescado asado (cura mucho) | 16×16 | 1 / 1 | 7 | [x] |
 | vida extra (cabeza de Tarou) | 16×16 | 2 (brilla) | 7 | [ ] |
-| barril, caja de madera, jarra de sake | 32×32 | intacto + rotura 3 | 7 | [ ] |
+| barril, caja de madera, jarra de sake | 32×32 | intacto + rotura 3 | 7 | [x] (opacos con ventanas de color por HDMA, canal 5) |
 | farol de papel (aldea), puerta shoji (dojo) | 32×64 | intacto + rotura 3 | 7 | [ ] |
 | «GO →» | 32×16 | 2 (parpadeo) | 5 | [ ] |
 | hojas / pétalos / luciérnagas | dibujo pequeño en pieza de 16×16 | 2–3 | 7 (translúcidas) | [ ] |

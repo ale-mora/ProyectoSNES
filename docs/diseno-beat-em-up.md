@@ -2,14 +2,16 @@
 
 **Proyecto:** _Tarou: A Dog's Journey_ · **Etapa del plan:** 2–3 (Prototipo →
 Vertical Slice) · **Revisión:** 3 · **Fecha de esta versión:** 2026-10-23 ·
-**Estado:** diseño acordado con el autor, sin código. Lo primero que se
-construye es la ROM de prueba de carga (§9).
+**Estado:** diseño acordado con el autor y, desde el 2026-10-24, **con código**:
+la fase 1 está implementada de principio a fin (ver «Estado de la
+implementación» más abajo). La ROM de prueba de carga (§9) fue lo primero que
+se construyó.
 
 El juego deja de ser un plataformas de scroll lateral y pasa a ser un **beat
 'em up clásico de carril en profundidad** (*belt-scroll*: *Final Fight*,
 *Streets of Rage*), con los dos protagonistas, Tarou y Bárbara, y un relevo
 entre ellos al estilo de *Donkey Kong Country*. La Revisión 3 entrega la
-**fase 1 completa**: aldea → bosque → santuario → dojo, con el jefe.
+**fase 1 completa**: aldea → bosque → monasterio → dojo, con el jefe.
 
 La Revisión 2 (el tutorial de plataformas) queda congelada en el tag
 **`plataformas-r2`** (commit `480f373`). Sus documentos (`diseno-demo-jugable.md`,
@@ -24,6 +26,47 @@ y del truco de hardware que usa cada pieza está en
 > este documento: *belt-scroll*, *carril*, *profundidad*, *zona*, *oleada*,
 > *relevo*, *apoyo*, *barra de ataque*, *caja de golpe*, *caja de daño*,
 > *derribo*, *agarre*, *parada de impacto*, *prueba de carga*.
+
+## Estado de la implementación (2026-11-05)
+
+Lo que hace la ROM hoy está resumido en
+[`estado/fase1-y-roms.md`](estado/fase1-y-roms.md) (fuente de verdad) y la
+arquitectura real, archivo por archivo, en `mapa-de-archivos.md`. Los
+apartados de abajo siguen siendo el diseño; donde el código se apartó de él,
+cada sección lo dice o lo dice esta tabla.
+
+**Hecho**
+
+| Tema | Estado |
+|---|---|
+| Escenarios (§7) | Cuatro, cargados uno tras otro volviendo a entrar en `PANTALLA_FASE1` con la vida y el arma de antes: aldea (2048 px) → bosque → monasterio → dojo (1024 px cada uno; `scripts/preparar_zona.py` → `res/zonas/`). Oleadas por escenario en `oleadas.c`; CONTINUE reinicia el escenario. Fondo lejano y cielo HDMA propios de cada uno |
+| Enemigos (§6) | Ninja normal, mediano y grande; ninja rápido con shuriken (recoloreado); kendoka que bloquea y agarra; jefe Gomasuri-dono con carga y convocatoria |
+| Protagonistas (§4, §5) | Tarou y Bárbara elegibles en el selector (se juega con uno por partida). Combo de 4 golpes (Tarou) / 3 (Bárbara), correr, ataque aéreo, agarre y lanzamiento, especial A+B que cuesta vida, lanzar el arma |
+| Combate (§5) | Destello al ser golpeado e invulnerabilidad al levantarse; parada de impacto; rompibles, comida y armas |
+| Apoyos (§5.4) | Escena de texto de Rex en el monasterio (`dialogo.c`); desde ahí la barra de apoyo (`apoyo.c`): R recorre Lucinda, Rex y Fenrir, X invoca; el apoyo sustituye al protagonista en pantalla con el mundo congelado; Rex = mosaico, Fenrir = temblor |
+| Final de fase | Escena del jefe vencido, pose de victoria, «STAGE CLEAR» y «STAGE 2 / COMING SOON» |
+| Fondos y objetos | El «frente» (faroles, barriles) está al borde trasero del carril y **sin prioridad** (antes tapaba a los personajes); los objetos son opacos gracias a ventanas de color por HDMA (canal 5) |
+| Arranque | La introducción se salta con Start o A |
+| Partida | Pausa, GAME OVER con cuenta atrás, vida de Tarou y barra en el HUD |
+
+**Pendiente**
+
+- **El relevo con L** entre Tarou y Bárbara (§4): sin decidir; hoy se elige
+  un solo personaje en el selector y `cambio_protagonista.c` sigue siendo un stub.
+- **Audio** (fuera de alcance, §11) y el **HUD definitivo** (otra sesión).
+- **Arte flojo o de sustitución**: de Tarou, ataque aéreo, agarre, golpe de
+  agarre, lanzamiento, especial y lanzar arma; de Rex, la meditación.
+- Mode 7 de la activación de la barra, ventana de halo, ondulación del bambú
+  y demás trucos de §5 de `arte-beat-em-up.md` que no estén en la tabla de arriba.
+
+**Dónde el código se apartó del diseño**
+
+- **Tiled no se usó para las zonas** (decisión 28, §7, `res/nivel1/tutorial.tmj`
+  quedó solo para el plataformas): los puntos de bloqueo, las oleadas y los
+  objetos son tablas en C (`oleadas.c`, `objetos`) y la configuración de
+  cada zona está en `scripts/preparar_zona.py`, que genera `res/zonas/`.
+- La zona 4 no se divide en puerta exterior e interior: es un solo escenario
+  con kendoka y jefe.
 
 ## 0. Historial
 
@@ -236,6 +279,9 @@ calculan cajas de golpe.
 (más vida, más rápido) sin arte nuevo.
 
 ## 7. La fase 1 y Tiled
+
+> **Estado (2026-11-05):** las cuatro zonas existen, pero **sin Tiled**: ver
+> «Estado de la implementación». El resto de esta sección es el diseño original.
 
 | Zona | Qué pasa | Oleadas |
 |---|---|---|
@@ -573,6 +619,15 @@ de su tabla de piezas. El HUD no lo veía: la escena hay que mirarla.)
    la fase del beat 'em up (decisión del autor, 2026-10-23).
 
 ## 10. Arquitectura (qué cambia en `src/`)
+
+> **Estado (2026-11-05):** hecho `mundo.c`, `combate.c`, `enemigos/ninja.c`
+> (también lleva a los kendoka y al jefe; no hay `jefe.c`), `oleadas.c`,
+> los objetos (`objetos_sprite.c`), `apoyo.c`, `dialogo.c`,
+> `hud/hud_juego.c`, `hud/hud_apoyo.c` y `pantalla_fase1.c`, con
+> `protagonista_sprite.c`. Faltan `cambio_protagonista.c` y `barbara.c` como
+> relevo (stubs; Bárbara se juega por el selector), y no hubo
+> `pantalla_santuario.c` (la escena de Rex va dentro de la fase). Las
+> pruebas del PC cubren `mundo`, `combate`, `oleadas` y el resto de la lógica pura.
 
 | Se queda | Cambia | Sale | Nuevo |
 |---|---|---|---|

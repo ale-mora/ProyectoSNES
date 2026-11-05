@@ -261,6 +261,8 @@ cuesta en tiles y compruébalo en Mesen.
 
 ## Por venir (no enseñar como hecho)
 
+> Al día (2026-11-05): después del commit de esta unidad ya existen el bosque, el monasterio y el dojo (`scripts/preparar_zona.py`), los objetos rompibles y el «frente» movido al fondo del carril sin prioridad. Siguen sin unidad: ver «Sin unidad todavía» en `aprendizaje/README.md`.
+
 | Lo que dicen `docs/arte-beat-em-up.md` §5 y `docs/pixellab-fase1.md` §6 | Estado hoy |
 |---|---|
 | Bosque de bambú, monasterio, dojo (otras zonas con su tileset) | no existe: toda la fase es la aldea |
